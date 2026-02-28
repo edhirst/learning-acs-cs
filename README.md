@@ -57,8 +57,13 @@ pip install -r environment/requirements.txt
 
 ```bash
 # Train on sphere (default config = S²)
-python train.py --config configs/config_sphere6.yaml
+python train.py --config configs/config_sphere2.yaml
 
 # Evaluate checkpoint
 python evaluate.py outputs/<timestamp>/checkpoints/best_model.pt
+```
+
+## BibTeX Citation  
+``` 
+raise NotImplementedError("Paper yet to be posted.")
 ```
