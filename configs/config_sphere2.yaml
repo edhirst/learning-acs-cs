@@ -1,0 +1,45 @@
+# Configuration for 2-sphere (S²)
+
+geometry:
+  manifold_type: "sphere"
+  dimension: 2  # S^2 - 2-sphere
+
+network:
+  hidden_layers: [64, 128, 64]
+  activation: "gelu"
+  use_fourier_features: true
+  fourier_scale: 1.0
+  num_fourier_features: 32
+  initialization: "xavier"
+
+training:
+  epochs: 500
+  batch_size: 512
+  learning_rate: 1.0e-3
+  scheduler: "cosine"
+  scheduler_params:
+    T_max: 500
+    eta_min: 1.0e-6
+  optimizer: "adam"
+  weight_decay: 1.0e-5
+  batch_size_val: 1024
+  validation_split: 0.1
+  validation_interval: 50
+
+loss_weights:
+  nijenhuis: 1.0
+  overlap: 1.0
+  overlap_size: 0.1
+
+logging:
+  log_interval: 10
+  checkpoint_interval: 500
+  save_dir: "outputs"
+
+seed: 42
+
+advanced:
+  use_mixed_precision: false
+  gradient_clipping: 1.0
+  early_stopping: true
+  early_stopping_patience: 1000

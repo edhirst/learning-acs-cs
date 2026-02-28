@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Training outputs
+outputs/**
+
+# TensorBoard
+events.out.tfevents.*
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+.github/
