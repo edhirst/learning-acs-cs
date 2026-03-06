@@ -42,7 +42,7 @@ $$L_\text{overlap} = \|F(x_1)J_1 F(x_1)^{-1} - J_2\|^2 + \|F(x_2)J_2 F(x_2)^{-1}
 
 ## Setup
 
-See [environment/](environment/) for conda and pip instructions.
+See [environment/](environment/) for setup instructions.
 
 ## Usage
 

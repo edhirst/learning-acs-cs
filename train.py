@@ -17,6 +17,65 @@ from src.models import TwoPatchAlmostComplexNet
 from src.loss import TotalLoss
 
 
+class FractionalCosineAnnealingWarmRestarts(torch.optim.lr_scheduler.LRScheduler):
+    """Cosine annealing with warm restarts supporting non-integer T_mult.
+
+    Cycle lengths are int(T_0 * T_mult^n) for n = 0, 1, 2, … so T_mult
+    may be any float >= 1.  Restart epochs are precomputed up to max_epochs.
+    """
+
+    def __init__(
+        self,
+        optimizer: torch.optim.Optimizer,
+        T_0: int,
+        T_mult: float = 2.0,
+        eta_min: float = 0.0,
+        max_epochs: int = 100_000,
+        last_epoch: int = -1,
+    ):
+        if T_0 < 1:
+            raise ValueError(f"T_0 must be >= 1, got {T_0}")
+        if T_mult < 1.0:
+            raise ValueError(f"T_mult must be >= 1.0, got {T_mult}")
+        self.T_0    = T_0
+        self.T_mult = T_mult
+        self.eta_min = eta_min
+
+        # Precompute cumulative restart epochs and per-cycle lengths.
+        self._restarts: list[int] = []  # epoch at which each cycle starts
+        t = 0
+        n = 0
+        while t < max_epochs:
+            self._restarts.append(t)
+            t += max(1, int(T_0 * T_mult ** n))
+            n += 1
+
+        super().__init__(optimizer, last_epoch=last_epoch)
+
+    def _cycle_info(self, epoch: int) -> tuple[int, int]:
+        """Return (T_cur, T_i) for the given epoch."""
+        # Find which cycle we're in.
+        idx = 0
+        for i in range(len(self._restarts) - 1):
+            if self._restarts[i] <= epoch < self._restarts[i + 1]:
+                idx = i
+                break
+        else:
+            idx = len(self._restarts) - 1
+        T_cur = epoch - self._restarts[idx]
+        if idx + 1 < len(self._restarts):
+            T_i = self._restarts[idx + 1] - self._restarts[idx]
+        else:
+            T_i = max(1, int(self.T_0 * self.T_mult ** idx))
+        return T_cur, T_i
+
+    def get_lr(self) -> list[float]:  # type: ignore[override]
+        T_cur, T_i = self._cycle_info(self.last_epoch)
+        return [
+            self.eta_min + (base_lr - self.eta_min) * (1 + np.cos(np.pi * T_cur / T_i)) / 2
+            for base_lr in self.base_lrs
+        ]
+
 class Trainer:
     """Training manager for almost complex structure learning."""
     
@@ -31,7 +90,12 @@ class Trainer:
         np.random.seed(self.config['seed'])
         
         # Setup device
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        if torch.cuda.is_available():
+            self.device = torch.device('cuda')
+        elif torch.backends.mps.is_available():
+            self.device = torch.device('mps')
+        else:
+            self.device = torch.device('cpu')
         print(f"Using device: {self.device}")
         
         # Setup geometry
@@ -103,11 +167,12 @@ class Trainer:
             )
         elif sched_name == 'cosine_restarts':
             params = self.config['training']['scheduler_params']
-            return optim.lr_scheduler.CosineAnnealingWarmRestarts(
+            return FractionalCosineAnnealingWarmRestarts(
                 self.optimizer,
-                T_0=params['T_0'],
-                T_mult=params.get('T_mult', 2),
-                eta_min=params['eta_min']
+                T_0=int(params['T_0']),
+                T_mult=float(params.get('T_mult', 2)),
+                eta_min=float(params['eta_min']),
+                max_epochs=self.config['training']['epochs'],
             )
         elif sched_name == 'step':
             return optim.lr_scheduler.StepLR(
