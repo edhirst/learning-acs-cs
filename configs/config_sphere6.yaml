@@ -13,13 +13,13 @@ network:
   initialization: "xavier"
 
 training:
-  epochs: 200
-  batch_size: 2000
+  epochs: 1000
+  batch_size: 5000
   learning_rate: 5.0e-4
   scheduler: "cosine_restarts"
   scheduler_params:
-    T_0: 500    # initial restart period (epochs)
-    T_mult: 2   # period doubles after each restart: 500, 1000, 2000, …
+    T_0: 300   
+    T_mult: 2  
     eta_min: 1.0e-7
   optimizer: "adamw"
   weight_decay: 1.0e-4
@@ -34,8 +34,8 @@ pretraining:
   pretrain_points: 2048
 
 loss_weights:
-  nijenhuis: 0.0
-  overlap: 1.0
+  nijenhuis: 1.0
+  overlap: 3.0
   overlap_size: 0.1
 
 logging:
