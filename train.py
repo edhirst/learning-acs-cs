@@ -326,7 +326,7 @@ class Trainer:
         self.model.eval()
         x = self.sphere.sample_points_patch1(test_size).to(self.device)
         J1, J2, x1, x2 = self.model(x)
-        _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True)
+        _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True, report_all=True)
         self.model.train()
 
         result = {k: float(v) for k, v in info.items()}

@@ -279,6 +279,7 @@ class TotalLoss(nn.Module):
         x2:    torch.Tensor,
         model: nn.Module,
         hard_cutoff: bool = False,
+        report_all: bool = False,
     ) -> Tuple[torch.Tensor, Dict]:
         """
         Compute total weighted loss.
@@ -291,6 +292,8 @@ class TotalLoss(nn.Module):
             model: TwoPatchAlmostComplexNet instance.
             hard_cutoff: If True, apply binary geometric masks instead of
                 soft Gaussian weights. Use for validation and test evaluation.
+            report_all: If True, compute all components regardless of their
+                weight (for test evaluation). Weights still scale total_loss.
 
         Returns:
             total_loss: Weighted sum of all loss terms.
@@ -301,14 +304,14 @@ class TotalLoss(nn.Module):
 
         zero = J1.sum() * 0.0
 
-        if w_nij != 0.0:
+        if w_nij != 0.0 or report_all:
             nij1, info1 = self.nij_loss(x1, model.patch1, hard_cutoff=hard_cutoff)
             nij2, info2 = self.nij_loss(x2, model.patch2, hard_cutoff=hard_cutoff)
         else:
             nij1 = nij2 = zero
             info1 = info2 = {'nij_norm': 0.0, 'nij_max': 0.0}
 
-        if w_overlap != 0.0:
+        if w_overlap != 0.0 or report_all:
             overlap, info_ov = self.overlap_loss(J1, J2, x1, x2, hard_cutoff=hard_cutoff)
         else:
             overlap = zero
