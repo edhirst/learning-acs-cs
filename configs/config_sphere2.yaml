@@ -2,39 +2,46 @@
 
 geometry:
   manifold_type: "sphere"
-  dimension: 2  # S^2 - 2-sphere
+  dimension: 2 
 
 network:
-  hidden_layers: [64, 128, 64]
+  hidden_layers: [64, 128, 128, 64]
   activation: "gelu"
   use_fourier_features: true
   fourier_scale: 1.0
-  num_fourier_features: 32
+  num_fourier_features: 16
   initialization: "xavier"
 
 training:
-  epochs: 500
-  batch_size: 512
+  epochs: 1000
+  batch_size: 50000
   learning_rate: 1.0e-3
   scheduler: "cosine"
   scheduler_params:
-    T_max: 500
+    T_max: 1000
     eta_min: 1.0e-6
   optimizer: "adam"
   weight_decay: 1.0e-5
+  run_validation: false
   batch_size_val: 1024
   validation_split: 0.1
   validation_interval: 50
 
+pretraining:
+  identity_pretraining: true
+  pretrain_epochs: 30
+  pretrain_points: 1024
+
 loss_weights:
-  nijenhuis: 1.0
+  nijenhuis: 0.0
   overlap: 1.0
-  overlap_size: 0.1
+  overlap_size: 0.2
 
 logging:
   log_interval: 10
   checkpoint_interval: 500
   save_dir: "outputs"
+  test_size: 10000
 
 seed: 42
 

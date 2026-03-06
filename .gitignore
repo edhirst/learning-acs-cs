@@ -19,6 +19,9 @@ outputs/**
 # TensorBoard
 events.out.tfevents.*
 
+# Scratch / temp scripts
+scratch/
+
 # OS / IDE
 .DS_Store
 .idea/

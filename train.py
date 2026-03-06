@@ -101,6 +101,14 @@ class Trainer:
                 T_max=params['T_max'],
                 eta_min=params['eta_min']
             )
+        elif sched_name == 'cosine_restarts':
+            params = self.config['training']['scheduler_params']
+            return optim.lr_scheduler.CosineAnnealingWarmRestarts(
+                self.optimizer,
+                T_0=params['T_0'],
+                T_mult=params.get('T_mult', 2),
+                eta_min=params['eta_min']
+            )
         elif sched_name == 'step':
             return optim.lr_scheduler.StepLR(
                 self.optimizer,
@@ -124,7 +132,7 @@ class Trainer:
         self.checkpoint_dir = self.output_dir / 'checkpoints'
         self.checkpoint_dir.mkdir(exist_ok=True)
 
-        self.loss_data: dict[str, list] = {'train': [], 'val': []}
+        self.loss_data: dict[str, list | dict] = {'train': [], 'val': [], 'test': {}}
 
         # Save config
         with open(self.output_dir / 'config.yaml', 'w') as f:
@@ -170,12 +178,60 @@ class Trainer:
 
         # Nijenhuis loss requires autograd through x; do not use no_grad here.
         J1, J2, x1, x2 = self.model(x)
-        _, info = self.loss_fn(J1, J2, x1, x2, self.model)
+        _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True)
 
         return info
     
+    def pretrain(self):
+        """Warm-start each PatchSubNet by driving A(x) → 0.
+
+        With A = 0, patch1 outputs J₀ and patch2 outputs −J₀, which is the
+        correct initialisation given that the north→south chart transition is
+        complex-anti-linear (J → −J).  The loss is mean(A²).
+        Runs only when config['pretraining']['identity_pretraining'] is True.
+        """
+        pt_cfg = self.config.get('pretraining', {})
+        if not pt_cfg.get('identity_pretraining', False):
+            return
+
+        pretrain_epochs = pt_cfg['pretrain_epochs']
+        pretrain_points = pt_cfg['pretrain_points']
+        dim = self.sphere.dim
+
+        print(f"\nPretraining: A→0 warm-start ({pretrain_epochs} epochs, "
+              f"{pretrain_points} points/step)")
+
+        for subnet_name, subnet in [('patch1', self.model.patch1),
+                                     ('patch2', self.model.patch2)]:
+            opt = torch.optim.Adam(
+                subnet.parameters(),
+                lr=self.config['training']['learning_rate']
+            )
+            for epoch in range(pretrain_epochs):
+                subnet.train()
+                opt.zero_grad()
+                x = self.sample_batch(pretrain_points)
+                A = subnet.forward_raw(x)              # (N, 2n, 2n)
+                # Target: A = 0 so that J = J₀ (patch 1) or J = -J₀ (patch 2),
+                # the correct initialisation for the two chart orientations.
+                loss = torch.mean(A ** 2)
+                loss.backward()
+                if self.config['advanced']['gradient_clipping'] > 0:
+                    torch.nn.utils.clip_grad_norm_(
+                        subnet.parameters(),
+                        self.config['advanced']['gradient_clipping']
+                    )
+                opt.step()
+                if epoch % max(1, pretrain_epochs // 10) == 0:
+                    print(f"  [{subnet_name}] pretrain epoch {epoch:5d} | "
+                          f"mean(A²): {loss.item():.4e}")
+
+        print("Pretraining complete.\n")
+
     def train(self):
         """Main training loop."""
+        self.pretrain()
+
         print("\nStarting training...")
         print(f"Epochs: {self.config['training']['epochs']}")
         print(f"Batch size: {self.config['training']['batch_size']}")
@@ -196,18 +252,26 @@ class Trainer:
             train_info = self.train_step(x)
             
             # Logging
-            if epoch % log_interval == 0:
+            is_last_epoch = (epoch == num_epochs - 1)
+            if epoch % log_interval == 0 or is_last_epoch:
                 self._log_metrics(train_info, prefix='train')
                 self._print_progress(epoch, train_info)
-                history['epoch'].append(epoch)
-                for key in ('total_loss', 'nij1', 'nij2', 'overlap_norm'):
-                    history[key].append(train_info[key])
+                # Avoid double-appending when the last epoch coincides with log_interval.
+                if not history['epoch'] or history['epoch'][-1] != epoch:
+                    history['epoch'].append(epoch)
+                    for key in ('total_loss', 'nij1', 'nij2', 'overlap_norm'):
+                        history[key].append(train_info[key])
             
             # Validation
-            if epoch % self.config['training']['validation_interval'] == 0:
+            run_validation = self.config['training'].get('run_validation', False)
+            if run_validation and epoch % self.config['training']['validation_interval'] == 0:
                 val_info = self.validate()
                 self._log_metrics(val_info, prefix='val')
-                
+                lr = self.optimizer.param_groups[0]['lr']
+                print(f"  Val     {epoch:5d} | Loss: {val_info['total_loss']:.4e} | "
+                      f"Nij1: {val_info['nij1']:.4e}  Nij2: {val_info['nij2']:.4e} | "
+                      f"Overlap: {val_info['overlap_norm']:.4e}")
+
                 # Check for improvement
                 if val_info['total_loss'] < self.best_loss:
                     self.best_loss = val_info['total_loss']
@@ -215,10 +279,23 @@ class Trainer:
                     self._save_checkpoint('best_model.pt')
                 else:
                     self.patience_counter += 1
-                
+
                 # Early stopping
-                if (self.config['advanced']['early_stopping'] and 
-                    self.patience_counter >= self.config['advanced']['early_stopping_patience']):
+                if (self.config['advanced']['early_stopping'] and
+                        self.patience_counter >= self.config['advanced']['early_stopping_patience']):
+                    print(f"\nEarly stopping at epoch {epoch}")
+                    break
+            elif not run_validation:
+                # Track best train loss when validation is disabled.
+                if train_info['total_loss'] < self.best_loss:
+                    self.best_loss = train_info['total_loss']
+                    self.patience_counter = 0
+                    self._save_checkpoint('best_model.pt')
+                else:
+                    self.patience_counter += 1
+
+                if (self.config['advanced']['early_stopping'] and
+                        self.patience_counter >= self.config['advanced']['early_stopping_patience']):
                     print(f"\nEarly stopping at epoch {epoch}")
                     break
             
@@ -234,6 +311,8 @@ class Trainer:
         self._save_checkpoint('final_model.pt')
         print(f"\nTraining complete! Best loss: {self.best_loss:.6e}")
 
+        self._evaluate_test()
+
         loss_json_path = self.output_dir / 'loss_data.json'
         with open(loss_json_path, 'w') as f:
             json.dump(self.loss_data, f, indent=2)
@@ -241,6 +320,25 @@ class Trainer:
 
         self._plot_loss_curves(history)
     
+    def _evaluate_test(self):
+        """Evaluate the model on a held-out test set and store results in loss_data."""
+        test_size = self.config['logging'].get('test_size', 10000)
+        self.model.eval()
+        x = self.sphere.sample_points_patch1(test_size).to(self.device)
+        J1, J2, x1, x2 = self.model(x)
+        _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True)
+        self.model.train()
+
+        result = {k: float(v) for k, v in info.items()}
+        result['test_size'] = test_size
+        self.loss_data['test'] = result
+
+        print(f"\nTest evaluation ({test_size} samples):")
+        print(f"  Total loss : {result['total_loss']:.6e}")
+        print(f"  Nij1       : {result['nij1']:.6e}")
+        print(f"  Nij2       : {result['nij2']:.6e}")
+        print(f"  Overlap    : {result['overlap_norm']:.6e}")
+
     def _log_metrics(self, info: dict, prefix: str):
         """Append metrics to loss_data."""
         record: dict = {'epoch': self.epoch}
@@ -275,11 +373,31 @@ class Trainer:
     def _plot_loss_curves(self, history: dict):
         """Save loss curves to loss_curves.png after training."""
         epochs = history['epoch']
+        weights = self.config.get('loss_weights', {})
+        w_nij     = float(weights.get('nijenhuis', 1.0))
+        w_overlap = float(weights.get('overlap', 1.0))
+
+        active = []
+        if w_nij != 0.0:
+            active += ['nij1', 'nij2']
+        if w_overlap != 0.0:
+            active += ['overlap_norm']
+
+        # Shift epoch index to 1-based so x-axis runs 1 … N_epochs.
+        plot_epochs = [e + 1 for e in epochs]
+
         fig, ax = plt.subplots(figsize=(9, 5))
-        ax.semilogy(epochs, history['total_loss'], label='Total', linewidth=2)
-        ax.semilogy(epochs, history['nij1'], label='Nij (patch 1)', linestyle='--')
-        ax.semilogy(epochs, history['nij2'], label='Nij (patch 2)', linestyle='--')
-        ax.semilogy(epochs, history['overlap_norm'], label='Overlap', linestyle=':')
+        ax.semilogy(plot_epochs, history['total_loss'], label='Total', linewidth=2)
+
+        # Only add component lines when there is more than one active component
+        # to avoid redundant overlapping lines.
+        if len(active) > 1:
+            if w_nij != 0.0:
+                ax.semilogy(plot_epochs, history['nij1'],         label='Nij (patch 1)', linestyle='--')
+                ax.semilogy(plot_epochs, history['nij2'],         label='Nij (patch 2)', linestyle='--')
+            if w_overlap != 0.0:
+                ax.semilogy(plot_epochs, history['overlap_norm'], label='Overlap',        linestyle=':')
+
         ax.set_xlabel('Epoch')
         ax.set_ylabel('Loss')
         ax.legend()

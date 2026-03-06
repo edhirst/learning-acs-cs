@@ -63,6 +63,7 @@ class NijenhuisTensorLoss(nn.Module):
         self,
         x: torch.Tensor,
         subnet: nn.Module,
+        hard_cutoff: bool = False,
     ) -> Tuple[torch.Tensor, Dict]:
         """
         Compute Nijenhuis loss for a single patch.
@@ -70,6 +71,8 @@ class NijenhuisTensorLoss(nn.Module):
         Args:
             x: Ball coordinates, shape (batch, manifold_dim).
             subnet: PatchSubNet to differentiate through.
+            hard_cutoff: If True, use a binary mask (ρ ≤ r_cut) instead of
+                the soft Gaussian weight. Intended for evaluation only.
 
         Returns:
             loss: Scalar mean Nijenhuis norm.
@@ -114,14 +117,19 @@ class NijenhuisTensorLoss(nn.Module):
         nij_sq   = (N ** 2).sum(dim=(1, 2, 3))
         nij_norm = torch.sqrt(nij_sq + 1e-10)   # (batch,)
 
-        # Radial weight: plateau in [0, r_eq + overlap_size], Gaussian decay beyond.
-        # Detached so the weight never contributes to parameter gradients.
+        # Radial weight: plateau in [0, r_eq + overlap_size].  During training a
+        # soft Gaussian decay is used beyond the cutoff; during evaluation a hard
+        # binary mask is used so the metric is purely geometric.
         rho   = x.detach().norm(dim=1)                          # (batch,)
         r_cut = RADIAL_MIDPOINT + self.overlap_size
-        excess = (rho - r_cut).clamp(min=0.0)
-        w     = torch.exp(-(excess / self.overlap_size) ** 2)   # (batch,)
+        if hard_cutoff:
+            w = (rho <= r_cut).float()
+        else:
+            excess = (rho - r_cut).clamp(min=0.0)
+            w = torch.exp(-(excess / self.overlap_size) ** 2)   # (batch,)
 
-        loss = (w * nij_norm).sum() / w.sum().clamp(min=1e-8)
+        w_sum = w.sum().clamp(min=1e-8)
+        loss = (w * nij_norm).sum() / w_sum
         info = {
             'nij_norm': loss.item(),
             'nij_max':  nij_norm.max().item(),
@@ -177,6 +185,7 @@ class OverlapLoss(nn.Module):
         J2: torch.Tensor,
         x1: torch.Tensor,
         x2: torch.Tensor,
+        hard_cutoff: bool = False,
     ) -> Tuple[torch.Tensor, Dict]:
         """
         Compute radially-weighted overlap consistency loss.
@@ -186,6 +195,8 @@ class OverlapLoss(nn.Module):
             J2: J in patch-2 coordinates, shape (batch, dim, dim).
             x1: Patch-1 ball coords, shape (batch, dim).
             x2: Patch-2 ball coords, shape (batch, dim).
+            hard_cutoff: If True, use a binary mask (ρ ∈ [r_inner, r_outer])
+                instead of the soft Gaussian weight. Intended for evaluation only.
 
         Returns:
             loss: Scalar overlap loss (0 if no valid samples).
@@ -206,10 +217,14 @@ class OverlapLoss(nn.Module):
         x2_m  = x2[mask]
         rho1_m = rho1[mask]
 
-        # Soft equatorial weight: plateau in [r_inner, r_outer], Gaussian decay outside.
-        d_outer = (rho1_m - self.r_outer).clamp(min=0.0)
-        d_inner = (self.r_inner - rho1_m).clamp(min=0.0)
-        w = torch.exp(-((d_outer + d_inner) / self.overlap_size) ** 2)  # (batch_m,)
+        # Equatorial weight: plateau in [r_inner, r_outer].  Training uses a soft
+        # Gaussian decay outside; evaluation uses a hard binary mask.
+        if hard_cutoff:
+            w = ((rho1_m >= self.r_inner) & (rho1_m <= self.r_outer)).float()
+        else:
+            d_outer = (rho1_m - self.r_outer).clamp(min=0.0)
+            d_inner = (self.r_inner - rho1_m).clamp(min=0.0)
+            w = torch.exp(-((d_outer + d_inner) / self.overlap_size) ** 2)  # (batch_m,)
 
         # Transform J1 from patch-1 to patch-2 frame
         J1_to_2 = EvenSphere.patch_change_J(x1_m, J1_m)   # F(x1) J1 F(x1)^{-1}
@@ -224,6 +239,9 @@ class OverlapLoss(nn.Module):
         norm2 = torch.sqrt((diff2 ** 2).sum(dim=(1, 2)) + 1e-10)
 
         w_sum = w.sum().clamp(min=1e-8)
+        if hard_cutoff and w_sum < 1.0:
+            zero = J1.sum() * 0.0
+            return zero, {'overlap_norm': 0.0}
         loss  = ((w * norm1).sum() + (w * norm2).sum()) / (2.0 * w_sum)
 
         info = {
@@ -260,6 +278,7 @@ class TotalLoss(nn.Module):
         x1:    torch.Tensor,
         x2:    torch.Tensor,
         model: nn.Module,
+        hard_cutoff: bool = False,
     ) -> Tuple[torch.Tensor, Dict]:
         """
         Compute total weighted loss.
@@ -270,17 +289,30 @@ class TotalLoss(nn.Module):
             x1: Patch-1 ball coords, shape (batch, dim).
             x2: Patch-2 ball coords, shape (batch, dim).
             model: TwoPatchAlmostComplexNet instance.
+            hard_cutoff: If True, apply binary geometric masks instead of
+                soft Gaussian weights. Use for validation and test evaluation.
 
         Returns:
             total_loss: Weighted sum of all loss terms.
             info: Dict with all scalar components.
         """
-        nij1, info1 = self.nij_loss(x1, model.patch1)
-        nij2, info2 = self.nij_loss(x2, model.patch2)
-        overlap, info_ov = self.overlap_loss(J1, J2, x1, x2)
-
         w_nij     = self.weights.get('nijenhuis', 1.0)
         w_overlap = self.weights.get('overlap', 1.0)
+
+        zero = J1.sum() * 0.0
+
+        if w_nij != 0.0:
+            nij1, info1 = self.nij_loss(x1, model.patch1, hard_cutoff=hard_cutoff)
+            nij2, info2 = self.nij_loss(x2, model.patch2, hard_cutoff=hard_cutoff)
+        else:
+            nij1 = nij2 = zero
+            info1 = info2 = {'nij_norm': 0.0, 'nij_max': 0.0}
+
+        if w_overlap != 0.0:
+            overlap, info_ov = self.overlap_loss(J1, J2, x1, x2, hard_cutoff=hard_cutoff)
+        else:
+            overlap = zero
+            info_ov = {'overlap_norm': 0.0}
 
         total = w_nij * (nij1 + nij2) + w_overlap * overlap
 
