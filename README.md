@@ -21,7 +21,7 @@ x1 ──► φ ──► x2 ──► PatchSubNet2 ──► J2
 
 Each `PatchSubNet`:
 1. **Fourier features**: $x \mapsto [\sin(2\pi B x),\, \cos(2\pi B x)]$
-2. **MLP**: outputs $\dim^2$ scalars forming an unconstrained matrix $A(x) \in \mathfrak{gl}(2n,\mathbb{R})$
+2. **MLP**: outputs $2n^2$ scalars parameterising $A(x)$ in the anti-commuting subspace $\{A \in \mathfrak{gl}(2n,\mathbb{R}) : AJ_0 + J_0 A = 0\}$, eliminating the gauge freedom of the commuting complement
 3. **Cayley-like parametrisation**: $J(x) = e^{A(x)}\,J_0\,e^{-A(x)}$
 
 $J^2 = -I$ holds exactly for any network weights since $(e^A J_0 e^{-A})^2 = e^A J_0^2 e^{-A} = -I$.
@@ -42,16 +42,7 @@ $$L_\text{overlap} = \|F(x_1)J_1 F(x_1)^{-1} - J_2\|^2 + \|F(x_2)J_2 F(x_2)^{-1}
 
 ## Setup
 
-```bash
-conda env create -f environment/environment.yml
-conda activate nijenhuis
-```
-
-Or with pip:
-
-```bash
-pip install -r environment/requirements.txt
-```
+See [environment/](environment/) for conda and pip instructions.
 
 ## Usage
 
