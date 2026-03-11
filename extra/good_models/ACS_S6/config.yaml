@@ -1,0 +1,48 @@
+advanced:
+  early_stopping: true
+  early_stopping_patience: 2000
+  gradient_clipping: 1.0
+  use_mixed_precision: false
+geometry:
+  dimension: 6
+  manifold_type: sphere
+logging:
+  checkpoint_interval: 1000
+  log_interval: 10
+  save_dir: outputs
+  test_size: 10000
+loss_weights:
+  nijenhuis: 0.0
+  overlap: 1.0
+  overlap_size: 0.1
+network:
+  activation: tanh
+  fourier_scale: 1.0
+  hidden_layers:
+  - 256
+  - 512
+  - 512
+  - 256
+  initialization: xavier
+  num_fourier_features: 128
+  use_fourier_features: false
+pretraining:
+  identity_pretraining: true
+  pretrain_epochs: 80
+  pretrain_points: 2048
+seed: 42
+training:
+  batch_size: 2000
+  batch_size_val: 4096
+  epochs: 200
+  learning_rate: 0.0005
+  optimizer: adamw
+  run_validation: false
+  scheduler: cosine_restarts
+  scheduler_params:
+    T_0: 500
+    T_mult: 2
+    eta_min: 1.0e-07
+  validation_interval: 100
+  validation_split: 0.1
+  weight_decay: 0.0001

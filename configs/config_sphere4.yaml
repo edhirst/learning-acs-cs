@@ -6,7 +6,7 @@ geometry:
 
 network:
   hidden_layers: [128, 256, 256, 128]
-  activation: "tanh"
+  activation: "gelu"
   use_fourier_features: false
   fourier_scale: 1.0
   num_fourier_features: 64
