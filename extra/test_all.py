@@ -181,7 +181,6 @@ class TestLossFunctions:
         loss, info = loss_fn(x1, net.patch1)
         assert loss.shape == ()
         assert 'nij_norm' in info
-        assert 'nij_max' in info
         assert loss.item() >= 0
 
     def test_overlap_loss_zero_for_consistent_J(self):

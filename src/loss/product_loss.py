@@ -146,8 +146,7 @@ class ProductNijenhuisLoss(nn.Module):
             nij_l, nij_info = self._nij_with_weight(x_combined, subnet, w, hard_cutoff)
 
             key = f'nij_{ia}{ib}'
-            info[key]            = nij_l.item()
-            info[key + '_max']   = nij_info['nij_max']
+            info[key] = nij_l.item()
             total = total + nij_l
 
         return total, info
@@ -173,7 +172,7 @@ class ProductNijenhuisLoss(nn.Module):
 
         Returns:
             loss: Scalar weighted mean Nijenhuis norm.
-            info: {'nij_norm': float, 'nij_max': float}
+            info: {'nij_norm': float}
         """
         create_graph = torch.is_grad_enabled()
         with torch.enable_grad():
@@ -204,7 +203,7 @@ class ProductNijenhuisLoss(nn.Module):
 
         w_sum = w.sum().clamp(min=1e-8)
         loss = (w * nij_norm).sum() / w_sum
-        return loss, {'nij_norm': loss.item(), 'nij_max': nij_norm.max().item()}
+        return loss, {'nij_norm': loss.item()}
 
 
 class ProductOverlapLoss(nn.Module):

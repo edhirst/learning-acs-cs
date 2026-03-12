@@ -76,7 +76,7 @@ class NijenhuisTensorLoss(nn.Module):
 
         Returns:
             loss: Scalar mean Nijenhuis norm.
-            info: Dict with 'nij_norm' (mean) and 'nij_max'.
+            info: Dict with 'nij_norm' (mean).
         """
         create_graph = torch.is_grad_enabled()
         with torch.enable_grad():
@@ -135,11 +135,7 @@ class NijenhuisTensorLoss(nn.Module):
 
         w_sum = w.sum().clamp(min=1e-8)
         loss = (w * nij_norm).sum() / w_sum
-        info = {
-            'nij_norm': loss.item(),
-            'nij_max':  nij_norm.max().item(),
-        }
-        return loss, info
+        return loss, {'nij_norm': loss.item()}
 
 
 class OverlapLoss(nn.Module):
@@ -314,7 +310,7 @@ class TotalLoss(nn.Module):
             nij2, info2 = self.nij_loss(x2, model.patch2, hard_cutoff=hard_cutoff)
         else:
             nij1 = nij2 = zero
-            info1 = info2 = {'nij_norm': 0.0, 'nij_max': 0.0}
+            info1 = info2 = {'nij_norm': 0.0}
 
         if w_overlap != 0.0 or report_all:
             overlap, info_ov = self.overlap_loss(J1, J2, x1, x2, hard_cutoff=hard_cutoff)
@@ -330,8 +326,6 @@ class TotalLoss(nn.Module):
             'nij2':         nij2.item(),
             'overlap_norm': info_ov['overlap_norm'],
         }
-        info['nij1_max'] = info1['nij_max']
-        info['nij2_max'] = info2['nij_max']
 
         return total, info
 
