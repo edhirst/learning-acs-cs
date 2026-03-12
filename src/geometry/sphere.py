@@ -110,11 +110,18 @@ class EvenSphere:
         """
         Compute the Jacobian  F_{ij} = ∂x'_i/∂x_j  of the patch-change map.
 
-        For  x'_i = x_i · φ(ρ)  with  φ(ρ) = (ρ−1)/(ρ(ρ+1))  and ρ = |x|:
+        F has two eigenvalues:
+            λ_tan = (ρ−1)/(ρ(ρ+1))        (multiplicity dim−1, tangential)
+            λ_rad = 2/(ρ+1)²              (multiplicity 1, radial; always > 0)
 
-            F_{ij} = φ(ρ) δ_{ij}  +  φ'(ρ) · x_i x_j / ρ
+        Written in terms of the normalised direction x̂ = x/ρ:
 
-        where  φ'(ρ) = (−ρ²+2ρ+1) / (ρ²(ρ+1)²).
+            F = λ_tan · (I − x̂⊗x̂) + λ_rad · (x̂⊗x̂)
+
+        This form avoids the catastrophic float32 cancellation that occurs in
+        the equivalent φδ_{ij} + φ'x_ix_j/ρ formula when ρ ≪ 1 (where both
+        terms become O(1/ρ) with opposite signs, cancelling to zero in float32
+        even though the true value is ≈ 2).
 
         Args:
             x: Ball coordinates, shape (batch, dim).
@@ -123,15 +130,16 @@ class EvenSphere:
             Jacobian matrices, shape (batch, dim, dim).
         """
         batch, dim = x.shape
-        rho = torch.norm(x, dim=1, keepdim=True).clamp(min=1e-8, max=0.99)    # (batch, 1)
+        rho = torch.norm(x, dim=1, keepdim=True).clamp(min=1e-8, max=0.99)  # (batch, 1)
 
-        phi  = (rho - 1.0) / (rho * (rho + 1.0))                                              # (batch, 1)
-        dphi = (-rho.pow(2) + 2.0 * rho + 1.0) / (rho.pow(2) * (rho + 1.0).pow(2))         # (batch, 1)
+        lam_tan = (rho - 1.0) / (rho * (rho + 1.0))   # tangential eigenvalue φ(ρ)
+        lam_rad = 2.0 / (rho + 1.0).pow(2)             # radial eigenvalue; always positive
 
-        outer = x.unsqueeze(2) * x.unsqueeze(1)   # (batch, dim, dim)
+        x_hat = x / rho                                        # (batch, dim)
+        outer_hat = x_hat.unsqueeze(2) * x_hat.unsqueeze(1)   # x̂⊗x̂, (batch, dim, dim)
         eye = torch.eye(dim, dtype=x.dtype, device=x.device).unsqueeze(0)
 
-        F = phi.unsqueeze(2) * eye + (dphi / rho).unsqueeze(2) * outer
+        F = lam_tan.unsqueeze(2) * (eye - outer_hat) + lam_rad.unsqueeze(2) * outer_hat
         return F
 
     @staticmethod
