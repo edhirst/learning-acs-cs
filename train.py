@@ -413,9 +413,17 @@ class Trainer:
                 val_info = self.validate()
                 self._log_metrics(val_info, prefix='val')
                 lr = self.optimizer.param_groups[0]['lr']
-                print(f"  Val     {epoch:5d} | Loss: {val_info['total_loss']:.4e} | "
-                      f"Nij1: {val_info['nij1']:.4e}  Nij2: {val_info['nij2']:.4e} | "
-                      f"Overlap: {val_info['overlap_norm']:.4e}")
+                if self.manifold_type == 'sphere_product':
+                    nij_str = '  '.join(
+                        f"Nij{ia}{ib}: {val_info.get(f'nij_{ia}{ib}', 0.0):.4e}"
+                        for ia, ib in [(0,0),(0,1),(1,0),(1,1)]
+                    )
+                    print(f"  Val     {epoch:5d} | Loss: {val_info['total_loss']:.4e} | "
+                          f"{nij_str} | Overlap: {val_info['overlap_norm']:.4e}")
+                else:
+                    print(f"  Val     {epoch:5d} | Loss: {val_info['total_loss']:.4e} | "
+                          f"Nij1: {val_info['nij1']:.4e}  Nij2: {val_info['nij2']:.4e} | "
+                          f"Overlap: {val_info['overlap_norm']:.4e}")
 
                 # Check for improvement
                 if val_info['total_loss'] < self.best_loss:
