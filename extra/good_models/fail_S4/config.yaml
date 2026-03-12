@@ -4,7 +4,7 @@ advanced:
   gradient_clipping: 1.0
   use_mixed_precision: false
 geometry:
-  dimension: 4
+  real_dimension: 4
   manifold_type: sphere
 logging:
   checkpoint_interval: 500

@@ -2,7 +2,7 @@
 
 geometry:
   manifold_type: "sphere"
-  dimension: 2 
+  real_dimension: 2
 
 network:
   hidden_layers: [64, 128, 128, 64]
@@ -13,8 +13,8 @@ network:
   initialization: "xavier"
 
 training:
-  epochs: 1000
-  batch_size: 50000
+  epochs: 100
+  batch_size: 5000
   learning_rate: 1.0e-3
   scheduler: "cosine"
   scheduler_params:

@@ -7,14 +7,17 @@ import torch.optim as optim
 import yaml
 import json
 import argparse
+import sys
 from pathlib import Path
 from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 
 from src.geometry import EvenSphere
-from src.models import TwoPatchAlmostComplexNet
+from src.geometry.sphere_product import SphereProduct
+from src.models import TwoPatchAlmostComplexNet, FourPatchProductNet
 from src.loss import TotalLoss
+from src.loss.product_loss import ProductTotalLoss
 
 
 class FractionalCosineAnnealingWarmRestarts(torch.optim.lr_scheduler.LRScheduler):
@@ -98,31 +101,72 @@ class Trainer:
             self.device = torch.device('cpu')
         print(f"Using device: {self.device}")
         
-        # Setup geometry
-        self.sphere = EvenSphere(
-            dimension=self.config['geometry']['dimension'],
-            device=self.device
-        )
-        print(f"Manifold: S^{self.sphere.dim} (complex dimension {self.sphere.complex_dim})")
-        
-        # Setup model
-        self.model = TwoPatchAlmostComplexNet(
-            manifold_dim=self.sphere.dim,
-            hidden_layers=self.config['network']['hidden_layers'],
-            activation=self.config['network']['activation'],
-            use_fourier_features=self.config['network']['use_fourier_features'],
-            num_fourier_features=self.config['network']['num_fourier_features'],
-            fourier_scale=self.config['network']['fourier_scale'],
-            initialization=self.config['network']['initialization'],
-        ).to(self.device)
-        
+        # Setup geometry and model
+        geo = self.config['geometry']
+        self.manifold_type = geo.get('manifold_type', 'sphere')
+
+        if self.manifold_type == 'sphere_product':
+            dim_alpha = geo['real_dimension_alpha']
+            dim_beta  = geo['real_dimension_beta']
+            if (dim_alpha + dim_beta) % 2 != 0:
+                print(
+                    f"ERROR: real_dimension_alpha + real_dimension_beta must be even for an almost "
+                    f"complex structure to exist on the product; "
+                    f"got {dim_alpha} + {dim_beta} = {dim_alpha + dim_beta} (odd)."
+                )
+                sys.exit(1)
+            self.sphere_product = SphereProduct(dim_alpha, dim_beta, device=str(self.device))
+            d = self.sphere_product.total_dim
+            n = self.sphere_product.complex_dim
+            print(f"Manifold: S^{dim_alpha} × S^{dim_beta}  (real dim {d}, complex dim {n})")
+
+            self.model = FourPatchProductNet(
+                dim_alpha=dim_alpha,
+                dim_beta=dim_beta,
+                hidden_layers=self.config['network']['hidden_layers'],
+                activation=self.config['network']['activation'],
+                use_fourier_features=self.config['network']['use_fourier_features'],
+                num_fourier_features=self.config['network']['num_fourier_features'],
+                fourier_scale=self.config['network']['fourier_scale'],
+                initialization=self.config['network']['initialization'],
+            ).to(self.device)
+
+            self.loss_fn = ProductTotalLoss(
+                dim_alpha=dim_alpha,
+                dim_beta=dim_beta,
+                weights=self.config['loss_weights'],
+            ).to(self.device)
+
+        else:
+            real_dim = geo['real_dimension']
+            if not isinstance(real_dim, int) or real_dim <= 0 or real_dim % 2 != 0:
+                print(
+                    f"ERROR: real_dimension must be a positive even integer for manifold_type 'sphere'; "
+                    f"got {real_dim!r}."
+                )
+                sys.exit(1)
+            self.sphere = EvenSphere(
+                dimension=real_dim,
+                device=str(self.device),
+            )
+            print(f"Manifold: S^{self.sphere.dim} (complex dimension {self.sphere.complex_dim})")
+
+            self.model = TwoPatchAlmostComplexNet(
+                manifold_dim=self.sphere.dim,
+                hidden_layers=self.config['network']['hidden_layers'],
+                activation=self.config['network']['activation'],
+                use_fourier_features=self.config['network']['use_fourier_features'],
+                num_fourier_features=self.config['network']['num_fourier_features'],
+                fourier_scale=self.config['network']['fourier_scale'],
+                initialization=self.config['network']['initialization'],
+            ).to(self.device)
+
+            self.loss_fn = TotalLoss(
+                manifold_dim=self.sphere.dim,
+                weights=self.config['loss_weights'],
+            ).to(self.device)
+
         print(f"Model parameters: {sum(p.numel() for p in self.model.parameters())}")
-        
-        # Setup loss function
-        self.loss_fn = TotalLoss(
-            manifold_dim=self.sphere.dim,
-            weights=self.config['loss_weights']
-        ).to(self.device)
         
         # Setup optimizer
         self.optimizer = self._create_optimizer()
@@ -205,20 +249,30 @@ class Trainer:
 
         print(f"Outputs will be saved to: {self.output_dir}")
     
-    def sample_batch(self, batch_size: int) -> torch.Tensor:
-        """Sample a batch of patch-1 ball coordinates."""
+    def sample_batch(self, batch_size: int):
+        """Sample a batch of coordinates.
+
+        Returns:
+            For 'sphere': a single Tensor of patch-1 ball coords.
+            For 'sphere_product': a tuple (x_alpha, x_beta) of ball coords.
+        """
+        if self.manifold_type == 'sphere_product':
+            xa, xb = self.sphere_product.sample_points(batch_size)
+            return xa.to(self.device), xb.to(self.device)
         return self.sphere.sample_points_patch1(batch_size).to(self.device)
     
-    def train_step(self, x: torch.Tensor) -> dict:
+    def train_step(self, x) -> dict:
         """Perform one training step."""
         self.model.train()
         self.optimizer.zero_grad()
 
-        # Forward pass
-        J1, J2, x1, x2 = self.model(x)
-
-        # Compute loss
-        loss, info = self.loss_fn(J1, J2, x1, x2, self.model)
+        if self.manifold_type == 'sphere_product':
+            x_alpha, x_beta = x
+            J_dict, x_alpha, x_beta, x_a2, x_b2 = self.model(x_alpha, x_beta)
+            loss, info = self.loss_fn(J_dict, x_alpha, x_beta, x_a2, x_b2, self.model)
+        else:
+            J1, J2, x1, x2 = self.model(x)
+            loss, info = self.loss_fn(J1, J2, x1, x2, self.model)
         
         # Backward pass
         loss.backward()
@@ -241,9 +295,14 @@ class Trainer:
         num_val_points = self.config['training']['batch_size_val']
         x = self.sample_batch(num_val_points)
 
-        # Nijenhuis loss requires autograd through x; do not use no_grad here.
-        J1, J2, x1, x2 = self.model(x)
-        _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True)
+        if self.manifold_type == 'sphere_product':
+            x_alpha, x_beta = x
+            J_dict, x_alpha, x_beta, x_a2, x_b2 = self.model(x_alpha, x_beta)
+            _, info = self.loss_fn(J_dict, x_alpha, x_beta, x_a2, x_b2, self.model,
+                                   hard_cutoff=True)
+        else:
+            J1, J2, x1, x2 = self.model(x)
+            _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True)
 
         return info
     
@@ -261,13 +320,20 @@ class Trainer:
 
         pretrain_epochs = pt_cfg['pretrain_epochs']
         pretrain_points = pt_cfg['pretrain_points']
-        dim = self.sphere.dim
 
-        print(f"\nPretraining: A→0 warm-start ({pretrain_epochs} epochs, "
-              f"{pretrain_points} points/step)")
+        if self.manifold_type == 'sphere_product':
+            subnets = [(f'patch_{ia}{ib}', sub)
+                       for (ia, ib), sub in zip(
+                           [(0,0),(0,1),(1,0),(1,1)], self.model.subnets
+                       )]
+            print(f"\nPretraining: A→0 warm-start ({pretrain_epochs} epochs, "
+                  f"{pretrain_points} points/step, 4 patches)")
+        else:
+            subnets = [('patch1', self.model.patch1), ('patch2', self.model.patch2)]
+            print(f"\nPretraining: A→0 warm-start ({pretrain_epochs} epochs, "
+                  f"{pretrain_points} points/step)")
 
-        for subnet_name, subnet in [('patch1', self.model.patch1),
-                                     ('patch2', self.model.patch2)]:
+        for subnet_name, subnet in subnets:
             opt = torch.optim.Adam(
                 subnet.parameters(),
                 lr=self.config['training']['learning_rate']
@@ -275,8 +341,18 @@ class Trainer:
             for epoch in range(pretrain_epochs):
                 subnet.train()
                 opt.zero_grad()
-                x = self.sample_batch(pretrain_points)
-                A = subnet.forward_raw(x)              # (N, 2n, 2n)
+                if self.manifold_type == 'sphere_product':
+                    # Each subnet receives the full combined coords matching
+                    # the patch's α/β index pair.
+                    xa, xb = self.sample_batch(pretrain_points)
+                    ia, ib = [(0,0),(0,1),(1,0),(1,1)][subnets.index((subnet_name, subnet))]
+                    from src.geometry.sphere import EvenSphere as _ES
+                    xa_p = xa if ia == 0 else _ES.patch_change_coords(xa)
+                    xb_p = xb if ib == 0 else _ES.patch_change_coords(xb)
+                    x_pt = torch.cat([xa_p, xb_p], dim=1)
+                else:
+                    x_pt = self.sample_batch(pretrain_points)
+                A = subnet.forward_raw(x_pt)              # (N, d, d)
                 # Target: A = 0 so that J = J₀ (patch 1) or J = -J₀ (patch 2),
                 # the correct initialisation for the two chart orientations.
                 loss = torch.mean(A ** 2)
@@ -305,7 +381,11 @@ class Trainer:
         batch_size = self.config['training']['batch_size']
         log_interval = self.config['logging']['log_interval']
         checkpoint_interval = self.config['logging']['checkpoint_interval']
-        history: dict[str, list] = {'epoch': [], 'total_loss': [], 'nij1': [], 'nij2': [], 'overlap_norm': []}
+        if self.manifold_type == 'sphere_product':
+            history_keys = ['total_loss', 'nij_00', 'nij_01', 'nij_10', 'nij_11', 'overlap_norm']
+        else:
+            history_keys = ['total_loss', 'nij1', 'nij2', 'overlap_norm']
+        history: dict[str, list] = {'epoch': [], **{k: [] for k in history_keys}}
         
         for epoch in range(num_epochs):
             self.epoch = epoch
@@ -324,8 +404,8 @@ class Trainer:
                 # Avoid double-appending when the last epoch coincides with log_interval.
                 if not history['epoch'] or history['epoch'][-1] != epoch:
                     history['epoch'].append(epoch)
-                    for key in ('total_loss', 'nij1', 'nij2', 'overlap_norm'):
-                        history[key].append(train_info[key])
+                    for key in history_keys:
+                        history[key].append(train_info.get(key, 0.0))
             
             # Validation
             run_validation = self.config['training'].get('run_validation', False)
@@ -389,9 +469,18 @@ class Trainer:
         """Evaluate the model on a held-out test set and store results in loss_data."""
         test_size = self.config['logging'].get('test_size', 10000)
         self.model.eval()
-        x = self.sphere.sample_points_patch1(test_size).to(self.device)
-        J1, J2, x1, x2 = self.model(x)
-        _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True, report_all=True)
+
+        if self.manifold_type == 'sphere_product':
+            xa, xb = self.sphere_product.sample_points(test_size)
+            xa, xb = xa.to(self.device), xb.to(self.device)
+            J_dict, xa, xb, xa2, xb2 = self.model(xa, xb)
+            _, info = self.loss_fn(J_dict, xa, xb, xa2, xb2, self.model,
+                                   hard_cutoff=True, report_all=True)
+        else:
+            x = self.sphere.sample_points_patch1(test_size).to(self.device)
+            J1, J2, x1, x2 = self.model(x)
+            _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True, report_all=True)
+
         self.model.train()
 
         result = {k: float(v) for k, v in info.items()}
@@ -400,8 +489,12 @@ class Trainer:
 
         print(f"\nTest evaluation ({test_size} samples):")
         print(f"  Total loss : {result['total_loss']:.6e}")
-        print(f"  Nij1       : {result['nij1']:.6e}")
-        print(f"  Nij2       : {result['nij2']:.6e}")
+        if self.manifold_type == 'sphere_product':
+            for key in ['nij_00', 'nij_01', 'nij_10', 'nij_11']:
+                print(f"  {key}      : {result.get(key, 0.0):.6e}")
+        else:
+            print(f"  Nij1       : {result['nij1']:.6e}")
+            print(f"  Nij2       : {result['nij2']:.6e}")
         print(f"  Overlap    : {result['overlap_norm']:.6e}")
 
     def _log_metrics(self, info: dict, prefix: str):
@@ -415,9 +508,17 @@ class Trainer:
     def _print_progress(self, epoch: int, info: dict):
         """Print training progress."""
         lr = self.optimizer.param_groups[0]['lr']
-        print(f"Epoch {epoch:5d} | Loss: {info['total_loss']:.4e} | "
-              f"Nij1: {info['nij1']:.4e}  Nij2: {info['nij2']:.4e} | "
-              f"Overlap: {info['overlap_norm']:.4e} | LR: {lr:.3e}")
+        if self.manifold_type == 'sphere_product':
+            nij_str = '  '.join(
+                f"Nij{ia}{ib}: {info.get(f'nij_{ia}{ib}', 0.0):.4e}"
+                for ia, ib in [(0,0),(0,1),(1,0),(1,1)]
+            )
+            print(f"Epoch {epoch:5d} | Loss: {info['total_loss']:.4e} | "
+                  f"{nij_str} | Overlap: {info['overlap_norm']:.4e} | LR: {lr:.3e}")
+        else:
+            print(f"Epoch {epoch:5d} | Loss: {info['total_loss']:.4e} | "
+                  f"Nij1: {info['nij1']:.4e}  Nij2: {info['nij2']:.4e} | "
+                  f"Overlap: {info['overlap_norm']:.4e} | LR: {lr:.3e}")
     
     def _save_checkpoint(self, filename: str):
         """Save model checkpoint."""
@@ -442,26 +543,27 @@ class Trainer:
         w_nij     = float(weights.get('nijenhuis', 1.0))
         w_overlap = float(weights.get('overlap', 1.0))
 
-        active = []
-        if w_nij != 0.0:
-            active += ['nij1', 'nij2']
-        if w_overlap != 0.0:
-            active += ['overlap_norm']
-
-        # Shift epoch index to 1-based so x-axis runs 1 … N_epochs.
         plot_epochs = [e + 1 for e in epochs]
 
         fig, ax = plt.subplots(figsize=(9, 5))
         ax.semilogy(plot_epochs, history['total_loss'], label='Total', linewidth=2)
 
-        # Only add component lines when there is more than one active component
-        # to avoid redundant overlapping lines.
-        if len(active) > 1:
-            if w_nij != 0.0:
-                ax.semilogy(plot_epochs, history['nij1'],         label='Nij (patch 1)', linestyle='--')
-                ax.semilogy(plot_epochs, history['nij2'],         label='Nij (patch 2)', linestyle='--')
-            if w_overlap != 0.0:
-                ax.semilogy(plot_epochs, history['overlap_norm'], label='Overlap',        linestyle=':')
+        if self.manifold_type == 'sphere_product':
+            nij_keys = ['nij_00', 'nij_01', 'nij_10', 'nij_11']
+            nij_labels = ['Nij (00)', 'Nij (01)', 'Nij (10)', 'Nij (11)']
+        else:
+            nij_keys = ['nij1', 'nij2']
+            nij_labels = ['Nij (patch 1)', 'Nij (patch 2)']
+
+        active_nij   = w_nij     != 0.0 and all(k in history for k in nij_keys)
+        active_ov    = w_overlap  != 0.0 and 'overlap_norm' in history
+
+        if active_nij or active_ov:
+            if active_nij:
+                for k, label in zip(nij_keys, nij_labels):
+                    ax.semilogy(plot_epochs, history[k], label=label, linestyle='--')
+            if active_ov:
+                ax.semilogy(plot_epochs, history['overlap_norm'], label='Overlap', linestyle=':')
 
         ax.set_xlabel('Epoch')
         ax.set_ylabel('Loss')

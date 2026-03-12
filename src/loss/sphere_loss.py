@@ -7,7 +7,7 @@ and the chart is smooth, J is smooth by construction; no smoothness penalty is n
 
 Nijenhuis tensor in chart coordinates (coordinate-expression):
 
-    N^k_{ij}(x) = J^l_i ∂_l J^k_j − J^l_j ∂_l J^k_i + J^k_l (∂_i J^l_j − ∂_j J^l_i)
+    N^k_{ij}(x) = J^l_i ∂_l J^k_j − J^l_j ∂_l J^k_i − J^k_l (∂_i J^l_j − ∂_j J^l_i)
 
 All partial derivatives ∂_l J^k_j are computed by automatic differentiation.
 
@@ -40,7 +40,7 @@ class NijenhuisTensorLoss(nn.Module):
     ∂J/∂x can be obtained via autograd, then assembles the full
     coordinate-Nijenhuis tensor:
 
-        N^k_{ij} = J^l_i ∂_l J^k_j − J^l_j ∂_l J^k_i + J^k_l(∂_i J^l_j − ∂_j J^l_i)
+        N^k_{ij} = J^l_i ∂_l J^k_j − J^l_j ∂_l J^k_i − J^k_l(∂_i J^l_j − ∂_j J^l_i)
 
     The per-sample Nijenhuis norms are combined via a radially weighted mean.
     The weight is near-constant in [0, r_eq + overlap_size] (the patch's natural
@@ -113,7 +113,7 @@ class NijenhuisTensorLoss(nn.Module):
         # term3[b,k,i,j] = Σ_l J^k_l * (∂_i J^l_j − ∂_j J^l_i) = Σ_l J[b,k,l] * anti[b,l,i,j]
         term3 = torch.einsum('bkl,blij->bkij', J, anti)
 
-        N = term1 + term2 + term3           # (batch, k, i, j)
+        N = term1 + term2 - term3           # (batch, k, i, j)
         nij_sq   = (N ** 2).sum(dim=(1, 2, 3))
         nij_norm = torch.sqrt(nij_sq + 1e-10)   # (batch,)
 

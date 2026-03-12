@@ -77,7 +77,7 @@ class EvenSphere:
         Returns:
             Ball coordinates in patch 1, shape (num_points, dim).
         """
-        pts_np = _ball_sample(num_points, self.dim, patch_width, density_power)
+        pts_np = ball_sample(num_points, self.dim, patch_width, density_power)
         return torch.tensor(pts_np, dtype=torch.float32, device=self.device)
 
     # ------------------------------------------------------------------
@@ -123,7 +123,7 @@ class EvenSphere:
             Jacobian matrices, shape (batch, dim, dim).
         """
         batch, dim = x.shape
-        rho = torch.norm(x, dim=1, keepdim=True).clamp(min=1e-8)    # (batch, 1)
+        rho = torch.norm(x, dim=1, keepdim=True).clamp(min=1e-8, max=1.0 - 1e-6)    # (batch, 1)
 
         phi  = (rho - 1.0) / (rho * (rho + 1.0))                                              # (batch, 1)
         dphi = (-rho.pow(2) + 2.0 * rho + 1.0) / (rho.pow(2) * (rho + 1.0).pow(2))         # (batch, 1)
@@ -183,7 +183,7 @@ class EvenSphere:
 # Ball sampling  (pure NumPy, ported from AInstein/sampling/ball.py)
 # ------------------------------------------------------------------
 
-def _ball_sample(
+def ball_sample(
     num_pts: int,
     dimension: int,
     patch_width: float = 1.0,

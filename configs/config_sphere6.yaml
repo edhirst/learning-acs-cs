@@ -2,7 +2,7 @@
 
 geometry:
   manifold_type: "sphere"
-  dimension: 6
+  real_dimension: 6
 
 network:
   hidden_layers: [256, 512, 512, 256]
@@ -13,7 +13,7 @@ network:
   initialization: "xavier"
 
 training:
-  epochs: 1000
+  epochs: 100
   batch_size: 5000
   learning_rate: 5.0e-4
   scheduler: "cosine_restarts"
@@ -34,8 +34,8 @@ pretraining:
   pretrain_points: 2048
 
 loss_weights:
-  nijenhuis: 1.0
-  overlap: 3.0
+  nijenhuis: 0.0
+  overlap: 1.0
   overlap_size: 0.1
 
 logging:
