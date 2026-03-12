@@ -27,7 +27,7 @@ The Nijenhuis tensor is assembled in chart coordinates via `torch.autograd.grad`
 
 $$N^k_{\;ij} = J^l_{\;i}\,\partial_l J^k_{\;j} - J^l_{\;j}\,\partial_l J^k_{\;i} + J^k_{\;l}(\partial_i J^l_{\;j} - \partial_j J^l_{\;i})$$
 
-Overlap losses enforce cross-chart consistency $F(x)\,J\,F(x)^{-1} = J'$ at patch transitions, weighted to the equatorial region. All losses use radial Gaussian weighting with a flat plateau near the patch centre.
+Overlap losses enforce cross-chart consistency $F(x) \cdot J \cdot F(x)^{-1} = J'$ at patch transitions, weighted to the equatorial region. All losses use radial Gaussian weighting with a flat plateau near the patch centre.
 
 | Manifold | Nijenhuis terms | Overlap terms |
 |---|---|---|
