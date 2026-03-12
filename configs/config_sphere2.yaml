@@ -5,32 +5,31 @@ geometry:
   real_dimension: 2
 
 network:
-  hidden_layers: [64, 128, 128, 64]
+  hidden_layers: [256, 512, 512, 256]
   activation: "gelu"
-  use_fourier_features: true
+  use_fourier_features: false
   fourier_scale: 1.0
-  num_fourier_features: 16
+  num_fourier_features: 64
   initialization: "xavier"
 
 training:
-  epochs: 100
-  batch_size: 5000
+  epochs: 1000
+  batch_size: 10000
   learning_rate: 1.0e-3
   scheduler: "cosine"
   scheduler_params:
     T_max: 1000
     eta_min: 1.0e-6
-  optimizer: "adam"
+  optimizer: "adamw"
   weight_decay: 1.0e-5
   run_validation: false
-  batch_size_val: 1024
-  validation_split: 0.1
-  validation_interval: 50
+  batch_size_val: 1000
+  validation_interval: 100
 
 pretraining:
   identity_pretraining: true
-  pretrain_epochs: 30
-  pretrain_points: 1024
+  pretrain_epochs: 50
+  pretrain_points: 2000
 
 loss_weights:
   nijenhuis: 0.0
@@ -46,7 +45,6 @@ logging:
 seed: 42
 
 advanced:
-  use_mixed_precision: false
   gradient_clipping: 1.0
-  early_stopping: true
-  early_stopping_patience: 1000
+  early_stopping: false
+  early_stopping_patience: 100
