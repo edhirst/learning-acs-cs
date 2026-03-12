@@ -13,8 +13,8 @@ network:
   initialization: "xavier"
 
 training:
-  epochs: 1000
-  batch_size: 10000
+  epochs: 5000
+  batch_size: 2000
   learning_rate: 1.0e-3
   scheduler: "cosine"
   scheduler_params:
