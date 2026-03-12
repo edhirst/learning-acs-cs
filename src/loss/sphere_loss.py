@@ -78,26 +78,31 @@ class NijenhuisTensorLoss(nn.Module):
             loss: Scalar mean Nijenhuis norm.
             info: Dict with 'nij_norm' (mean) and 'nij_max'.
         """
-        x_var = x.detach().requires_grad_(True)
-        J = subnet(x_var)          # (batch, d, d)
+        create_graph = torch.is_grad_enabled()
+        with torch.enable_grad():
+            x_var = x.detach().requires_grad_(True)
+            J = subnet(x_var)          # (batch, d, d)
         batch, d, _ = J.shape
 
         # dJ[b, k, j, l] = ∂_{x^l} J^k_j
         # Built via torch.stack to preserve the autograd computation graph for
         # second-order gradients (∂²J/∂x∂θ), which are needed for correct
         # gradient flow through the dJ-dependent terms of N.
-        rows = []
-        for k in range(d):
-            cols = []
-            for j in range(d):
-                g = torch.autograd.grad(
-                    J[:, k, j].sum(),
-                    x_var,
-                    create_graph=True,
-                    retain_graph=True,
-                )[0]  # (batch, d)
-                cols.append(g)
-            rows.append(torch.stack(cols, dim=1))   # (batch, d, d)
+        # create_graph=False during evaluation (no_grad context) avoids
+        # building the second-order graph that is only needed for training.
+        with torch.enable_grad():
+            rows = []
+            for k in range(d):
+                cols = []
+                for j in range(d):
+                    g = torch.autograd.grad(
+                        J[:, k, j].sum(),
+                        x_var,
+                        create_graph=create_graph,
+                        retain_graph=True,
+                    )[0]  # (batch, d)
+                    cols.append(g)
+                rows.append(torch.stack(cols, dim=1))   # (batch, d, d)
         dJ = torch.stack(rows, dim=1)               # (batch, d, d, d)
 
         # term1[b,k,i,j] = Σ_l J^l_i * ∂_l J^k_j = Σ_l J[b,l,i] * dJ[b,k,j,l]

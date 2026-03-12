@@ -295,14 +295,15 @@ class Trainer:
         num_val_points = self.config['training']['batch_size_val']
         x = self.sample_batch(num_val_points)
 
-        if self.manifold_type == 'sphere_product':
-            x_alpha, x_beta = x
-            J_dict, x_alpha, x_beta, x_a2, x_b2 = self.model(x_alpha, x_beta)
-            _, info = self.loss_fn(J_dict, x_alpha, x_beta, x_a2, x_b2, self.model,
-                                   hard_cutoff=True)
-        else:
-            J1, J2, x1, x2 = self.model(x)
-            _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True)
+        with torch.no_grad():
+            if self.manifold_type == 'sphere_product':
+                x_alpha, x_beta = x
+                J_dict, x_alpha, x_beta, x_a2, x_b2 = self.model(x_alpha, x_beta)
+                _, info = self.loss_fn(J_dict, x_alpha, x_beta, x_a2, x_b2, self.model,
+                                       hard_cutoff=True)
+            else:
+                J1, J2, x1, x2 = self.model(x)
+                _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True)
 
         return info
     
@@ -478,16 +479,17 @@ class Trainer:
         test_size = self.config['logging'].get('test_size', 10000)
         self.model.eval()
 
-        if self.manifold_type == 'sphere_product':
-            xa, xb = self.sphere_product.sample_points(test_size)
-            xa, xb = xa.to(self.device), xb.to(self.device)
-            J_dict, xa, xb, xa2, xb2 = self.model(xa, xb)
-            _, info = self.loss_fn(J_dict, xa, xb, xa2, xb2, self.model,
-                                   hard_cutoff=True, report_all=True)
-        else:
-            x = self.sphere.sample_points_patch1(test_size).to(self.device)
-            J1, J2, x1, x2 = self.model(x)
-            _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True, report_all=True)
+        with torch.no_grad():
+            if self.manifold_type == 'sphere_product':
+                xa, xb = self.sphere_product.sample_points(test_size)
+                xa, xb = xa.to(self.device), xb.to(self.device)
+                J_dict, xa, xb, xa2, xb2 = self.model(xa, xb)
+                _, info = self.loss_fn(J_dict, xa, xb, xa2, xb2, self.model,
+                                       hard_cutoff=True, report_all=True)
+            else:
+                x = self.sphere.sample_points_patch1(test_size).to(self.device)
+                J1, J2, x1, x2 = self.model(x)
+                _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True, report_all=True)
 
         self.model.train()
 

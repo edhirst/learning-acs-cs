@@ -175,20 +175,23 @@ class ProductNijenhuisLoss(nn.Module):
             loss: Scalar weighted mean Nijenhuis norm.
             info: {'nij_norm': float, 'nij_max': float}
         """
-        x_var = x.detach().requires_grad_(True)
-        J = subnet(x_var)
+        create_graph = torch.is_grad_enabled()
+        with torch.enable_grad():
+            x_var = x.detach().requires_grad_(True)
+            J = subnet(x_var)
         batch, d, _ = J.shape
 
-        rows = []
-        for k in range(d):
-            cols = []
-            for j in range(d):
-                g = torch.autograd.grad(
-                    J[:, k, j].sum(), x_var,
-                    create_graph=True, retain_graph=True,
-                )[0]
-                cols.append(g)
-            rows.append(torch.stack(cols, dim=1))
+        with torch.enable_grad():
+            rows = []
+            for k in range(d):
+                cols = []
+                for j in range(d):
+                    g = torch.autograd.grad(
+                        J[:, k, j].sum(), x_var,
+                        create_graph=create_graph, retain_graph=True,
+                    )[0]
+                    cols.append(g)
+                rows.append(torch.stack(cols, dim=1))
         dJ = torch.stack(rows, dim=1)
 
         term1 = torch.einsum('bli,bkjl->bkij', J, dJ)

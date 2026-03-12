@@ -123,7 +123,7 @@ class EvenSphere:
             Jacobian matrices, shape (batch, dim, dim).
         """
         batch, dim = x.shape
-        rho = torch.norm(x, dim=1, keepdim=True).clamp(min=1e-8, max=1.0 - 1e-6)    # (batch, 1)
+        rho = torch.norm(x, dim=1, keepdim=True).clamp(min=1e-8, max=0.99)    # (batch, 1)
 
         phi  = (rho - 1.0) / (rho * (rho + 1.0))                                              # (batch, 1)
         dphi = (-rho.pow(2) + 2.0 * rho + 1.0) / (rho.pow(2) * (rho + 1.0).pow(2))         # (batch, 1)
