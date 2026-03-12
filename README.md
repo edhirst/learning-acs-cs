@@ -19,7 +19,8 @@ Each patch sub-network (`PatchSubNet` in `src/models/architecture.py`):
 
 **`sphere`** — `TwoPatchAlmostComplexNet`: two `PatchSubNet`s covering $S^{2n}$ via stereographic ball patches.
 
-**`sphere_product`** — `FourPatchProductNet`: four `PatchSubNet`s covering $S^{m_\alpha} \times S^{m_\beta}$ via patches $(i_\alpha, i_\beta) \in \{0,1\}^2$, each receiving the full concatenated coordinates. The per-patch $J_0$ is block-diagonal $J_0^\alpha \oplus J_0^\beta$ (with sign flips under patch transitions) when both factor dimensions are even.
+**`sphere_product`** — `FourPatchProductNet`: four `PatchSubNet`s covering $S^{m_\alpha} \times S^{m_\beta}$ via patches $(i_\alpha, i_\beta) \in \{0,1\}^2$, 
+each receiving the full concatenated coordinates. The per-patch $J_0$ is block-diagonal $J_0^\alpha \oplus J_0^\beta$ (with sign flips under patch transitions) when both factor dimensions are even.
 
 ## Loss Functions
 

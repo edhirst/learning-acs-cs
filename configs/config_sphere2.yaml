@@ -22,7 +22,7 @@ training:
     eta_min: 1.0e-6
   optimizer: "adamw"
   weight_decay: 1.0e-5
-  run_validation: false
+  run_validation: true
   batch_size_val: 1000
   validation_interval: 100
 
