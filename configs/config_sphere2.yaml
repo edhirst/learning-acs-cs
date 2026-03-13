@@ -6,7 +6,7 @@ geometry:
 
 network:
   hidden_layers: [256, 512, 512, 256]
-  activation: "gelu"
+  activation: "sin"
   use_fourier_features: true
   fourier_scale: 5.0
   num_fourier_features: 128

@@ -120,7 +120,7 @@ class NijenhuisTensorLoss(nn.Module):
 
         N = term1 + term2 - term3           # (batch, k, i, j)
         nij_sq   = (N ** 2).sum(dim=(1, 2, 3))
-        nij_norm = torch.sqrt(nij_sq + 1e-10)   # (batch,)
+        nij_norm = torch.sqrt(nij_sq + 1e-20)   # (batch,)
 
         # Radial weight: plateau in [0, r_eq + overlap_size].  During training a
         # soft Gaussian decay is used beyond the cutoff; during evaluation a hard
@@ -236,8 +236,8 @@ class OverlapLoss(nn.Module):
         diff1 = J1_to_2 - J2_m
         diff2 = J2_to_1 - J1_m
 
-        norm1 = torch.sqrt((diff1 ** 2).sum(dim=(1, 2)) + 1e-10)
-        norm2 = torch.sqrt((diff2 ** 2).sum(dim=(1, 2)) + 1e-10)
+        norm1 = torch.sqrt((diff1 ** 2).sum(dim=(1, 2)) + 1e-20)
+        norm2 = torch.sqrt((diff2 ** 2).sum(dim=(1, 2)) + 1e-20)
 
         w_sum = w.sum().clamp(min=1e-8)
         if hard_cutoff and w_sum < 1.0:
