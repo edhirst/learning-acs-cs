@@ -199,7 +199,7 @@ class ProductNijenhuisLoss(nn.Module):
         term3 = torch.einsum('bkl,blij->bkij', J, anti)
 
         N = term1 + term2 - term3
-        nij_norm = torch.sqrt((N ** 2).sum(dim=(1, 2, 3)) + 1e-10)
+        nij_norm = torch.sqrt((N ** 2).sum(dim=(1, 2, 3)) + 1e-20)
 
         w_sum = w.sum().clamp(min=1e-8)
         loss = (w * nij_norm).sum() / w_sum
@@ -435,8 +435,8 @@ class ProductOverlapLoss(nn.Module):
 
             diff_fwd = J_src_to_tgt - J_tgt
             diff_bwd = J_tgt_to_src - J_src
-            norm_fwd = torch.sqrt((diff_fwd ** 2).sum(dim=(1, 2)) + 1e-10)
-            norm_bwd = torch.sqrt((diff_bwd ** 2).sum(dim=(1, 2)) + 1e-10)
+            norm_fwd = torch.sqrt((diff_fwd ** 2).sum(dim=(1, 2)) + 1e-20)
+            norm_bwd = torch.sqrt((diff_bwd ** 2).sum(dim=(1, 2)) + 1e-20)
             pair_loss = ((w * norm_fwd).sum() + (w * norm_bwd).sum()) / (2.0 * w_sum)
 
             pair_key = f'overlap_{ia_s}{ib_s}_{ia_t}{ib_t}'
