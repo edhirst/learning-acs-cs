@@ -5,7 +5,7 @@ Utility script to evaluate a trained model checkpoint.
 import torch
 import argparse
 
-from src.geometry import EvenSphere
+from src.geometry import EvenSphere, RADIAL_MIDPOINT
 from src.geometry.sphere_product import SphereProduct
 from src.models import TwoPatchAlmostComplexNet, FourPatchProductNet
 from src.loss import TotalLoss
@@ -88,12 +88,38 @@ def evaluate_model(checkpoint_path: str, num_samples: int = 1000):
         xa, xb = sphere_product.sample_points(num_samples)
         xa, xb = xa.to(device), xb.to(device)
         J_dict, xa, xb, xa2, xb2 = model(xa, xb)
-        _, info = loss_fn(J_dict, xa, xb, xa2, xb2, model)
+
+        osa = float(config['loss_weights'].get('overlap_size_alpha', 0.1))
+        osb = float(config['loss_weights'].get('overlap_size_beta',  0.1))
+        r_cut_a  = RADIAL_MIDPOINT + osa
+        r_cut_b  = RADIAL_MIDPOINT + osb
+        r_inner_a = (1.0 - r_cut_a) / (1.0 + r_cut_a)
+        r_inner_b = (1.0 - r_cut_b) / (1.0 + r_cut_b)
+        with torch.no_grad():
+            prho_a = {0: xa.norm(dim=1),  1: xa2.norm(dim=1)}
+            prho_b = {0: xb.norm(dim=1),  1: xb2.norm(dim=1)}
+            n_nij = {
+                (ia, ib): int(((prho_a[ia] <= r_cut_a) & (prho_b[ib] <= r_cut_b)).sum())
+                for ia, ib in [(0, 0), (0, 1), (1, 0), (1, 1)]
+            }
+            ov_a    = (prho_a[0] >= r_inner_a) & (prho_a[0] <= r_cut_a)
+            ov_b    = (prho_b[0] >= r_inner_b) & (prho_b[0] <= r_cut_b)
+            n_ov_a    = int(ov_a.sum())
+            n_ov_b    = int(ov_b.sum())
+            n_ov_both = int((ov_a & ov_b).sum())
+
+        _, info = loss_fn(J_dict, xa, xb, xa2, xb2, model, hard_cutoff=True, report_all=True)
 
         mixing = _factored_mixing(J_dict, dim_alpha)
 
         d = dim_alpha + dim_beta
         print(f"\nEvaluation on {num_samples} samples (S^{dim_alpha} × S^{dim_beta}, d={d}):")
+        for ia, ib in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+            n = n_nij[(ia, ib)]
+            print(f"  Nij {ia}{ib} region  : {n}/{num_samples} ({100*n/num_samples:.1f}%)")
+        print(f"  Overlap α-band   : {n_ov_a}/{num_samples} ({100*n_ov_a/num_samples:.1f}%)  [α-flip pairs]")
+        print(f"  Overlap β-band   : {n_ov_b}/{num_samples} ({100*n_ov_b/num_samples:.1f}%)  [β-flip pairs]")
+        print(f"  Overlap αβ-band  : {n_ov_both}/{num_samples} ({100*n_ov_both/num_samples:.1f}%)  [both-flip pairs]")
         print(f"  Total loss    : {info['total_loss']:.6e}")
         for key in ['nij_00', 'nij_01', 'nij_10', 'nij_11']:
             print(f"  {key}         : {info.get(key, 0.0):.6e}")
@@ -120,9 +146,23 @@ def evaluate_model(checkpoint_path: str, num_samples: int = 1000):
 
         x = sphere.sample_points_patch1(num_samples).to(device)
         J1, J2, x1, x2 = model(x)
-        _, info = loss_fn(J1, J2, x1, x2, model)
+
+        overlap_size = float(config['loss_weights'].get('overlap_size', 0.1))
+        r_cut   = RADIAL_MIDPOINT + overlap_size
+        r_inner = (1.0 - r_cut) / (1.0 + r_cut)
+        with torch.no_grad():
+            rho1 = x1.norm(dim=1)
+            rho2 = x2.norm(dim=1)
+            n_nij1 = int((rho1 <= r_cut).sum())
+            n_nij2 = int((rho2 <= r_cut).sum())
+            n_ov   = int(((rho1 >= r_inner) & (rho1 <= r_cut)).sum())
+
+        _, info = loss_fn(J1, J2, x1, x2, model, hard_cutoff=True, report_all=True)
 
         print(f"\nEvaluation on {num_samples} samples (S^{sphere.dim}):")
+        print(f"  Nij1 region  : {n_nij1}/{num_samples} ({100*n_nij1/num_samples:.1f}%)")
+        print(f"  Nij2 region  : {n_nij2}/{num_samples} ({100*n_nij2/num_samples:.1f}%)")
+        print(f"  Overlap band : {n_ov}/{num_samples} ({100*n_ov/num_samples:.1f}%)")
         print(f"  Total loss : {info['total_loss']:.6e}")
         print(f"  Nij1       : {info['nij1']:.6e}")
         print(f"  Nij2       : {info['nij2']:.6e}")

@@ -7,21 +7,21 @@ geometry:
 network:
   hidden_layers: [256, 512, 512, 256]
   activation: "gelu"
-  use_fourier_features: false
-  fourier_scale: 1.0
-  num_fourier_features: 64
+  use_fourier_features: true
+  fourier_scale: 5.0
+  num_fourier_features: 128
   initialization: "xavier"
 
 training:
-  epochs: 5000
+  epochs: 10000
   batch_size: 2000
   learning_rate: 1.0e-3
   scheduler: "cosine"
   scheduler_params:
-    T_max: 1000
-    eta_min: 1.0e-6
+    T_max: 10000
+    eta_min: 1.0e-7
   optimizer: "adamw"
-  weight_decay: 1.0e-5
+  weight_decay: 0.0
   run_validation: true
   batch_size_val: 1000
   validation_interval: 100
