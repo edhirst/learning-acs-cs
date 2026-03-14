@@ -8,10 +8,13 @@ import yaml
 import json
 import argparse
 import sys
+import functools
 from pathlib import Path
 from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
+
+print = functools.partial(print, flush=True)
 
 from src.geometry import EvenSphere
 from src.geometry.sphere_product import SphereProduct
@@ -582,7 +585,6 @@ class Trainer:
         plot_epochs = [e + 1 for e in epochs]
 
         fig, ax = plt.subplots(figsize=(9, 5))
-        ax.semilogy(plot_epochs, history['total_loss'], label='Total', linewidth=2)
 
         if self.manifold_type == 'sphere_product':
             nij_keys = ['nij_00', 'nij_01', 'nij_10', 'nij_11']
@@ -594,12 +596,11 @@ class Trainer:
         active_nij   = w_nij     != 0.0 and all(k in history for k in nij_keys)
         active_ov    = w_overlap  != 0.0 and 'overlap_norm' in history
 
-        if active_nij or active_ov:
-            if active_nij:
-                for k, label in zip(nij_keys, nij_labels):
-                    ax.semilogy(plot_epochs, history[k], label=label, linestyle='--')
-            if active_ov:
-                ax.semilogy(plot_epochs, history['overlap_norm'], label='Overlap', linestyle=':')
+        if active_nij:
+            for k, label in zip(nij_keys, nij_labels):
+                ax.semilogy(plot_epochs, history[k], label=label, linestyle='--')
+        if active_ov:
+            ax.semilogy(plot_epochs, history['overlap_norm'], label='Overlap', linestyle=':')
 
         ax.set_xlabel('Epoch')
         ax.set_ylabel('Loss')
