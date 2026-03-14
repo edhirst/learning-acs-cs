@@ -14,13 +14,13 @@ network:
   matrix_exp_terms: null  # null: torch.matrix_exp (Padé-13); integer K: K-term Taylor series
 
 training:
-  epochs: 10000
+  epochs: 20000
   batch_size: 2000
   dtype: "float64"  # float32 or float64
   learning_rate: 1.0e-3
   scheduler: "cosine"
   scheduler_params:
-    T_max: 10000
+    T_max: 20000
     eta_min: 1.0e-7
   optimizer: "adamw"
   weight_decay: 0.0
