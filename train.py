@@ -100,6 +100,14 @@ class Trainer:
         else:
             self.device = torch.device('cpu')
         print(f"Using device: {self.device}")
+
+        # Setup dtype
+        dtype_str = self.config['training'].get('dtype', 'float64')
+        self.dtype = torch.float64 if dtype_str == 'float64' else torch.float32
+        if self.dtype == torch.float64 and self.device.type == 'mps':
+            print("Warning: MPS does not support float64; falling back to CPU.")
+            self.device = torch.device('cpu')
+        print(f"Using dtype : {dtype_str}")
         
         # Setup geometry and model
         geo = self.config['geometry']
@@ -129,13 +137,14 @@ class Trainer:
                 num_fourier_features=self.config['network']['num_fourier_features'],
                 fourier_scale=self.config['network']['fourier_scale'],
                 initialization=self.config['network']['initialization'],
-            ).to(self.device)
+                matrix_exp_terms=self.config['network'].get('matrix_exp_terms'),
+            ).to(self.device).to(self.dtype)
 
             self.loss_fn = ProductTotalLoss(
                 dim_alpha=dim_alpha,
                 dim_beta=dim_beta,
                 weights=self.config['loss_weights'],
-            ).to(self.device)
+            ).to(self.device).to(self.dtype)
 
         else:
             real_dim = geo['real_dimension']
@@ -159,12 +168,13 @@ class Trainer:
                 num_fourier_features=self.config['network']['num_fourier_features'],
                 fourier_scale=self.config['network']['fourier_scale'],
                 initialization=self.config['network']['initialization'],
-            ).to(self.device)
+                matrix_exp_terms=self.config['network'].get('matrix_exp_terms'),
+            ).to(self.device).to(self.dtype)
 
             self.loss_fn = TotalLoss(
                 manifold_dim=self.sphere.dim,
                 weights=self.config['loss_weights'],
-            ).to(self.device)
+            ).to(self.device).to(self.dtype)
 
         print(f"Model parameters: {sum(p.numel() for p in self.model.parameters())}")
         
@@ -258,8 +268,8 @@ class Trainer:
         """
         if self.manifold_type == 'sphere_product':
             xa, xb = self.sphere_product.sample_points(batch_size)
-            return xa.to(self.device), xb.to(self.device)
-        return self.sphere.sample_points_patch1(batch_size).to(self.device)
+            return xa.to(device=self.device, dtype=self.dtype), xb.to(device=self.device, dtype=self.dtype)
+        return self.sphere.sample_points_patch1(batch_size).to(device=self.device, dtype=self.dtype)
     
     def train_step(self, x) -> dict:
         """Perform one training step."""
@@ -482,12 +492,12 @@ class Trainer:
         with torch.no_grad():
             if self.manifold_type == 'sphere_product':
                 xa, xb = self.sphere_product.sample_points(test_size)
-                xa, xb = xa.to(self.device), xb.to(self.device)
+                xa, xb = xa.to(device=self.device, dtype=self.dtype), xb.to(device=self.device, dtype=self.dtype)
                 J_dict, xa, xb, xa2, xb2 = self.model(xa, xb)
                 _, info = self.loss_fn(J_dict, xa, xb, xa2, xb2, self.model,
                                        hard_cutoff=True, report_all=True)
             else:
-                x = self.sphere.sample_points_patch1(test_size).to(self.device)
+                x = self.sphere.sample_points_patch1(test_size).to(device=self.device, dtype=self.dtype)
                 J1, J2, x1, x2 = self.model(x)
                 _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True, report_all=True)
 

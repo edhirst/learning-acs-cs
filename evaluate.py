@@ -59,6 +59,13 @@ def evaluate_model(checkpoint_path: str, num_samples: int = 1000):
     print(f"Checkpoint epoch : {checkpoint['epoch']}")
     print(f"Best training loss: {checkpoint['best_loss']:.6e}")
 
+    dtype_str = config.get('training', {}).get('dtype', 'float32')
+    dtype = torch.float64 if dtype_str == 'float64' else torch.float32
+    if dtype == torch.float64 and device.type == 'mps':
+        print("Warning: MPS does not support float64; falling back to CPU.")
+        device = torch.device('cpu')
+    print(f"Using dtype : {dtype_str}")
+
     manifold_type = config['geometry'].get('manifold_type', 'sphere')
 
     if manifold_type == 'sphere_product':
@@ -75,7 +82,7 @@ def evaluate_model(checkpoint_path: str, num_samples: int = 1000):
             num_fourier_features=config['network']['num_fourier_features'],
             fourier_scale=config['network']['fourier_scale'],
             initialization=config['network']['initialization'],
-        ).to(device)
+        ).to(device).to(dtype)
         model.load_state_dict(checkpoint['model_state_dict'])
         model.eval()
 
@@ -83,10 +90,10 @@ def evaluate_model(checkpoint_path: str, num_samples: int = 1000):
             dim_alpha=dim_alpha,
             dim_beta=dim_beta,
             weights=config['loss_weights'],
-        ).to(device)
+        ).to(device).to(dtype)
 
         xa, xb = sphere_product.sample_points(num_samples)
-        xa, xb = xa.to(device), xb.to(device)
+        xa, xb = xa.to(device=device, dtype=dtype), xb.to(device=device, dtype=dtype)
         J_dict, xa, xb, xa2, xb2 = model(xa, xb)
 
         osa = float(config['loss_weights'].get('overlap_size_alpha', 0.1))
@@ -138,13 +145,13 @@ def evaluate_model(checkpoint_path: str, num_samples: int = 1000):
             num_fourier_features=config['network']['num_fourier_features'],
             fourier_scale=config['network']['fourier_scale'],
             initialization=config['network']['initialization'],
-        ).to(device)
+        ).to(device).to(dtype)
         model.load_state_dict(checkpoint['model_state_dict'])
         model.eval()
 
-        loss_fn = TotalLoss(manifold_dim=sphere.dim, weights=config['loss_weights']).to(device)
+        loss_fn = TotalLoss(manifold_dim=sphere.dim, weights=config['loss_weights']).to(device).to(dtype)
 
-        x = sphere.sample_points_patch1(num_samples).to(device)
+        x = sphere.sample_points_patch1(num_samples).to(device=device, dtype=dtype)
         J1, J2, x1, x2 = model(x)
 
         overlap_size = float(config['loss_weights'].get('overlap_size', 0.1))

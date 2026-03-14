@@ -36,8 +36,54 @@ from typing import Dict, List, Optional, Tuple
 from src.geometry.sphere import EvenSphere
 
 
-def _matrix_exp(A: torch.Tensor) -> torch.Tensor:
-    """torch.matrix_exp with CPU fallback for MPS (not yet implemented there)."""
+def _taylor_matrix_exp(A: torch.Tensor, num_terms: int) -> torch.Tensor:
+    """
+    Matrix exponential via truncated Taylor series with scaling-and-squaring.
+
+    Computes (∑_{k=0}^{num_terms} B^k/k!)^{2^s} where B = A/2^s and
+    s = max(0, ⌈log₂ ‖A‖₁⌉) ensures ‖B‖₁ ≤ 1.
+
+    Args:
+        A: Input matrices, shape (batch, d, d).
+        num_terms: Number of Taylor terms K (not counting the k=0 identity).
+
+    Returns:
+        Approximation of exp(A), shape (batch, d, d).
+    """
+    if A.device.type == 'mps':
+        return _taylor_matrix_exp(A.cpu(), num_terms).to(A.device)
+
+    batch, d, _ = A.shape
+    dtype, device = A.dtype, A.device
+
+    # Scale so ‖B‖₁ ≤ 1 to improve series convergence.
+    norm = torch.linalg.matrix_norm(A, ord=1).amax()
+    s = int(torch.clamp(torch.ceil(torch.log2(norm.clamp(min=1.0))), min=0).item())
+    B = A / (2.0 ** s) if s > 0 else A
+
+    I = torch.eye(d, dtype=dtype, device=device).unsqueeze(0)
+    result = I.expand(batch, -1, -1).clone()
+    term   = result.clone()
+    for k in range(1, num_terms + 1):
+        term   = torch.bmm(term, B) / k
+        result = result + term
+
+    for _ in range(s):
+        result = torch.bmm(result, result)
+
+    return result
+
+
+def _matrix_exp(A: torch.Tensor, num_terms: Optional[int] = None) -> torch.Tensor:
+    """Matrix exponential; uses torch.matrix_exp (Padé-13) by default.
+
+    Args:
+        A: Input matrices, shape (batch, d, d).
+        num_terms: If None, uses torch.matrix_exp.  If an integer K, uses a
+            K-term Taylor series with scaling-and-squaring instead.
+    """
+    if num_terms is not None:
+        return _taylor_matrix_exp(A, num_terms)
     if A.device.type == 'mps':
         return torch.matrix_exp(A.cpu()).to(A.device)
     return torch.matrix_exp(A)
@@ -95,6 +141,7 @@ class PatchSubNet(nn.Module):
         initialization: str = 'xavier',
         j0_sign: int = 1,
         j0_matrix: Optional[torch.Tensor] = None,
+        matrix_exp_terms: Optional[int] = None,
     ):
         """
         Args:
@@ -113,6 +160,9 @@ class PatchSubNet(nn.Module):
             j0_matrix: Optional explicit J₀ ∈ ℝ^{d×d} satisfying J₀² = −I.
                 When provided, overrides j0_sign and _build_J0.  Used by
                 FourPatchProductNet to supply per-patch block-diagonal J₀s.
+            matrix_exp_terms: If None, uses torch.matrix_exp (Padé-13 approximant).
+                If a positive integer K, uses a K-term Taylor series with
+                scaling-and-squaring instead.
         """
         super().__init__()
 
@@ -121,6 +171,7 @@ class PatchSubNet(nn.Module):
 
         self.manifold_dim = manifold_dim
         self.complex_dim  = manifold_dim // 2
+        self.matrix_exp_terms = matrix_exp_terms
         n = manifold_dim // 2
         # Effective DOFs: anti-commuting subspace {A : A J₀ + J₀ A = 0} has
         # real dimension 2n² (half of gl(2n,R)).  The complementary commuting
@@ -254,8 +305,8 @@ class PatchSubNet(nn.Module):
         batch = params.shape[0]
         A = A_flat.reshape(batch, self.manifold_dim, self.manifold_dim)
 
-        expA  = _matrix_exp(A)
-        expnA = _matrix_exp(-A)
+        expA  = _matrix_exp(A,  self.matrix_exp_terms)
+        expnA = _matrix_exp(-A, self.matrix_exp_terms)
         J0 = self.J0.unsqueeze(0).expand(batch, -1, -1)
         return expA @ J0 @ expnA
 
@@ -300,6 +351,7 @@ class TwoPatchAlmostComplexNet(nn.Module):
         num_fourier_features: int = 64,
         fourier_scale: float = 1.0,
         initialization: str = 'xavier',
+        matrix_exp_terms: Optional[int] = None,
     ):
         """
         Args:
@@ -310,6 +362,7 @@ class TwoPatchAlmostComplexNet(nn.Module):
             num_fourier_features: Number of Fourier basis functions.
             fourier_scale: Scale for random Fourier features.
             initialization: Weight initialisation method.
+            matrix_exp_terms: Passed to PatchSubNet; see its docstring.
         """
         super().__init__()
 
@@ -321,6 +374,7 @@ class TwoPatchAlmostComplexNet(nn.Module):
             num_fourier_features=num_fourier_features,
             fourier_scale=fourier_scale,
             initialization=initialization,
+            matrix_exp_terms=matrix_exp_terms,
         )
         self.patch1 = PatchSubNet(**subnet_kwargs, j0_sign=+1)
         self.patch2 = PatchSubNet(**subnet_kwargs, j0_sign=-1)
@@ -415,6 +469,7 @@ class FourPatchProductNet(nn.Module):
         num_fourier_features: int = 64,
         fourier_scale: float = 1.0,
         initialization: str = 'xavier',
+        matrix_exp_terms: Optional[int] = None,
     ):
         """
         Args:
@@ -426,6 +481,7 @@ class FourPatchProductNet(nn.Module):
             num_fourier_features: Number of Fourier basis functions.
             fourier_scale: Scale for Fourier feature random matrix.
             initialization: Weight initialisation method.
+            matrix_exp_terms: Passed to PatchSubNet; see its docstring.
         """
         super().__init__()
 
@@ -444,6 +500,7 @@ class FourPatchProductNet(nn.Module):
             num_fourier_features=num_fourier_features,
             fourier_scale=fourier_scale,
             initialization=initialization,
+            matrix_exp_terms=matrix_exp_terms,
         )
 
         self.patches = nn.ModuleDict({
