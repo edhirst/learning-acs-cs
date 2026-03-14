@@ -177,7 +177,18 @@ class Trainer:
             ).to(self.device).to(self.dtype)
 
         print(f"Model parameters: {sum(p.numel() for p in self.model.parameters())}")
-        
+
+        if (
+            self.config['training'].get('equatorial_sampling', False)
+            and float(self.config['loss_weights'].get('nijenhuis', 0.0)) != 0.0
+        ):
+            print(
+                "ERROR: equatorial_sampling=true is incompatible with a non-zero nijenhuis "
+                "weight. Equatorial sampling restricts points to the overlap band, so the "
+                "Nijenhuis loss never sees the near-pole region where ∂J/∂x is unconstrained."
+            )
+            sys.exit(1)
+
         # Setup optimizer
         self.optimizer = self._create_optimizer()
         self.scheduler = self._create_scheduler()
@@ -266,10 +277,15 @@ class Trainer:
             For 'sphere': a single Tensor of patch-1 ball coords.
             For 'sphere_product': a tuple (x_alpha, x_beta) of ball coords.
         """
+        equatorial = self.config['training'].get('equatorial_sampling', False)
         if self.manifold_type == 'sphere_product':
-            xa, xb = self.sphere_product.sample_points(batch_size)
+            lw = self.config['loss_weights']
+            osa = float(lw.get('overlap_size_alpha', 0.1)) if equatorial else None
+            osb = float(lw.get('overlap_size_beta',  0.1)) if equatorial else None
+            xa, xb = self.sphere_product.sample_points(batch_size, osa, osb)
             return xa.to(device=self.device, dtype=self.dtype), xb.to(device=self.device, dtype=self.dtype)
-        return self.sphere.sample_points_patch1(batch_size).to(device=self.device, dtype=self.dtype)
+        os_ = float(self.config['loss_weights'].get('overlap_size', 0.1)) if equatorial else None
+        return self.sphere.sample_points_patch1(batch_size, overlap_size=os_).to(device=self.device, dtype=self.dtype)
     
     def train_step(self, x) -> dict:
         """Perform one training step."""

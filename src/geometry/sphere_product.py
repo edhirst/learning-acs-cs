@@ -26,7 +26,7 @@ import torch
 import numpy as np
 from typing import Dict, Tuple
 
-from .sphere import EvenSphere, RADIAL_MIDPOINT, ball_sample
+from .sphere import EvenSphere, RADIAL_MIDPOINT, ball_sample, equatorial_annulus_sample
 
 
 class SphereProduct:
@@ -68,23 +68,47 @@ class SphereProduct:
     # Sampling
     # ------------------------------------------------------------------
 
-    def sample_points(self, num_points: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    def sample_points(
+        self,
+        num_points: int,
+        overlap_size_alpha: float | None = None,
+        overlap_size_beta: float | None = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Sample points on S^{m_α} × S^{m_β} using independent product measure.
 
+        If overlap_size_alpha or overlap_size_beta is given, the corresponding
+        factor's radii are drawn from the equatorial annulus for that factor
+        (see equatorial_annulus_sample).  This concentrates samples in the
+        region where the overlap loss is active, giving more gradient signal
+        per batch step.  The annulus is self-symmetric under the patch-change
+        map, so patch-1 images also lie in the same annulus.
+
         Args:
-            num_points: Number of sample points.
+            num_points:          Number of sample points.
+            overlap_size_alpha:  If set, sample S^{m_α} radii from equatorial annulus.
+            overlap_size_beta:   If set, sample S^{m_β} radii from equatorial annulus.
 
         Returns:
             x_alpha: Patch-0 ball coords on S^{m_α}, shape (num_points, dim_alpha).
             x_beta:  Patch-0 ball coords on S^{m_β}, shape (num_points, dim_beta).
         """
-        xa = torch.tensor(
-            ball_sample(num_points, self.dim_alpha), dtype=torch.float32, device=self.device
-        )
-        xb = torch.tensor(
-            ball_sample(num_points, self.dim_beta), dtype=torch.float32, device=self.device
-        )
+        if overlap_size_alpha is not None:
+            r_outer_a = RADIAL_MIDPOINT + overlap_size_alpha
+            r_inner_a = (1.0 - r_outer_a) / (1.0 + r_outer_a)
+            xa_np = equatorial_annulus_sample(num_points, self.dim_alpha, r_inner_a, r_outer_a)
+        else:
+            xa_np = ball_sample(num_points, self.dim_alpha)
+
+        if overlap_size_beta is not None:
+            r_outer_b = RADIAL_MIDPOINT + overlap_size_beta
+            r_inner_b = (1.0 - r_outer_b) / (1.0 + r_outer_b)
+            xb_np = equatorial_annulus_sample(num_points, self.dim_beta, r_inner_b, r_outer_b)
+        else:
+            xb_np = ball_sample(num_points, self.dim_beta)
+
+        xa = torch.tensor(xa_np, dtype=torch.float32, device=self.device)
+        xb = torch.tensor(xb_np, dtype=torch.float32, device=self.device)
         return xa, xb
 
     # ------------------------------------------------------------------

@@ -59,6 +59,7 @@ class EvenSphere:
         num_points: int,
         patch_width: float = 1.0,
         density_power: float = 1.0,
+        overlap_size: float | None = None,
     ) -> torch.Tensor:
         """
         Sample points in patch-1 ball coordinates uniformly over S^{2n}.
@@ -68,16 +69,30 @@ class EvenSphere:
         mapped via r' = (1−r)/(1+r) to represent the patch-2 hemisphere in
         patch-1 coordinates.
 
+        If overlap_size is given, all points are drawn from the equatorial
+        annulus [r_inner, r_outer] (r_outer = r_eq + overlap_size;
+        r_inner = (1−r_outer)/(1+r_outer)) via inverse-CDF sampling.  This
+        concentrates training signal on the overlap region where the
+        consistency loss is active while remaining geometrically valid:
+        the annulus is self-symmetric under the patch-change map, so the
+        patch-2 images φ(x) lie in the same annulus.
+
         Args:
-            num_points: Number of points to sample.
-            patch_width: Radial cutoff (default 1.0 covers all of patch 1).
-            density_power: Beta shape parameter; 1.0 gives approximately
-                uniform sphere measure.
+            num_points:   Number of points to sample.
+            patch_width:  Radial cutoff used only when overlap_size is None.
+            density_power: Beta shape parameter used only when overlap_size is None.
+            overlap_size: If set, sample from the equatorial annulus defined
+                by this overlap margin.
 
         Returns:
             Ball coordinates in patch 1, shape (num_points, dim).
         """
-        pts_np = ball_sample(num_points, self.dim, patch_width, density_power)
+        if overlap_size is not None:
+            r_outer = RADIAL_MIDPOINT + overlap_size
+            r_inner = (1.0 - r_outer) / (1.0 + r_outer)
+            pts_np = equatorial_annulus_sample(num_points, self.dim, r_inner, r_outer)
+        else:
+            pts_np = ball_sample(num_points, self.dim, patch_width, density_power)
         return torch.tensor(pts_np, dtype=torch.float32, device=self.device)
 
     # ------------------------------------------------------------------
@@ -220,6 +235,44 @@ def ball_sample(
     # Sample directions uniformly on S^{dimension-1} via isotropic Gaussian.
     # This is correct in all dimensions (unlike spherical-coordinate sampling
     # with uniform angles, which is only uniform on S^1).
+    gaussian = np.random.randn(num_pts, dimension)
+    norms    = np.linalg.norm(gaussian, axis=1, keepdims=True)
+    unit_vec = gaussian / norms
+
+    return radii.reshape(-1, 1) * unit_vec
+
+
+def equatorial_annulus_sample(
+    num_pts: int,
+    dimension: int,
+    r_inner: float,
+    r_outer: float,
+) -> np.ndarray:
+    """
+    Sample uniformly (in ball measure) from the annulus r_inner ≤ ρ ≤ r_outer.
+
+    For the patch-change map φ(x) = x(ρ−1)/(ρ(ρ+1)), the equatorial band
+    [r_inner, r_outer] is self-symmetric: φ maps it to itself.  Therefore
+    sampling here gives points whose patch-2 images φ(x) also lie in the
+    same annulus, making all samples active for the overlap loss without
+    needing reweighting.
+
+    Radii are drawn via inverse CDF of the d-ball radial density P(r) ∝ r^{d−1}:
+        r = (r_inner^d + U · (r_outer^d − r_inner^d))^{1/d},  U ~ Uniform[0,1].
+
+    Args:
+        num_pts:   Number of sample points.
+        dimension: Ball dimension d = real manifold dimension.
+        r_inner:   Inner radius of the annulus.
+        r_outer:   Outer radius of the annulus.
+
+    Returns:
+        Ball coordinates, shape (num_pts, dimension).
+    """
+    d = float(dimension)
+    u = np.random.uniform(size=num_pts)
+    radii = (r_inner ** d + u * (r_outer ** d - r_inner ** d)) ** (1.0 / d)
+
     gaussian = np.random.randn(num_pts, dimension)
     norms    = np.linalg.norm(gaussian, axis=1, keepdims=True)
     unit_vec = gaussian / norms
