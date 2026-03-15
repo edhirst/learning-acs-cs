@@ -8,20 +8,20 @@ network:
   hidden_layers: [256, 512, 512, 256]
   activation: "gelu"
   use_fourier_features: true
-  fourier_scale: 5.0
+  fourier_scale: 1.0
   num_fourier_features: 128
   initialization: "xavier"
   matrix_exp_terms: null  # null: torch.matrix_exp (Padé-13); integer K: K-term Taylor series
 
 training:
-  epochs: 20000
+  epochs: 5000
   batch_size: 2000
   dtype: "float64"  # float32 or float64
   learning_rate: 1.0e-3
   scheduler: "cosine"
   scheduler_params:
-    T_max: 20000
-    eta_min: 1.0e-7
+    T_max: 5000
+    eta_min: 1.0e-6
   optimizer: "adamw"
   weight_decay: 0.0
   run_validation: true

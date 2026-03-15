@@ -7,9 +7,9 @@ geometry:
 network:
   hidden_layers: [256, 512, 512, 256]
   activation: "gelu"
-  use_fourier_features: false
+  use_fourier_features: true
   fourier_scale: 1.0
-  num_fourier_features: 64
+  num_fourier_features: 128
   initialization: "xavier"
   matrix_exp_terms: null  # null: torch.matrix_exp (Padé-13); integer K: K-term Taylor series
 
