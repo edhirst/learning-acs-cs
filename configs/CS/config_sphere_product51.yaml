@@ -1,0 +1,55 @@
+# Configuration for S^\alpha × S^\beta
+
+geometry:
+  manifold_type: "sphere_product"
+  real_dimension_alpha: 5 
+  real_dimension_beta: 1 
+
+network:
+  hidden_layers: [256, 512, 512, 256]
+  activation: "gelu"
+  use_fourier_features: true
+  fourier_scale: 1.0
+  num_fourier_features: 128
+  initialization: "xavier"
+  matrix_exp_terms: null  # null: torch.matrix_exp (Padé-13); integer K: K-term Taylor series
+
+training:
+  epochs: 5000
+  batch_size: 2000
+  dtype: "float64"  # float32 or float64
+  learning_rate: 1.0e-3
+  scheduler: "cosine"
+  scheduler_params:
+    T_max: 5000
+    eta_min: 1.0e-6
+  optimizer: "adamw"
+  weight_decay: 1.0e-5
+  run_validation: true
+  batch_size_val: 1000
+  validation_interval: 100
+  equatorial_sampling: true  # sample radii from the overlap band, maximising gradient signal
+
+pretraining:
+  identity_pretraining: true
+  pretrain_epochs: 50
+  pretrain_points: 2000
+
+loss_weights:
+  nijenhuis: 1.0
+  overlap: 3.0
+  overlap_size_alpha: 0.2
+  overlap_size_beta: 0.2
+
+logging:
+  log_interval: 10
+  checkpoint_interval: 500
+  save_dir: "outputs"
+  test_size: 10000
+
+seed: 42
+
+advanced:
+  gradient_clipping: 1.0
+  early_stopping: false
+  early_stopping_patience: 100
