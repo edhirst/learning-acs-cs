@@ -27,7 +27,7 @@ training:
   run_validation: true
   batch_size_val: 1000
   validation_interval: 100
-  equatorial_sampling: true 
+  equatorial_sampling: false 
 
 pretraining:
   identity_pretraining: true
