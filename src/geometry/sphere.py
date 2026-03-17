@@ -57,42 +57,36 @@ class EvenSphere:
     def sample_points_patch1(
         self,
         num_points: int,
-        patch_width: float = 1.0,
         density_power: float = 1.0,
         overlap_size: float | None = None,
     ) -> torch.Tensor:
         """
-        Sample points in patch-1 ball coordinates uniformly over S^{2n}.
+        Sample points in patch-0 ball coordinates from S^{2n}.
 
-        Half the samples have radii drawn from a beta distribution covering
-        the patch-1 hemisphere; the other half are patch-2 beta samples
-        mapped via r' = (1−r)/(1+r) to represent the patch-2 hemisphere in
-        patch-1 coordinates.
-
-        If overlap_size is given, all points are drawn from the equatorial
+        When overlap_size is given, samples are drawn from the equatorial
         annulus [r_inner, r_outer] (r_outer = r_eq + overlap_size;
-        r_inner = (1−r_outer)/(1+r_outer)) via inverse-CDF sampling.  This
-        concentrates training signal on the overlap region where the
-        consistency loss is active while remaining geometrically valid:
-        the annulus is self-symmetric under the patch-change map, so the
-        patch-2 images φ(x) lie in the same annulus.
+        r_inner = (1−r_outer)/(1+r_outer)) with uniform ball measure.
+        The annulus is self-symmetric under the patch-change map so the
+        patch-1 images φ(x) lie in the same annulus.
+
+        Otherwise, samples are drawn using sphere_uniform_sample with
+        the round measure at density_power=1.
 
         Args:
-            num_points:   Number of points to sample.
-            patch_width:  Radial cutoff used only when overlap_size is None.
-            density_power: Beta shape parameter used only when overlap_size is None.
-            overlap_size: If set, sample from the equatorial annulus defined
-                by this overlap margin.
+            num_points:    Number of points to sample.
+            density_power: Latitude density parameter p > 0.  p=1: round
+                measure.  p>1: equatorial bias.  p<1: polar bias.
+            overlap_size:  If set, sample from equatorial annulus only.
 
         Returns:
-            Ball coordinates in patch 1, shape (num_points, dim).
+            Ball coordinates in patch 0, shape (num_points, dim).
         """
         if overlap_size is not None:
             r_outer = RADIAL_MIDPOINT + overlap_size
             r_inner = (1.0 - r_outer) / (1.0 + r_outer)
             pts_np = equatorial_annulus_sample(num_points, self.dim, r_inner, r_outer)
         else:
-            pts_np = ball_sample(num_points, self.dim, patch_width, density_power)
+            pts_np = sphere_uniform_sample(num_points, self.dim, density_power)
         return torch.tensor(pts_np, dtype=torch.float32, device=self.device)
 
     # ------------------------------------------------------------------
@@ -203,43 +197,83 @@ class EvenSphere:
 
 
 # ------------------------------------------------------------------
-# Ball sampling  (pure NumPy, ported from AInstein/sampling/ball.py)
+# Sphere sampling  (pure NumPy)
 # ------------------------------------------------------------------
 
-def ball_sample(
+def sphere_uniform_sample(
     num_pts: int,
     dimension: int,
-    patch_width: float = 1.0,
     density_power: float = 1.0,
 ) -> np.ndarray:
     """
-    Sample the 2n-ball with radial distribution giving uniform sphere measure.
+    Sample from S^{dimension} and return patch-0 ball coordinates.
+
+    The coarea formula gives the marginal density of the height coordinate
+    q = p_{d+1} under the round measure on S^d as
+
+        P(q) ∝ (1 − q²)^{(d−2)/2}
+
+    For density_power = p, the family P_p(q) ∝ (1−q²)^{p(d−2)/2} is used.
+    Setting u = (1+q)/2 ∈ [0,1] rewrites this as Beta(α+1, α+1) with
+    α = p(d−2)/2.  At p=1, this is the round measure on S^d.  At p>1,
+    samples concentrate toward the equator (q≈0, ρ≈r_eq in ball coords);
+    at p<1, they concentrate toward the poles (|q|≈1).
+
+    The direction v̂ is sampled uniformly on S^{d−1} (normalised Gaussian).
+    The ambient point (√(1−q²) v̂, q) is mapped to patch-0 ball coordinates
+    via the closed-form inverse of the modified stereographic projection,
+    using a hemisphere split for numerical stability:
+
+        southern (q ≤ 0):  x = √(1+q) / (√(1−q) + √2) · v̂
+        northern (q > 0):  ρ₂ = √(1−q) / (√(1+q) + √2)
+                           x  = −(1−ρ₂)/(1+ρ₂) · v̂
 
     Args:
-        num_pts: Number of sample points.
-        dimension: Ball dimension (= real dimension of sphere = 2n).
-        patch_width: Radial cutoff (default 1.0).
-        density_power: Beta shape parameter.
+        num_pts:       Number of sample points.
+        dimension:     Real dimension d of the sphere S^d (≥ 1).
+        density_power: Latitude density parameter p > 0.
 
     Returns:
-        Ball coordinates, shape (num_pts, dimension).
+        Ball coordinates in patch 0, shape (num_pts, dimension).
+
+    Raises:
+        ValueError: if density_power is out of the valid range for dimension.
     """
-    half = num_pts // 2
-    beta_b = density_power / (np.sqrt(2.0) - 1.0) - density_power
+    d = dimension
+    alpha = density_power * (d - 2) / 2.0
+    beta_param = alpha + 1.0
+    if beta_param <= 0.0:
+        raise ValueError(
+            f"density_power={density_power} is invalid for dimension d={d}: "
+            f"requires density_power < {2.0 / (2 - d):.4g}"
+        )
 
-    radii_p1       = np.random.beta(density_power, beta_b, size=half)
-    radii_p2       = np.random.beta(density_power, beta_b, size=num_pts - half)
-    radii_p2_in_p1 = (1.0 - radii_p2) / (1.0 + radii_p2)
-    radii = np.concatenate([radii_p1, radii_p2_in_p1]) * patch_width
+    u     = np.random.beta(beta_param, beta_param, size=num_pts)
+    q     = 2.0 * u - 1.0  # height q ∈ (−1, 1)
+    gauss = np.random.randn(num_pts, d)
+    v_hat = gauss / np.linalg.norm(gauss, axis=1, keepdims=True)
 
-    # Sample directions uniformly on S^{dimension-1} via isotropic Gaussian.
-    # This is correct in all dimensions (unlike spherical-coordinate sampling
-    # with uniform angles, which is only uniform on S^1).
-    gaussian = np.random.randn(num_pts, dimension)
-    norms    = np.linalg.norm(gaussian, axis=1, keepdims=True)
-    unit_vec = gaussian / norms
+    sqrt_1pq = np.sqrt(np.maximum(1.0 + q, 0.0))  # √(1+q)
+    sqrt_1mq = np.sqrt(np.maximum(1.0 - q, 0.0))  # √(1−q)
+    sqrt2    = np.sqrt(2.0)
 
-    return radii.reshape(-1, 1) * unit_vec
+    x     = np.empty((num_pts, d))
+    south = q <= 0.0
+    north = ~south
+
+    # Southern hemisphere: patch-0 projection is well-conditioned near south pole.
+    if south.any():
+        scale    = sqrt_1pq[south] / (sqrt_1mq[south] + sqrt2)
+        x[south] = scale[:, np.newaxis] * v_hat[south]
+
+    # Northern hemisphere: use patch-1 coords (well-conditioned near north pole),
+    # then apply the patch-change map φ.  The direction flips sign under φ.
+    if north.any():
+        rho2     = sqrt_1mq[north] / (sqrt_1pq[north] + sqrt2)
+        rho1     = (1.0 - rho2) / (1.0 + rho2)
+        x[north] = -rho1[:, np.newaxis] * v_hat[north]
+
+    return x
 
 
 def equatorial_annulus_sample(

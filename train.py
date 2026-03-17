@@ -282,14 +282,15 @@ class Trainer:
             For 'sphere_product': a tuple (x_alpha, x_beta) of ball coords.
         """
         equatorial = self.config['training'].get('equatorial_sampling', False)
+        density_power = float(self.config['training'].get('density_power', 1.0))
         if self.manifold_type == 'sphere_product':
             lw = self.config['loss_weights']
             osa = float(lw.get('overlap_size_alpha', 0.1)) if equatorial else None
             osb = float(lw.get('overlap_size_beta',  0.1)) if equatorial else None
-            xa, xb = self.sphere_product.sample_points(batch_size, osa, osb)
+            xa, xb = self.sphere_product.sample_points(batch_size, osa, osb, density_power)
             return xa.to(device=self.device, dtype=self.dtype), xb.to(device=self.device, dtype=self.dtype)
         os_ = float(self.config['loss_weights'].get('overlap_size', 0.1)) if equatorial else None
-        return self.sphere.sample_points_patch1(batch_size, overlap_size=os_).to(device=self.device, dtype=self.dtype)
+        return self.sphere.sample_points_patch1(batch_size, density_power=density_power, overlap_size=os_).to(device=self.device, dtype=self.dtype)
     
     def train_step(self, x) -> dict:
         """Perform one training step."""
