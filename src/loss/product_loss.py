@@ -538,7 +538,7 @@ class ProductTotalLoss(nn.Module):
             overlap_loss = zero
             overlap_info = {'overlap_norm': 0.0}
 
-        total = w_nij * nij_loss + w_overlap * overlap_loss
+        total = w_nij * nij_loss / 4.0 + w_overlap * overlap_loss
 
         info: Dict = {'total_loss': total.item()}
         info.update(nij_info)

@@ -318,7 +318,7 @@ class TotalLoss(nn.Module):
             overlap = zero
             info_ov = {'overlap_norm': 0.0}
 
-        total = w_nij * (nij1 + nij2) + w_overlap * overlap
+        total = w_nij * (nij1 + nij2) / 2.0 + w_overlap * overlap
 
         info = {
             'total_loss':   total.item(),
