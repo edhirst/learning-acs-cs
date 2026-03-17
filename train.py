@@ -11,6 +11,7 @@ import sys
 import functools
 from pathlib import Path
 from datetime import datetime
+import secrets
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -258,7 +259,7 @@ class Trainer:
     
     def setup_logging(self):
         """Setup output directories."""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + secrets.token_hex(3)
         self.output_dir = Path(self.config['logging']['save_dir']) / timestamp
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
