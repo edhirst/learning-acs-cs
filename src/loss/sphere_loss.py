@@ -26,6 +26,7 @@ where F is the Jacobian of the self-inverse patch-change map and x₂ = φ(x₁)
 """
 
 import torch
+import torch.autograd.forward_ad as fwdAD
 import torch.nn as nn
 from typing import Dict, Tuple
 
@@ -78,32 +79,25 @@ class NijenhuisTensorLoss(nn.Module):
             loss: Scalar mean Nijenhuis norm.
             info: Dict with 'nij_norm' (mean).
         """
-        create_graph = torch.is_grad_enabled()
         with torch.enable_grad():
-            x_var = x.detach().requires_grad_(True)
-            J = subnet(x_var)          # (batch, d, d)
+            J = subnet(x)              # (batch, d, d)
         batch, d, _ = J.shape
 
         # dJ[b, k, j, l] = ∂_{x^l} J^k_j
-        # Built via torch.stack to preserve the autograd computation graph for
-        # second-order gradients (∂²J/∂x∂θ), which are needed for correct
-        # gradient flow through the dJ-dependent terms of N.
-        # create_graph=False during evaluation (no_grad context) avoids
-        # building the second-order graph that is only needed for training.
-        with torch.enable_grad():
-            rows = []
-            for k in range(d):
-                cols = []
-                for j in range(d):
-                    g = torch.autograd.grad(
-                        J[:, k, j].sum(),
-                        x_var,
-                        create_graph=create_graph,
-                        retain_graph=True,
-                    )[0]  # (batch, d)
-                    cols.append(g)
-                rows.append(torch.stack(cols, dim=1))   # (batch, d, d)
-        dJ = torch.stack(rows, dim=1)               # (batch, d, d, d)
+        # Computed via d forward-mode AD passes (one per input coordinate l).
+        # Forward-mode has cost O(d · forward_pass) vs O(d² · backward_pass)
+        # for the reverse-mode loop it replaces, giving ~d/2 speedup.
+        x_d = x.detach()
+        slices = []
+        for l in range(d):
+            tangent = x_d.new_zeros(batch, d)
+            tangent[:, l] = 1.0
+            with fwdAD.dual_level():
+                dJ_l = fwdAD.unpack_dual(subnet(fwdAD.make_dual(x_d, tangent))).tangent
+            if dJ_l is None:
+                dJ_l = x_d.new_zeros(batch, d, d)
+            slices.append(dJ_l)
+        dJ = torch.stack(slices, dim=-1)            # (batch, d, d, d)
 
         # term1[b,k,i,j] = Σ_l J^l_i * ∂_l J^k_j = Σ_l J[b,l,i] * dJ[b,k,j,l]
         term1 = torch.einsum('bli,bkjl->bkij', J, dJ)

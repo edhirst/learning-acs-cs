@@ -34,6 +34,7 @@ Note on the diagonal pair (01)↔(10): this pair involves a both-flip but the
 """
 
 import torch
+import torch.autograd.forward_ad as fwdAD
 import torch.nn as nn
 from typing import Dict, List, Optional, Tuple
 
@@ -174,24 +175,21 @@ class ProductNijenhuisLoss(nn.Module):
             loss: Scalar weighted mean Nijenhuis norm.
             info: {'nij_norm': float}
         """
-        create_graph = torch.is_grad_enabled()
         with torch.enable_grad():
-            x_var = x.detach().requires_grad_(True)
-            J = subnet(x_var)
+            J = subnet(x)          # (batch, d, d)
         batch, d, _ = J.shape
 
-        with torch.enable_grad():
-            rows = []
-            for k in range(d):
-                cols = []
-                for j in range(d):
-                    g = torch.autograd.grad(
-                        J[:, k, j].sum(), x_var,
-                        create_graph=create_graph, retain_graph=True,
-                    )[0]
-                    cols.append(g)
-                rows.append(torch.stack(cols, dim=1))
-        dJ = torch.stack(rows, dim=1)
+        x_d = x.detach()
+        slices = []
+        for l in range(d):
+            tangent = x_d.new_zeros(batch, d)
+            tangent[:, l] = 1.0
+            with fwdAD.dual_level():
+                dJ_l = fwdAD.unpack_dual(subnet(fwdAD.make_dual(x_d, tangent))).tangent
+            if dJ_l is None:
+                dJ_l = x_d.new_zeros(batch, d, d)
+            slices.append(dJ_l)
+        dJ = torch.stack(slices, dim=-1)    # (batch, d, d, d)
 
         term1 = torch.einsum('bli,bkjl->bkij', J, dJ)
         term2 = -torch.einsum('blj,bkil->bkij', J, dJ)
