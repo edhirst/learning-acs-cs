@@ -41,7 +41,7 @@ from typing import Dict, List, Optional, Tuple
 from src.geometry import RADIAL_MIDPOINT
 from src.geometry.sphere import EvenSphere
 from src.geometry.sphere_product import SphereProduct
-from src.loss.sphere_loss import NijenhuisTensorLoss
+from src.loss.sphere_loss import NijenhuisTensorLoss, _metric_norm_sq_12tensor, _metric_norm_sq_11tensor
 
 
 # All 6 ordered patch pairs (source, target, flip_type)
@@ -70,12 +70,15 @@ class ProductNijenhuisLoss(nn.Module):
         total_dim: int,
         overlap_size_alpha: float = 0.1,
         overlap_size_beta:  float = 0.1,
+        use_round_metric_contraction: bool = False,
     ):
         """
         Args:
             total_dim: m_α + m_β (even).
             overlap_size_alpha: Extra radial margin for S^{m_α} factor.
             overlap_size_beta:  Extra radial margin for S^{m_β} factor.
+            use_round_metric_contraction: If True, compute ||N||² via the
+                round product metric instead of the flat Frobenius norm.
         """
         super().__init__()
         self.total_dim = total_dim
@@ -83,6 +86,7 @@ class ProductNijenhuisLoss(nn.Module):
         self.r_cut_beta  = RADIAL_MIDPOINT + overlap_size_beta
         self.overlap_size_alpha = overlap_size_alpha
         self.overlap_size_beta  = overlap_size_beta
+        self.use_round_metric_contraction = use_round_metric_contraction
         # Reuse the per-patch Nijenhuis computation from the single-sphere loss.
         self._nij = NijenhuisTensorLoss(total_dim, overlap_size=0.0)
 
@@ -143,8 +147,15 @@ class ProductNijenhuisLoss(nn.Module):
             subnet = model.patches[f'patch_{ia}{ib}']
             x_combined = torch.cat([xa_p, xb_p], dim=1)
 
+            if self.use_round_metric_contraction:
+                g, g_inv = SphereProduct.round_metric_ball_coords(xa_p, xb_p)
+            else:
+                g, g_inv = None, None
+
             # Re-evaluate with gradient tracking (required by NijenhuisTensorLoss)
-            nij_l, nij_info = self._nij_with_weight(x_combined, subnet, w, hard_cutoff)
+            nij_l, nij_info = self._nij_with_weight(
+                x_combined, subnet, w, hard_cutoff, g, g_inv,
+            )
 
             key = f'nij_{ia}{ib}'
             info[key] = nij_l.item()
@@ -158,6 +169,8 @@ class ProductNijenhuisLoss(nn.Module):
         subnet:      nn.Module,
         w:           torch.Tensor,
         hard_cutoff: bool,
+        g:           Optional[torch.Tensor] = None,
+        g_inv:       Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, Dict]:
         """
         Compute Nijenhuis norm for a single patch with an externally supplied weight.
@@ -170,6 +183,11 @@ class ProductNijenhuisLoss(nn.Module):
             subnet: PatchSubNet.
             w:      Per-sample weight, shape (batch,).
             hard_cutoff: Passed through (not used here; handled in caller).
+            g:      Optional round metric, shape (batch, d, d).  When provided
+                    together with g_inv, the metric contraction
+                    g_{pi} g^{qj} g^{rk} N^p_{qr} N^i_{jk} is used instead of
+                    the flat Frobenius norm.
+            g_inv:  Optional inverse metric, shape (batch, d, d).
 
         Returns:
             loss: Scalar weighted mean Nijenhuis norm.
@@ -197,7 +215,10 @@ class ProductNijenhuisLoss(nn.Module):
         term3 = torch.einsum('bkl,blij->bkij', J, anti)
 
         N = term1 + term2 - term3
-        nij_norm = torch.sqrt((N ** 2).sum(dim=(1, 2, 3)) + 1e-20)
+        if g is not None and g_inv is not None:
+            nij_norm = torch.sqrt(_metric_norm_sq_12tensor(N, g, g_inv) + 1e-20)
+        else:
+            nij_norm = torch.sqrt((N ** 2).sum(dim=(1, 2, 3)) + 1e-20)
 
         w_sum = w.sum().clamp(min=1e-8)
         loss = (w * nij_norm).sum() / w_sum
@@ -221,6 +242,7 @@ class ProductOverlapLoss(nn.Module):
         dim_beta:  int,
         overlap_size_alpha: float = 0.1,
         overlap_size_beta:  float = 0.1,
+        use_round_metric_contraction: bool = False,
     ):
         """
         Args:
@@ -228,10 +250,15 @@ class ProductOverlapLoss(nn.Module):
             dim_beta:           m_β.
             overlap_size_alpha: Equatorial band width for α factor.
             overlap_size_beta:  Equatorial band width for β factor.
+            use_round_metric_contraction: If True, compute ||Jdiff||² via the
+                round product metric instead of the flat Frobenius norm.  The
+                metric is evaluated in the patch where the comparison is
+                performed (target for the forward diff, source for the backward).
         """
         super().__init__()
         self.dim_alpha = dim_alpha
         self.dim_beta  = dim_beta
+        self.use_round_metric_contraction = use_round_metric_contraction
 
         r_outer_a = RADIAL_MIDPOINT + overlap_size_alpha
         r_outer_b = RADIAL_MIDPOINT + overlap_size_beta
@@ -433,8 +460,20 @@ class ProductOverlapLoss(nn.Module):
 
             diff_fwd = J_src_to_tgt - J_tgt
             diff_bwd = J_tgt_to_src - J_src
-            norm_fwd = torch.sqrt((diff_fwd ** 2).sum(dim=(1, 2)) + 1e-20)
-            norm_bwd = torch.sqrt((diff_bwd ** 2).sum(dim=(1, 2)) + 1e-20)
+
+            if self.use_round_metric_contraction:
+                # Metric in target patch for diff_fwd, source patch for diff_bwd.
+                xa_tgt = patch_alpha[ia_t][mask]
+                xb_tgt = patch_beta [ib_t][mask]
+                xa_src = patch_alpha[ia_s][mask]
+                xb_src = patch_beta [ib_s][mask]
+                g_tgt, g_tgt_inv = SphereProduct.round_metric_ball_coords(xa_tgt, xb_tgt)
+                g_src, g_src_inv = SphereProduct.round_metric_ball_coords(xa_src, xb_src)
+                norm_fwd = torch.sqrt(_metric_norm_sq_11tensor(diff_fwd, g_tgt, g_tgt_inv) + 1e-20)
+                norm_bwd = torch.sqrt(_metric_norm_sq_11tensor(diff_bwd, g_src, g_src_inv) + 1e-20)
+            else:
+                norm_fwd = torch.sqrt((diff_fwd ** 2).sum(dim=(1, 2)) + 1e-20)
+                norm_bwd = torch.sqrt((diff_bwd ** 2).sum(dim=(1, 2)) + 1e-20)
             pair_loss = ((w * norm_fwd).sum() + (w * norm_bwd).sum()) / (2.0 * w_sum)
 
             pair_key = f'overlap_{ia_s}{ib_s}_{ia_t}{ib_t}'
@@ -475,14 +514,21 @@ class ProductTotalLoss(nn.Module):
             dim_alpha: m_α.
             dim_beta:  m_β.
             weights:   Dict with keys 'nijenhuis', 'overlap', 'overlap_size_alpha',
-                       'overlap_size_beta'.
+                       'overlap_size_beta', 'use_round_metric_contraction'.
         """
         super().__init__()
-        osa = float(weights.get('overlap_size_alpha', 0.1))
-        osb = float(weights.get('overlap_size_beta',  0.1))
+        osa  = float(weights.get('overlap_size_alpha', 0.1))
+        osb  = float(weights.get('overlap_size_beta',  0.1))
+        urmc = bool(weights.get('use_round_metric_contraction', False))
 
-        self.nij_loss     = ProductNijenhuisLoss(dim_alpha + dim_beta, osa, osb)
-        self.overlap_loss = ProductOverlapLoss(dim_alpha, dim_beta, osa, osb)
+        self.nij_loss     = ProductNijenhuisLoss(
+            dim_alpha + dim_beta, osa, osb,
+            use_round_metric_contraction=urmc,
+        )
+        self.overlap_loss = ProductOverlapLoss(
+            dim_alpha, dim_beta, osa, osb,
+            use_round_metric_contraction=urmc,
+        )
         self.weights      = weights
 
     def forward(

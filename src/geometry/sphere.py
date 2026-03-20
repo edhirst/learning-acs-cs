@@ -170,6 +170,65 @@ class EvenSphere:
         F_inv = torch.linalg.inv(F)
         return F @ J @ F_inv
 
+    @staticmethod
+    def round_metric_ball_coords(
+        x: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Round metric and its inverse in ball coordinates.
+
+        The unit sphere S^{2n} is embedded via
+            p_k = 4 x_k (1−ρ²)/(1+ρ²)²   (k = 1,…,2n)
+            p_{2n+1} = (−1 + 6ρ² − ρ⁴)/(1+ρ²)²
+
+        Pulling back the flat metric on ℝ^{2n+1} gives a structured metric
+        on the open ball B(0,1) ⊂ ℝ^{2n}:
+
+            g_{ij}(x) = A_tan(ρ) δ_{ij} + B(ρ) x_i x_j
+
+        with radial and tangential eigenvalues:
+            A_tan = 16(1−ρ²)² / (1+ρ²)⁴
+            A_rad = A_tan + B ρ²  = 16 / (1+ρ²)²
+            B     = 64 / (1+ρ²)⁴
+
+        The inverse (by Sherman–Morrison) is:
+            g^{ij}(x) = inv_A_tan(ρ) δ_{ij} + D(ρ) x_i x_j
+
+        with:
+            inv_A_tan = (1+ρ²)⁴ / (16(1−ρ²)²)
+            D         = −(1+ρ²)² / (4(1−ρ²)²)
+
+        Args:
+            x: Ball coordinates, shape (batch, dim).
+
+        Returns:
+            g:     Metric tensor, shape (batch, dim, dim).
+            g_inv: Inverse metric tensor, shape (batch, dim, dim).
+        """
+        batch, d = x.shape
+        rho_sq  = (x * x).sum(dim=1)                    # (batch,)
+        op2     = 1.0 + rho_sq                           # (1+ρ²)
+        om2     = (1.0 - rho_sq).clamp(min=1e-8)         # (1−ρ²), guarded
+        op2_4   = op2 ** 4                               # (1+ρ²)⁴
+
+        A_tan = 16.0 * om2 ** 2 / op2_4                 # (batch,)
+        B     = 64.0 / op2_4                             # (batch,)
+
+        eye      = torch.eye(d, dtype=x.dtype, device=x.device).unsqueeze(0)
+        outer_xx = x.unsqueeze(2) * x.unsqueeze(1)      # (batch, d, d)
+
+        g = A_tan[:, None, None] * eye + B[:, None, None] * outer_xx
+
+        # Inverse: use (1+ρ²)⁴ / (16(1−ρ²)²) for the diagonal and
+        #          −(1+ρ²)² / (4(1−ρ²)²) for the x⊗x coefficient.
+        om2_sq    = om2 ** 2                              # (1−ρ²)²
+        inv_A_tan = op2_4 / (16.0 * om2_sq)              # (batch,)
+        D         = -(op2 ** 2) / (4.0 * om2_sq)         # (batch,)
+
+        g_inv = inv_A_tan[:, None, None] * eye + D[:, None, None] * outer_xx
+
+        return g, g_inv
+
     # ------------------------------------------------------------------
     # Coordinate conversions (for evaluation / visualisation)
     # ------------------------------------------------------------------

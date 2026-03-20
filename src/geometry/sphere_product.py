@@ -232,3 +232,43 @@ class SphereProduct:
         F_alpha_inv = torch.linalg.inv(F_alpha)
         F_beta_inv  = torch.linalg.inv(F_beta)
         return F_alpha, F_alpha_inv, F_beta, F_beta_inv
+
+    @staticmethod
+    def round_metric_ball_coords(
+        x_alpha: torch.Tensor,
+        x_beta:  torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Block-diagonal product metric and its inverse in ball coordinates.
+
+        For S^{m_α} × S^{m_β} the round metric is the direct sum of the
+        individual round metrics on each factor:
+
+            g^{product}_{ij} = block_diag(g_α_{ij}, g_β_{ij})
+
+        Each block is computed via EvenSphere.round_metric_ball_coords.
+
+        Args:
+            x_alpha: α-patch ball coordinates, shape (batch, m_α).
+            x_beta:  β-patch ball coordinates, shape (batch, m_β).
+
+        Returns:
+            g:     Block-diagonal metric, shape (batch, m_α+m_β, m_α+m_β).
+            g_inv: Block-diagonal inverse metric, same shape.
+        """
+        g_a, g_a_inv = EvenSphere.round_metric_ball_coords(x_alpha)
+        g_b, g_b_inv = EvenSphere.round_metric_ball_coords(x_beta)
+
+        batch = x_alpha.shape[0]
+        ma    = x_alpha.shape[1]
+        mb    = x_beta.shape[1]
+        d     = ma + mb
+
+        g     = x_alpha.new_zeros(batch, d, d)
+        g_inv = x_alpha.new_zeros(batch, d, d)
+        g    [:, :ma, :ma] = g_a
+        g    [:, ma:, ma:] = g_b
+        g_inv[:, :ma, :ma] = g_a_inv
+        g_inv[:, ma:, ma:] = g_b_inv
+
+        return g, g_inv

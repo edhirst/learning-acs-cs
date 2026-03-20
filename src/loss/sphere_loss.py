@@ -33,6 +33,60 @@ from typing import Dict, Tuple
 from src.geometry import EvenSphere, RADIAL_MIDPOINT
 
 
+def _metric_norm_sq_11tensor(
+    A:     torch.Tensor,
+    g:     torch.Tensor,
+    g_inv: torch.Tensor,
+) -> torch.Tensor:
+    """
+    Squared Riemannian norm of a (1,1)-tensor A^p_q using the round metric.
+
+    Computes g_{pi} g^{qj} A^p_q A^i_j for each batch element.
+
+    Args:
+        A:     Tensor with components A^p_q, shape (batch, d, d),
+               where A[b, p, q] = A^p_q (upper index first).
+        g:     Metric tensor g_{ij}, shape (batch, d, d).
+        g_inv: Inverse metric g^{ij}, shape (batch, d, d).
+
+    Returns:
+        Squared norms per sample, shape (batch,).
+    """
+    # T1[b,i,q] = Σ_p g[b,p,i] A[b,p,q]  — lower the contravariant index
+    T1 = torch.einsum('bpi,bpq->biq', g, A)
+    # T2[b,i,j] = Σ_q g_inv[b,q,j] T1[b,i,q]  — raise the covariant index
+    T2 = torch.einsum('bqj,biq->bij', g_inv, T1)
+    return (T2 * A).sum(dim=(1, 2))
+
+
+def _metric_norm_sq_12tensor(
+    N:     torch.Tensor,
+    g:     torch.Tensor,
+    g_inv: torch.Tensor,
+) -> torch.Tensor:
+    """
+    Squared Riemannian norm of a (1,2)-tensor N^p_{qr} using the round metric.
+
+    Computes g_{pi} g^{qj} g^{rk} N^p_{qr} N^i_{jk} for each batch element.
+
+    Args:
+        N:     Tensor with components N^p_{qr}, shape (batch, d, d, d),
+               where N[b, p, q, r] = N^p_{qr} (upper index first).
+        g:     Metric tensor g_{ij}, shape (batch, d, d).
+        g_inv: Inverse metric g^{ij}, shape (batch, d, d).
+
+    Returns:
+        Squared norms per sample, shape (batch,).
+    """
+    # N1[b,i,q,r] = Σ_p g[b,p,i] N[b,p,q,r]  — lower the contravariant index
+    N1 = torch.einsum('bpi,bpqr->biqr', g, N)
+    # N2[b,i,j,r] = Σ_q g_inv[b,q,j] N1[b,i,q,r]  — raise first covariant index
+    N2 = torch.einsum('bqj,biqr->bijr', g_inv, N1)
+    # N3[b,i,j,k] = Σ_r g_inv[b,r,k] N2[b,i,j,r]  — raise second covariant index
+    N3 = torch.einsum('brk,bijr->bijk', g_inv, N2)
+    return (N3 * N).sum(dim=(1, 2, 3))
+
+
 class NijenhuisTensorLoss(nn.Module):
     """
     Per-patch Nijenhuis tensor loss in ball coordinates.
@@ -49,16 +103,25 @@ class NijenhuisTensorLoss(nn.Module):
     region—where the other patch has better coverage—contributes less.
     """
 
-    def __init__(self, manifold_dim: int, overlap_size: float = 0.1):
+    def __init__(
+        self,
+        manifold_dim: int,
+        overlap_size: float = 0.1,
+        use_round_metric_contraction: bool = False,
+    ):
         """
         Args:
             manifold_dim: Real dimension of the manifold.
             overlap_size: Extra radial margin beyond the equator (r_eq = √2−1)
                 defining the flat plateau; controls where the Gaussian decay begins.
+            use_round_metric_contraction: If True, compute ||N||² via the round
+                metric g_{pi} g^{qj} g^{rk} N^p_{qr} N^i_{jk} instead of the
+                flat Frobenius norm.
         """
         super().__init__()
         self.manifold_dim = manifold_dim
         self.overlap_size = overlap_size
+        self.use_round_metric_contraction = use_round_metric_contraction
 
     def forward(
         self,
@@ -113,7 +176,12 @@ class NijenhuisTensorLoss(nn.Module):
         term3 = torch.einsum('bkl,blij->bkij', J, anti)
 
         N = term1 + term2 - term3           # (batch, k, i, j)
-        nij_sq   = (N ** 2).sum(dim=(1, 2, 3))
+
+        if self.use_round_metric_contraction:
+            g, g_inv = EvenSphere.round_metric_ball_coords(x_d)
+            nij_sq = _metric_norm_sq_12tensor(N, g, g_inv)
+        else:
+            nij_sq = (N ** 2).sum(dim=(1, 2, 3))
         nij_norm = torch.sqrt(nij_sq + 1e-20)   # (batch,)
 
         # Radial weight: plateau in [0, r_eq + overlap_size].  During training a
@@ -157,15 +225,25 @@ class OverlapLoss(nn.Module):
     is geometrically symmetric about the equator (r_eq = √2 − 1).
     """
 
-    def __init__(self, overlap_size: float = 0.1):
+    def __init__(
+        self,
+        overlap_size: float = 0.1,
+        use_round_metric_contraction: bool = False,
+    ):
         """
         Args:
             overlap_size: Extra radial margin beyond the equator (r_eq = √2−1).
                 r_outer = r_eq + overlap_size;
                 r_inner = (1 − r_outer) / (1 + r_outer).
+            use_round_metric_contraction: If True, compute ||Jdiff||² via the
+                round metric g_{pi} g^{qj} Jdiff^p_q Jdiff^i_j instead of the
+                flat Frobenius norm.  The metric is evaluated in the patch where
+                the comparison is performed (target for the forward diff, source
+                for the backward diff).
         """
         super().__init__()
         self.overlap_size = overlap_size
+        self.use_round_metric_contraction = use_round_metric_contraction
         r_outer = RADIAL_MIDPOINT + overlap_size
         r_inner = (1.0 - r_outer) / (1.0 + r_outer)
         self.r_outer = r_outer
@@ -230,8 +308,15 @@ class OverlapLoss(nn.Module):
         diff1 = J1_to_2 - J2_m
         diff2 = J2_to_1 - J1_m
 
-        norm1 = torch.sqrt((diff1 ** 2).sum(dim=(1, 2)) + 1e-20)
-        norm2 = torch.sqrt((diff2 ** 2).sum(dim=(1, 2)) + 1e-20)
+        if self.use_round_metric_contraction:
+            # diff1 lives in patch-2 coords (x2_m); diff2 in patch-1 coords (x1_m).
+            g2, g2_inv = EvenSphere.round_metric_ball_coords(x2_m)
+            g1, g1_inv = EvenSphere.round_metric_ball_coords(x1_m)
+            norm1 = torch.sqrt(_metric_norm_sq_11tensor(diff1, g2, g2_inv) + 1e-20)
+            norm2 = torch.sqrt(_metric_norm_sq_11tensor(diff2, g1, g1_inv) + 1e-20)
+        else:
+            norm1 = torch.sqrt((diff1 ** 2).sum(dim=(1, 2)) + 1e-20)
+            norm2 = torch.sqrt((diff2 ** 2).sum(dim=(1, 2)) + 1e-20)
 
         w_sum = w.sum().clamp(min=1e-8)
         if hard_cutoff and w_sum < 1.0:
@@ -258,12 +343,20 @@ class TotalLoss(nn.Module):
         """
         Args:
             manifold_dim: Real dimension of the manifold.
-            weights: Loss weights; expected keys: 'nijenhuis', 'overlap', 'overlap_size'.
+            weights: Loss weights; expected keys: 'nijenhuis', 'overlap',
+                'overlap_size', 'use_round_metric_contraction'.
         """
         super().__init__()
         overlap_size = float(weights.get('overlap_size', 0.1))
-        self.nij_loss     = NijenhuisTensorLoss(manifold_dim, overlap_size=overlap_size)
-        self.overlap_loss = OverlapLoss(overlap_size=overlap_size)
+        urmc = bool(weights.get('use_round_metric_contraction', False))
+        self.nij_loss     = NijenhuisTensorLoss(
+            manifold_dim, overlap_size=overlap_size,
+            use_round_metric_contraction=urmc,
+        )
+        self.overlap_loss = OverlapLoss(
+            overlap_size=overlap_size,
+            use_round_metric_contraction=urmc,
+        )
         self.weights      = weights
 
     def forward(

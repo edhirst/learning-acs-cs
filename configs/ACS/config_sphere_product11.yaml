@@ -41,6 +41,7 @@ loss_weights:
   overlap: 1.0
   overlap_size_alpha: 0.2
   overlap_size_beta: 0.2
+  use_round_metric_contraction: false
 
 logging:
   log_interval: 10

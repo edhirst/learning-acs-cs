@@ -39,6 +39,7 @@ loss_weights:
   nijenhuis: 0.0
   overlap: 1.0
   overlap_size: 0.2
+  use_round_metric_contraction: false
 
 logging:
   log_interval: 10
