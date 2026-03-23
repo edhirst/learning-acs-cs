@@ -12,12 +12,12 @@ network:
   fourier_scale: 1.0
   num_fourier_features: 128
   initialization: "xavier"
-  matrix_exp_terms: null  # null: torch.matrix_exp (Padé-13); integer K: K-term Taylor series
+  matrix_exp_terms: null 
 
 training:
   epochs: 10000
   batch_size: 1000
-  dtype: "float64"  # float32 or float64
+  dtype: "float64" 
   learning_rate: 1.0e-3
   scheduler: "cosine"
   scheduler_params:
@@ -38,7 +38,7 @@ pretraining:
 
 loss_weights:
   nijenhuis: 1.0
-  overlap: 3.0
+  overlap: 1000.0
   overlap_size_alpha: 0.2
   overlap_size_beta: 0.2
   use_round_metric_contraction: false
