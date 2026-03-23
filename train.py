@@ -606,7 +606,7 @@ class Trainer:
 
         ax.set_xlabel('Epoch')
         ax.set_ylabel('Loss')
-        ax.legend()
+        ax.legend(loc='upper right')
         ax.grid(True, which='both', alpha=0.3)
         plt.tight_layout()
         out = self.output_dir / 'loss_curves.png'
