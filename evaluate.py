@@ -82,6 +82,7 @@ def evaluate_model(checkpoint_path: str, num_samples: int = 1000):
             num_fourier_features=config['network']['num_fourier_features'],
             fourier_scale=config['network']['fourier_scale'],
             initialization=config['network']['initialization'],
+            use_residual_blocks=config['network'].get('use_residual_blocks', False),
         ).to(device).to(dtype)
         model.load_state_dict(checkpoint['model_state_dict'])
         model.eval()
@@ -145,6 +146,7 @@ def evaluate_model(checkpoint_path: str, num_samples: int = 1000):
             num_fourier_features=config['network']['num_fourier_features'],
             fourier_scale=config['network']['fourier_scale'],
             initialization=config['network']['initialization'],
+            use_residual_blocks=config['network'].get('use_residual_blocks', False),
         ).to(device).to(dtype)
         model.load_state_dict(checkpoint['model_state_dict'])
         model.eval()

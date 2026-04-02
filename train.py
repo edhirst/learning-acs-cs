@@ -142,6 +142,7 @@ class Trainer:
                 fourier_scale=self.config['network']['fourier_scale'],
                 initialization=self.config['network']['initialization'],
                 matrix_exp_terms=self.config['network'].get('matrix_exp_terms'),
+                use_residual_blocks=self.config['network'].get('use_residual_blocks', False),
             ).to(self.device).to(self.dtype)
 
             self.loss_fn = ProductTotalLoss(
@@ -173,6 +174,7 @@ class Trainer:
                 fourier_scale=self.config['network']['fourier_scale'],
                 initialization=self.config['network']['initialization'],
                 matrix_exp_terms=self.config['network'].get('matrix_exp_terms'),
+                use_residual_blocks=self.config['network'].get('use_residual_blocks', False),
             ).to(self.device).to(self.dtype)
 
             self.loss_fn = TotalLoss(

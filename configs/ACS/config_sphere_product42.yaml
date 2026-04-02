@@ -6,13 +6,14 @@ geometry:
   real_dimension_beta: 2 
 
 network:
-  hidden_layers: [256, 512, 512, 256]
+  hidden_layers: [512, 1024, 1024, 1024, 1024, 512]
   activation: "gelu"
   use_fourier_features: true
   fourier_scale: 1.0
   num_fourier_features: 128
   initialization: "xavier"
-  matrix_exp_terms: null  # null: torch.matrix_exp (Padé-13); integer K: K-term Taylor series
+  matrix_exp_terms: null
+  use_residual_blocks: true
 
 training:
   epochs: 10000

@@ -120,6 +120,68 @@ class FourierFeatures(nn.Module):
         return torch.cat([torch.sin(proj), torch.cos(proj)], dim=-1)
 
 
+class ResidualBlock(nn.Module):
+    """
+    Residual block: two linear layers with an activation and a skip connection.
+
+    The residual path is: act(linear2(act(linear1(x)))).
+    The skip connection is the identity when in_dim == out_dim, or a linear
+    projection (bias=False) otherwise.
+
+    Args:
+        in_dim:  Input feature dimension.
+        out_dim: Output feature dimension.
+        act_cls: Activation class (e.g. nn.GELU).
+    """
+
+    def __init__(self, in_dim: int, out_dim: int, act_cls: type):
+        super().__init__()
+        self.linear1 = nn.Linear(in_dim, out_dim)
+        self.act1    = act_cls()
+        self.linear2 = nn.Linear(out_dim, out_dim)
+        self.act2    = act_cls()
+        self.skip    = nn.Identity() if in_dim == out_dim else nn.Linear(in_dim, out_dim, bias=False)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.act2(self.linear2(self.act1(self.linear1(x))) + self.skip(x))
+
+
+class ResidualMLP(nn.Module):
+    """
+    MLP built from residual blocks followed by a linear output layer.
+
+    Has the same call interface as nn.Sequential so it can replace
+    self.network without touching forward() or forward_raw().
+
+    Args:
+        input_dim:     Input feature dimension.
+        hidden_layers: List of hidden layer widths; one ResidualBlock per entry.
+        act_cls:       Activation class.
+        output_dim:    Dimension of the final linear projection.
+    """
+
+    def __init__(
+        self,
+        input_dim: int,
+        hidden_layers: List[int],
+        act_cls: type,
+        output_dim: int,
+    ):
+        super().__init__()
+        blocks: List[nn.Module] = []
+        prev = input_dim
+        for h in hidden_layers:
+            blocks.append(ResidualBlock(prev, h, act_cls))
+            prev = h
+        self.blocks = nn.ModuleList(blocks)
+        self.output = nn.Linear(prev, output_dim)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        for block in self.blocks:
+            x = block(x)
+        return self.output(x)
+
+
 class PatchSubNet(nn.Module):
     """
     Sub-network for a single ball patch.
@@ -142,6 +204,7 @@ class PatchSubNet(nn.Module):
         j0_sign: int = 1,
         j0_matrix: Optional[torch.Tensor] = None,
         matrix_exp_terms: Optional[int] = None,
+        use_residual_blocks: bool = False,
     ):
         """
         Args:
@@ -163,6 +226,8 @@ class PatchSubNet(nn.Module):
             matrix_exp_terms: If None, uses torch.matrix_exp (Padé-13 approximant).
                 If a positive integer K, uses a K-term Taylor series with
                 scaling-and-squaring instead.
+            use_residual_blocks: If True, builds the MLP from ResidualBlocks
+                instead of plain linear layers.
         """
         super().__init__()
 
@@ -213,13 +278,16 @@ class PatchSubNet(nn.Module):
         act_cls = act_map[activation]
 
         # MLP layers
-        layers = []
-        prev = input_dim
-        for h in hidden_layers:
-            layers += [nn.Linear(prev, h), act_cls()]
-            prev = h
-        layers.append(nn.Linear(prev, self.num_dof))
-        self.network = nn.Sequential(*layers)
+        if use_residual_blocks:
+            self.network = ResidualMLP(input_dim, hidden_layers, act_cls, self.num_dof)
+        else:
+            layers = []
+            prev = input_dim
+            for h in hidden_layers:
+                layers += [nn.Linear(prev, h), act_cls()]
+                prev = h
+            layers.append(nn.Linear(prev, self.num_dof))
+            self.network = nn.Sequential(*layers)
 
         self._initialize_weights(initialization)
 
@@ -352,6 +420,7 @@ class TwoPatchAlmostComplexNet(nn.Module):
         fourier_scale: float = 1.0,
         initialization: str = 'xavier',
         matrix_exp_terms: Optional[int] = None,
+        use_residual_blocks: bool = False,
     ):
         """
         Args:
@@ -363,6 +432,7 @@ class TwoPatchAlmostComplexNet(nn.Module):
             fourier_scale: Scale for random Fourier features.
             initialization: Weight initialisation method.
             matrix_exp_terms: Passed to PatchSubNet; see its docstring.
+            use_residual_blocks: Passed to PatchSubNet; see its docstring.
         """
         super().__init__()
 
@@ -375,6 +445,7 @@ class TwoPatchAlmostComplexNet(nn.Module):
             fourier_scale=fourier_scale,
             initialization=initialization,
             matrix_exp_terms=matrix_exp_terms,
+            use_residual_blocks=use_residual_blocks,
         )
         self.patch1 = PatchSubNet(**subnet_kwargs, j0_sign=+1)
         self.patch2 = PatchSubNet(**subnet_kwargs, j0_sign=-1)
@@ -470,6 +541,7 @@ class FourPatchProductNet(nn.Module):
         fourier_scale: float = 1.0,
         initialization: str = 'xavier',
         matrix_exp_terms: Optional[int] = None,
+        use_residual_blocks: bool = False,
     ):
         """
         Args:
@@ -482,6 +554,7 @@ class FourPatchProductNet(nn.Module):
             fourier_scale: Scale for Fourier feature random matrix.
             initialization: Weight initialisation method.
             matrix_exp_terms: Passed to PatchSubNet; see its docstring.
+            use_residual_blocks: Passed to PatchSubNet; see its docstring.
         """
         super().__init__()
 
@@ -501,6 +574,7 @@ class FourPatchProductNet(nn.Module):
             fourier_scale=fourier_scale,
             initialization=initialization,
             matrix_exp_terms=matrix_exp_terms,
+            use_residual_blocks=use_residual_blocks,
         )
 
         self.patches = nn.ModuleDict({

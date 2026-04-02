@@ -11,7 +11,8 @@ network:
   fourier_scale: 1.0
   num_fourier_features: 128
   initialization: "xavier"
-  matrix_exp_terms: null  # null: torch.matrix_exp (Padé-13); integer K: K-term Taylor series
+  matrix_exp_terms: null
+  use_residual_blocks: false
 
 training:
   epochs: 10000

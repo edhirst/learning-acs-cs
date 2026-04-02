@@ -6,13 +6,14 @@ geometry:
   real_dimension_beta: 1 
 
 network:
-  hidden_layers: [256, 512, 512, 256]
+  hidden_layers: [512, 1024, 1024, 1024, 1024, 512]
   activation: "gelu"
   use_fourier_features: true
   fourier_scale: 1.0
   num_fourier_features: 128
   initialization: "xavier"
-  matrix_exp_terms: null 
+  matrix_exp_terms: null
+  use_residual_blocks: true
 
 training:
   epochs: 10000
@@ -38,7 +39,7 @@ pretraining:
 
 loss_weights:
   nijenhuis: 1.0
-  overlap: 1000.0
+  overlap: 100.0
   overlap_size_alpha: 0.2
   overlap_size_beta: 0.2
   use_round_metric_contraction: false
