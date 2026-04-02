@@ -17,7 +17,7 @@ network:
 
 training:
   epochs: 10000
-  batch_size: 1000
+  batch_size: 500
   dtype: "float64"  
   learning_rate: 1.0e-3
   scheduler: "cosine"
