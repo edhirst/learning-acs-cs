@@ -32,9 +32,16 @@ training:
   density_power: 1.0
 
 pretraining:
+  # Identity pretraining drives A → 0 (so J ≡ ±J_0, Nijenhuis loss = 0 at start).
+  # Overlap pretraining drives J → F⁻¹ J_0 F (so overlap loss ≈ 0 at start).
+  # These are mutually exclusive: at most one of the two may be set to true.
   identity_pretraining: true
   pretrain_epochs: 50
   pretrain_points: 2000
+  overlap_pretraining: false
+  overlap_pretrain_epochs: 200
+  overlap_pretrain_points: 2000
+  # overlap_pretrain_lr: 1.0e-3   # optional; defaults to training.learning_rate
 
 loss_weights:
   nijenhuis: 0.0

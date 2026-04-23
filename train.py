@@ -403,9 +403,255 @@ class Trainer:
 
         print("Pretraining complete.\n")
 
+    # ------------------------------------------------------------------
+    # Overlap pretraining helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _pushforward_target_sphere(
+        x: torch.Tensor,
+        patch_idx: int,
+        J0_ref: torch.Tensor,
+    ) -> torch.Tensor:
+        """Target J on a single sphere that satisfies the overlap condition.
+
+        For patch_idx = 0 (reference patch):  J*(x) = J0_ref                (constant).
+        For patch_idx = 1 (non-reference):    J*(x) = F(x)^{-1} J0_ref F(x),
+                                              with F = EvenSphere.patch_change_jacobian(x).
+
+        Using the self-inverse identity F(x1) F(x2) = I (x2 = φ(x1)), this is the
+        pushforward of the reference J0 expressed in the non-reference chart, so the
+        overlap condition J_2 = F(x1) J_1 F(x1)^{-1} is satisfied pointwise.
+
+        Args:
+            x:         Ball coordinates in this patch's chart, shape (batch, d).
+            patch_idx: 0 for reference patch, 1 for non-reference.
+            J0_ref:    Canonical J0 of the reference patch, shape (d, d).
+
+        Returns:
+            Target J tensor of shape (batch, d, d).
+        """
+        batch = x.shape[0]
+        if patch_idx == 0:
+            return J0_ref.unsqueeze(0).expand(batch, -1, -1).contiguous()
+        F     = EvenSphere.patch_change_jacobian(x)          # (batch, d, d)
+        F_inv = torch.linalg.inv(F)                           # (batch, d, d)
+        return F_inv @ J0_ref.unsqueeze(0) @ F                # (batch, d, d)
+
+    @staticmethod
+    def _pushforward_target_product(
+        xa: torch.Tensor,
+        xb: torch.Tensor,
+        ia: int,
+        ib: int,
+        J0_ref: torch.Tensor,
+        dim_a: int,
+        dim_b: int,
+    ) -> torch.Tensor:
+        """Target J on a sphere product that satisfies overlap for all patch pairs.
+
+        J*(x) = F^{-1} J0_ref F  with  F = block-diag(F_a, F_b), where
+            F_a = I                                 if ia = 0, else EvenSphere.patch_change_jacobian(xa)
+            F_b = I                                 if ib = 0, else EvenSphere.patch_change_jacobian(xb)
+
+        Because F is block-diagonal, this target reduces to the factor-wise pushforward.
+        The derivation verifies that it satisfies the overlap condition simultaneously
+        for all six patch-pair transitions.
+
+        Args:
+            xa:     α-factor coords in chart ia, shape (batch, dim_a).
+            xb:     β-factor coords in chart ib, shape (batch, dim_b).
+            ia, ib: Chart indices (0 or 1) for α- and β-factors.
+            J0_ref: Reference J0 at patch (0,0), shape (d, d) with d = dim_a + dim_b.
+            dim_a:  Real α-factor dimension.
+            dim_b:  Real β-factor dimension.
+
+        Returns:
+            Target J tensor of shape (batch, d, d).
+        """
+        batch = xa.shape[0]
+        d     = dim_a + dim_b
+
+        F_full = torch.zeros(batch, d, d, dtype=xa.dtype, device=xa.device)
+        if ia == 0:
+            F_full[:, :dim_a, :dim_a] = torch.eye(dim_a, dtype=xa.dtype, device=xa.device)
+        else:
+            F_full[:, :dim_a, :dim_a] = EvenSphere.patch_change_jacobian(xa)
+        if ib == 0:
+            F_full[:, dim_a:, dim_a:] = torch.eye(dim_b, dtype=xa.dtype, device=xa.device)
+        else:
+            F_full[:, dim_a:, dim_a:] = EvenSphere.patch_change_jacobian(xb)
+
+        F_inv = torch.linalg.inv(F_full)
+        return F_inv @ J0_ref.unsqueeze(0) @ F_full
+
+    def pretrain_overlap(self):
+        """Warm-start so the overlap loss starts at ~zero on the overlap band.
+
+        Each subnet's J is supervised toward the pushforward target
+
+            J*(x) = F^{-1} · J0_ref · F,
+
+        where F is the Jacobian of the chart change from this patch back to the
+        reference patch (patch 1 for sphere, patch (0,0) for sphere_product), and
+        J0_ref is the reference patch's canonical J0.  By construction this target
+        satisfies the overlap condition  J_j = F^{(j←i)} J_i (F^{(j←i)})^{-1}
+        pointwise, so the overlap loss is ~zero at the end of this pretraining.
+
+        Sampling is restricted to the equatorial annulus of each factor
+        (the overlap band where F is bounded and the overlap loss is actually
+        evaluated); outside this band the pushforward target is unconstrained
+        and relies on network smoothness to extrapolate.
+
+        Loss: direct Frobenius MSE between J_net(x) and J*(x).  No analytical
+        inversion of the A → J exp-map is required.
+
+        Runs only when config['pretraining']['overlap_pretraining'] is True.
+        Composes cleanly with identity pretraining: if both are enabled,
+        identity runs first (giving a globally smooth J ≈ ±J0 start), then
+        overlap pretraining refines A away from 0 within the band.
+        """
+        pt_cfg = self.config.get('pretraining', {})
+        if not pt_cfg.get('overlap_pretraining', False):
+            return
+
+        pretrain_epochs = pt_cfg['overlap_pretrain_epochs']
+        pretrain_points = pt_cfg['overlap_pretrain_points']
+        pt_lr = float(pt_cfg.get('overlap_pretrain_lr',
+                                 self.config['training']['learning_rate']))
+        lw = self.config['loss_weights']
+
+        if self.manifold_type == 'sphere_product':
+            os_a = float(lw.get('overlap_size_alpha', 0.1))
+            os_b = float(lw.get('overlap_size_beta',  0.1))
+            dim_a = self.config['geometry']['real_dimension_alpha']
+            dim_b = self.config['geometry']['real_dimension_beta']
+
+            # Reference J0 (patch (0,0)); block-diag for even-even factors,
+            # full canonical J0 for odd-odd factors.  Either way, we use it
+            # as-is — the formula J* = F^{-1} J0_ref F is correct in both cases.
+            J0_ref = self.model.patches['patch_00'].J0.detach().to(
+                device=self.device, dtype=self.dtype,
+            )
+
+            subnet_list = [
+                ((ia, ib), self.model.patches[f'patch_{ia}{ib}'])
+                for ia, ib in [(0, 0), (0, 1), (1, 0), (1, 1)]
+            ]
+
+            print(f"\nOverlap pretraining: J → F⁻¹ J₀ F pushforward "
+                  f"({pretrain_epochs} epochs, {pretrain_points} points/step, 4 patches)")
+
+            for (ia, ib), subnet in subnet_list:
+                opt = torch.optim.Adam(subnet.parameters(), lr=pt_lr)
+                for epoch in range(pretrain_epochs):
+                    subnet.train()
+                    opt.zero_grad()
+
+                    # Sample from both-factor equatorial annulus.
+                    xa, xb = self.sphere_product.sample_points(
+                        pretrain_points, overlap_size_alpha=os_a, overlap_size_beta=os_b,
+                    )
+                    xa = xa.to(device=self.device, dtype=self.dtype)
+                    xb = xb.to(device=self.device, dtype=self.dtype)
+
+                    # Transform to this patch's coords.
+                    xa_p = xa if ia == 0 else EvenSphere.patch_change_coords(xa)
+                    xb_p = xb if ib == 0 else EvenSphere.patch_change_coords(xb)
+
+                    # Analytical pushforward target.
+                    with torch.no_grad():
+                        J_target = self._pushforward_target_product(
+                            xa_p, xb_p, ia, ib, J0_ref, dim_a, dim_b,
+                        )
+
+                    # Forward through this subnet.
+                    x_pt  = torch.cat([xa_p, xb_p], dim=1)
+                    J_net = subnet(x_pt)
+
+                    # Mean squared Frobenius error per sample.
+                    loss = ((J_net - J_target) ** 2).sum(dim=(1, 2)).mean()
+                    loss.backward()
+                    if self.config['advanced']['gradient_clipping'] > 0:
+                        torch.nn.utils.clip_grad_norm_(
+                            subnet.parameters(),
+                            self.config['advanced']['gradient_clipping'],
+                        )
+                    opt.step()
+
+                    if epoch % max(1, pretrain_epochs // 10) == 0:
+                        print(f"  [patch_{ia}{ib}] overlap pretrain epoch {epoch:5d} | "
+                              f"‖J−J*‖²_F: {loss.item():.4e}")
+
+        else:  # sphere
+            os_ = float(lw.get('overlap_size', 0.1))
+
+            # Reference J0 = patch 1's J0 (canonical, j0_sign=+1).
+            J0_ref = self.model.patch1.J0.detach().to(
+                device=self.device, dtype=self.dtype,
+            )
+
+            subnet_list = [(0, self.model.patch1), (1, self.model.patch2)]
+
+            print(f"\nOverlap pretraining: J → F⁻¹ J₀ F pushforward "
+                  f"({pretrain_epochs} epochs, {pretrain_points} points/step, 2 patches)")
+
+            for patch_idx, subnet in subnet_list:
+                opt = torch.optim.Adam(subnet.parameters(), lr=pt_lr)
+                for epoch in range(pretrain_epochs):
+                    subnet.train()
+                    opt.zero_grad()
+
+                    # Sample from patch-1 equatorial annulus (self-symmetric under φ).
+                    x1 = self.sphere.sample_points_patch1(
+                        pretrain_points, overlap_size=os_,
+                    ).to(device=self.device, dtype=self.dtype)
+
+                    # Transform to this patch's coords.
+                    x_p = x1 if patch_idx == 0 else EvenSphere.patch_change_coords(x1)
+
+                    # Analytical pushforward target.
+                    with torch.no_grad():
+                        J_target = self._pushforward_target_sphere(x_p, patch_idx, J0_ref)
+
+                    # Forward through this subnet.
+                    J_net = subnet(x_p)
+
+                    # Mean squared Frobenius error per sample.
+                    loss = ((J_net - J_target) ** 2).sum(dim=(1, 2)).mean()
+                    loss.backward()
+                    if self.config['advanced']['gradient_clipping'] > 0:
+                        torch.nn.utils.clip_grad_norm_(
+                            subnet.parameters(),
+                            self.config['advanced']['gradient_clipping'],
+                        )
+                    opt.step()
+
+                    if epoch % max(1, pretrain_epochs // 10) == 0:
+                        patch_name = f"patch{patch_idx + 1}"
+                        print(f"  [{patch_name}] overlap pretrain epoch {epoch:5d} | "
+                              f"‖J−J*‖²_F: {loss.item():.4e}")
+
+        print("Overlap pretraining complete.\n")
+
     def train(self):
         """Main training loop."""
+        # Identity and overlap pretraining are mutually exclusive alternatives:
+        # identity drives A → 0 (so J ≡ ±J_0, Nijenhuis loss = 0 at start),
+        # overlap drives J → F⁻¹J_0F  (so overlap loss ≈ 0 at start).
+        # They pull A in different directions; composing them silently would
+        # undo the first or give unintended intermediate states.
+        pt_cfg = self.config.get('pretraining', {})
+        if pt_cfg.get('identity_pretraining', False) and pt_cfg.get('overlap_pretraining', False):
+            raise ValueError(
+                "Both 'identity_pretraining' and 'overlap_pretraining' are set to true "
+                "in config['pretraining']. These are mutually exclusive alternatives: "
+                "identity pretraining drives A → 0 (J ≡ ±J_0), whereas overlap "
+                "pretraining drives J → F⁻¹ J_0 F. Enable at most one."
+            )
+
         self.pretrain()
+        self.pretrain_overlap()
 
         print("\nStarting training...")
         print(f"Epochs: {self.config['training']['epochs']}")
