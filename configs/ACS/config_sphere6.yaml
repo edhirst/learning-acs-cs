@@ -23,7 +23,7 @@ training:
   scheduler_params:
     T_max: 300
     eta_min: 1.0e-6
-  optimizer: "adamw"
+  optimizer: "gauss_newton"
   weight_decay: 1.0e-5
   run_validation: true
   batch_size_val: 200
