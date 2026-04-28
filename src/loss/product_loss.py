@@ -33,6 +33,8 @@ Note on the diagonal pair (01)↔(10): this pair involves a both-flip but the
 β-coords. A separate Jacobian F_beta_at_xb2 is computed for this pair.
 """
 
+import math
+
 import torch
 import torch.autograd.forward_ad as fwdAD
 import torch.nn as nn
@@ -115,6 +117,7 @@ class ProductNijenhuisLoss(nn.Module):
         x_b2:      torch.Tensor,
         model:     nn.Module,
         hard_cutoff: bool = False,
+        return_residuals: bool = False,
     ) -> Tuple[torch.Tensor, Dict]:
         """
         Compute Nijenhuis loss for all four patches.
@@ -126,16 +129,22 @@ class ProductNijenhuisLoss(nn.Module):
             x_b2:    φ_β(x_beta),  shape (batch, m_β).
             model:   FourPatchProductNet.
             hard_cutoff: If True use binary masks; intended for evaluation.
+            return_residuals: If True, return a combined flat residual tensor r
+                instead of the scalar loss (for GaussNewtonOptimizer). ||r||²
+                equals the sum of per-patch MSE-weighted Nijenhuis objectives.
+                Incompatible with use_round_metric_contraction=True.
 
         Returns:
-            loss: Scalar sum of per-patch weighted Nijenhuis norms.
-            info: Dict with 'nij_{ia}{ib}' and 'nij_{ia}{ib}_max' entries.
+            loss or r: Scalar sum of per-patch weighted Nijenhuis norms, or
+                combined flat residual tensor.
+            info: Dict with 'nij_{ia}{ib}' entries.
         """
         patch_alpha = {0: x_alpha, 1: x_a2}
         patch_beta  = {0: x_beta,  1: x_b2}
 
         total = x_alpha.sum() * 0.0   # differentiable zero on correct device
         info: Dict = {}
+        r_parts: List[torch.Tensor] = []
 
         for ia, ib in [(0,0),(0,1),(1,0),(1,1)]:
             xa_p = patch_alpha[ia]
@@ -152,14 +161,22 @@ class ProductNijenhuisLoss(nn.Module):
             else:
                 g, g_inv = None, None
 
-            # Re-evaluate with gradient tracking (required by NijenhuisTensorLoss)
             nij_l, nij_info = self._nij_with_weight(
                 x_combined, subnet, w, hard_cutoff, g, g_inv,
+                return_residuals=return_residuals,
             )
 
             key = f'nij_{ia}{ib}'
-            info[key] = nij_l.item()
-            total = total + nij_l
+            if return_residuals:
+                r_parts.append(nij_l)           # nij_l is r_flat for this patch
+                info[key] = nij_info['nij_norm']
+            else:
+                info[key] = nij_l.item()
+                total = total + nij_l
+
+        if return_residuals:
+            r = torch.cat(r_parts) if r_parts else (x_alpha.sum() * 0.0).unsqueeze(0)
+            return r, info
 
         return total, info
 
@@ -171,6 +188,7 @@ class ProductNijenhuisLoss(nn.Module):
         hard_cutoff: bool,
         g:           Optional[torch.Tensor] = None,
         g_inv:       Optional[torch.Tensor] = None,
+        return_residuals: bool = False,
     ) -> Tuple[torch.Tensor, Dict]:
         """
         Compute Nijenhuis norm for a single patch with an externally supplied weight.
@@ -188,9 +206,13 @@ class ProductNijenhuisLoss(nn.Module):
                     g_{pi} g^{qj} g^{rk} N^p_{qr} N^i_{jk} is used instead of
                     the flat Frobenius norm.
             g_inv:  Optional inverse metric, shape (batch, d, d).
+            return_residuals: If True, return a flat residual tensor r instead
+                of the scalar loss, where ||r||² = Σ_b (w_b/w_sum) ||N_b||_F².
+                Incompatible with metric contraction (g/g_inv must be None).
 
         Returns:
-            loss: Scalar weighted mean Nijenhuis norm.
+            loss or r: Scalar weighted mean Nijenhuis norm, or flat residual
+                tensor.
             info: {'nij_norm': float}
         """
         with torch.enable_grad():
@@ -222,6 +244,16 @@ class ProductNijenhuisLoss(nn.Module):
 
         w_sum = w.sum().clamp(min=1e-8)
         loss = (w * nij_norm).sum() / w_sum
+
+        if return_residuals:
+            if g is not None:
+                raise ValueError(
+                    "return_residuals=True is not compatible with "
+                    "use_round_metric_contraction=True"
+                )
+            r = (torch.sqrt(w / w_sum)[:, None, None, None] * N).reshape(-1)
+            return r, {'nij_norm': loss.item()}
+
         return loss, {'nij_norm': loss.item()}
 
 
@@ -324,6 +356,7 @@ class ProductOverlapLoss(nn.Module):
         x_a2:    torch.Tensor,
         x_b2:    torch.Tensor,
         hard_cutoff: bool = False,
+        return_residuals: bool = False,
     ) -> Tuple[torch.Tensor, Dict]:
         """
         Compute all 6 pairwise overlap consistency losses.
@@ -335,14 +368,24 @@ class ProductOverlapLoss(nn.Module):
             x_a2:    φ_α(x_alpha) (batch, m_α).
             x_b2:    φ_β(x_beta) (batch, m_β).
             hard_cutoff: If True use binary masks for evaluation.
+            return_residuals: If True, return a combined flat residual tensor r
+                instead of the scalar loss (for GaussNewtonOptimizer). ||r||²
+                equals the mean over valid pairs of MSE-weighted overlap
+                objectives. Incompatible with use_round_metric_contraction=True.
 
         Returns:
-            loss: Scalar mean of all 6 pair losses.
+            loss or r: Scalar mean of all 6 pair losses, or flat residual tensor.
             info: Dict with 'overlap_{src}_{tgt}' entries and 'overlap_norm'.
         """
         batch = x_alpha.shape[0]
         zero  = x_alpha.sum() * 0.0
         ma = self.dim_alpha
+
+        if return_residuals and self.use_round_metric_contraction:
+            raise ValueError(
+                "return_residuals=True is not compatible with "
+                "use_round_metric_contraction=True"
+            )
 
         # Precompute Jacobians at both patch-0 and patch-1 coords for each factor.
         # Each is used by exactly 3 pairs (2 × α-flip + 1 × both-flip etc.).
@@ -367,6 +410,7 @@ class ProductOverlapLoss(nn.Module):
         total_loss = zero
         info: Dict = {}
         pair_count = 0
+        r_parts: List[torch.Tensor] = []
 
         for (ia_s, ib_s), (ia_t, ib_t), flip_type in _OVERLAP_PAIRS:
             # Source patch coords
@@ -481,10 +525,28 @@ class ProductOverlapLoss(nn.Module):
             total_loss = total_loss + pair_loss
             pair_count += 1
 
+            if return_residuals:
+                scale = torch.sqrt(w / (2.0 * w_sum))     # (n_masked,)
+                r_pair = torch.cat([
+                    (scale[:, None, None] * diff_fwd).reshape(-1),
+                    (scale[:, None, None] * diff_bwd).reshape(-1),
+                ])
+                r_parts.append(r_pair)
+
         if pair_count > 0:
             total_loss = total_loss / pair_count
 
         info['overlap_norm'] = total_loss.item()
+
+        if return_residuals:
+            if pair_count > 0:
+                # Scale each pair's residuals by 1/sqrt(pair_count) so that
+                # ||r||² = (1/pair_count) * Σ_pairs pair_mse = overlap_mse
+                r = torch.cat(r_parts) / math.sqrt(pair_count)
+            else:
+                r = zero.unsqueeze(0)
+            return r, info
+
         return total_loss, info
 
 
@@ -541,6 +603,7 @@ class ProductTotalLoss(nn.Module):
         model:   nn.Module,
         hard_cutoff: bool = False,
         report_all:  bool = False,
+        return_residuals: bool = False,
     ) -> Tuple[torch.Tensor, Dict]:
         """
         Compute total weighted loss.
@@ -554,15 +617,47 @@ class ProductTotalLoss(nn.Module):
             model:       FourPatchProductNet.
             hard_cutoff: Binary masks for evaluation.
             report_all:  Compute all components regardless of weight.
+            return_residuals: If True, return a combined flat residual tensor r
+                for GaussNewtonOptimizer. ||r||² equals the MSE analogue of the
+                total weighted loss. Incompatible with
+                use_round_metric_contraction=True.
 
         Returns:
-            total_loss: Weighted sum.
+            total_loss or r: Weighted scalar loss, or flat residual tensor.
             info:       Dict with all scalar components.
         """
         w_nij     = float(self.weights.get('nijenhuis', 1.0))
         w_overlap = float(self.weights.get('overlap',   1.0))
 
         zero = x_alpha.sum() * 0.0
+
+        if return_residuals:
+            # Build combined residual vector r such that
+            # ||r||² = w_nij*||r_nij||²/4 + w_overlap*||r_ov||²
+            r_parts = []
+            nij_info: Dict = {}
+            ov_scalar = 0.0
+
+            if w_nij != 0.0:
+                r_nij, nij_info = self.nij_loss(
+                    x_alpha, x_beta, x_a2, x_b2, model, hard_cutoff,
+                    return_residuals=True,
+                )
+                r_parts.append(math.sqrt(w_nij / 4.0) * r_nij)
+
+            if w_overlap != 0.0:
+                r_ov, ov_info = self.overlap_loss(
+                    J_dict, x_alpha, x_beta, x_a2, x_b2, hard_cutoff,
+                    return_residuals=True,
+                )
+                r_parts.append(math.sqrt(w_overlap) * r_ov)
+                ov_scalar = ov_info['overlap_norm']
+
+            r = torch.cat(r_parts) if r_parts else zero.unsqueeze(0)
+            info: Dict = {'total_loss': float((r.detach() ** 2).sum())}
+            info.update(nij_info)
+            info['overlap_norm'] = ov_scalar
+            return r, info
 
         if w_nij != 0.0 or report_all:
             nij_loss, nij_info = self.nij_loss(
@@ -584,7 +679,7 @@ class ProductTotalLoss(nn.Module):
 
         total = w_nij * nij_loss / 4.0 + w_overlap * overlap_loss
 
-        info: Dict = {'total_loss': total.item()}
+        info = {'total_loss': total.item()}
         info.update(nij_info)
         info.update(overlap_info)
         return total, info

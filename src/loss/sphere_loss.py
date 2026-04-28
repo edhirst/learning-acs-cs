@@ -25,6 +25,8 @@ Both losses use smooth radial weighting controlled by `overlap_size` (δ):
 where F is the Jacobian of the self-inverse patch-change map and x₂ = φ(x₁).
 """
 
+import math
+
 import torch
 import torch.autograd.forward_ad as fwdAD
 import torch.nn as nn
@@ -128,6 +130,7 @@ class NijenhuisTensorLoss(nn.Module):
         x: torch.Tensor,
         subnet: nn.Module,
         hard_cutoff: bool = False,
+        return_residuals: bool = False,
     ) -> Tuple[torch.Tensor, Dict]:
         """
         Compute Nijenhuis loss for a single patch.
@@ -137,9 +140,13 @@ class NijenhuisTensorLoss(nn.Module):
             subnet: PatchSubNet to differentiate through.
             hard_cutoff: If True, use a binary mask (ρ ≤ r_cut) instead of
                 the soft Gaussian weight. Intended for evaluation only.
+            return_residuals: If True, return a flat residual tensor r instead
+                of the scalar loss, where ||r||² equals the MSE-weighted
+                Nijenhuis objective (for use with GaussNewtonOptimizer).
+                Incompatible with use_round_metric_contraction=True.
 
         Returns:
-            loss: Scalar mean Nijenhuis norm.
+            loss or r: Scalar mean Nijenhuis norm, or flat residual tensor.
             info: Dict with 'nij_norm' (mean).
         """
         with torch.enable_grad():
@@ -197,6 +204,17 @@ class NijenhuisTensorLoss(nn.Module):
 
         w_sum = w.sum().clamp(min=1e-8)
         loss = (w * nij_norm).sum() / w_sum
+
+        if return_residuals:
+            if self.use_round_metric_contraction:
+                raise ValueError(
+                    "return_residuals=True is not compatible with "
+                    "use_round_metric_contraction=True"
+                )
+            # r such that ||r||² = Σ_b (w_b/w_sum) · ||N_b||_F²  (MSE objective)
+            r = (torch.sqrt(w / w_sum)[:, None, None, None] * N).reshape(-1)
+            return r, {'nij_norm': loss.item()}
+
         return loss, {'nij_norm': loss.item()}
 
 
@@ -259,6 +277,7 @@ class OverlapLoss(nn.Module):
         x1: torch.Tensor,
         x2: torch.Tensor,
         hard_cutoff: bool = False,
+        return_residuals: bool = False,
     ) -> Tuple[torch.Tensor, Dict]:
         """
         Compute radially-weighted overlap consistency loss.
@@ -270,18 +289,33 @@ class OverlapLoss(nn.Module):
             x2: Patch-2 ball coords, shape (batch, dim).
             hard_cutoff: If True, use a binary mask (ρ ∈ [r_inner, r_outer])
                 instead of the soft Gaussian weight. Intended for evaluation only.
+            return_residuals: If True, return a flat residual tensor r instead
+                of the scalar loss, where ||r||² equals the MSE-weighted overlap
+                objective (for use with GaussNewtonOptimizer). Incompatible
+                with use_round_metric_contraction=True.
 
         Returns:
-            loss: Scalar overlap loss (0 if no valid samples).
+            loss or r: Scalar overlap loss (0 if no valid samples), or flat
+                residual tensor.
             info: Dict with 'overlap_norm'.
         """
+        if return_residuals and self.use_round_metric_contraction:
+            raise ValueError(
+                "return_residuals=True is not compatible with "
+                "use_round_metric_contraction=True"
+            )
+
         rho1 = x1.norm(dim=1)   # (batch,)
         rho2 = x2.norm(dim=1)   # (batch,)
 
         # Hard floor to avoid near-singular F inversions.
         mask = (rho1 >= self.r_floor) & (rho2 >= self.r_floor)
         if mask.sum() == 0:
-            zero = J1.sum() * 0.0
+            # Return a differentiable zero that retains a grad_fn so GN can
+            # compute zero gradients without errors.
+            zero = (J1.sum() * 0.0)
+            if return_residuals:
+                return zero.unsqueeze(0), {'overlap_norm': 0.0}
             return zero, {'overlap_norm': 0.0}
 
         J1_m  = J1[mask]
@@ -321,8 +355,19 @@ class OverlapLoss(nn.Module):
         w_sum = w.sum().clamp(min=1e-8)
         if hard_cutoff and w_sum < 1.0:
             zero = J1.sum() * 0.0
+            if return_residuals:
+                return zero.unsqueeze(0), {'overlap_norm': 0.0}
             return zero, {'overlap_norm': 0.0}
         loss  = ((w * norm1).sum() + (w * norm2).sum()) / (2.0 * w_sum)
+
+        if return_residuals:
+            # r such that ||r||² = Σ_b (w_b/(2·w_sum)) · (||diff1_b||_F² + ||diff2_b||_F²)
+            scale = torch.sqrt(w / (2.0 * w_sum))          # (n_masked,)
+            r = torch.cat([
+                (scale[:, None, None] * diff1).reshape(-1),
+                (scale[:, None, None] * diff2).reshape(-1),
+            ])
+            return r, {'overlap_norm': loss.item()}
 
         info = {
             'overlap_norm': loss.item(),
@@ -368,6 +413,7 @@ class TotalLoss(nn.Module):
         model: nn.Module,
         hard_cutoff: bool = False,
         report_all: bool = False,
+        return_residuals: bool = False,
     ) -> Tuple[torch.Tensor, Dict]:
         """
         Compute total weighted loss.
@@ -382,15 +428,53 @@ class TotalLoss(nn.Module):
                 soft Gaussian weights. Use for validation and test evaluation.
             report_all: If True, compute all components regardless of their
                 weight (for test evaluation). Weights still scale total_loss.
+            return_residuals: If True, return a combined flat residual vector r
+                (for GaussNewtonOptimizer) instead of the scalar total loss.
+                ||r||² equals the MSE analogue of the total weighted loss.
+                Incompatible with use_round_metric_contraction=True.
 
         Returns:
-            total_loss: Weighted sum of all loss terms.
+            total_loss or r: Weighted scalar loss, or flat residual tensor.
             info: Dict with all scalar components.
         """
         w_nij     = self.weights.get('nijenhuis', 1.0)
         w_overlap = self.weights.get('overlap', 1.0)
 
         zero = J1.sum() * 0.0
+
+        if return_residuals:
+            # Build combined residual vector r such that
+            # ||r||² = w_nij*(||r_nij1||²+||r_nij2||²)/2 + w_overlap*||r_ov||²
+            r_parts = []
+            nij1_scalar = nij2_scalar = ov_scalar = 0.0
+
+            if w_nij != 0.0:
+                r_nij1, i1 = self.nij_loss(
+                    x1, model.patch1, hard_cutoff=hard_cutoff, return_residuals=True
+                )
+                r_nij2, i2 = self.nij_loss(
+                    x2, model.patch2, hard_cutoff=hard_cutoff, return_residuals=True
+                )
+                s_nij = math.sqrt(w_nij / 2.0)
+                r_parts += [s_nij * r_nij1, s_nij * r_nij2]
+                nij1_scalar = i1['nij_norm']
+                nij2_scalar = i2['nij_norm']
+
+            if w_overlap != 0.0:
+                r_ov, i_ov = self.overlap_loss(
+                    J1, J2, x1, x2, hard_cutoff=hard_cutoff, return_residuals=True
+                )
+                r_parts.append(math.sqrt(w_overlap) * r_ov)
+                ov_scalar = i_ov['overlap_norm']
+
+            r = torch.cat(r_parts) if r_parts else zero.unsqueeze(0)
+            info = {
+                'total_loss':   float((r.detach() ** 2).sum()),
+                'nij1':         nij1_scalar,
+                'nij2':         nij2_scalar,
+                'overlap_norm': ov_scalar,
+            }
+            return r, info
 
         if w_nij != 0.0 or report_all:
             nij1, info1 = self.nij_loss(x1, model.patch1, hard_cutoff=hard_cutoff)

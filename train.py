@@ -22,6 +22,7 @@ from src.geometry.sphere_product import SphereProduct
 from src.models import TwoPatchAlmostComplexNet, FourPatchProductNet
 from src.loss import TotalLoss
 from src.loss.product_loss import ProductTotalLoss
+from src.optim import GaussNewtonOptimizer
 
 
 class FractionalCosineAnnealingWarmRestarts(torch.optim.lr_scheduler.LRScheduler):
@@ -212,19 +213,35 @@ class Trainer:
         opt_name = self.config['training']['optimizer'].lower()
         lr = self.config['training']['learning_rate']
         weight_decay = self.config['training']['weight_decay']
-        
+
         if opt_name == 'adam':
             return optim.Adam(self.model.parameters(), lr=lr, weight_decay=weight_decay)
         elif opt_name == 'adamw':
             return optim.AdamW(self.model.parameters(), lr=lr, weight_decay=weight_decay)
         elif opt_name == 'sgd':
-            return optim.SGD(self.model.parameters(), lr=lr, weight_decay=weight_decay, 
+            return optim.SGD(self.model.parameters(), lr=lr, weight_decay=weight_decay,
                            momentum=0.9)
+        elif opt_name == 'gauss_newton':
+            gn_params = self.config['training'].get('gauss_newton_params', {})
+            return GaussNewtonOptimizer(
+                self.model.parameters(),
+                damping=float(gn_params.get('damping', 1.0)),
+                ema_decay=float(gn_params.get('ema_decay', 0.95)),
+                adaptive_damping=bool(gn_params.get('adaptive_damping', False)),
+                damping_up_factor=float(gn_params.get('damping_up_factor', 3.0)),
+                damping_down_factor=float(gn_params.get('damping_down_factor', 0.5)),
+                rho_threshold_bad=float(gn_params.get('rho_threshold_bad', 0.25)),
+                rho_threshold_good=float(gn_params.get('rho_threshold_good', 0.75)),
+            )
         else:
             raise ValueError(f"Unknown optimizer: {opt_name}")
     
     def _create_scheduler(self):
         """Create learning rate scheduler from config."""
+        # GN manages its own step size automatically; no external scheduler.
+        if isinstance(self.optimizer, GaussNewtonOptimizer):
+            return None
+
         sched_name = self.config['training']['scheduler'].lower()
         
         if sched_name == 'none':
@@ -296,6 +313,9 @@ class Trainer:
     
     def train_step(self, x) -> dict:
         """Perform one training step."""
+        if isinstance(self.optimizer, GaussNewtonOptimizer):
+            return self._train_step_gn(x)
+
         self.model.train()
         self.optimizer.zero_grad()
 
@@ -320,6 +340,23 @@ class Trainer:
         self.optimizer.step()
         
         return info
+
+    def _train_step_gn(self, x) -> dict:
+        """One Gauss-Newton training step."""
+        self.model.train()
+
+        def residual_fn():
+            if self.manifold_type == 'sphere_product':
+                x_alpha, x_beta = x
+                J_dict, xa, xb, xa2, xb2 = self.model(x_alpha, x_beta)
+                return self.loss_fn(
+                    J_dict, xa, xb, xa2, xb2, self.model, return_residuals=True
+                )
+            else:
+                J1, J2, x1, x2 = self.model(x)
+                return self.loss_fn(J1, J2, x1, x2, self.model, return_residuals=True)
+
+        return self.optimizer.step(residual_fn)
     
     def validate(self) -> dict:
         """Run validation."""
@@ -692,7 +729,7 @@ class Trainer:
             if run_validation and epoch % self.config['training']['validation_interval'] == 0:
                 val_info = self.validate()
                 self._log_metrics(val_info, prefix='val')
-                lr = self.optimizer.param_groups[0]['lr']
+                lr = self._get_lr()
                 if self.manifold_type == 'sphere_product':
                     nij_str = '  '.join(
                         f"Nij{ia}{ib}: {val_info.get(f'nij_{ia}{ib}', 0.0):.4e}"
@@ -786,17 +823,23 @@ class Trainer:
             print(f"  Nij2       : {result['nij2']:.6e}")
         print(f"  Overlap    : {result['overlap_norm']:.6e}")
 
+    def _get_lr(self) -> float:
+        """Return the current learning-rate (or GN damping) for logging."""
+        if isinstance(self.optimizer, GaussNewtonOptimizer):
+            return self.optimizer.damping
+        return self.optimizer.param_groups[0]['lr']
+
     def _log_metrics(self, info: dict, prefix: str):
         """Append metrics to loss_data."""
         record: dict = {'epoch': self.epoch}
         record.update({k: float(v) for k, v in info.items()})
         if prefix == 'train':
-            record['lr'] = self.optimizer.param_groups[0]['lr']
+            record['lr'] = self._get_lr()
         self.loss_data[prefix].append(record)
     
     def _print_progress(self, epoch: int, info: dict):
         """Print training progress."""
-        lr = self.optimizer.param_groups[0]['lr']
+        lr = self._get_lr()
         if self.manifold_type == 'sphere_product':
             nij_str = '  '.join(
                 f"Nij{ia}{ib}: {info.get(f'nij_{ia}{ib}', 0.0):.4e}"
@@ -866,7 +909,10 @@ class Trainer:
         """Load model from checkpoint."""
         checkpoint = torch.load(path, map_location=self.device)
         self.model.load_state_dict(checkpoint['model_state_dict'])
-        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        if isinstance(self.optimizer, GaussNewtonOptimizer):
+            self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        else:
+            self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         self.epoch = checkpoint['epoch']
         self.best_loss = checkpoint['best_loss']
         
