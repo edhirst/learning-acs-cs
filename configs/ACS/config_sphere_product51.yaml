@@ -16,19 +16,19 @@ network:
   use_residual_blocks: false
 
 training:
-  epochs: 10000
+  epochs: 300
   batch_size: 200
   dtype: "float64"  # float32 or float64
   learning_rate: 1.0e-3
   scheduler: "cosine"
   scheduler_params:
-    T_max: 10000
+    T_max: 300
     eta_min: 1.0e-6
   optimizer: "adamw"
   weight_decay: 1.0e-5
   run_validation: true
   batch_size_val: 200
-  validation_interval: 100
+  validation_interval: 50
   equatorial_sampling: false  # sample radii from the overlap band, maximising gradient signal
   density_power: 1.0
   gauss_newton_params:
@@ -61,7 +61,7 @@ loss_weights:
 
 logging:
   log_interval: 10
-  checkpoint_interval: 500
+  checkpoint_interval: 50
   save_dir: "outputs"
   test_size: 10000
 
