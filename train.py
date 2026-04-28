@@ -232,6 +232,7 @@ class Trainer:
                 damping_down_factor=float(gn_params.get('damping_down_factor', 0.5)),
                 rho_threshold_bad=float(gn_params.get('rho_threshold_bad', 0.25)),
                 rho_threshold_good=float(gn_params.get('rho_threshold_good', 0.75)),
+                max_step_norm=float(gn_params.get('max_step_norm', float('inf'))),
             )
         else:
             raise ValueError(f"Unknown optimizer: {opt_name}")

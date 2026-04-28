@@ -39,6 +39,7 @@ training:
     damping_down_factor: 0.5
     rho_threshold_bad: 0.25
     rho_threshold_good: 0.75
+    max_step_norm: 1.0
 
 pretraining:
   # Identity pretraining drives A → 0 (so J ≡ ±J_0, Nijenhuis loss = 0 at start).

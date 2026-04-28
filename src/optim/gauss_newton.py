@@ -53,6 +53,7 @@ class GaussNewtonOptimizer:
         damping_down_factor: float = 0.5,
         rho_threshold_bad: float = 0.25,
         rho_threshold_good: float = 0.75,
+        max_step_norm: float = float('inf'),
     ) -> None:
         self._params: List[torch.nn.Parameter] = list(params)
         self._damping = float(damping)
@@ -62,6 +63,7 @@ class GaussNewtonOptimizer:
         self._damping_down_factor = float(damping_down_factor)
         self._rho_bad = float(rho_threshold_bad)
         self._rho_good = float(rho_threshold_good)
+        self._max_step_norm = float(max_step_norm)
         self._G_ema: Optional[torch.Tensor] = None  # dense (n, n) GN matrix EMA
 
     # ------------------------------------------------------------------
@@ -166,7 +168,11 @@ class GaussNewtonOptimizer:
             old_data = [p.data.clone() for p in params]
 
         # ---- Step 7: apply update θ ← θ − α δ ------------------------
-        self._apply_update(params, alpha * delta)
+        update = alpha * delta
+        update_norm = update.norm()
+        if update_norm > self._max_step_norm:
+            update = update * (self._max_step_norm / update_norm)
+        self._apply_update(params, update)
 
         # ---- Step 8: Levenberg-Marquardt damping update ---------------
         if self._adaptive_damping:
