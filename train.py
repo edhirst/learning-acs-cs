@@ -781,6 +781,10 @@ class Trainer:
         self._save_checkpoint('final_model.pt')
         print(f"\nTraining complete! Best loss: {self.best_loss:.6e}")
 
+        # Evaluate on the best saved model, not the final (potentially degraded) state.
+        best_model_path = self.output_dir / 'best_model.pt'
+        if best_model_path.exists():
+            self.load_checkpoint(str(best_model_path))
         self._evaluate_test()
 
         loss_json_path = self.output_dir / 'loss_data.json'

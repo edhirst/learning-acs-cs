@@ -126,6 +126,10 @@ class GaussNewtonOptimizer:
         )
         u = self._flatten(grads_z)      # (n,)
 
+        # Guard: skip update if rank-1 sample is non-finite (e.g. exploding network).
+        if not torch.isfinite(u).all():
+            return info
+
         # ---- Step 4: EMA update of GN matrix --------------------------
         u_outer = torch.outer(u, u)
         if self._G_ema is None:
@@ -145,6 +149,10 @@ class GaussNewtonOptimizer:
             delta = torch.cholesky_solve(g.unsqueeze(-1), L).squeeze(-1)
         except torch.linalg.LinAlgError:
             delta = torch.linalg.lstsq(A, g.unsqueeze(-1)).solution.squeeze(-1)
+
+        # Guard: skip update if solve produced non-finite values.
+        if not torch.isfinite(delta).all():
+            return info
 
         # ---- Step 6: auto-LR (Martens-Grosse) -------------------------
         Gd = self._G_ema @ delta
