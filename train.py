@@ -336,7 +336,7 @@ class Trainer:
         loss.backward()
         
         # Gradient clipping
-        if self.config['advanced']['gradient_clipping'] > 0:
+        if (self.config['advanced']['gradient_clipping'] or 0) > 0:
             torch.nn.utils.clip_grad_norm_(
                 self.model.parameters(),
                 self.config['advanced']['gradient_clipping']
@@ -433,7 +433,7 @@ class Trainer:
                 # the correct initialisation for the two chart orientations.
                 loss = torch.mean(A ** 2)
                 loss.backward()
-                if self.config['advanced']['gradient_clipping'] > 0:
+                if (self.config['advanced']['gradient_clipping'] or 0) > 0:
                     torch.nn.utils.clip_grad_norm_(
                         subnet.parameters(),
                         self.config['advanced']['gradient_clipping']
@@ -614,7 +614,7 @@ class Trainer:
                     # Mean squared Frobenius error per sample.
                     loss = ((J_net - J_target) ** 2).sum(dim=(1, 2)).mean()
                     loss.backward()
-                    if self.config['advanced']['gradient_clipping'] > 0:
+                    if (self.config['advanced']['gradient_clipping'] or 0) > 0:
                         torch.nn.utils.clip_grad_norm_(
                             subnet.parameters(),
                             self.config['advanced']['gradient_clipping'],
@@ -662,7 +662,7 @@ class Trainer:
                     # Mean squared Frobenius error per sample.
                     loss = ((J_net - J_target) ** 2).sum(dim=(1, 2)).mean()
                     loss.backward()
-                    if self.config['advanced']['gradient_clipping'] > 0:
+                    if (self.config['advanced']['gradient_clipping'] or 0) > 0:
                         torch.nn.utils.clip_grad_norm_(
                             subnet.parameters(),
                             self.config['advanced']['gradient_clipping'],

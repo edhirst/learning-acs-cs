@@ -47,7 +47,7 @@ loss_weights:
   overlap: 3.0
   overlap_size_alpha: 0.2
   overlap_size_beta: 0.2
-  use_round_metric_contraction: true
+  use_round_metric_contraction: false
 
 advanced:
   early_stopping: false

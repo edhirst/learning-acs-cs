@@ -300,10 +300,10 @@ class OverlapLoss(nn.Module):
             info: Dict with 'overlap_norm'.
         """
         if return_residuals and self.use_round_metric_contraction:
-            raise ValueError(
-                "return_residuals=True is not compatible with "
-                "use_round_metric_contraction=True"
-            )
+            # GN residuals are always raw Frobenius diffs (used to estimate
+            # curvature); the metric-weighted loss value is still reported in
+            # info below.  No hard error — just fall through.
+            pass
 
         rho1 = x1.norm(dim=1)   # (batch,)
         rho2 = x2.norm(dim=1)   # (batch,)
