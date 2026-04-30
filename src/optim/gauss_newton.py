@@ -3,16 +3,19 @@ Full-matrix Gauss-Newton optimizer for physics-informed neural networks.
 
 Implements the rank-1 EMA estimator of the Gauss-Newton (GN) matrix described
 in Wang et al. (2025) "Discovery of Unstable Singularities" (arXiv:2509.14185),
-§ "Second-order Optimizer".
+§ "Second-order Optimizer", together with the Martens-Grosse optimal learning
+rate + momentum scheme from Martens & Grosse (ICML 2015).
 
 Algorithm (one step):
   1. Compute residuals r (flat, shape m) via residual_fn().
   2. Compute gradient g = Jᵀ r via VJP with adjoint r.
-  3. Sample z ~ N(0, Iₘ); compute u = Jᵀ z via second VJP.
-  4. EMA update:  Ĝ ← β Ĝ + (1−β) outer(u, u).
+  3. For k = 1..K: sample z_k ~ N(0, Iₘ); compute u_k = Jᵀ z_k via VJP.
+  4. EMA update:  Ĝ ← β Ĝ + (1−β) mean_k outer(u_k, u_k).
   5. Solve (Ĝ + γ I) δ = g.
-  6. Auto-LR (Martens-Grosse): α* = (g · δ) / (δᵀ (Ĝ + γ I) δ).
-  7. Update: θ ← θ − α* δ.
+  6. Martens-Grosse optimal (α*, μ*): minimise the quadratic model
+       q(v) = gᵀv + ½ vᵀ(Ĝ+γI)v  over  v = −α δ + μ v_{t−1}
+     by solving the 2×2 linear system (reduces to scalar α when no velocity).
+  7. Update: v_t ← −α* δ + μ* v_{t−1};  θ ← θ + v_t.
   8. [if adaptive_damping] Compute ρ = actual / predicted decrease; adjust γ.
 
 This is feasible only for small networks (≲ tens of thousands of parameters)
@@ -28,12 +31,14 @@ import torch
 
 
 class GaussNewtonOptimizer:
-    """Full-matrix Gauss-Newton optimizer with rank-1 EMA estimator.
+    """Full-matrix Gauss-Newton optimizer with rank-K EMA and Martens-Grosse momentum.
 
     Args:
         params: Iterable of model parameters to optimise.
         damping: Initial Levenberg-Marquardt damping coefficient γ.
         ema_decay: Exponential moving-average decay β for the GN matrix.
+            Should be ≈ 1 − 1/n for an n-parameter network so the EMA window
+            spans enough steps to accumulate a full-rank estimate.
         adaptive_damping: If True, apply Levenberg-Marquardt damping
             adjustment based on the ratio of actual to predicted decrease.
         damping_up_factor: Multiply γ by this factor when ρ < rho_threshold_bad.
@@ -41,6 +46,13 @@ class GaussNewtonOptimizer:
         rho_threshold_bad: ρ below this triggers damping increase; ρ < 0 also
             causes step rejection.
         rho_threshold_good: ρ above this triggers damping decrease.
+        num_gn_samples: Number of random probe vectors K used per step to
+            form a rank-K EMA update of the GN matrix.  K=1 matches the paper;
+            higher K warms up the estimate faster at the cost of K extra VJPs.
+        use_momentum: If True (default), use the Martens-Grosse optimal (α, μ)
+            scheme: jointly minimise the quadratic model over the combined
+            direction v = −α δ + μ v_{t−1}.  If False, use the scalar auto-LR
+            α* = (g·δ)/(δᵀ(Ĝ+γI)δ) with no momentum (μ = 0).
     """
 
     def __init__(
@@ -54,6 +66,8 @@ class GaussNewtonOptimizer:
         rho_threshold_bad: float = 0.25,
         rho_threshold_good: float = 0.75,
         max_step_norm: float = float('inf'),
+        num_gn_samples: int = 1,
+        use_momentum: bool = True,
     ) -> None:
         self._params: List[torch.nn.Parameter] = list(params)
         self._damping = float(damping)
@@ -64,7 +78,10 @@ class GaussNewtonOptimizer:
         self._rho_bad = float(rho_threshold_bad)
         self._rho_good = float(rho_threshold_good)
         self._max_step_norm = float(max_step_norm)
-        self._G_ema: Optional[torch.Tensor] = None  # dense (n, n) GN matrix EMA
+        self._num_gn_samples = max(1, int(num_gn_samples))
+        self._use_momentum = bool(use_momentum)
+        self._G_ema: Optional[torch.Tensor] = None   # dense (n, n) GN matrix EMA
+        self._velocity: Optional[torch.Tensor] = None  # v_{t-1}: last Δθ
 
     # ------------------------------------------------------------------
     # Public interface
@@ -118,26 +135,39 @@ class GaussNewtonOptimizer:
         if not torch.isfinite(r).all() or not torch.isfinite(g).all():
             return info
 
-        # ---- Step 3: rank-1 GN estimate u = Jᵀ z, z ~ N(0, I) --------
-        z = torch.randn(r.shape[0], dtype=r.dtype, device=r.device)
-        grads_z = torch.autograd.grad(
-            r, params,
-            grad_outputs=z,
-            retain_graph=False,
-            create_graph=False,
-        )
-        u = self._flatten(grads_z)      # (n,)
+        # ---- Step 3: rank-K GN estimate  u_k = Jᵀ z_k, z_k ~ N(0, I) --
+        # Accumulate K rank-1 outer products before the EMA update so the
+        # effective per-step rank is K rather than 1.
+        u_outer_sum: Optional[torch.Tensor] = None
+        for k in range(self._num_gn_samples):
+            retain = (k < self._num_gn_samples - 1)  # keep graph for all but last
+            z = torch.randn(r.shape[0], dtype=r.dtype, device=r.device)
+            grads_z = torch.autograd.grad(
+                r, params,
+                grad_outputs=z,
+                retain_graph=retain,
+                create_graph=False,
+            )
+            u = self._flatten(grads_z)      # (n,)
 
-        # Guard: skip update if rank-1 sample is non-finite (e.g. exploding network).
-        if not torch.isfinite(u).all():
-            return info
+            # Guard: skip update if any sample is non-finite.
+            if not torch.isfinite(u).all():
+                return info
+
+            outer_k = torch.outer(u, u)
+            if u_outer_sum is None:
+                u_outer_sum = outer_k
+            else:
+                u_outer_sum = u_outer_sum + outer_k
+
+        # Average over K samples so scale is independent of num_gn_samples.
+        u_outer_avg = u_outer_sum / self._num_gn_samples
 
         # ---- Step 4: EMA update of GN matrix --------------------------
-        u_outer = torch.outer(u, u)
         if self._G_ema is None:
-            self._G_ema = u_outer
+            self._G_ema = u_outer_avg
         else:
-            self._G_ema.mul_(self._ema_decay).add_((1.0 - self._ema_decay) * u_outer)
+            self._G_ema.mul_(self._ema_decay).add_((1.0 - self._ema_decay) * u_outer_avg)
 
         # ---- Step 5: solve (G_ema + γI) δ = g -------------------------
         # A = G_ema + γI is positive definite for γ > 0, so Cholesky is both
@@ -156,23 +186,63 @@ class GaussNewtonOptimizer:
         if not torch.isfinite(delta).all():
             return info
 
-        # ---- Step 6: auto-LR (Martens-Grosse) -------------------------
-        Gd = self._G_ema @ delta
-        numer = (g * delta).sum()
-        denom = (delta * Gd).sum() + self._damping * (delta * delta).sum()
-        alpha = (numer / denom.clamp(min=1e-30)).clamp(min=0.0, max=10.0)
+        # ---- Step 6: Martens-Grosse optimal (α, μ) --------------------
+        # We minimise the quadratic model  q(v) = gᵀv + ½vᵀ(Ĝ+γI)v
+        # over  v = −α δ + μ v_{t−1}  (two free scalars).
+        #
+        # Defining F = Ĝ+γI, p = −δ (GN descent direction), q = v_{t−1}:
+        #   ∂q/∂α = 0  and  ∂q/∂μ = 0  give the 2×2 system:
+        #     [pᵀFp,  pᵀFq] [α]   [−gᵀp]   [g·δ ]
+        #     [pᵀFq,  qᵀFq] [μ] = [−gᵀq] = [−g·v]
+        # (with p=−δ: pᵀFp = δᵀFδ, pᵀFq = −δᵀFv, gᵀp = −g·δ)
+        #
+        # When v_{t−1} is absent (first step) this collapses to the scalar
+        # α* = (g·δ)/(δᵀFδ) with μ = 0.
+        Gd = self._G_ema @ delta          # (Ĝ)δ, needed for quadratic terms
+        dFd = (delta * Gd).sum() + self._damping * (delta * delta).sum()  # δᵀFδ
+        gd  = (g * delta).sum()           # g·δ  (≥ 0 when δ is a descent dir)
+
+        v_prev = self._velocity
+        if self._use_momentum and v_prev is not None:
+            Gv  = self._G_ema @ v_prev
+            dFv = (delta * Gv).sum() + self._damping * (delta * v_prev).sum()  # δᵀFv
+            vFv = (v_prev * Gv).sum() + self._damping * (v_prev * v_prev).sum()  # vᵀFv
+            gv  = (g * v_prev).sum()       # g·v
+
+            # 2×2 system (see docstring derivation)
+            det = dFd * vFv - dFv * dFv
+            # Fall back to no-momentum if the system is ill-conditioned.
+            if det.abs() > 1e-14 * (dFd.abs() * vFv.abs()).clamp(min=1e-30):
+                alpha = ((gd * vFv - gv * dFv) / det).clamp(min=0.0, max=10.0)
+                mu    = ((gd * dFv - gv * dFd) / (-det)).clamp(min=-0.99, max=0.99)
+                # Predicted decrease for adaptive damping (full momentum model)
+                _pred_denom = alpha
+            else:
+                alpha = (gd / dFd.clamp(min=1e-30)).clamp(min=0.0, max=10.0)
+                mu    = delta.new_zeros(())
+        else:
+            alpha = (gd / dFd.clamp(min=1e-30)).clamp(min=0.0, max=10.0)
+            mu    = delta.new_zeros(())
+            v_prev = None  # simplify update below
 
         # ---- Adaptive damping: snapshot before update -----------------
         if self._adaptive_damping:
             loss_before = float((r.detach() ** 2).sum())
             old_data = [p.data.clone() for p in params]
 
-        # ---- Step 7: apply update θ ← θ − α δ ------------------------
-        update = alpha * delta
-        update_norm = update.norm()
+        # ---- Step 7: apply update  θ ← θ + v_t  where v_t = −α δ + μ v_{t−1}
+        if v_prev is not None:
+            new_velocity = -alpha * delta + mu * v_prev
+        else:
+            new_velocity = -alpha * delta
+
+        update_norm = new_velocity.norm()
         if update_norm > self._max_step_norm:
-            update = update * (self._max_step_norm / update_norm)
-        self._apply_update(params, update)
+            new_velocity = new_velocity * (self._max_step_norm / update_norm)
+
+        # θ ← θ + v_t  ↔  subtract (−v_t) from θ
+        self._apply_update(params, -new_velocity)
+        self._velocity = new_velocity.detach()
 
         # ---- Step 8: Levenberg-Marquardt damping update ---------------
         if self._adaptive_damping:
@@ -180,12 +250,14 @@ class GaussNewtonOptimizer:
             loss_after = float((r_new.detach() ** 2).sum())
 
             actual_decrease = loss_before - loss_after
-            # Predicted decrease in h = ||r||² under the quadratic model:
-            # h(θ - α δ) ≈ h(θ) - 2α (Jᵀr · δ) + α² δᵀ (G+γI) δ
-            # where ∇h = 2Jᵀr = 2g,  Hessian ≈ 2(G+γI).
-            predicted_decrease = float(
-                2.0 * alpha * numer - alpha ** 2 * denom
-            )
+            # Predicted decrease under the quadratic model h ≈ hᵀh:
+            #   Δh ≈ 2 gᵀ v_t + vᵀ (Ĝ+γI) v_t
+            # For the pure-α case this is 2α·gd − α²·dFd.
+            # We use the full velocity vector for generality.
+            v_t = new_velocity
+            Gv_t = self._G_ema @ v_t
+            vFv_t = (v_t * Gv_t).sum() + self._damping * (v_t * v_t).sum()
+            predicted_decrease = float(2.0 * (g * v_t).sum() + vFv_t)
             if abs(predicted_decrease) < 1e-30:
                 rho = 1.0
             else:
@@ -194,9 +266,10 @@ class GaussNewtonOptimizer:
             if rho < self._rho_bad:
                 self._damping = min(self._damping * self._damping_up_factor, 1e10)
                 if rho < 0.0:
-                    # Reject step: restore parameters
+                    # Reject step: restore parameters and clear velocity
                     for p, old in zip(params, old_data):
                         p.data.copy_(old)
+                    self._velocity = None
             elif rho > self._rho_good:
                 self._damping = max(self._damping / self._damping_down_factor, 1e-10)
 
@@ -211,6 +284,7 @@ class GaussNewtonOptimizer:
         return {
             'G_ema': self._G_ema,
             'damping': self._damping,
+            'velocity': self._velocity,
         }
 
     def load_state_dict(self, state: Dict) -> None:
@@ -218,6 +292,7 @@ class GaussNewtonOptimizer:
         self._G_ema = state.get('G_ema')
         if 'damping' in state:
             self._damping = float(state['damping'])
+        self._velocity = state.get('velocity')
 
     # ------------------------------------------------------------------
     # Private helpers

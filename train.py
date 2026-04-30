@@ -13,6 +13,7 @@ from pathlib import Path
 from datetime import datetime
 import secrets
 import numpy as np
+import time
 import matplotlib.pyplot as plt
 
 print = functools.partial(print, flush=True)
@@ -233,6 +234,8 @@ class Trainer:
                 rho_threshold_bad=float(gn_params.get('rho_threshold_bad', 0.25)),
                 rho_threshold_good=float(gn_params.get('rho_threshold_good', 0.75)),
                 max_step_norm=float(gn_params.get('max_step_norm', float('inf'))),
+                num_gn_samples=int(gn_params.get('num_gn_samples', 1)),
+                use_momentum=bool(gn_params.get('use_momentum', True)),
             )
         else:
             raise ValueError(f"Unknown optimizer: {opt_name}")
@@ -703,8 +706,9 @@ class Trainer:
             history_keys = ['total_loss', 'nij_00', 'nij_01', 'nij_10', 'nij_11', 'overlap_norm']
         else:
             history_keys = ['total_loss', 'nij1', 'nij2', 'overlap_norm']
-        history: dict[str, list] = {'epoch': [], **{k: [] for k in history_keys}}
-        
+        history: dict[str, list] = {'epoch': [], 'elapsed_seconds': [], **{k: [] for k in history_keys}}
+        _t0 = time.monotonic()
+
         for epoch in range(num_epochs):
             self.epoch = epoch
             
@@ -722,6 +726,7 @@ class Trainer:
                 # Avoid double-appending when the last epoch coincides with log_interval.
                 if not history['epoch'] or history['epoch'][-1] != epoch:
                     history['epoch'].append(epoch)
+                    history['elapsed_seconds'].append(time.monotonic() - _t0)
                     for key in history_keys:
                         history[key].append(train_info.get(key, 0.0))
             

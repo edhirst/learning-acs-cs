@@ -1,0 +1,73 @@
+# S² ACS — GN fine-tuning from small Adam checkpoint.
+# Warm-start: python train.py --config configs/ACS/config_sphere2_gn_warmstart.yaml \
+#                              --checkpoint <small_adam_output>/checkpoints/best_model.pt
+# Architecture must match config_sphere2_small_adam.yaml exactly.
+
+geometry:
+  manifold_type: "sphere"
+  real_dimension: 2
+
+network:
+  hidden_layers: [32, 32]
+  activation: "gelu"
+  use_fourier_features: true
+  fourier_scale: 1.0
+  num_fourier_features: 8
+  initialization: "xavier"
+  matrix_exp_terms: null
+  use_residual_blocks: false
+
+training:
+  epochs: 5000
+  batch_size: 500
+  dtype: "float64"
+  # GN manages its own step size; learning_rate is unused but required by schema.
+  learning_rate: 1.0e-3
+  optimizer: "gauss_newton"
+  weight_decay: 0.0
+  run_validation: true
+  batch_size_val: 500
+  validation_interval: 100
+  equatorial_sampling: false
+  density_power: 1.0
+  # No external scheduler for GN — it uses auto-LR (Martens-Grosse).
+  scheduler: "none"
+  scheduler_params: {}
+  gauss_newton_params:
+    # rank-K EMA: K=10 gives ~200 effective rank at convergence (ema_decay=0.95 → window≈20)
+    num_gn_samples: 10
+    ema_decay: 0.99        # longer window → more stable curvature estimate
+    damping: 0.1           # start lower — warm-start is already near minimum
+    adaptive_damping: true
+    damping_up_factor: 3.0
+    damping_down_factor: 0.75
+    rho_threshold_bad: 0.25
+    rho_threshold_good: 0.75
+    max_step_norm: 10.0    # relaxed: warm-start keeps steps from exploding
+
+pretraining:
+  identity_pretraining: false   # skip — weights already trained
+  pretrain_epochs: 0
+  pretrain_points: 2000
+  overlap_pretraining: false
+  overlap_pretrain_epochs: 0
+  overlap_pretrain_points: 2000
+
+loss_weights:
+  nijenhuis: 0.0
+  overlap: 1.0
+  overlap_size: 0.2
+  use_round_metric_contraction: true
+
+advanced:
+  early_stopping: false
+  early_stopping_patience: 200
+  gradient_clipping: 0.0   # GN solves the full step; clipping is counterproductive
+
+logging:
+  log_interval: 10
+  checkpoint_interval: 500
+  save_dir: "outputs"
+  test_size: 10000
+
+seed: 42

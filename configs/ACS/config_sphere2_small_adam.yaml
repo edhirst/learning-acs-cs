@@ -1,0 +1,62 @@
+# S² ACS — small Adam pre-run to create a warm-start checkpoint for GN fine-tuning.
+# Run first: python train.py --config configs/ACS/config_sphere2_small_adam.yaml
+# Then GN:   python train.py --config configs/ACS/config_sphere2_gn_warmstart.yaml \
+#                             --checkpoint <output_dir>/checkpoints/best_model.pt
+
+geometry:
+  manifold_type: "sphere"
+  real_dimension: 2
+
+network:
+  hidden_layers: [32, 32]
+  activation: "gelu"
+  use_fourier_features: true
+  fourier_scale: 1.0
+  num_fourier_features: 8
+  initialization: "xavier"
+  matrix_exp_terms: null
+  use_residual_blocks: false
+
+training:
+  epochs: 5000
+  batch_size: 500
+  dtype: "float64"
+  learning_rate: 1.0e-3
+  scheduler: "cosine"
+  scheduler_params:
+    T_max: 5000
+    eta_min: 1.0e-6
+  optimizer: "adamw"
+  weight_decay: 0.0
+  run_validation: true
+  batch_size_val: 500
+  validation_interval: 200
+  equatorial_sampling: false
+  density_power: 1.0
+
+pretraining:
+  identity_pretraining: true
+  pretrain_epochs: 50
+  pretrain_points: 2000
+  overlap_pretraining: false
+  overlap_pretrain_epochs: 0
+  overlap_pretrain_points: 2000
+
+loss_weights:
+  nijenhuis: 0.0
+  overlap: 1.0
+  overlap_size: 0.2
+  use_round_metric_contraction: true
+
+advanced:
+  early_stopping: false
+  early_stopping_patience: 200
+  gradient_clipping: 1.0
+
+logging:
+  log_interval: 50
+  checkpoint_interval: 500
+  save_dir: "outputs"
+  test_size: 10000
+
+seed: 42

@@ -1,0 +1,69 @@
+# S³×S¹ CS — Gauss-Newton comparison (Martens-Grosse momentum).
+# Matched architecture to config_sphere_product31_compare_adam.yaml.
+# python train.py --config configs/CS/config_sphere_product31_compare_gn.yaml
+
+geometry:
+  manifold_type: "sphere_product"
+  real_dimension_alpha: 3
+  real_dimension_beta: 1
+
+network:
+  hidden_layers: [32, 32]
+  activation: "gelu"
+  use_fourier_features: true
+  fourier_scale: 1.0
+  num_fourier_features: 12
+  initialization: "xavier"
+  matrix_exp_terms: null
+  use_residual_blocks: false
+
+training:
+  epochs: 80000
+  batch_size: 200
+  dtype: "float64"
+  optimizer: "gauss_newton"
+  gauss_newton_params:
+    damping: 1.0
+    # ema_decay ≈ 1 - 1/n_params; [32,32] + 12-FF on S³×S¹ has ~2500 params.
+    ema_decay: 0.9996
+    adaptive_damping: true
+    damping_up_factor: 3.0
+    damping_down_factor: 0.5
+    rho_threshold_bad: 0.25
+    rho_threshold_good: 0.75
+    num_gn_samples: 1
+    use_momentum: true
+    max_step_norm: 1.0
+  run_validation: false
+  batch_size_val: 200
+  validation_interval: 500
+  equatorial_sampling: false
+  density_power: 1.0
+
+pretraining:
+  identity_pretraining: true
+  pretrain_epochs: 50
+  pretrain_points: 2000
+  overlap_pretraining: false
+  overlap_pretrain_epochs: 0
+  overlap_pretrain_points: 2000
+
+loss_weights:
+  nijenhuis: 1.0
+  overlap: 3.0
+  overlap_size_alpha: 0.2
+  overlap_size_beta: 0.2
+  use_round_metric_contraction: true
+
+advanced:
+  early_stopping: false
+  early_stopping_patience: 500
+  gradient_clipping: null
+
+logging:
+  log_interval: 80
+  checkpoint_interval: 16000
+  save_dir: "outputs"
+  test_size: 10000
+
+seed: 42

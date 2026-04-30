@@ -1,0 +1,68 @@
+# S² ACS — Gauss-Newton comparison (Martens-Grosse momentum).
+# Matched architecture to config_sphere2_compare_adam.yaml.
+# python train.py --config configs/ACS/config_sphere2_compare_gn.yaml
+
+geometry:
+  manifold_type: "sphere"
+  real_dimension: 2
+
+network:
+  hidden_layers: [32, 32]
+  activation: "gelu"
+  use_fourier_features: true
+  fourier_scale: 1.0
+  num_fourier_features: 8
+  initialization: "xavier"
+  matrix_exp_terms: null
+  use_residual_blocks: false
+
+training:
+  epochs: 120000
+  batch_size: 200
+  dtype: "float64"
+  optimizer: "gauss_newton"
+  gauss_newton_params:
+    damping: 1.0
+    # ema_decay ≈ 1 - 1/n_params for effective window ~ n_params.
+    # This [32,32] + 8-FF network has ~2300 params; 0.9995 ≈ 1 - 1/2000.
+    ema_decay: 0.9995
+    adaptive_damping: true
+    damping_up_factor: 3.0
+    damping_down_factor: 0.5
+    rho_threshold_bad: 0.25
+    rho_threshold_good: 0.75
+    num_gn_samples: 1
+    use_momentum: true
+    max_step_norm: 1.0
+  run_validation: false
+  batch_size_val: 200
+  validation_interval: 500
+  equatorial_sampling: false
+  density_power: 1.0
+
+pretraining:
+  identity_pretraining: true
+  pretrain_epochs: 50
+  pretrain_points: 2000
+  overlap_pretraining: false
+  overlap_pretrain_epochs: 0
+  overlap_pretrain_points: 2000
+
+loss_weights:
+  nijenhuis: 0.0
+  overlap: 1.0
+  overlap_size: 0.2
+  use_round_metric_contraction: true
+
+advanced:
+  early_stopping: false
+  early_stopping_patience: 500
+  gradient_clipping: null
+
+logging:
+  log_interval: 120
+  checkpoint_interval: 24000
+  save_dir: "outputs"
+  test_size: 10000
+
+seed: 42

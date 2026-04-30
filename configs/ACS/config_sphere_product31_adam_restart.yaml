@@ -1,0 +1,64 @@
+# S³×S¹ ACS — Adam cosine-restart fine-tuning from ff_runs_v2/round_metric/s3s1_acs best_model.pt
+# Run: python train.py --config configs/ACS/config_sphere_product31_adam_restart.yaml \
+#                      --checkpoint ../ff_runs_v2/round_metric/s3s1_acs/checkpoints/best_model.pt
+
+geometry:
+  manifold_type: "sphere_product"
+  real_dimension_alpha: 3
+  real_dimension_beta: 1
+
+network:
+  hidden_layers: [256, 512, 512, 256]
+  activation: "gelu"
+  use_fourier_features: true
+  fourier_scale: 1.0
+  num_fourier_features: 128
+  initialization: "xavier"
+  matrix_exp_terms: null
+  use_residual_blocks: false
+
+training:
+  epochs: 20000
+  batch_size: 1000
+  dtype: "float64"
+  learning_rate: 1.0e-3
+  scheduler: "cosine_restarts"
+  scheduler_params:
+    T_0: 2000
+    T_mult: 2.0
+    eta_min: 1.0e-7
+  optimizer: "adamw"
+  weight_decay: 1.0e-5
+  run_validation: true
+  batch_size_val: 500
+  validation_interval: 100
+  equatorial_sampling: false
+  density_power: 1.0
+
+pretraining:
+  identity_pretraining: false
+  pretrain_epochs: 0
+  pretrain_points: 2000
+  overlap_pretraining: false
+  overlap_pretrain_epochs: 0
+  overlap_pretrain_points: 2000
+
+loss_weights:
+  nijenhuis: 0.0
+  overlap: 1.0
+  overlap_size_alpha: 0.2
+  overlap_size_beta: 0.2
+  use_round_metric_contraction: true
+
+advanced:
+  early_stopping: false
+  early_stopping_patience: 200
+  gradient_clipping: 1.0
+
+logging:
+  log_interval: 10
+  checkpoint_interval: 1000
+  save_dir: "outputs"
+  test_size: 10000
+
+seed: 42
