@@ -16,6 +16,10 @@ env/
 # Training outputs
 outputs/**
 
+# PyTorch checkpoints (track zipped archives only)
+*.pt
+!*.pt.zip
+
 # TensorBoard
 events.out.tfevents.*
 
