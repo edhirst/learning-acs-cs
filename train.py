@@ -214,7 +214,7 @@ class Trainer:
         opt_name = self.config['training']['optimizer'].lower()
 
         if opt_name in ('adam', 'adamw', 'sgd'):
-            lr = self.config['training']['learning_rate']
+            lr = self.config['training'].get('learning_rate', 1e-3)
             weight_decay = self.config['training'].get('weight_decay', 0.0)
         if opt_name == 'adam':
             return optim.Adam(self.model.parameters(), lr=lr, weight_decay=weight_decay)
@@ -412,7 +412,7 @@ class Trainer:
         for subnet_name, subnet in subnets:
             opt = torch.optim.Adam(
                 subnet.parameters(),
-                lr=self.config['training']['learning_rate']
+                lr=self.config['training'].get('learning_rate', 1e-3)
             )
             for epoch in range(pretrain_epochs):
                 subnet.train()
@@ -560,7 +560,7 @@ class Trainer:
         pretrain_epochs = pt_cfg['overlap_pretrain_epochs']
         pretrain_points = pt_cfg['overlap_pretrain_points']
         pt_lr = float(pt_cfg.get('overlap_pretrain_lr',
-                                 self.config['training']['learning_rate']))
+                                 self.config['training'].get('learning_rate', 1e-3)))
         lw = self.config['loss_weights']
 
         if self.manifold_type == 'sphere_product':
