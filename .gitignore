@@ -1,3 +1,7 @@
+# PyTorch checkpoints (but allow zipped .pt files)
+*.pt
+!*.pt.zip
+
 # Python
 __pycache__/
 *.py[cod]

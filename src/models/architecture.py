@@ -16,13 +16,9 @@ sphere_product
 receives the full concatenated ball coordinates x = (x_α, x_β).
 
 Per-patch J₀ for the product:
-    The sign flip per patch reflects the orientation of the equatorial Jacobian:
-    det(F_eq) = (-1)^{dim_k + 1} for each factor k.  For even dim_k this equals
-    -1 (orientation-reversing → J_k flips sign), for odd dim_k this equals +1
-    (orientation-preserving → no sign flip).
-
-    Both dims even → j0^{(ia,ib)} = block( (-1)^{ia} J₀^α, (-1)^{ib} J₀^β )
-    Both dims odd  → j0^{(ia,ib)} = J₀(d)  for all (ia,ib)  [same for all patches]
+    All patch combinations share the same full-dimensional canonical structure
+    J₀(d), d = m_α + m_β, regardless of whether the individual factor dimensions
+    are even or odd.
 
 In all cases the exp(A) J₀ exp(−A) parametrisation guarantees J² = −I exactly
 for any network weights.
@@ -499,24 +495,22 @@ def _build_patch_j0s(
     d = dim_alpha + dim_beta
     j0s: Dict[Tuple[int, int], torch.Tensor] = {}
 
-    if dim_alpha % 2 == 0 and dim_beta % 2 == 0:
-        # Block-diagonal: j0^{(ia,ib)} = block( s_α J₀^α, s_β J₀^β )
-        J0a = PatchSubNet._build_J0(dim_alpha)   # (m_α, m_α)
-        J0b = PatchSubNet._build_J0(dim_beta)    # (m_β, m_β)
-        for ia, ib in _PATCH_KEYS:
-            J0 = torch.zeros(d, d)
-            J0[:dim_alpha, :dim_alpha] = ((-1) ** ia) * J0a
-            J0[dim_alpha:, dim_alpha:] = ((-1) ** ib) * J0b
-            j0s[(ia, ib)] = J0
-    else:
-        # Both dims odd (even total).  No natural block decomposition; use
-        # the standard J₀(d) on the full space.
-        # For an odd-dimensional factor the patch-change Jacobian at the equator
-        # has det = +1 (orientation-preserving), so F J F⁻¹ = J there — no sign
-        # flip between patches.  All four patches share the same J₀.
-        J0_full = PatchSubNet._build_J0(d)
-        for ia, ib in _PATCH_KEYS:
-            j0s[(ia, ib)] = J0_full
+    # All patches use the full-dimensional canonical structure J₀(d).
+    J0_full = PatchSubNet._build_J0(d)
+    for ia, ib in _PATCH_KEYS:
+        j0s[(ia, ib)] = J0_full
+
+    # [archived] Block-diagonal initialisation for both-even factor dimensions:
+    # if dim_alpha % 2 == 0 and dim_beta % 2 == 0:
+    #     # j0^{(ia,ib)} = block( (-1)^{ia} J₀^α, (-1)^{ib} J₀^β )
+    #     # Reflects det(F_eq) = -1 for even-dimensional factors.
+    #     J0a = PatchSubNet._build_J0(dim_alpha)   # (m_α, m_α)
+    #     J0b = PatchSubNet._build_J0(dim_beta)    # (m_β, m_β)
+    #     for ia, ib in _PATCH_KEYS:
+    #         J0 = torch.zeros(d, d)
+    #         J0[:dim_alpha, :dim_alpha] = ((-1) ** ia) * J0a
+    #         J0[dim_alpha:, dim_alpha:] = ((-1) ** ib) * J0b
+    #         j0s[(ia, ib)] = J0
 
     return j0s
 
