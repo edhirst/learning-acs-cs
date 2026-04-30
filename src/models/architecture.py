@@ -16,16 +16,9 @@ sphere_product
 receives the full concatenated ball coordinates x = (x_α, x_β).
 
 Per-patch J₀ for the product:
-    The sign flip per patch reflects the orientation of the equatorial Jacobian:
-    det(F_eq) = (-1)^{dim_k + 1} for each factor k.  For even dim_k this equals
-    -1 (orientation-reversing → J_k flips sign), for odd dim_k this equals +1
-    (orientation-preserving → no sign flip).
-
-    Both dims even → j0^{(ia,ib)} = block( (-1)^{ia} J₀^α, (-1)^{ib} J₀^β )
-    Both dims odd  → j0^{(ia,ib)} = J₀(d)  for all (ia,ib)  [same for all patches]
-
-In all cases the exp(A) J₀ exp(−A) parametrisation guarantees J² = −I exactly
-for any network weights.
+    All four patches share the standard J₀(d) on the full space, d = m_α + m_β.
+    The exp(A) J₀ exp(−A) parametrisation guarantees J² = −I exactly for any
+    network weights.
 """
 
 import torch
@@ -489,6 +482,8 @@ def _build_patch_j0s(
     """
     Compute the per-patch canonical ACS J₀ for S^{m_α} × S^{m_β}.
 
+    All patches share the standard J₀(d) on the full d = m_α + m_β space.
+
     Args:
         dim_alpha: Real dimension of S^{m_α}.
         dim_beta:  Real dimension of S^{m_β}.
@@ -497,28 +492,19 @@ def _build_patch_j0s(
         Dict mapping (i_α, i_β) → J₀ tensor of shape (d, d), d = m_α + m_β.
     """
     d = dim_alpha + dim_beta
-    j0s: Dict[Tuple[int, int], torch.Tensor] = {}
+    J0_full = PatchSubNet._build_J0(d)
+    return {(ia, ib): J0_full for ia, ib in _PATCH_KEYS}
 
-    if dim_alpha % 2 == 0 and dim_beta % 2 == 0:
-        # Block-diagonal: j0^{(ia,ib)} = block( s_α J₀^α, s_β J₀^β )
-        J0a = PatchSubNet._build_J0(dim_alpha)   # (m_α, m_α)
-        J0b = PatchSubNet._build_J0(dim_beta)    # (m_β, m_β)
-        for ia, ib in _PATCH_KEYS:
-            J0 = torch.zeros(d, d)
-            J0[:dim_alpha, :dim_alpha] = ((-1) ** ia) * J0a
-            J0[dim_alpha:, dim_alpha:] = ((-1) ** ib) * J0b
-            j0s[(ia, ib)] = J0
-    else:
-        # Both dims odd (even total).  No natural block decomposition; use
-        # the standard J₀(d) on the full space.
-        # For an odd-dimensional factor the patch-change Jacobian at the equator
-        # has det = +1 (orientation-preserving), so F J F⁻¹ = J there — no sign
-        # flip between patches.  All four patches share the same J₀.
-        J0_full = PatchSubNet._build_J0(d)
-        for ia, ib in _PATCH_KEYS:
-            j0s[(ia, ib)] = J0_full
-
-    return j0s
+    # ARCHIVED: block-diagonal initialisation (even×even factors only).
+    # j0^{(ia,ib)} = block( (-1)^{ia} J₀^α, (-1)^{ib} J₀^β )
+    # if dim_alpha % 2 == 0 and dim_beta % 2 == 0:
+    #     J0a = PatchSubNet._build_J0(dim_alpha)
+    #     J0b = PatchSubNet._build_J0(dim_beta)
+    #     for ia, ib in _PATCH_KEYS:
+    #         J0 = torch.zeros(d, d)
+    #         J0[:dim_alpha, :dim_alpha] = ((-1) ** ia) * J0a
+    #         J0[dim_alpha:, dim_alpha:] = ((-1) ** ib) * J0b
+    #         j0s[(ia, ib)] = J0
 
 
 class FourPatchProductNet(nn.Module):
