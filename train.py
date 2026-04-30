@@ -212,9 +212,10 @@ class Trainer:
     def _create_optimizer(self):
         """Create optimizer from config."""
         opt_name = self.config['training']['optimizer'].lower()
-        lr = self.config['training']['learning_rate']
-        weight_decay = self.config['training']['weight_decay']
 
+        if opt_name in ('adam', 'adamw', 'sgd'):
+            lr = self.config['training']['learning_rate']
+            weight_decay = self.config['training'].get('weight_decay', 0.0)
         if opt_name == 'adam':
             return optim.Adam(self.model.parameters(), lr=lr, weight_decay=weight_decay)
         elif opt_name == 'adamw':
