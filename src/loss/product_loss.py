@@ -34,14 +34,20 @@ Note on the diagonal pair (01)↔(10): this pair involves a both-flip but the
 """
 
 import torch
-import torch.autograd.forward_ad as fwdAD
 import torch.nn as nn
 from typing import Dict, List, Optional, Tuple
 
 from src.geometry import RADIAL_MIDPOINT
 from src.geometry.sphere import EvenSphere
 from src.geometry.sphere_product import SphereProduct
-from src.loss.sphere_loss import NijenhuisTensorLoss, _metric_norm_sq_12tensor, _metric_norm_sq_11tensor
+from src.loss.sphere_loss import (
+    NijenhuisTensorLoss,
+    _compute_A_and_dA,
+    _compute_dJ_from_dA,
+    _nij_tensor,
+    _metric_norm_sq_12tensor,
+    _metric_norm_sq_11tensor,
+)
 
 
 # All 6 ordered patch pairs (source, target, flip_type)
@@ -193,28 +199,16 @@ class ProductNijenhuisLoss(nn.Module):
             loss: Scalar weighted mean Nijenhuis norm.
             info: {'nij_norm': float}
         """
+        # Same DECOMP path as in sphere_loss.NijenhuisTensorLoss: AD over the
+        # MLP backbone via vmap+jacfwd, J = J₀ exp(−2 A), per-direction
+        # matrix_exp JVP for ∂J/∂x, and the antisymmetry-fused 2-einsum kernel.
         with torch.enable_grad():
-            J = subnet(x)          # (batch, d, d)
-        batch, d, _ = J.shape
+            A, dA = _compute_A_and_dA(subnet, x)
+            J0    = subnet.J0
+            J     = torch.einsum('kp,bpj->bkj', J0, torch.matrix_exp(-2 * A))
+            dJ    = _compute_dJ_from_dA(A, dA, J0)
 
-        x_d = x.detach()
-        slices = []
-        for l in range(d):
-            tangent = x_d.new_zeros(batch, d)
-            tangent[:, l] = 1.0
-            with fwdAD.dual_level():
-                dJ_l = fwdAD.unpack_dual(subnet(fwdAD.make_dual(x_d, tangent))).tangent
-            if dJ_l is None:
-                dJ_l = x_d.new_zeros(batch, d, d)
-            slices.append(dJ_l)
-        dJ = torch.stack(slices, dim=-1)    # (batch, d, d, d)
-
-        term1 = torch.einsum('bli,bkjl->bkij', J, dJ)
-        term2 = -torch.einsum('blj,bkil->bkij', J, dJ)
-        anti  = dJ.permute(0, 1, 3, 2) - dJ
-        term3 = torch.einsum('bkl,blij->bkij', J, anti)
-
-        N = term1 + term2 - term3
+        N = _nij_tensor(J, dJ)
         if g is not None and g_inv is not None:
             nij_norm = torch.sqrt(_metric_norm_sq_12tensor(N, g, g_inv) + 1e-20)
         else:

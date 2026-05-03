@@ -26,7 +26,7 @@ where F is the Jacobian of the self-inverse patch-change map and x₂ = φ(x₁)
 """
 
 import torch
-import torch.autograd.forward_ad as fwdAD
+import torch.func as func
 import torch.nn as nn
 from typing import Dict, Tuple
 
@@ -87,20 +87,87 @@ def _metric_norm_sq_12tensor(
     return (N3 * N).sum(dim=(1, 2, 3))
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Optimised Nijenhuis kernel
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# The implementation below exploits the architecture-level identity
+#     A(x) ∈ 𝒜 = {A : A J₀ + J₀ A = 0}   ⇒   J(x) = J₀ · exp(−2 A(x))
+# (equivalent to exp(A) J₀ exp(−A) when A anti-commutes with J₀), and computes
+# ∂J/∂x via three layered optimisations:
+#
+#   (1) Vectorised forward-mode AD — vmap+jacfwd replaces a Python `for l in
+#       range(d):` loop over tangent directions, batching them into one pass.
+#   (2) AD over the MLP backbone only — `subnet.forward_raw` produces A
+#       without applying the matrix_exp closure, so matrix_exp is *not* inside
+#       the differentiated path.  ∂J/∂x is reconstructed analytically via a
+#       per-direction matrix_exp JVP at the same primal −2A.
+#   (3) Antisymmetry-fused einsum kernel — N^k_{ij} = −N^k_{ji} lets us
+#       assemble the tensor with 2 einsums + 2 transposes instead of 3 einsums.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _compute_A_and_dA(subnet: nn.Module, x: torch.Tensor):
+    """Return (A, dA) with A = subnet.forward_raw(x) and
+    dA[..., l] = ∂A/∂x_l, using vmap+jacfwd over the MLP backbone only."""
+    def _mlp_single(x_single: torch.Tensor) -> torch.Tensor:
+        return subnet.forward_raw(x_single.unsqueeze(0)).squeeze(0)
+    A  = subnet.forward_raw(x)                          # (b, d, d)
+    dA = func.vmap(func.jacfwd(_mlp_single))(x)         # (b, d, d, d)
+    return A, dA
+
+
+def _compute_dJ_from_dA(
+    A: torch.Tensor, dA: torch.Tensor, J0: torch.Tensor,
+) -> torch.Tensor:
+    """Promote ∂A/∂x to ∂J/∂x using J = J₀ · exp(−2 A) and the chain rule:
+
+        ∂J/∂x_l = J₀ · D[exp(−2 A)] (−2 ∂A/∂x_l)
+
+    The Frechet derivative D[exp(−2 A)] is evaluated as a per-direction
+    `torch.func.jvp` on `torch.matrix_exp` at the same primal −2 A,
+    vmapped over the d directions."""
+    def _expm(A_):
+        return torch.matrix_exp(-2 * A_)
+    def _jvp_one_direction(A_, dA_l):
+        _, tangent = func.jvp(_expm, (A_,), (dA_l,))
+        return tangent
+    dA_perm    = dA.movedim(-1, 0)                                              # (d, b, d, d)
+    dexpB_perm = func.vmap(_jvp_one_direction, in_dims=(None, 0))(A, dA_perm)   # (d, b, d, d)
+    dexpB      = dexpB_perm.movedim(0, -1)                                      # (b, d, d, d)
+    return torch.einsum('kp,bpjl->bkjl', J0, dexpB)
+
+
+def _nij_tensor(J: torch.Tensor, dJ: torch.Tensor) -> torch.Tensor:
+    """Antisymmetry-fused Nijenhuis assembly (2 einsums + 2 transposes).
+
+        T = einsum('bli,bkjl->bkij', J, dJ)         # = J^l_i ∂_l J^k_j
+        S = einsum('bkl,blji->bkij', J, dJ)         # = J^k_l ∂_i J^l_j
+        N = (T − T^⊤_{ij}) − (S − S^⊤_{ij})
+
+    Equivalent to the textbook 3-einsum form with term1+term2 obtained as
+    the antisymmetrisation of T in (i, j), and term3 as the antisymmetrisation
+    of S — see the Nijenhuis-tensor formula at the top of this file."""
+    T = torch.einsum('bli,bkjl->bkij', J, dJ)
+    S = torch.einsum('bkl,blji->bkij', J, dJ)
+    return (T - T.transpose(-2, -1)) - (S - S.transpose(-2, -1))
+
+
 class NijenhuisTensorLoss(nn.Module):
     """
     Per-patch Nijenhuis tensor loss in ball coordinates.
 
-    Re-evaluates the sub-network with gradient-tracked inputs so that
-    ∂J/∂x can be obtained via autograd, then assembles the full
-    coordinate-Nijenhuis tensor:
+    Computes the coordinate-expression of the Nijenhuis tensor
 
         N^k_{ij} = J^l_i ∂_l J^k_j − J^l_j ∂_l J^k_i − J^k_l(∂_i J^l_j − ∂_j J^l_i)
 
-    The per-sample Nijenhuis norms are combined via a radially weighted mean.
-    The weight is near-constant in [0, r_eq + overlap_size] (the patch's natural
-    hemisphere plus a margin) and decays as a Gaussian beyond that, so the near-pole
-    region—where the other patch has better coverage—contributes less.
+    via the three-layer optimisation documented in this module's kernel
+    helpers (vectorised forward-mode AD over the MLP backbone, the
+    J = J₀ exp(−2 A) decomposition, and the antisymmetry-fused einsum
+    kernel).  The per-sample Nijenhuis norms are combined via a radially
+    weighted mean, near-constant in [0, r_eq + overlap_size] and decaying as
+    a Gaussian beyond.
     """
 
     def __init__(
@@ -142,43 +209,20 @@ class NijenhuisTensorLoss(nn.Module):
             loss: Scalar mean Nijenhuis norm.
             info: Dict with 'nij_norm' (mean).
         """
+        # AD path: A and ∂A/∂x via vmap+jacfwd over the MLP backbone, then
+        # promote analytically to J and ∂J/∂x via J = J₀ · exp(−2 A).
+        # `enable_grad` is required so this also works when called inside a
+        # `torch.no_grad` context (e.g. validation).
         with torch.enable_grad():
-            J = subnet(x)              # (batch, d, d)
-        batch, d, _ = J.shape
+            A, dA = _compute_A_and_dA(subnet, x)
+            J0    = subnet.J0
+            J     = torch.einsum('kp,bpj->bkj', J0, torch.matrix_exp(-2 * A))
+            dJ    = _compute_dJ_from_dA(A, dA, J0)
 
-        # dJ[b, k, j, l] = ∂_{x^l} J^k_j
-        # Computed via d forward-mode AD passes (one per input coordinate l).
-        # Forward-mode has cost O(d · forward_pass) vs O(d² · backward_pass)
-        # for the reverse-mode loop it replaces, giving ~d/2 speedup.
-        x_d = x.detach()
-        slices = []
-        for l in range(d):
-            tangent = x_d.new_zeros(batch, d)
-            tangent[:, l] = 1.0
-            with fwdAD.dual_level():
-                dJ_l = fwdAD.unpack_dual(subnet(fwdAD.make_dual(x_d, tangent))).tangent
-            if dJ_l is None:
-                dJ_l = x_d.new_zeros(batch, d, d)
-            slices.append(dJ_l)
-        dJ = torch.stack(slices, dim=-1)            # (batch, d, d, d)
-
-        # term1[b,k,i,j] = Σ_l J^l_i * ∂_l J^k_j = Σ_l J[b,l,i] * dJ[b,k,j,l]
-        term1 = torch.einsum('bli,bkjl->bkij', J, dJ)
-
-        # term2[b,k,i,j] = −Σ_l J^l_j * ∂_l J^k_i = −Σ_l J[b,l,j] * dJ[b,k,i,l]
-        term2 = -torch.einsum('blj,bkil->bkij', J, dJ)
-
-        # anti[b,l,i,j] = ∂_i J^l_j − ∂_j J^l_i = dJ[b,l,j,i] − dJ[b,l,i,j]
-        #   dJ.permute(0,1,3,2)[b,l,i,j] = dJ[b,l,j,i]   ← swaps axes 2↔3
-        anti = dJ.permute(0, 1, 3, 2) - dJ
-
-        # term3[b,k,i,j] = Σ_l J^k_l * (∂_i J^l_j − ∂_j J^l_i) = Σ_l J[b,k,l] * anti[b,l,i,j]
-        term3 = torch.einsum('bkl,blij->bkij', J, anti)
-
-        N = term1 + term2 - term3           # (batch, k, i, j)
+        N = _nij_tensor(J, dJ)
 
         if self.use_round_metric_contraction:
-            g, g_inv = EvenSphere.round_metric_ball_coords(x_d)
+            g, g_inv = EvenSphere.round_metric_ball_coords(x.detach())
             nij_sq = _metric_norm_sq_12tensor(N, g, g_inv)
         else:
             nij_sq = (N ** 2).sum(dim=(1, 2, 3))

@@ -2,6 +2,13 @@
 Main training script for learning almost complex structures.
 """
 
+import os
+
+# torch.matrix_exp has no MPS implementation; enable the CPU fallback for
+# Apple-Silicon users who pick fp32 (and therefore default to MPS).  Must be
+# set before torch is imported.
+os.environ.setdefault('PYTORCH_ENABLE_MPS_FALLBACK', '1')
+
 import torch
 import torch.optim as optim
 import yaml
@@ -105,13 +112,37 @@ class Trainer:
             self.device = torch.device('cpu')
         print(f"Using device: {self.device}")
 
-        # Setup dtype
-        dtype_str = self.config['training'].get('dtype', 'float64')
-        self.dtype = torch.float64 if dtype_str == 'float64' else torch.float32
+        # Setup floating-point precision.  The canonical config field is
+        # `training.precision` (integer 32 or 64).  The legacy field
+        # `training.dtype` ("float32"/"float64") is honoured as a fallback
+        # so older configs continue to load.  Default: 32.
+        train_cfg = self.config['training']
+        if 'precision' in train_cfg:
+            precision = int(train_cfg['precision'])
+        elif 'dtype' in train_cfg:
+            precision = 64 if str(train_cfg['dtype']).endswith('64') else 32
+        else:
+            precision = 32
+        if precision not in (32, 64):
+            raise ValueError(
+                f"`training.precision` must be 32 or 64, got {precision!r}"
+            )
+        self.dtype = torch.float64 if precision == 64 else torch.float32
         if self.dtype == torch.float64 and self.device.type == 'mps':
             print("Warning: MPS does not support float64; falling back to CPU.")
             self.device = torch.device('cpu')
-        print(f"Using dtype : {dtype_str}")
+        # `torch.matrix_exp` has no MPS kernel.  Running it on MPS forces a
+        # CPU round-trip on every call, which dominates the training step and
+        # erases (or even reverses) the fp32 matmul speedup.  Fall back to
+        # CPU unless the user opts into the Taylor-series matrix_exp
+        # (`network.matrix_exp_terms` set to a positive integer), which is
+        # pure matmul and runs natively on MPS.
+        matrix_exp_terms = self.config.get('network', {}).get('matrix_exp_terms', None)
+        if self.device.type == 'mps' and (matrix_exp_terms is None or int(matrix_exp_terms) <= 0):
+            print("Note: torch.matrix_exp has no MPS kernel; falling back to "
+                  "CPU to avoid per-step MPS↔CPU round-trips.")
+            self.device = torch.device('cpu')
+        print(f"Using precision: float{precision}")
         
         # Setup geometry and model
         geo = self.config['geometry']
