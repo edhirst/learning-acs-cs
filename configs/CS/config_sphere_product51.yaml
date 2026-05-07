@@ -33,9 +33,10 @@ training:
   density_power: 1.0
 
 pretraining:
-  # Identity pretraining drives A → 0 (so J ≡ ±J_0, Nijenhuis loss = 0 at start).
-  # Overlap pretraining drives J → F⁻¹ J_0 F (so overlap loss ≈ 0 at start).
-  # These are mutually exclusive: at most one of the two may be set to true.
+  # identity_pretraining: drives A → 0 (so J ≡ ±J_0, Nijenhuis loss = 0 at start).
+  # overlap_pretraining:  drives J → F⁻¹ J_0 F (so overlap loss ≈ 0 at start).
+  # hopf_pretraining:     drives J → (DF)⁻¹ J_0 DF (analytic Hopf CS; only for dim_beta=1).
+  # These are mutually exclusive: at most one may be set to true.
   identity_pretraining: true
   pretrain_epochs: 50
   pretrain_points: 2000
@@ -43,6 +44,7 @@ pretraining:
   overlap_pretrain_epochs: 200
   overlap_pretrain_points: 2000
   # overlap_pretrain_lr: 1.0e-3   # optional; defaults to training.learning_rate
+  hopf_pretraining: false
 
 loss_weights:
   nijenhuis: 1.0
@@ -56,6 +58,7 @@ logging:
   checkpoint_interval: 500
   save_dir: "outputs"
   test_size: 10000
+  compute_block_diagonality: true  # compute off-diagonal ratio ρ = (mean|B|+mean|C|)/(mean|A|+mean|D|) for J block structure
 
 seed: 42
 

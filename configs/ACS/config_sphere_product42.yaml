@@ -56,6 +56,7 @@ logging:
   checkpoint_interval: 500
   save_dir: "outputs"
   test_size: 10000
+  compute_block_diagonality: true  # compute off-diagonal ratio ρ = (mean|B|+mean|C|)/(mean|A|+mean|D|) for J block structure
 
 seed: 42
 

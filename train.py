@@ -26,6 +26,7 @@ print = functools.partial(print, flush=True)
 
 from src.geometry import EvenSphere
 from src.geometry.sphere_product import SphereProduct
+from src.geometry.hopf_complex_structure import hopf_complex_structure
 from src.models import TwoPatchAlmostComplexNet, FourPatchProductNet
 from src.loss import TotalLoss
 from src.loss.product_loss import ProductTotalLoss
@@ -334,6 +335,11 @@ class Trainer:
             x_alpha, x_beta = x
             J_dict, x_alpha, x_beta, x_a2, x_b2 = self.model(x_alpha, x_beta)
             loss, info = self.loss_fn(J_dict, x_alpha, x_beta, x_a2, x_b2, self.model)
+            if self.config['logging'].get('compute_block_diagonality', False):
+                with torch.no_grad():
+                    info['block_diagonality'] = self._block_diagonality(
+                        J_dict, self.config['geometry']['real_dimension_alpha']
+                    )
         else:
             J1, J2, x1, x2 = self.model(x)
             loss, info = self.loss_fn(J1, J2, x1, x2, self.model)
@@ -365,6 +371,10 @@ class Trainer:
                 J_dict, x_alpha, x_beta, x_a2, x_b2 = self.model(x_alpha, x_beta)
                 _, info = self.loss_fn(J_dict, x_alpha, x_beta, x_a2, x_b2, self.model,
                                        hard_cutoff=True)
+                if self.config['logging'].get('compute_block_diagonality', False):
+                    info['block_diagonality'] = self._block_diagonality(
+                        J_dict, self.config['geometry']['real_dimension_alpha']
+                    )
             else:
                 J1, J2, x1, x2 = self.model(x)
                 _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True)
@@ -665,6 +675,104 @@ class Trainer:
 
         print("Overlap pretraining complete.\n")
 
+    def pretrain_hopf(self):
+        """Warm-start each patch subnet toward the analytic Hopf complex structure.
+
+        The Hopf manifold construction gives an integrable complex structure on
+        S^{dim_alpha} × S¹ (dim_alpha odd).  Each patch subnet is supervised
+        toward J_hopf = (DF)⁻¹ J₀ DF (computed analytically in ball coords),
+        driving both the Nijenhuis loss and the overlap loss toward zero.
+
+        Loss: mean Frobenius ‖J_net(x) − J_hopf(x)‖²_F per sample.
+        Sampling covers the full ball (not restricted to the equatorial band).
+        Samples with ‖x_beta‖ ≥ 0.9 are filtered out to avoid near-pole
+        singularities in the S¹ factor.
+
+        Runs only when config['pretraining']['hopf_pretraining'] is True.
+        Only valid for sphere_product with dim_beta = 1.
+        """
+        pt_cfg = self.config.get('pretraining', {})
+        if not pt_cfg.get('hopf_pretraining', False):
+            return
+
+        if self.manifold_type != 'sphere_product':
+            print(
+                "ERROR: hopf_pretraining requires manifold_type = 'sphere_product'; "
+                f"got '{self.manifold_type}'."
+            )
+            sys.exit(1)
+
+        dim_beta = self.config['geometry']['real_dimension_beta']
+        if dim_beta != 1:
+            print(
+                f"ERROR: hopf_pretraining requires real_dimension_beta = 1 "
+                f"(S¹ factor); got {dim_beta}."
+            )
+            sys.exit(1)
+
+        pretrain_epochs = pt_cfg['pretrain_epochs']
+        pretrain_points = pt_cfg['pretrain_points']
+        pt_lr = float(pt_cfg.get('hopf_pretrain_lr',
+                                  self.config['training']['learning_rate']))
+        dim_alpha = self.config['geometry']['real_dimension_alpha']
+
+        subnet_list = [
+            ((ia, ib), self.model.patches[f'patch_{ia}{ib}'])
+            for ia, ib in [(0, 0), (0, 1), (1, 0), (1, 1)]
+        ]
+
+        print(f"\nHopf pretraining: J → (DF)⁻¹ J₀ DF  "
+              f"({pretrain_epochs} epochs, {pretrain_points} points/step, 4 patches)")
+
+        for (ia, ib), subnet in subnet_list:
+            opt = torch.optim.Adam(subnet.parameters(), lr=pt_lr)
+            for epoch in range(pretrain_epochs):
+                subnet.train()
+                opt.zero_grad()
+
+                # Sample full-domain points.
+                xa, xb = self.sphere_product.sample_points(pretrain_points)
+                xa = xa.to(device=self.device, dtype=self.dtype)
+                xb = xb.to(device=self.device, dtype=self.dtype)
+
+                # Filter out samples near sphere poles where DF is ill-conditioned.
+                # For pole=1 charts, patch_change_coords maps |x|≈0 → |φ(x)|≈1 (singular).
+                xa2 = EvenSphere.patch_change_coords(xa)
+                xb2 = EvenSphere.patch_change_coords(xb)
+                mask = (xa.norm(dim=1) < 0.85) & (xb.norm(dim=1) < 0.85) \
+                     & (xa2.norm(dim=1) < 0.85) & (xb2.norm(dim=1) < 0.85)
+                if mask.sum() < 2:
+                    continue
+                xa, xb = xa[mask], xb[mask]
+
+                # Transform to this patch's coordinates.
+                xa_p = xa if ia == 0 else EvenSphere.patch_change_coords(xa)
+                xb_p = xb if ib == 0 else EvenSphere.patch_change_coords(xb)
+
+                # Analytic Hopf target for this patch.
+                with torch.no_grad():
+                    J_target = hopf_complex_structure(xa_p, xb_p, ia, ib)
+
+                # Forward through this subnet.
+                x_pt  = torch.cat([xa_p, xb_p], dim=1)
+                J_net = subnet(x_pt)
+
+                # Mean squared Frobenius error per sample.
+                loss = ((J_net - J_target) ** 2).sum(dim=(1, 2)).mean()
+                loss.backward()
+                if self.config['advanced']['gradient_clipping'] > 0:
+                    torch.nn.utils.clip_grad_norm_(
+                        subnet.parameters(),
+                        self.config['advanced']['gradient_clipping'],
+                    )
+                opt.step()
+
+                if epoch % max(1, pretrain_epochs // 10) == 0:
+                    print(f"  [patch_{ia}{ib}] hopf pretrain epoch {epoch:5d} | "
+                          f"‖J−J_hopf‖²_F: {loss.item():.4e}")
+
+        print("Hopf pretraining complete.\n")
+
     def train(self):
         """Main training loop."""
         # Identity and overlap pretraining are mutually exclusive alternatives:
@@ -673,16 +781,24 @@ class Trainer:
         # They pull A in different directions; composing them silently would
         # undo the first or give unintended intermediate states.
         pt_cfg = self.config.get('pretraining', {})
-        if pt_cfg.get('identity_pretraining', False) and pt_cfg.get('overlap_pretraining', False):
-            raise ValueError(
-                "Both 'identity_pretraining' and 'overlap_pretraining' are set to true "
-                "in config['pretraining']. These are mutually exclusive alternatives: "
-                "identity pretraining drives A → 0 (J ≡ ±J_0), whereas overlap "
-                "pretraining drives J → F⁻¹ J_0 F. Enable at most one."
+        active = [
+            name for name in ('identity_pretraining', 'overlap_pretraining', 'hopf_pretraining')
+            if pt_cfg.get(name, False)
+        ]
+        if len(active) > 1:
+            print(
+                f"ERROR: At most one pretraining mode may be enabled at a time; "
+                f"got {active}. "
+                "identity_pretraining drives A → 0 (J ≡ ±J_0), "
+                "overlap_pretraining drives J → F⁻¹ J_0 F, "
+                "hopf_pretraining drives J → (DF)⁻¹ J_0 DF (Hopf CS). "
+                "Enable exactly one."
             )
+            sys.exit(1)
 
         self.pretrain()
         self.pretrain_overlap()
+        self.pretrain_hopf()
 
         print("\nStarting training...")
         print(f"Epochs: {self.config['training']['epochs']}")
@@ -694,6 +810,8 @@ class Trainer:
         checkpoint_interval = self.config['logging']['checkpoint_interval']
         if self.manifold_type == 'sphere_product':
             history_keys = ['total_loss', 'nij_00', 'nij_01', 'nij_10', 'nij_11', 'overlap_norm']
+            if self.config['logging'].get('compute_block_diagonality', False):
+                history_keys.append('block_diagonality')
         else:
             history_keys = ['total_loss', 'nij1', 'nij2', 'overlap_norm']
         history: dict[str, list] = {'epoch': [], **{k: [] for k in history_keys}}
@@ -784,6 +902,29 @@ class Trainer:
 
         self._plot_loss_curves(history)
     
+    @staticmethod
+    def _block_diagonality(J_dict: dict, dim_alpha: int) -> float:
+        """Compute off-diagonal-ness measure for sphere product J.
+
+        For J = [[A, B], [C, D]] (n = dim_alpha, m = total_dim - n):
+
+            ρ = (mean|B| + mean|C|) / (mean|A| + mean|D|)
+
+        Averaged across all patches in J_dict.  Returns 0.0 when the
+        denominator is zero (e.g. J = 0 everywhere).
+        """
+        n = dim_alpha
+        ratios: list[float] = []
+        for J in J_dict.values():
+            A = J[:, :n, :n]
+            B = J[:, :n, n:]
+            C = J[:, n:, :n]
+            D = J[:, n:, n:]
+            num = B.abs().mean() + C.abs().mean()
+            den = A.abs().mean() + D.abs().mean()
+            ratios.append((num / den).item() if den.item() > 0.0 else 0.0)
+        return float(sum(ratios) / len(ratios)) if ratios else 0.0
+
     def _evaluate_test(self):
         """Evaluate the model on a held-out test set and store results in loss_data."""
         test_size = self.config['logging'].get('test_size', 10000)
@@ -796,6 +937,10 @@ class Trainer:
                 J_dict, xa, xb, xa2, xb2 = self.model(xa, xb)
                 _, info = self.loss_fn(J_dict, xa, xb, xa2, xb2, self.model,
                                        hard_cutoff=True, report_all=True)
+                if self.config['logging'].get('compute_block_diagonality', False):
+                    info['block_diagonality'] = self._block_diagonality(
+                        J_dict, self.config['geometry']['real_dimension_alpha']
+                    )
             else:
                 x = self.sphere.sample_points_patch1(test_size).to(device=self.device, dtype=self.dtype)
                 J1, J2, x1, x2 = self.model(x)
@@ -816,6 +961,8 @@ class Trainer:
             print(f"  Nij1       : {result['nij1']:.6e}")
             print(f"  Nij2       : {result['nij2']:.6e}")
         print(f"  Overlap    : {result['overlap_norm']:.6e}")
+        if 'block_diagonality' in result:
+            print(f"  Block-diag ρ: {result['block_diagonality']:.6e}")
 
     def _log_metrics(self, info: dict, prefix: str):
         """Append metrics to loss_data."""
@@ -892,7 +1039,25 @@ class Trainer:
         plt.savefig(out, dpi=150)
         plt.close()
         print(f"Loss curves saved to: {out}")
-    
+
+        if (
+            self.manifold_type == 'sphere_product'
+            and self.config['logging'].get('compute_block_diagonality', False)
+            and 'block_diagonality' in history
+        ):
+            fig2, ax2 = plt.subplots(figsize=(8, 4))
+            ax2.semilogy(plot_epochs, history['block_diagonality'],
+                         label='Off-diagonal ratio \u03c1', color='C4')
+            ax2.set_xlabel('Epoch')
+            ax2.set_ylabel('\u03c1')
+            ax2.legend(loc='upper right')
+            ax2.grid(True, which='both', alpha=0.3)
+            plt.tight_layout()
+            out2 = self.output_dir / 'block_diagonality.png'
+            plt.savefig(out2, dpi=150)
+            plt.close()
+            print(f"Block diagonality plot saved to: {out2}")
+
     def load_checkpoint(self, path: str):
         """Load model from checkpoint."""
         checkpoint = torch.load(path, map_location=self.device)
