@@ -200,12 +200,12 @@ class ProductNijenhuisLoss(nn.Module):
             info: {'nij_norm': float}
         """
         # Same DECOMP path as in sphere_loss.NijenhuisTensorLoss: AD over the
-        # MLP backbone via vmap+jacfwd, J = J₀ exp(−2 A), per-direction
-        # matrix_exp JVP for ∂J/∂x, and the antisymmetry-fused 2-einsum kernel.
+        # MLP backbone via vmap+jacfwd, per-direction JVP of J = exp(A) J₀ exp(−A)
+        # for ∂J/∂x, and the antisymmetry-fused 2-einsum kernel.
         with torch.enable_grad():
             A, dA = _compute_A_and_dA(subnet, x)
             J0    = subnet.J0
-            J     = torch.einsum('kp,bpj->bkj', J0, torch.matrix_exp(-2 * A))
+            J     = torch.matrix_exp(A) @ J0 @ torch.matrix_exp(-A)
             dJ    = _compute_dJ_from_dA(A, dA, J0)
 
         N = _nij_tensor(J, dJ)

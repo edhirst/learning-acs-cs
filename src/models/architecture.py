@@ -233,12 +233,10 @@ class PatchSubNet(nn.Module):
         self.manifold_dim = manifold_dim
         self.complex_dim  = manifold_dim // 2
         self.matrix_exp_terms = matrix_exp_terms
-        n = manifold_dim // 2
-        # Effective DOFs: anti-commuting subspace {A : A J₀ + J₀ A = 0} has
-        # real dimension 2n² (half of gl(2n,R)).  The complementary commuting
-        # component is a gauge freedom: exp(A) J₀ exp(−A) is unchanged when A
-        # is shifted by any matrix that commutes with J₀.
-        self.num_dof = 2 * n * n
+        # Network outputs all d² components of A ∈ gl(d,ℝ) directly.
+        # J = exp(A) J₀ exp(−A) satisfies J² = −I for any A; no subspace
+        # restriction is required.
+        self.num_dof = manifold_dim * manifold_dim
 
         # Canonical complex structure: use the supplied matrix when given,
         # otherwise build the standard block-diagonal J₀ (with sign).
@@ -247,12 +245,6 @@ class PatchSubNet(nn.Module):
         else:
             J0 = j0_sign * self._build_J0(manifold_dim)
         self.register_buffer('J0', J0)
-
-        # Orthonormal basis for the anti-commuting subspace, shape (num_dof, dim²).
-        # Each row is a flattened basis element; used to embed network outputs
-        # into the gauge-fixed subspace of gl(2n,R).
-        basis = self._build_anticommuting_basis(manifold_dim, J0)
-        self.register_buffer('basis', basis)  # (num_dof, dim²)
 
         # Input encoding
         if use_fourier_features:
@@ -286,37 +278,6 @@ class PatchSubNet(nn.Module):
             self.network = nn.Sequential(*layers)
 
         self._initialize_weights(initialization)
-
-    @staticmethod
-    def _build_anticommuting_basis(dim: int, J0: torch.Tensor) -> torch.Tensor:
-        """
-        Orthonormal basis for {A ∈ gl(2n,ℝ) : A J₀ + J₀ A = 0}.
-
-        Builds the anti-commutator map M on gl(2n,ℝ) and extracts its null
-        space via SVD.  The result has shape (2n², (2n)²); each row is a
-        flattened basis element.
-
-        Args:
-            dim: Even real dimension 2n.
-            J0:  Canonical complex structure, shape (dim, dim).
-
-        Returns:
-            basis of shape (2n², dim²), dtype float32.
-        """
-        J0_np = J0.numpy()
-        d = dim
-        # Build M column-by-column: column i*d+j is the flattened image of the
-        # basis matrix e_{ij} under A ↦ A J₀ + J₀ A.
-        M = np.zeros((d * d, d * d), dtype=np.float64)
-        for i in range(d):
-            for j in range(d):
-                E = np.zeros((d, d), dtype=np.float64)
-                E[i, j] = 1.0
-                M[:, i * d + j] = (E @ J0_np + J0_np @ E).flatten()
-        # Right null space of M = anti-commuting subspace.
-        _, s, Vt = np.linalg.svd(M, full_matrices=True)
-        null_basis = Vt[s < 1e-8]     # (2n², dim²)
-        return torch.tensor(null_basis, dtype=torch.float32)
 
     @staticmethod
     def _build_J0(dim: int) -> torch.Tensor:
@@ -364,10 +325,8 @@ class PatchSubNet(nn.Module):
         """
         features = self.fourier(x) if self.fourier is not None else x
         params = self.network(features)                      # (batch, num_dof)
-        # Embed into the anti-commuting subspace of gl(2n,R).
-        A_flat = params @ self.basis                         # (batch, dim²)
         batch = params.shape[0]
-        A = A_flat.reshape(batch, self.manifold_dim, self.manifold_dim)
+        A = params.reshape(batch, self.manifold_dim, self.manifold_dim)
 
         expA  = _matrix_exp(A,  self.matrix_exp_terms)
         expnA = _matrix_exp(-A, self.matrix_exp_terms)
@@ -375,9 +334,7 @@ class PatchSubNet(nn.Module):
         return expA @ J0 @ expnA
 
     def forward_raw(self, x: torch.Tensor) -> torch.Tensor:
-        """Return A(x): the anti-commuting matrix before the Cayley-like transform.
-
-        A lies exactly in {A : A J₀ + J₀ A = 0} by construction.
+        """Return A(x) ∈ gl(d,ℝ): the generator matrix before the exp transform.
 
         Args:
             x: Ball-patch coordinates, shape (batch, manifold_dim).
@@ -387,8 +344,7 @@ class PatchSubNet(nn.Module):
         """
         features = self.fourier(x) if self.fourier is not None else x
         params = self.network(features)                      # (batch, num_dof)
-        A_flat = params @ self.basis                         # (batch, dim²)
-        return A_flat.reshape(params.shape[0], self.manifold_dim, self.manifold_dim)
+        return params.reshape(params.shape[0], self.manifold_dim, self.manifold_dim)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

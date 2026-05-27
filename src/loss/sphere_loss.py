@@ -91,17 +91,14 @@ def _metric_norm_sq_12tensor(
 # Optimised Nijenhuis kernel
 # ─────────────────────────────────────────────────────────────────────────────
 #
-# The implementation below exploits the architecture-level identity
-#     A(x) ∈ 𝒜 = {A : A J₀ + J₀ A = 0}   ⇒   J(x) = J₀ · exp(−2 A(x))
-# (equivalent to exp(A) J₀ exp(−A) when A anti-commutes with J₀), and computes
-# ∂J/∂x via three layered optimisations:
+# ∂J/∂x is computed via three layered optimisations:
 #
 #   (1) Vectorised forward-mode AD — vmap+jacfwd replaces a Python `for l in
 #       range(d):` loop over tangent directions, batching them into one pass.
 #   (2) AD over the MLP backbone only — `subnet.forward_raw` produces A
 #       without applying the matrix_exp closure, so matrix_exp is *not* inside
 #       the differentiated path.  ∂J/∂x is reconstructed analytically via a
-#       per-direction matrix_exp JVP at the same primal −2A.
+#       per-direction JVP of J(A) = exp(A) J₀ exp(−A).
 #   (3) Antisymmetry-fused einsum kernel — N^k_{ij} = −N^k_{ji} lets us
 #       assemble the tensor with 2 einsums + 2 transposes instead of 3 einsums.
 #
@@ -121,22 +118,18 @@ def _compute_A_and_dA(subnet: nn.Module, x: torch.Tensor):
 def _compute_dJ_from_dA(
     A: torch.Tensor, dA: torch.Tensor, J0: torch.Tensor,
 ) -> torch.Tensor:
-    """Promote ∂A/∂x to ∂J/∂x using J = J₀ · exp(−2 A) and the chain rule:
+    """Promote ∂A/∂x to ∂J/∂x using J = exp(A) J₀ exp(−A) and the chain rule.
 
-        ∂J/∂x_l = J₀ · D[exp(−2 A)] (−2 ∂A/∂x_l)
-
-    The Frechet derivative D[exp(−2 A)] is evaluated as a per-direction
-    `torch.func.jvp` on `torch.matrix_exp` at the same primal −2 A,
-    vmapped over the d directions."""
-    def _expm(A_):
-        return torch.matrix_exp(-2 * A_)
+    The Fréchet derivative D_A[exp(A) J₀ exp(−A)](∂A/∂x_l) is evaluated as
+    a per-direction `torch.func.jvp`, vmapped over the d tangent directions."""
+    def _J_of_A(A_):
+        return torch.matrix_exp(A_) @ J0 @ torch.matrix_exp(-A_)
     def _jvp_one_direction(A_, dA_l):
-        _, tangent = func.jvp(_expm, (A_,), (dA_l,))
+        _, tangent = func.jvp(_J_of_A, (A_,), (dA_l,))
         return tangent
-    dA_perm    = dA.movedim(-1, 0)                                              # (d, b, d, d)
-    dexpB_perm = func.vmap(_jvp_one_direction, in_dims=(None, 0))(A, dA_perm)   # (d, b, d, d)
-    dexpB      = dexpB_perm.movedim(0, -1)                                      # (b, d, d, d)
-    return torch.einsum('kp,bpjl->bkjl', J0, dexpB)
+    dA_perm = dA.movedim(-1, 0)                                              # (d, b, d, d)
+    dJ_perm = func.vmap(_jvp_one_direction, in_dims=(None, 0))(A, dA_perm)   # (d, b, d, d)
+    return dJ_perm.movedim(0, -1)                                             # (b, d, d, d)
 
 
 def _nij_tensor(J: torch.Tensor, dJ: torch.Tensor) -> torch.Tensor:
@@ -216,7 +209,7 @@ class NijenhuisTensorLoss(nn.Module):
         with torch.enable_grad():
             A, dA = _compute_A_and_dA(subnet, x)
             J0    = subnet.J0
-            J     = torch.einsum('kp,bpj->bkj', J0, torch.matrix_exp(-2 * A))
+            J     = torch.matrix_exp(A) @ J0 @ torch.matrix_exp(-A)
             dJ    = _compute_dJ_from_dA(A, dA, J0)
 
         N = _nij_tensor(J, dJ)
