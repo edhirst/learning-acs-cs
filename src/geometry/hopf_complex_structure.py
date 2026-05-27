@@ -156,6 +156,39 @@ def hopf_map_F(
 
 
 # ---------------------------------------------------------------------------
+# DF = Jacobian of F
+# ---------------------------------------------------------------------------
+
+def hopf_map_DF(
+    x_alpha: torch.Tensor,
+    x_beta:  torch.Tensor,
+    pole_alpha: int,
+    pole_beta:  int,
+) -> torch.Tensor:
+    """Jacobian DF of hopf_map_F w.r.t. (x_α, x_β) via forward-mode AD.
+
+    Args:
+        x_alpha:    Ball coords for S^{m_α}, shape (batch, m_α).
+        x_beta:     Ball coord  for S¹,      shape (batch, 1).
+        pole_alpha: Chart n ∈ {0, 1}.
+        pole_beta:  Chart m ∈ {0, 1}.
+
+    Returns:
+        DF: Shape (batch, d, d) where d = m_α + 1.
+            DF[b, i, j] = ∂F_i / ∂x_j at (x_alpha[b], x_beta[b]).
+    """
+    dim_alpha = x_alpha.shape[1]
+    x_combined = torch.cat([x_alpha, x_beta], dim=1)  # (batch, d)
+
+    def _F(x: torch.Tensor) -> torch.Tensor:
+        xa = x[:dim_alpha].unsqueeze(0)
+        xb = x[dim_alpha:].unsqueeze(0)
+        return hopf_map_F(xa, xb, pole_alpha, pole_beta)[0]
+
+    return torch.func.vmap(torch.func.jacfwd(_F))(x_combined)  # (batch, d, d)
+
+
+# ---------------------------------------------------------------------------
 # J = (DF)^{-1} J₀ DF
 # ---------------------------------------------------------------------------
 
