@@ -290,6 +290,93 @@ def print_metrics_table(metrics: dict):
     print("="*60 + "\n")
 
 
+def plot_chern_curvature(
+    x: torch.Tensor,
+    chern_density: torch.Tensor,
+    nij_norm: Optional[torch.Tensor] = None,
+    save_path: Optional[str] = None,
+    show: bool = True,
+) -> plt.Figure:
+    """
+    Plot Chern curvature density in ball coordinates.
+
+    For S² (2D ball coords), produces a 2D scatter plot of the Chern density
+    (1/2π) F_{01}(x) √det(g(x)) across the unit disc.  Optionally overlays
+    the Nijenhuis norm magnitude as point sizes.
+
+    For higher-dimensional manifolds, plots the marginal distribution over the
+    first two ball coordinates, coloured by Chern density.
+
+    Args:
+        x:             Ball coordinates, shape (N, d).
+        chern_density: Chern curvature density at each point, shape (N,).
+        nij_norm:      Optional Nijenhuis norm at each point, shape (N,).
+                       When given, used as scatter point sizes.
+        save_path:     Optional path to save figure.
+        show:          Whether to call plt.show().
+
+    Returns:
+        matplotlib Figure.
+    """
+    x_np = x.detach().cpu().numpy()
+    c_np = chern_density.detach().cpu().numpy()
+
+    ncols = 2 if nij_norm is not None else 1
+    fig, axes = plt.subplots(1, ncols, figsize=(6 * ncols, 5))
+    if ncols == 1:
+        axes = [axes]
+
+    # --- Chern density scatter ---
+    ax = axes[0]
+    vmax = np.abs(c_np).max() + 1e-12
+    sc = ax.scatter(
+        x_np[:, 0], x_np[:, 1],
+        c=c_np, cmap='RdBu_r', vmin=-vmax, vmax=vmax,
+        s=6, alpha=0.7,
+    )
+    plt.colorbar(sc, ax=ax, label='Chern density')
+    # Draw unit circle boundary
+    theta = np.linspace(0, 2 * np.pi, 200)
+    ax.plot(np.cos(theta), np.sin(theta), 'k--', lw=0.8, alpha=0.4)
+    ax.set_xlim(-1.05, 1.05)
+    ax.set_ylim(-1.05, 1.05)
+    ax.set_aspect('equal')
+    ax.set_xlabel('x₀')
+    ax.set_ylabel('x₁')
+    ax.set_title('Chern curvature density (1/2π) F₀₁ √det(g)')
+    ax.grid(alpha=0.2)
+
+    if nij_norm is not None:
+        # --- Nijenhuis norm scatter ---
+        nij_np = nij_norm.detach().cpu().numpy()
+        ax2 = axes[1]
+        sc2 = ax2.scatter(
+            x_np[:, 0], x_np[:, 1],
+            c=nij_np, cmap='viridis',
+            s=6, alpha=0.7,
+        )
+        plt.colorbar(sc2, ax=ax2, label='Nijenhuis norm')
+        ax2.plot(np.cos(theta), np.sin(theta), 'k--', lw=0.8, alpha=0.4)
+        ax2.set_xlim(-1.05, 1.05)
+        ax2.set_ylim(-1.05, 1.05)
+        ax2.set_aspect('equal')
+        ax2.set_xlabel('x₀')
+        ax2.set_ylabel('x₁')
+        ax2.set_title('Nijenhuis norm ‖N_J‖')
+        ax2.grid(alpha=0.2)
+
+    fig.tight_layout()
+
+    if save_path is not None:
+        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(save_path, dpi=150, bbox_inches='tight')
+
+    if show:
+        plt.show()
+
+    return fig
+
+
 if __name__ == "__main__":
     # Example usage
     print("Testing visualization utilities...")

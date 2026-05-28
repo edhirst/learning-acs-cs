@@ -4,12 +4,14 @@ Utility script to evaluate a trained model checkpoint.
 
 import torch
 import argparse
+from typing import Optional
 
 from src.geometry import EvenSphere, RADIAL_MIDPOINT
 from src.geometry.sphere_product import SphereProduct
 from src.models import TwoPatchAlmostComplexNet, FourPatchProductNet
 from src.loss import TotalLoss
 from src.loss.product_loss import ProductTotalLoss
+from src.utils.chern import compute_chern_numbers
 
 
 def _factored_mixing(J_dict: dict, dim_alpha: int) -> float:
@@ -42,7 +44,11 @@ def _factored_mixing(J_dict: dict, dim_alpha: int) -> float:
     return sum(ratios) / len(ratios)
 
 
-def evaluate_model(checkpoint_path: str, num_samples: int = 1000):
+def evaluate_model(
+    checkpoint_path: str,
+    num_samples: int = 1000,
+    compute_chern: Optional[bool] = None,
+):
     """
     Evaluate a trained model and print loss metrics.
 
@@ -51,10 +57,15 @@ def evaluate_model(checkpoint_path: str, num_samples: int = 1000):
     Args:
         checkpoint_path: Path to model checkpoint.
         num_samples: Number of collocation points for evaluation.
+        compute_chern: Optional CLI override for Chern diagnostics.
     """
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     config = checkpoint['config']
+
+    if compute_chern is None:
+        # Default behavior is controlled by config hyperparameter.
+        compute_chern = bool(config.get('logging', {}).get('compute_chern_metrics', False))
 
     print(f"Checkpoint epoch : {checkpoint['epoch']}")
     print(f"Best training loss: {checkpoint['best_loss']:.6e}")
@@ -135,6 +146,17 @@ def evaluate_model(checkpoint_path: str, num_samples: int = 1000):
         print(f"  ACS mixing    : {mixing:.4f}  "
               f"(0 = block-diagonal / product structure, 1 = fully coupled)")
 
+        if compute_chern:
+            chern = compute_chern_numbers(
+                model, manifold_type='sphere_product',
+                dim_alpha=dim_alpha, dim_beta=dim_beta,
+                n_pts=5000, device=device,
+            )
+            print(f"  c₁(Mα)       : {chern['c1_alpha']:.4f}")
+            print(f"  c₁(Mβ)       : {chern['c1_beta']:.4f}")
+            print(f"  Chern α-std  : {chern['chern_density_alpha_std']:.4e}")
+            print(f"  Chern β-std  : {chern['chern_density_beta_std']:.4e}")
+
     else:
         sphere = EvenSphere(dimension=config['geometry']['real_dimension'], device=str(device))
 
@@ -177,6 +199,17 @@ def evaluate_model(checkpoint_path: str, num_samples: int = 1000):
         print(f"  Nij2       : {info['nij2']:.6e}")
         print(f"  Overlap    : {info['overlap_norm']:.6e}")
 
+        # Expected c₁: 2.0 for S² (d=2), 0.0 for S^{2n} (n≥2).
+        if compute_chern:
+            chern = compute_chern_numbers(
+                model, manifold_type='sphere',
+                manifold_dim=sphere.dim,
+                n_pts=5000, device=device,
+            )
+            expected_c1 = 2.0 if sphere.dim == 2 else 0.0
+            print(f"  c₁          : {chern['c1']:.4f}  (expected {expected_c1:.1f})")
+            print(f"  Chern std  : {chern['chern_density_std']:.4e}")
+
     return info
 
 
@@ -185,8 +218,24 @@ def main():
     parser.add_argument('checkpoint', type=str, help='Path to checkpoint')
     parser.add_argument('--samples', type=int, default=1000,
                         help='Number of samples for evaluation')
+    parser.add_argument('--chern', action='store_true',
+                        help='Force-enable Chern number diagnostics')
+    parser.add_argument('--no-chern', action='store_true',
+                        help='Disable Chern number diagnostics')
     args = parser.parse_args()
-    evaluate_model(args.checkpoint, args.samples)
+
+    if args.chern and args.no_chern:
+        parser.error('Use at most one of --chern or --no-chern.')
+
+    compute_chern_override: Optional[bool]
+    if args.chern:
+        compute_chern_override = True
+    elif args.no_chern:
+        compute_chern_override = False
+    else:
+        compute_chern_override = None
+
+    evaluate_model(args.checkpoint, args.samples, compute_chern=compute_chern_override)
 
 
 if __name__ == '__main__':

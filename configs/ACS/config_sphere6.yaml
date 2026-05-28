@@ -17,12 +17,12 @@ network:
 training:
   epochs: 10000
   batch_size: 1000
-  precision: 32  # 32 or 64
+  precision: 64  # 32 or 64
   learning_rate: 1.0e-3
   scheduler: "cosine"
   scheduler_params:
     T_max: 10000
-    eta_min: 1.0e-6
+    eta_min: 1.0e-5
   optimizer: "adamw"
   weight_decay: 1.0e-5
   run_validation: true
@@ -50,12 +50,13 @@ loss_weights:
   use_round_metric_contraction: false
 
 logging:
-  log_interval: 10
-  checkpoint_interval: 500
+  log_interval: 100
+  checkpoint_interval: 1000
   save_dir: "outputs"
   test_size: 10000
-
-seed: 42
+  compute_nijenhuis_rank: true  # track average numerical rank of N_J as a linear map Λ²TM → TM at validation; rank 0 ↔ integrable
+  compute_chern_metrics: true  # whether to compute Chern-number diagnostics during evaluation
+seed: 67
 
 advanced:
   gradient_clipping: 1.0

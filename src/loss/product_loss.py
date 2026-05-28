@@ -77,6 +77,7 @@ class ProductNijenhuisLoss(nn.Module):
         overlap_size_alpha: float = 0.1,
         overlap_size_beta:  float = 0.1,
         use_round_metric_contraction: bool = False,
+        compute_rank: bool = False,
     ):
         """
         Args:
@@ -85,6 +86,8 @@ class ProductNijenhuisLoss(nn.Module):
             overlap_size_beta:  Extra radial margin for S^{m_β} factor.
             use_round_metric_contraction: If True, compute ||N||² via the
                 round product metric instead of the flat Frobenius norm.
+            compute_rank: If True, include the average numerical rank of N per
+                patch in the returned info dict.
         """
         super().__init__()
         self.total_dim = total_dim
@@ -93,6 +96,7 @@ class ProductNijenhuisLoss(nn.Module):
         self.overlap_size_alpha = overlap_size_alpha
         self.overlap_size_beta  = overlap_size_beta
         self.use_round_metric_contraction = use_round_metric_contraction
+        self.compute_rank = compute_rank
         # Reuse the per-patch Nijenhuis computation from the single-sphere loss.
         self._nij = NijenhuisTensorLoss(total_dim, overlap_size=0.0)
 
@@ -161,10 +165,13 @@ class ProductNijenhuisLoss(nn.Module):
             # Re-evaluate with gradient tracking (required by NijenhuisTensorLoss)
             nij_l, nij_info = self._nij_with_weight(
                 x_combined, subnet, w, hard_cutoff, g, g_inv,
+                compute_rank=self.compute_rank,
             )
 
             key = f'nij_{ia}{ib}'
             info[key] = nij_l.item()
+            if 'nij_rank' in nij_info:
+                info[f'nij_rank_{ia}{ib}'] = nij_info['nij_rank']
             total = total + nij_l
 
         return total, info
@@ -177,6 +184,7 @@ class ProductNijenhuisLoss(nn.Module):
         hard_cutoff: bool,
         g:           Optional[torch.Tensor] = None,
         g_inv:       Optional[torch.Tensor] = None,
+        compute_rank: bool = False,
     ) -> Tuple[torch.Tensor, Dict]:
         """
         Compute Nijenhuis norm for a single patch with an externally supplied weight.
@@ -194,10 +202,12 @@ class ProductNijenhuisLoss(nn.Module):
                     g_{pi} g^{qj} g^{rk} N^p_{qr} N^i_{jk} is used instead of
                     the flat Frobenius norm.
             g_inv:  Optional inverse metric, shape (batch, d, d).
+            compute_rank: If True, include 'nij_rank' (mean numerical rank) in
+                the returned info dict.
 
         Returns:
             loss: Scalar weighted mean Nijenhuis norm.
-            info: {'nij_norm': float}
+            info: {'nij_norm': float} and optionally 'nij_rank'.
         """
         # Same DECOMP path as in sphere_loss.NijenhuisTensorLoss: AD over the
         # MLP backbone via vmap+jacfwd, per-direction JVP of J = exp(A) J₀ exp(−A)
@@ -216,7 +226,12 @@ class ProductNijenhuisLoss(nn.Module):
 
         w_sum = w.sum().clamp(min=1e-8)
         loss = (w * nij_norm).sum() / w_sum
-        return loss, {'nij_norm': loss.item()}
+        ret: Dict = {'nij_norm': loss.item()}
+        if compute_rank:
+            N_flat = N.detach().reshape(N.shape[0], N.shape[1], -1)  # (batch, d, d²)
+            ranks = torch.linalg.matrix_rank(N_flat)
+            ret['nij_rank'] = ranks.float().mean().item()
+        return loss, ret
 
 
 class ProductOverlapLoss(nn.Module):
@@ -502,6 +517,7 @@ class ProductTotalLoss(nn.Module):
         dim_alpha: int,
         dim_beta:  int,
         weights:   Dict,
+        compute_nijenhuis_rank: bool = False,
     ):
         """
         Args:
@@ -509,15 +525,19 @@ class ProductTotalLoss(nn.Module):
             dim_beta:  m_β.
             weights:   Dict with keys 'nijenhuis', 'overlap', 'overlap_size_alpha',
                        'overlap_size_beta', 'use_round_metric_contraction'.
+            compute_nijenhuis_rank: If True, include per-patch average numerical
+                rank of N_J in the info dict at validation and test time.
         """
         super().__init__()
         osa  = float(weights.get('overlap_size_alpha', 0.1))
         osb  = float(weights.get('overlap_size_beta',  0.1))
         urmc = bool(weights.get('use_round_metric_contraction', False))
 
+        self.compute_rank = compute_nijenhuis_rank
         self.nij_loss     = ProductNijenhuisLoss(
             dim_alpha + dim_beta, osa, osb,
             use_round_metric_contraction=urmc,
+            compute_rank=compute_nijenhuis_rank,
         )
         self.overlap_loss = ProductOverlapLoss(
             dim_alpha, dim_beta, osa, osb,
@@ -558,7 +578,7 @@ class ProductTotalLoss(nn.Module):
 
         zero = x_alpha.sum() * 0.0
 
-        if w_nij != 0.0 or report_all:
+        if w_nij != 0.0 or report_all or self.compute_rank:
             nij_loss, nij_info = self.nij_loss(
                 x_alpha, x_beta, x_a2, x_b2, model, hard_cutoff
             )

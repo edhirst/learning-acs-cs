@@ -181,6 +181,7 @@ class Trainer:
                 dim_alpha=dim_alpha,
                 dim_beta=dim_beta,
                 weights=self.config['loss_weights'],
+                compute_nijenhuis_rank=self.config['logging'].get('compute_nijenhuis_rank', False),
             ).to(self.device).to(self.dtype)
 
         else:
@@ -212,6 +213,7 @@ class Trainer:
             self.loss_fn = TotalLoss(
                 manifold_dim=self.sphere.dim,
                 weights=self.config['loss_weights'],
+                compute_nijenhuis_rank=self.config['logging'].get('compute_nijenhuis_rank', False),
             ).to(self.device).to(self.dtype)
 
         print(f"Model parameters: {sum(p.numel() for p in self.model.parameters())}")
@@ -847,12 +849,22 @@ class Trainer:
                         f"Nij{ia}{ib}: {val_info.get(f'nij_{ia}{ib}', 0.0):.4e}"
                         for ia, ib in [(0,0),(0,1),(1,0),(1,1)]
                     )
+                    rank_str = ''
+                    if self.config['logging'].get('compute_nijenhuis_rank', False):
+                        rank_vals = [val_info.get(f'nij_rank_{ia}{ib}', float('nan'))
+                                     for ia, ib in [(0,0),(0,1),(1,0),(1,1)]]
+                        rank_str = ' | Rank: ' + '/'.join(f'{r:.1f}' for r in rank_vals)
                     print(f"  Val     {epoch:5d} | Loss: {val_info['total_loss']:.4e} | "
-                          f"{nij_str} | Overlap: {val_info['overlap_norm']:.4e}")
+                          f"{nij_str} | Overlap: {val_info['overlap_norm']:.4e}{rank_str}")
                 else:
+                    rank_str = ''
+                    if self.config['logging'].get('compute_nijenhuis_rank', False):
+                        r1 = val_info.get('nij_rank1', float('nan'))
+                        r2 = val_info.get('nij_rank2', float('nan'))
+                        rank_str = f' | Rank: {r1:.1f}/{r2:.1f}'
                     print(f"  Val     {epoch:5d} | Loss: {val_info['total_loss']:.4e} | "
                           f"Nij1: {val_info['nij1']:.4e}  Nij2: {val_info['nij2']:.4e} | "
-                          f"Overlap: {val_info['overlap_norm']:.4e}")
+                          f"Overlap: {val_info['overlap_norm']:.4e}{rank_str}")
 
                 # Check for improvement
                 if val_info['total_loss'] < self.best_loss:
@@ -957,9 +969,18 @@ class Trainer:
         if self.manifold_type == 'sphere_product':
             for key in ['nij_00', 'nij_01', 'nij_10', 'nij_11']:
                 print(f"  {key}      : {result.get(key, 0.0):.6e}")
+            if self.config['logging'].get('compute_nijenhuis_rank', False):
+                for ia, ib in [(0,0),(0,1),(1,0),(1,1)]:
+                    key = f'nij_rank_{ia}{ib}'
+                    if key in result:
+                        print(f"  rank {ia}{ib}    : {result[key]:.2f}")
         else:
             print(f"  Nij1       : {result['nij1']:.6e}")
             print(f"  Nij2       : {result['nij2']:.6e}")
+            if self.config['logging'].get('compute_nijenhuis_rank', False):
+                if 'nij_rank1' in result:
+                    print(f"  Rank (p1)  : {result['nij_rank1']:.2f}")
+                    print(f"  Rank (p2)  : {result['nij_rank2']:.2f}")
         print(f"  Overlap    : {result['overlap_norm']:.6e}")
         if 'block_diagonality' in result:
             print(f"  Block-diag ρ: {result['block_diagonality']:.6e}")
@@ -1057,6 +1078,30 @@ class Trainer:
             plt.savefig(out2, dpi=150)
             plt.close()
             print(f"Block diagonality plot saved to: {out2}")
+
+        if self.config['logging'].get('compute_nijenhuis_rank', False):
+            val_records = self.loss_data.get('val', [])
+            if self.manifold_type == 'sphere_product':
+                rank_keys   = [f'nij_rank_{ia}{ib}' for ia, ib in [(0,0),(0,1),(1,0),(1,1)]]
+                rank_labels = [f'Rank N ({ia}{ib})' for ia, ib in [(0,0),(0,1),(1,0),(1,1)]]
+            else:
+                rank_keys   = ['nij_rank1', 'nij_rank2']
+                rank_labels = ['Rank N (patch 1)', 'Rank N (patch 2)']
+            val_epochs = [r['epoch'] + 1 for r in val_records if rank_keys[0] in r]
+            if val_epochs:
+                fig3, ax3 = plt.subplots(figsize=(8, 4))
+                for key, label in zip(rank_keys, rank_labels):
+                    vals = [r[key] for r in val_records if key in r]
+                    ax3.plot(val_epochs[:len(vals)], vals, label=label)
+                ax3.set_xlabel('Epoch')
+                ax3.set_ylabel('Mean numerical rank of N_J')
+                ax3.legend(loc='upper right')
+                ax3.grid(True, alpha=0.3)
+                plt.tight_layout()
+                out3 = self.output_dir / 'nijenhuis_rank.png'
+                plt.savefig(out3, dpi=150)
+                plt.close()
+                print(f"Nijenhuis rank plot saved to: {out3}")
 
     def load_checkpoint(self, path: str):
         """Load model from checkpoint."""

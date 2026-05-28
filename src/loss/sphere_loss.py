@@ -168,6 +168,7 @@ class NijenhuisTensorLoss(nn.Module):
         manifold_dim: int,
         overlap_size: float = 0.1,
         use_round_metric_contraction: bool = False,
+        compute_rank: bool = False,
     ):
         """
         Args:
@@ -177,11 +178,14 @@ class NijenhuisTensorLoss(nn.Module):
             use_round_metric_contraction: If True, compute ||N||² via the round
                 metric g_{pi} g^{qj} g^{rk} N^p_{qr} N^i_{jk} instead of the
                 flat Frobenius norm.
+            compute_rank: If True, compute the average numerical rank of N viewed
+                as a linear map (d × d²) and add it to the returned info dict.
         """
         super().__init__()
         self.manifold_dim = manifold_dim
         self.overlap_size = overlap_size
         self.use_round_metric_contraction = use_round_metric_contraction
+        self.compute_rank = compute_rank
 
     def forward(
         self,
@@ -234,7 +238,12 @@ class NijenhuisTensorLoss(nn.Module):
 
         w_sum = w.sum().clamp(min=1e-8)
         loss = (w * nij_norm).sum() / w_sum
-        return loss, {'nij_norm': loss.item()}
+        info = {'nij_norm': loss.item()}
+        if self.compute_rank:
+            N_flat = N.detach().reshape(N.shape[0], N.shape[1], -1)  # (batch, d, d²)
+            ranks = torch.linalg.matrix_rank(N_flat)
+            info['nij_rank'] = ranks.float().mean().item()
+        return loss, info
 
 
 class OverlapLoss(nn.Module):
@@ -376,19 +385,23 @@ class TotalLoss(nn.Module):
     chart coordinates; no smoothness penalty is required.
     """
 
-    def __init__(self, manifold_dim: int, weights: Dict[str, float]):
+    def __init__(self, manifold_dim: int, weights: Dict[str, float], compute_nijenhuis_rank: bool = False):
         """
         Args:
             manifold_dim: Real dimension of the manifold.
             weights: Loss weights; expected keys: 'nijenhuis', 'overlap',
                 'overlap_size', 'use_round_metric_contraction'.
+            compute_nijenhuis_rank: If True, include the average numerical rank
+                of N_J in the info dict at validation and test time.
         """
         super().__init__()
         overlap_size = float(weights.get('overlap_size', 0.1))
         urmc = bool(weights.get('use_round_metric_contraction', False))
+        self.compute_rank = compute_nijenhuis_rank
         self.nij_loss     = NijenhuisTensorLoss(
             manifold_dim, overlap_size=overlap_size,
             use_round_metric_contraction=urmc,
+            compute_rank=compute_nijenhuis_rank,
         )
         self.overlap_loss = OverlapLoss(
             overlap_size=overlap_size,
@@ -429,7 +442,7 @@ class TotalLoss(nn.Module):
 
         zero = J1.sum() * 0.0
 
-        if w_nij != 0.0 or report_all:
+        if w_nij != 0.0 or report_all or self.compute_rank:
             nij1, info1 = self.nij_loss(x1, model.patch1, hard_cutoff=hard_cutoff)
             nij2, info2 = self.nij_loss(x2, model.patch2, hard_cutoff=hard_cutoff)
         else:
@@ -450,6 +463,9 @@ class TotalLoss(nn.Module):
             'nij2':         nij2.item(),
             'overlap_norm': info_ov['overlap_norm'],
         }
+        if 'nij_rank' in info1:
+            info['nij_rank1'] = info1['nij_rank']
+            info['nij_rank2'] = info2['nij_rank']
 
         return total, info
 

@@ -54,7 +54,8 @@ logging:
   checkpoint_interval: 500
   save_dir: "outputs"
   test_size: 10000
-
+  compute_nijenhuis_rank: false  # track average numerical rank of N_J as a linear map Λ²TM → TM at validation; rank 0 ↔ integrable
+  compute_chern_metrics: false  # whether to compute Chern-number diagnostics during evaluation
 seed: 42
 
 advanced:
