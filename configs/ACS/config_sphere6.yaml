@@ -55,7 +55,6 @@ logging:
   save_dir: "outputs"
   test_size: 10000
   compute_nijenhuis_rank: true  # track average numerical rank of N_J as a linear map Λ²TM → TM at validation; rank 0 ↔ integrable
-  compute_chern_metrics: true  # whether to compute Chern-number diagnostics during evaluation
 seed: 67
 
 advanced:

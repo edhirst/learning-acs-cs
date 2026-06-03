@@ -30,6 +30,7 @@ from src.geometry.hopf_complex_structure import hopf_complex_structure
 from src.models import TwoPatchAlmostComplexNet, FourPatchProductNet
 from src.loss import TotalLoss
 from src.loss.product_loss import ProductTotalLoss
+from src.utils.chern import compute_first_chern_number
 
 
 class FractionalCosineAnnealingWarmRestarts(torch.optim.lr_scheduler.LRScheduler):
@@ -958,9 +959,27 @@ class Trainer:
                 J1, J2, x1, x2 = self.model(x)
                 _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True, report_all=True)
 
+        if self.manifold_type == 'sphere_product':
+            c1 = compute_first_chern_number(
+                self.model,
+                manifold_type='sphere_product',
+                dim_alpha=self.config['geometry']['real_dimension_alpha'],
+                dim_beta=self.config['geometry']['real_dimension_beta'],
+                x_alpha=xa,
+                x_beta=xb,
+            )
+        else:
+            c1 = compute_first_chern_number(
+                self.model,
+                manifold_type='sphere',
+                manifold_dim=self.sphere.dim,
+                x=x,
+            )
+
         self.model.train()
 
         result = {k: float(v) for k, v in info.items()}
+        result['c1'] = float(c1)
         result['test_size'] = test_size
         self.loss_data['test'] = result
 
@@ -984,6 +1003,7 @@ class Trainer:
         print(f"  Overlap    : {result['overlap_norm']:.6e}")
         if 'block_diagonality' in result:
             print(f"  Block-diag ρ: {result['block_diagonality']:.6e}")
+        print(f"  c₁          : {result['c1']:.6f}")
 
     def _log_metrics(self, info: dict, prefix: str):
         """Append metrics to loss_data."""

@@ -4,14 +4,13 @@ Utility script to evaluate a trained model checkpoint.
 
 import torch
 import argparse
-from typing import Optional
 
 from src.geometry import EvenSphere, RADIAL_MIDPOINT
 from src.geometry.sphere_product import SphereProduct
 from src.models import TwoPatchAlmostComplexNet, FourPatchProductNet
 from src.loss import TotalLoss
 from src.loss.product_loss import ProductTotalLoss
-from src.utils.chern import compute_chern_numbers
+from src.utils.chern import compute_first_chern_number
 
 
 def _factored_mixing(J_dict: dict, dim_alpha: int) -> float:
@@ -47,7 +46,6 @@ def _factored_mixing(J_dict: dict, dim_alpha: int) -> float:
 def evaluate_model(
     checkpoint_path: str,
     num_samples: int = 1000,
-    compute_chern: Optional[bool] = None,
 ):
     """
     Evaluate a trained model and print loss metrics.
@@ -57,25 +55,25 @@ def evaluate_model(
     Args:
         checkpoint_path: Path to model checkpoint.
         num_samples: Number of collocation points for evaluation.
-        compute_chern: Optional CLI override for Chern diagnostics.
     """
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     config = checkpoint['config']
 
-    if compute_chern is None:
-        # Default behavior is controlled by config hyperparameter.
-        compute_chern = bool(config.get('logging', {}).get('compute_chern_metrics', False))
-
     print(f"Checkpoint epoch : {checkpoint['epoch']}")
     print(f"Best training loss: {checkpoint['best_loss']:.6e}")
 
-    dtype_str = config.get('training', {}).get('dtype', 'float32')
-    dtype = torch.float64 if dtype_str == 'float64' else torch.float32
+    train_cfg = config.get('training', {})
+    if 'precision' in train_cfg:
+        precision = int(train_cfg['precision'])
+    else:
+        dtype_str = train_cfg.get('dtype', 'float32')
+        precision = 64 if str(dtype_str).endswith('64') else 32
+    dtype = torch.float64 if precision == 64 else torch.float32
     if dtype == torch.float64 and device.type == 'mps':
         print("Warning: MPS does not support float64; falling back to CPU.")
         device = torch.device('cpu')
-    print(f"Using dtype : {dtype_str}")
+    print(f"Using precision : float{precision}")
 
     manifold_type = config['geometry'].get('manifold_type', 'sphere')
 
@@ -93,6 +91,7 @@ def evaluate_model(
             num_fourier_features=config['network']['num_fourier_features'],
             fourier_scale=config['network']['fourier_scale'],
             initialization=config['network']['initialization'],
+            matrix_exp_terms=config['network'].get('matrix_exp_terms'),
             use_residual_blocks=config['network'].get('use_residual_blocks', False),
         ).to(device).to(dtype)
         model.load_state_dict(checkpoint['model_state_dict'])
@@ -130,6 +129,15 @@ def evaluate_model(
         _, info = loss_fn(J_dict, xa, xb, xa2, xb2, model, hard_cutoff=True, report_all=True)
 
         mixing = _factored_mixing(J_dict, dim_alpha)
+        c1 = compute_first_chern_number(
+            model,
+            manifold_type='sphere_product',
+            dim_alpha=dim_alpha,
+            dim_beta=dim_beta,
+            x_alpha=xa,
+            x_beta=xb,
+        )
+        info['c1'] = c1
 
         d = dim_alpha + dim_beta
         print(f"\nEvaluation on {num_samples} samples (S^{dim_alpha} × S^{dim_beta}, d={d}):")
@@ -145,17 +153,7 @@ def evaluate_model(
         print(f"  Overlap       : {info['overlap_norm']:.6e}")
         print(f"  ACS mixing    : {mixing:.4f}  "
               f"(0 = block-diagonal / product structure, 1 = fully coupled)")
-
-        if compute_chern:
-            chern = compute_chern_numbers(
-                model, manifold_type='sphere_product',
-                dim_alpha=dim_alpha, dim_beta=dim_beta,
-                n_pts=5000, device=device,
-            )
-            print(f"  c₁(Mα)       : {chern['c1_alpha']:.4f}")
-            print(f"  c₁(Mβ)       : {chern['c1_beta']:.4f}")
-            print(f"  Chern α-std  : {chern['chern_density_alpha_std']:.4e}")
-            print(f"  Chern β-std  : {chern['chern_density_beta_std']:.4e}")
+        print(f"  c₁           : {c1:.6f}")
 
     else:
         sphere = EvenSphere(dimension=config['geometry']['real_dimension'], device=str(device))
@@ -168,6 +166,7 @@ def evaluate_model(
             num_fourier_features=config['network']['num_fourier_features'],
             fourier_scale=config['network']['fourier_scale'],
             initialization=config['network']['initialization'],
+            matrix_exp_terms=config['network'].get('matrix_exp_terms'),
             use_residual_blocks=config['network'].get('use_residual_blocks', False),
         ).to(device).to(dtype)
         model.load_state_dict(checkpoint['model_state_dict'])
@@ -189,6 +188,13 @@ def evaluate_model(
             n_ov   = int(((rho1 >= r_inner) & (rho1 <= r_cut)).sum())
 
         _, info = loss_fn(J1, J2, x1, x2, model, hard_cutoff=True, report_all=True)
+        c1 = compute_first_chern_number(
+            model,
+            manifold_type='sphere',
+            manifold_dim=sphere.dim,
+            x=x,
+        )
+        info['c1'] = c1
 
         print(f"\nEvaluation on {num_samples} samples (S^{sphere.dim}):")
         print(f"  Nij1 region  : {n_nij1}/{num_samples} ({100*n_nij1/num_samples:.1f}%)")
@@ -198,17 +204,7 @@ def evaluate_model(
         print(f"  Nij1       : {info['nij1']:.6e}")
         print(f"  Nij2       : {info['nij2']:.6e}")
         print(f"  Overlap    : {info['overlap_norm']:.6e}")
-
-        # Expected c₁: 2.0 for S² (d=2), 0.0 for S^{2n} (n≥2).
-        if compute_chern:
-            chern = compute_chern_numbers(
-                model, manifold_type='sphere',
-                manifold_dim=sphere.dim,
-                n_pts=5000, device=device,
-            )
-            expected_c1 = 2.0 if sphere.dim == 2 else 0.0
-            print(f"  c₁          : {chern['c1']:.4f}  (expected {expected_c1:.1f})")
-            print(f"  Chern std  : {chern['chern_density_std']:.4e}")
+        print(f"  c₁         : {c1:.6f}")
 
     return info
 
@@ -218,24 +214,9 @@ def main():
     parser.add_argument('checkpoint', type=str, help='Path to checkpoint')
     parser.add_argument('--samples', type=int, default=1000,
                         help='Number of samples for evaluation')
-    parser.add_argument('--chern', action='store_true',
-                        help='Force-enable Chern number diagnostics')
-    parser.add_argument('--no-chern', action='store_true',
-                        help='Disable Chern number diagnostics')
     args = parser.parse_args()
 
-    if args.chern and args.no_chern:
-        parser.error('Use at most one of --chern or --no-chern.')
-
-    compute_chern_override: Optional[bool]
-    if args.chern:
-        compute_chern_override = True
-    elif args.no_chern:
-        compute_chern_override = False
-    else:
-        compute_chern_override = None
-
-    evaluate_model(args.checkpoint, args.samples, compute_chern=compute_chern_override)
+    evaluate_model(args.checkpoint, args.samples)
 
 
 if __name__ == '__main__':
