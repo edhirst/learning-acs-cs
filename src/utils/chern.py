@@ -22,40 +22,49 @@ where R^TM is the round Levi-Civita curvature of the tangent bundle.  The
 ambient curvature term is essential: a locally constant expression for J can
 still represent a nontrivial tangent bundle with nonzero c₁.
 
-First Chern number (integrated):
+First Chern number in complex dimension n:
 
-    c₁[M] = (1/2π) ∫_M F ∧ ω^{n-1}/(n-1)!
+    ∫_M c₁^n = ∫_M (F / 2π)^n
 
-For real dimension 2 this is the usual integral of the first Chern form.  In
-higher real dimension this module reports the standard Chern-Weil pairing with
-the compatible fundamental form,
+where F is the real Chern-Weil first-Chern curvature 2-form.  In local
+coordinates this top-form coefficient is
 
-    ∫_M c₁ ∧ ω^{n-1}/(n-1)!,
+    n! Pf(F) / (2π)^n,
 
-estimated globally from the held-out test sample.  For sphere products this is
-computed on the full product manifold, not on individual sphere factors.
+with Pf the Pfaffian of the antisymmetric matrix F_ij.  Test samples are drawn
+from the round volume measure, so the Monte Carlo integrand divides this
+coordinate top-form coefficient by sqrt(det(g)).
+
+For sphere products this is computed on the full product manifold, not on
+individual sphere factors.
 
 Reference cases:
     S²             :  c₁ = 2
-    S²n (n ≥ 2)    :  c₁ class = 0   (H²(S^{2n}) = 0)
+    S²n (n ≥ 2)    :  ∫ c₁^n = 0   (H²(S^{2n}) = 0)
     S¹×S¹ (T²)     :  c₁ = 0   (flat)
-    higher products:  reported as the full-manifold Chern-Weil pairing above
+    higher products:  reported as ∫ c₁^n over the full product manifold
 
 Implementation notes
 --------------------
 The reported scalar is computed only for final test/evaluation reporting; no
 Chern-related quantity is tracked during training or validation.  In real
 dimension 2 it is the usual first Chern number.  In higher real dimension it is
-the full-manifold Chern-Weil pairing with the compatible form.
+the top-degree Chern number ∫ c₁^n.
 
 Both `_compute_A_and_dA` and `_compute_dJ_from_dA` from `src.loss.sphere_loss`
 are reused to obtain ∂J/∂x via the existing AD path.
 """
 
 import math
+import os
+import sys
 import torch
+import torch.func as func
 import torch.nn as nn
 from typing import Tuple
+
+if __name__ == '__main__' and __package__ is None:
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from src.geometry import EvenSphere, RADIAL_MIDPOINT
 from src.geometry.sphere_product import SphereProduct
@@ -93,17 +102,17 @@ def berry_curvature(J: torch.Tensor, dJ: torch.Tensor) -> torch.Tensor:
     """
     Berry curvature F_{kl}(x) of the T^{1,0} eigenspace bundle.
 
-    F_{kl} = i · tr_ℂ[ P (∂_k P (I−P) ∂_l P − ∂_l P (I−P) ∂_k P) ]
+    F_{kl} = i · tr_ℂ[ P (∇_k P (I−P) ∇_l P − ∇_l P (I−P) ∇_k P) ]
 
-    where P = (I + i J) / 2 and ∂_k P = (i / 2) ∂_k J.
+    where P = (I + i J) / 2 and ∇_k P = (i / 2) ∇_k J.
 
     F is real-valued (the imaginary parts cancel exactly) and antisymmetric
     in (k, l).
 
     Args:
         J:  J matrices in ball coords, shape (batch, d, d),  real.
-        dJ: ∂J/∂x,  shape (batch, d, d, d_ball),  real.
-            dJ[b, α, β, k]  =  ∂_k J^α_β  at batch sample b.
+        dJ: ∇J, shape (batch, d, d, d_ball), real.
+            dJ[b, α, β, k] = ∇_k J^α_β at batch sample b.
 
     Returns:
         F: Berry curvature 2-form, shape (batch, d_ball, d_ball),  real.
@@ -176,29 +185,123 @@ def chern_curvature(
 # ─────────────────────────────────────────────────────────────────────────────
 
 
+def _pfaffian(a: torch.Tensor) -> torch.Tensor:
+    """
+    Batched Pfaffian for small antisymmetric matrices.
+
+    For a 2-form F = Σ_{i<j} F_ij dx_i∧dx_j, F^n has coordinate coefficient
+    n! Pf(F).  The dimensions used in this project are small, so a recursive
+    expansion is simpler and less error-prone than a custom factorization.
+    """
+    d = a.shape[-1]
+    if d % 2 != 0:
+        raise ValueError(f"Pfaffian requires an even matrix dimension, got {d}")
+    if d == 0:
+        return a.new_ones(a.shape[:-2])
+    if d == 2:
+        return a[..., 0, 1]
+
+    total = a.new_zeros(a.shape[:-2])
+    for j in range(1, d):
+        idx = [k for k in range(d) if k not in (0, j)]
+        minor = a[..., idx, :][..., :, idx]
+        sign = -1.0 if (j % 2 == 0) else 1.0
+        total = total + sign * a[..., 0, j] * _pfaffian(minor)
+    return total
+
+
+def _christoffel_symbols(
+    x: torch.Tensor,
+    metric_fn,
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """
+    Compute round Levi-Civita Christoffel symbols in local coordinates.
+
+    Returns Γ^a_{kb} with shape (batch, d, d, d), where k is the derivative
+    coordinate and b is the lower tensor index being transported.
+    """
+    def single_metric(x_single: torch.Tensor) -> torch.Tensor:
+        g_single, _ = metric_fn(x_single.unsqueeze(0))
+        return g_single.squeeze(0)
+
+    g, g_inv = metric_fn(x)
+    dg = func.vmap(func.jacfwd(single_metric))(x)  # dg[b, i, j, k] = ∂_k g_ij
+    gamma_terms = (
+        dg.permute(0, 2, 3, 1)  # ∂_k g_cm
+        + dg.permute(0, 2, 1, 3)  # ∂_c g_km
+        - dg.permute(0, 3, 1, 2)  # ∂_m g_kc
+    )
+    gamma = 0.5 * torch.einsum('bam,bmkc->bakc', g_inv, gamma_terms)
+    return g, g_inv, gamma
+
+
+def _sphere_metric_connection(
+    x: torch.Tensor,
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Round metric, inverse metric, and Christoffel symbols for one sphere chart."""
+    return _christoffel_symbols(x, EvenSphere.round_metric_ball_coords)
+
+
+def _product_metric_connection(
+    x_alpha: torch.Tensor,
+    x_beta: torch.Tensor,
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Round product metric, inverse metric, and Christoffel symbols."""
+    dim_alpha = x_alpha.shape[1]
+
+    def metric_fn(x_full: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        return SphereProduct.round_metric_ball_coords(
+            x_full[:, :dim_alpha],
+            x_full[:, dim_alpha:],
+        )
+
+    return _christoffel_symbols(torch.cat([x_alpha, x_beta], dim=1), metric_fn)
+
+
+def _covariant_dJ(
+    J: torch.Tensor,
+    dJ: torch.Tensor,
+    gamma: torch.Tensor,
+) -> torch.Tensor:
+    """
+    Convert coordinate partial derivatives of J into covariant derivatives.
+
+    dJ[b, a, c, k] is ∂_k J^a_c and gamma[b, a, k, m] is Γ^a_{km}.
+    """
+    upper = torch.einsum('bakm,bmc->back', gamma, J)
+    lower = torch.einsum('bmkc,bam->back', gamma, J)
+    return dJ + upper - lower
+
+
 def _first_chern_integrand(
     J: torch.Tensor,
     dJ: torch.Tensor,
     g: torch.Tensor,
-    g_inv: torch.Tensor,
     riemann: torch.Tensor,
+    orientation_sign: float,
 ) -> torch.Tensor:
     """
-    Pointwise scalar whose volume integral gives the first Chern number.
+    Pointwise scalar whose round-volume integral gives ∫ c₁^n.
 
-    The Berry curvature F is a 2-form.  On a 2n-dimensional almost Hermitian
-    manifold, the scalar paired with the volume form is
+    The Chern-Weil first-Chern form is c₁ = F/(2π).  In real dimension 2n,
+    c₁^n has coordinate top-form coefficient
 
-        (1 / 2π) ΛF,    where    F ∧ ω^(n-1)/(n-1)! = (ΛF) dVol_g.
+        n! Pf(F) / (2π)^n.
 
-    With this codebase's J convention, ΛF = -1/2 F_ij ω^ij.  For real
-    dimension 2 this reduces to the usual coordinate integral of F_01.
+    The sample distribution is the round volume measure, so divide by
+    sqrt(det(g)) to convert coordinate top-form density into a volume density.
     """
     F = chern_curvature(J, dJ, riemann)                             # (batch, d, d)
-    omega = torch.einsum('bik,bkj->bij', g, J)                      # ω_ij = g_ik J^k_j
-    omega_up = torch.einsum('bip,bjq,bpq->bij', g_inv, g_inv, omega)
-    lambda_f = -0.5 * torch.einsum('bij,bij->b', F, omega_up)
-    return (1.0 / (2.0 * math.pi)) * lambda_f
+    F = 0.5 * (F - F.transpose(-1, -2))
+    real_dim = F.shape[-1]
+    complex_dim = real_dim // 2
+    top_form_coeff = (
+        math.factorial(complex_dim)
+        * _pfaffian(F)
+        / ((2.0 * math.pi) ** complex_dim)
+    )
+    sqrt_det_g = torch.linalg.det(g).clamp(min=1e-30).sqrt()
+    return orientation_sign * top_form_coeff / sqrt_det_g
 
 
 def _sphere_volume(dim: int) -> float:
@@ -252,8 +355,9 @@ def _local_integrand_for_chart(
     subnet: nn.Module,
     x: torch.Tensor,
     g: torch.Tensor,
-    g_inv: torch.Tensor,
+    gamma: torch.Tensor,
     riemann: torch.Tensor,
+    orientation_sign: float,
 ) -> torch.Tensor:
     """Compute the first-Chern integrand in one local chart."""
     with torch.enable_grad():
@@ -262,12 +366,13 @@ def _local_integrand_for_chart(
         exp_neg_a = _matrix_exp(-A, getattr(subnet, 'matrix_exp_terms', None))
         J = exp_a @ subnet.J0 @ exp_neg_a
         dJ = _compute_dJ_from_dA(A, dA, subnet.J0)
+        dJ_cov = _covariant_dJ(J, dJ, gamma)
     return _first_chern_integrand(
         J.detach(),
-        dJ.detach(),
+        dJ_cov.detach(),
         g.detach(),
-        g_inv.detach(),
         riemann.detach(),
+        orientation_sign,
     )
 
 
@@ -275,8 +380,9 @@ def _accumulate_integrand(
     subnet: nn.Module,
     x: torch.Tensor,
     g: torch.Tensor,
-    g_inv: torch.Tensor,
+    gamma: torch.Tensor,
     riemann: torch.Tensor,
+    orientation_sign: float,
     chunk_size: int,
 ) -> Tuple[float, int]:
     """Sum local first-Chern integrand values in chunks."""
@@ -291,8 +397,9 @@ def _accumulate_integrand(
             subnet,
             x[start:end],
             g[start:end],
-            g_inv[start:end],
+            gamma[start:end],
             riemann[start:end],
+            orientation_sign,
         )
         total += vals.double().sum().item()
         count += vals.numel()
@@ -317,7 +424,7 @@ def compute_first_chern_number(
     For `sphere`, `x` is the test sample in patch-0 ball coordinates.
     For `sphere_product`, `x_alpha` and `x_beta` are the product test sample
     in patch-(0,0) coordinates.  The reported scalar is
-    ∫ c₁ ∧ ω^(n-1)/(n-1)! over the full manifold.
+    ∫ c₁^n over the full manifold, where n is the complex dimension.
     """
     if manifold_type == 'sphere':
         if manifold_dim is None:
@@ -336,10 +443,21 @@ def compute_first_chern_number(
             (model.patch2, x2, ~mask0),
         ):
             if bool(mask.any()):
-                g, g_inv = EvenSphere.round_metric_ball_coords(x_chart[mask])
+                g, _, gamma = _sphere_metric_connection(x_chart[mask])
                 riemann = _round_sphere_riemann(g)
+                orientation_sign = (
+                    1.0
+                    if subnet is model.patch1
+                    else float((-1) ** (manifold_dim - 1))
+                )
                 subtotal, n_vals = _accumulate_integrand(
-                    subnet, x_chart[mask], g, g_inv, riemann, chunk_size,
+                    subnet,
+                    x_chart[mask],
+                    g,
+                    gamma,
+                    riemann,
+                    orientation_sign,
+                    chunk_size,
                 )
                 total += subtotal
                 count += n_vals
@@ -374,16 +492,20 @@ def compute_first_chern_number(
 
                 xb_chart = x_beta if ib == 0 else xb2
                 x_full = torch.cat([xa_chart[mask], xb_chart[mask]], dim=1)
-                g, g_inv = SphereProduct.round_metric_ball_coords(
+                g, _, gamma = _product_metric_connection(
                     xa_chart[mask], xb_chart[mask],
                 )
                 riemann = _round_product_riemann(g, dim_alpha, dim_beta)
+                orientation_sign = float(
+                    (-1) ** (ia * (dim_alpha - 1) + ib * (dim_beta - 1))
+                )
                 subtotal, n_vals = _accumulate_integrand(
                     model.patches[f'patch_{ia}{ib}'],
                     x_full,
                     g,
-                    g_inv,
+                    gamma,
                     riemann,
+                    orientation_sign,
                     chunk_size,
                 )
                 total += subtotal
@@ -408,9 +530,6 @@ if __name__ == '__main__':
     For A = 0, J is constant in coordinates so dJ = 0 and the local Berry
     curvature representative computed from dJ vanishes pointwise.
     """
-    import sys
-    sys.path.insert(0, '.')
-
     from src.models import TwoPatchAlmostComplexNet
 
     torch.manual_seed(0)
@@ -433,4 +552,4 @@ if __name__ == '__main__':
     )
     print("Self-test: first Chern number with constant J = J₀")
     print(f"  c1: {c1:.4f}")
-    print("  Expected near 0.0 for constant J in this gauge")
+    print("  Expected near 2.0 for the standard S² ACS")
