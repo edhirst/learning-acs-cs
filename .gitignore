@@ -26,6 +26,11 @@ events.out.tfevents.*
 # Scratch / temp scripts
 scratch/
 
+# Codex local files
+.codex/
+codex.md
+CODEX.md
+
 # OS / IDE
 .DS_Store
 .idea/

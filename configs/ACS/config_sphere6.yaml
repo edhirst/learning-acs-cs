@@ -25,6 +25,12 @@ training:
     eta_min: 1.0e-5
   optimizer: "adamw"
   weight_decay: 1.0e-5
+  use_lbfgs_after_adam: true
+  lbfgs_epochs: 500
+  lbfgs_learning_rate: 0.5
+  lbfgs_max_iter: 10
+  lbfgs_history_size: 50
+  lbfgs_line_search_fn: "strong_wolfe"
   run_validation: true
   batch_size_val: 500
   validation_interval: 100
@@ -55,7 +61,6 @@ logging:
   save_dir: "outputs"
   test_size: 10000
   compute_nijenhuis_rank: true  # track average numerical rank of N_J as a linear map Λ²TM → TM at validation; rank 0 ↔ integrable
-  compute_chern_metrics: true  # whether to compute Chern-number diagnostics during evaluation
 seed: 67
 
 advanced:

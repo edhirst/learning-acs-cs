@@ -9,11 +9,8 @@ from .visualization import (
     plot_chern_curvature,
 )
 from .chern import (
-    compute_chern_numbers,
-    integrate_chern_number,
-    integrate_chern_number_product,
+    compute_first_chern_number,
     berry_curvature,
-    chern_density,
 )
 
 __all__ = [
@@ -23,9 +20,6 @@ __all__ = [
     'compute_metrics_summary',
     'print_metrics_table',
     'plot_chern_curvature',
-    'compute_chern_numbers',
-    'integrate_chern_number',
-    'integrate_chern_number_product',
+    'compute_first_chern_number',
     'berry_curvature',
-    'chern_density',
 ]

@@ -30,6 +30,7 @@ from src.geometry.hopf_complex_structure import hopf_complex_structure
 from src.models import TwoPatchAlmostComplexNet, FourPatchProductNet
 from src.loss import TotalLoss
 from src.loss.product_loss import ProductTotalLoss
+from src.utils.chern import compute_first_chern_number
 
 
 class FractionalCosineAnnealingWarmRestarts(torch.optim.lr_scheduler.LRScheduler):
@@ -256,6 +257,28 @@ class Trainer:
                            momentum=0.9)
         else:
             raise ValueError(f"Unknown optimizer: {opt_name}")
+
+    def _create_lbfgs_optimizer(self):
+        """Create the optional post-Adam L-BFGS optimizer from config."""
+        training_cfg = self.config['training']
+        line_search_fn = training_cfg.get('lbfgs_line_search_fn', 'strong_wolfe')
+        if isinstance(line_search_fn, str) and line_search_fn.lower() in ('none', ''):
+            line_search_fn = None
+
+        kwargs = {
+            'lr': float(training_cfg.get('lbfgs_learning_rate', 1.0)),
+            'max_iter': int(training_cfg.get('lbfgs_max_iter', 20)),
+            'history_size': int(training_cfg.get('lbfgs_history_size', 100)),
+            'line_search_fn': line_search_fn,
+        }
+        if 'lbfgs_max_eval' in training_cfg:
+            kwargs['max_eval'] = int(training_cfg['lbfgs_max_eval'])
+        if 'lbfgs_tolerance_grad' in training_cfg:
+            kwargs['tolerance_grad'] = float(training_cfg['lbfgs_tolerance_grad'])
+        if 'lbfgs_tolerance_change' in training_cfg:
+            kwargs['tolerance_change'] = float(training_cfg['lbfgs_tolerance_change'])
+
+        return optim.LBFGS(self.model.parameters(), **kwargs)
     
     def _create_scheduler(self):
         """Create learning rate scheduler from config."""
@@ -328,11 +351,8 @@ class Trainer:
         os_ = float(self.config['loss_weights'].get('overlap_size', 0.1)) if equatorial else None
         return self.sphere.sample_points_patch1(batch_size, density_power=density_power, overlap_size=os_).to(device=self.device, dtype=self.dtype)
     
-    def train_step(self, x) -> dict:
-        """Perform one training step."""
-        self.model.train()
-        self.optimizer.zero_grad()
-
+    def _compute_train_loss_and_info(self, x) -> tuple[torch.Tensor, dict]:
+        """Compute the current training loss and logging info for one batch."""
         if self.manifold_type == 'sphere_product':
             x_alpha, x_beta = x
             J_dict, x_alpha, x_beta, x_a2, x_b2 = self.model(x_alpha, x_beta)
@@ -345,20 +365,50 @@ class Trainer:
         else:
             J1, J2, x1, x2 = self.model(x)
             loss, info = self.loss_fn(J1, J2, x1, x2, self.model)
-        
-        # Backward pass
-        loss.backward()
-        
-        # Gradient clipping
+
+        return loss, info
+
+    def _clip_gradients(self):
+        """Apply configured gradient clipping to model parameters."""
         if self.config['advanced']['gradient_clipping'] > 0:
             torch.nn.utils.clip_grad_norm_(
                 self.model.parameters(),
                 self.config['advanced']['gradient_clipping']
             )
+
+    def train_step(self, x) -> dict:
+        """Perform one first-order optimizer training step."""
+        self.model.train()
+        self.optimizer.zero_grad()
+
+        loss, info = self._compute_train_loss_and_info(x)
+
+        # Backward pass
+        loss.backward()
+        self._clip_gradients()
         
         self.optimizer.step()
         
         return info
+
+    def train_step_lbfgs(self, x) -> dict:
+        """Perform one L-BFGS optimizer step using a fixed-batch closure."""
+        self.model.train()
+        info_holder: dict[str, dict] = {}
+
+        def closure():
+            self.optimizer.zero_grad()
+            loss, info = self._compute_train_loss_and_info(x)
+            loss.backward()
+            self._clip_gradients()
+            info_holder['info'] = info
+            return loss
+
+        self.optimizer.step(closure)
+
+        # L-BFGS may evaluate the closure multiple times. Return the metrics
+        # from the last evaluation, matching the loss seen by the optimizer.
+        return info_holder.get('info', {})
     
     def validate(self) -> dict:
         """Run validation."""
@@ -807,9 +857,14 @@ class Trainer:
         print(f"Batch size: {self.config['training']['batch_size']}")
         
         num_epochs = self.config['training']['epochs']
+        use_lbfgs = self.config['training'].get('use_lbfgs_after_adam', False)
+        lbfgs_epochs = int(self.config['training'].get('lbfgs_epochs', 0)) if use_lbfgs else 0
+        total_epochs = num_epochs + lbfgs_epochs
         batch_size = self.config['training']['batch_size']
         log_interval = self.config['logging']['log_interval']
         checkpoint_interval = self.config['logging']['checkpoint_interval']
+        if lbfgs_epochs > 0:
+            print(f"L-BFGS fine-tuning epochs: {lbfgs_epochs}")
         if self.manifold_type == 'sphere_product':
             history_keys = ['total_loss', 'nij_00', 'nij_01', 'nij_10', 'nij_11', 'overlap_norm']
             if self.config['logging'].get('compute_block_diagonality', False):
@@ -818,17 +873,24 @@ class Trainer:
             history_keys = ['total_loss', 'nij1', 'nij2', 'overlap_norm']
         history: dict[str, list] = {'epoch': [], **{k: [] for k in history_keys}}
         
-        for epoch in range(num_epochs):
+        for epoch in range(total_epochs):
+            using_lbfgs = epoch >= num_epochs
+            if using_lbfgs and epoch == num_epochs:
+                print("\nSwitching optimizer to L-BFGS...")
+                self.optimizer = self._create_lbfgs_optimizer()
+                self.scheduler = None
+
             self.epoch = epoch
             
             # Sample batch
             x = self.sample_batch(batch_size)
             
             # Training step
-            train_info = self.train_step(x)
+            train_info = self.train_step_lbfgs(x) if using_lbfgs else self.train_step(x)
             
             # Logging
-            is_last_epoch = (epoch == num_epochs - 1)
+            is_last_adam_epoch = lbfgs_epochs > 0 and epoch == num_epochs - 1
+            is_last_epoch = (epoch == total_epochs - 1) or is_last_adam_epoch
             if epoch % log_interval == 0 or is_last_epoch:
                 self._log_metrics(train_info, prefix='train')
                 self._print_progress(epoch, train_info)
@@ -898,7 +960,7 @@ class Trainer:
                 self._save_checkpoint(f'checkpoint_epoch_{epoch}.pt')
             
             # Update scheduler
-            if self.scheduler is not None:
+            if self.scheduler is not None and not using_lbfgs:
                 self.scheduler.step()
         
         # Final checkpoint
@@ -958,9 +1020,27 @@ class Trainer:
                 J1, J2, x1, x2 = self.model(x)
                 _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True, report_all=True)
 
+        if self.manifold_type == 'sphere_product':
+            c1 = compute_first_chern_number(
+                self.model,
+                manifold_type='sphere_product',
+                dim_alpha=self.config['geometry']['real_dimension_alpha'],
+                dim_beta=self.config['geometry']['real_dimension_beta'],
+                x_alpha=xa,
+                x_beta=xb,
+            )
+        else:
+            c1 = compute_first_chern_number(
+                self.model,
+                manifold_type='sphere',
+                manifold_dim=self.sphere.dim,
+                x=x,
+            )
+
         self.model.train()
 
         result = {k: float(v) for k, v in info.items()}
+        result['c1'] = float(c1)
         result['test_size'] = test_size
         self.loss_data['test'] = result
 
@@ -984,6 +1064,7 @@ class Trainer:
         print(f"  Overlap    : {result['overlap_norm']:.6e}")
         if 'block_diagonality' in result:
             print(f"  Block-diag ρ: {result['block_diagonality']:.6e}")
+        print(f"  c₁          : {result['c1']:.6f}")
 
     def _log_metrics(self, info: dict, prefix: str):
         """Append metrics to loss_data."""
@@ -1014,6 +1095,7 @@ class Trainer:
             'epoch': self.epoch,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
+            'optimizer_name': self.optimizer.__class__.__name__.lower(),
             'best_loss': self.best_loss,
             'config': self.config
         }
@@ -1107,6 +1189,9 @@ class Trainer:
         """Load model from checkpoint."""
         checkpoint = torch.load(path, map_location=self.device)
         self.model.load_state_dict(checkpoint['model_state_dict'])
+        if checkpoint.get('optimizer_name') == 'lbfgs' and not isinstance(self.optimizer, optim.LBFGS):
+            self.optimizer = self._create_lbfgs_optimizer()
+            self.scheduler = None
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         self.epoch = checkpoint['epoch']
         self.best_loss = checkpoint['best_loss']
