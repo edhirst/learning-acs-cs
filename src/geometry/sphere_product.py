@@ -108,8 +108,8 @@ class SphereProduct:
         else:
             xb_np = sphere_uniform_sample(num_points, self.dim_beta, density_power)
 
-        xa = torch.tensor(xa_np, dtype=torch.float32, device=self.device)
-        xb = torch.tensor(xb_np, dtype=torch.float32, device=self.device)
+        xa = torch.tensor(xa_np, dtype=torch.float64, device=self.device)
+        xb = torch.tensor(xb_np, dtype=torch.float64, device=self.device)
         return xa, xb
 
     # ------------------------------------------------------------------

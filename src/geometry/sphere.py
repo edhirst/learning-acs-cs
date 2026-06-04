@@ -87,7 +87,7 @@ class EvenSphere:
             pts_np = equatorial_annulus_sample(num_points, self.dim, r_inner, r_outer)
         else:
             pts_np = sphere_uniform_sample(num_points, self.dim, density_power)
-        return torch.tensor(pts_np, dtype=torch.float32, device=self.device)
+        return torch.tensor(pts_np, dtype=torch.float64, device=self.device)
 
     # ------------------------------------------------------------------
     # Patch geometry

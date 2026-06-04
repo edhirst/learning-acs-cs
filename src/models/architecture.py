@@ -101,7 +101,7 @@ class FourierFeatures(nn.Module):
 
     def __init__(self, input_dim: int, num_features: int, scale: float = 1.0):
         super().__init__()
-        B = torch.randn(input_dim, num_features) * scale
+        B = torch.randn(input_dim, num_features, dtype=torch.float64) * scale
         self.register_buffer('B', B)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
