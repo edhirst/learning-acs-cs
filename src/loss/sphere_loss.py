@@ -418,6 +418,7 @@ class TotalLoss(nn.Module):
         model: nn.Module,
         hard_cutoff: bool = False,
         report_all: bool = False,
+        return_tensors: bool = False,
     ) -> Tuple[torch.Tensor, Dict]:
         """
         Compute total weighted loss.
@@ -432,6 +433,10 @@ class TotalLoss(nn.Module):
                 soft Gaussian weights. Use for validation and test evaluation.
             report_all: If True, compute all components regardless of their
                 weight (for test evaluation). Weights still scale total_loss.
+            return_tensors: If True, attach the unweighted Nijenhuis and overlap
+                component tensors to the info dict under keys
+                '_nij_loss_tensor' and '_overlap_loss_tensor'. Used by PCGrad
+                gradient surgery to backward through each component separately.
 
         Returns:
             total_loss: Weighted sum of all loss terms.
@@ -442,20 +447,24 @@ class TotalLoss(nn.Module):
 
         zero = J1.sum() * 0.0
 
-        if w_nij != 0.0 or report_all or self.compute_rank:
+        if w_nij != 0.0 or report_all or self.compute_rank or return_tensors:
             nij1, info1 = self.nij_loss(x1, model.patch1, hard_cutoff=hard_cutoff)
             nij2, info2 = self.nij_loss(x2, model.patch2, hard_cutoff=hard_cutoff)
         else:
             nij1 = nij2 = zero
             info1 = info2 = {'nij_norm': 0.0}
 
-        if w_overlap != 0.0 or report_all:
+        if w_overlap != 0.0 or report_all or return_tensors:
             overlap, info_ov = self.overlap_loss(J1, J2, x1, x2, hard_cutoff=hard_cutoff)
         else:
             overlap = zero
             info_ov = {'overlap_norm': 0.0}
 
-        total = w_nij * (nij1 + nij2) / 2.0 + w_overlap * overlap
+        # Unweighted component scalars (tensors, grad-carrying). The total uses
+        # these multiplied by the per-task weights from config.
+        nij_total     = (nij1 + nij2) / 2.0
+        overlap_total = overlap
+        total = w_nij * nij_total + w_overlap * overlap_total
 
         info = {
             'total_loss':   total.item(),
@@ -466,6 +475,11 @@ class TotalLoss(nn.Module):
         if 'nij_rank' in info1:
             info['nij_rank1'] = info1['nij_rank']
             info['nij_rank2'] = info2['nij_rank']
+        if return_tensors:
+            # Expose the unweighted component tensors for PCGrad backward passes.
+            # Underscore-prefixed keys keep them out of accidental scalar logging.
+            info['_nij_loss_tensor']     = nij_total
+            info['_overlap_loss_tensor'] = overlap_total
 
         return total, info
 

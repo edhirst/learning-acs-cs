@@ -111,9 +111,10 @@ def hopf_map_F(
     F(x_α, x_β) = exp(t(x_β)) · σ(x_α) where σ: B^{m_α} → S^{m_α} ⊂ ℝ^{2n} is
     the codebase inverse stereographic map and t is the Hopf log-scale:
 
-        sphere_z(r²) = (−1 + 6r² − r⁴) / (1 + r²)²   ∈ [−1, 1]
-        σ(x_α)  = ( (−1)^{pole_α} · sphere_z(r_α²),  4(1−r_α²)/(1+r_α²)² · x_α )
-        t(x_β)  = (1/2π) arccos( (−1)^{pole_β} · sphere_z(r_β²) )
+        sphere_z(r²)  = (−1 + 6r² − r⁴) / (1 + r²)²   ∈ [−1, 1]
+        sphere_xy(x)  = 4x(1−r²)/(1+r²)²              (odd in x)
+        σ(x_α)  = ( sphere_z(r_α²),  4(1−r_α²)/(1+r_α²)² · x_α )
+        t(x_β)  = (1/2π) atan2( sphere_xy(x_β), −sphere_z(r_β²) )   ∈ (−1/2, 1/2)
         F       = exp(t) · σ(x_α)
 
     Args:
@@ -131,12 +132,21 @@ def hopf_map_F(
     xb_in = EvenSphere.patch_change_coords(x_beta) if pole_beta == 1 else x_beta
     xa_in = EvenSphere.patch_change_coords(x_alpha) if pole_alpha == 1 else x_alpha
 
-    # --- β factor: compute Hopf log-scale t from S¹ latitude ---
+    # --- β factor: signed-angle Hopf log-radius t ---
+    # NOTE: this originally used t = arccos(sphere_z)/(2π), which is EVEN in
+    # x_β (folded).  The fold makes ∂t/∂x_β vanish at x_β = 0, so DF loses
+    # rank there and linalg.inv fails (singular); it also makes J
+    # discontinuous across x_β = 0.  The signed atan2 angle below is odd in
+    # x_β, covers the full Hopf period t ∈ (−1/2, 1/2), and is smooth on the
+    # entire chart interior.  Its branch cut sits at s_z = +1 (|x_β| → 1, the
+    # chart boundary), where the jump Δt = 1 is exactly one Hopf period,
+    # under which J = (DF)⁻¹ J₀ DF is invariant (deck symmetry z ∼ e·z).
     xb = xb_in[:, 0]                               # (batch,)
     r_beta_sq = xb ** 2
-    sz_beta = _sphere_z(r_beta_sq)                 # (batch,) in (−1, 1)
-    arg_arccos = sz_beta.clamp(-1.0 + 1e-6, 1.0 - 1e-6)
-    t = torch.arccos(arg_arccos) / (2.0 * torch.pi)  # (batch,) in (0, 1/2)
+    sz_beta = _sphere_z(r_beta_sq)                 # latitude  s_z  (even in x_β)
+    sxy_beta = 4.0 * xb * (1.0 - r_beta_sq) / (1.0 + r_beta_sq) ** 2
+                                                   # longitude s_xy (odd in x_β)
+    t = torch.atan2(sxy_beta, -sz_beta) / (2.0 * torch.pi)   # (batch,) ∈ (−1/2, 1/2)
     exp_t = torch.exp(t)                              # (batch,)
 
     # --- α factor: inverse stereo σ(x_α) ∈ S^{m_α} ⊂ ℝ^{m_α+1} ---

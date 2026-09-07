@@ -16,6 +16,7 @@ The patch-change map (both directions, self-inverse):
 
 which satisfies  |x'| = (1 − |x|) / (1 + |x|)  for |x| < 1.
 """
+from __future__ import annotations    # PEP 563 — for Python 3.8 HPC compatibility
 
 import torch
 import numpy as np
