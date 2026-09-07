@@ -188,7 +188,29 @@ class AmbientFrameS5xS1(ProductFrame):
         return torch.cat([z, w], dim=1)
 
 
+class LieFrameS1xS1(ProductFrame):
+    """Frame on the torus S¹×S¹ ⊂ ℝ²×ℝ²: the two rotation fields. Abelian
+    Lie group ⇒ structure functions vanish identically."""
+
+    dim = 2
+    ambient_dim = 4
+
+    def frame_fields(self, x: torch.Tensor) -> torch.Tensor:
+        u, w = x[:, :2], x[:, 2:]
+        rot_u = torch.stack([-u[:, 1], u[:, 0]], dim=1)
+        rot_w = torch.stack([-w[:, 1], w[:, 0]], dim=1)
+        rows = [torch.cat([rot_u, torch.zeros_like(w)], dim=1),
+                torch.cat([torch.zeros_like(u), rot_w], dim=1)]
+        return torch.stack(rows, dim=1)                                   # (B, 2, 4)
+
+    def sample(self, n: int, dtype=torch.float64) -> torch.Tensor:
+        th = torch.rand(n, 2, dtype=dtype) * (2 * torch.pi)
+        return torch.cat([torch.cos(th[:, :1]), torch.sin(th[:, :1]),
+                          torch.cos(th[:, 1:]), torch.sin(th[:, 1:])], dim=1)
+
+
 FRAMES = {
+    's1xs1': LieFrameS1xS1,
     's3xs3': LieFrameS3xS3,
     's3xs1': LieFrameS3xS1,
     's5xs1': AmbientFrameS5xS1,
