@@ -213,13 +213,19 @@ def unit_loss(geo, task, J_fn, x, w_c=10.0):
 # ---------------------------------------------------------------------------
 
 def polar_corrected(geo, K_fn):
+    """J* = K · (−K²_T)^{−1/2}: exact J*² = −Id_T whenever K has no real
+    eigenvalues on T. S = −K² + (I − Id_T) is NOT symmetric for a generic
+    (non-normal) K, so the inverse principal square root must come from the
+    general eigendecomposition (torch.linalg.eig), not eigh; the result is
+    real because the spectrum of a real matrix is conjugate-symmetric."""
     def J_star(x):
         K = K_fn(x)
         IdT = identity_T(geo, x)
         eye = torch.eye(K.shape[-1], dtype=K.dtype).expand_as(K)
         S = -K @ K + (eye - IdT)
-        w, V = torch.linalg.eigh(S)
-        return K @ (V @ torch.diag_embed(w.clamp(min=1e-12) ** -0.5) @ V.transpose(1, 2))
+        w, V = torch.linalg.eig(S)
+        S_inv_sqrt = V @ torch.diag_embed(w ** -0.5) @ torch.linalg.inv(V)
+        return K @ S_inv_sqrt.real
     return J_star
 
 
