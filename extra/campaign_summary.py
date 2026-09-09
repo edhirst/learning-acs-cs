@@ -24,7 +24,13 @@ def main():
         with open(p) as f:
             r = json.load(f)
         r['_dir'] = os.path.basename(os.path.dirname(p))
-        r['_score'] = r['chart_cs'] if r['task'] == 'cs' else r['chart_acs']
+        if 'dense' not in r:                      # e.g. status 'no_certified_base' (S⁴ CS)
+            r['_score'] = float('inf')
+            r['dense'] = {'acs_mean': float('nan'), 'acs_sup': float('nan'),
+                          'nij_mean': float('nan'), 'nij_sup': float('nan')}
+        else:
+            r['_score'] = r['dense']['nij_mean'] if r['task'] == 'cs' else \
+                (r.get('adv_acs_sup') if r.get('adv_acs_sup') is not None else r['dense']['acs_sup'])
         runs.append(r)
     if not runs:
         print("no result.json found under", root)
@@ -36,22 +42,32 @@ def main():
         if key not in best or r['_score'] < best[key]['_score']:
             best[key] = r
 
-    print("| case | task | formulation | before | **after (chart protocol)** | intrinsic mean / sup | certified exact ACS | steps | seed |")
-    print("|---|---|---|---:|---:|---:|:-:|---:|---:|")
+    print("| case | task | formulation | before (chart) | chart protocol | intrinsic mean / sup | **adversarial sup** | verdict | class | steps | seed |")
+    print("|---|---|---|---:|---:|---:|---:|:-:|:-:|---:|---:|")
     for case in ORDER:
         for task in ('acs', 'cs'):
             r = best.get((case, task))
             if r is None:
-                print(f"| {NAMES[case]} | {task.upper()} | — | — | (no result) | | | | |")
+                print(f"| {NAMES[case]} | {task.upper()} | — | — | (no result) | | | | | | |")
+                continue
+            if r.get('status') == 'no_certified_base':
+                print(f"| {NAMES[case]} | {task.upper()} | {r['formulation']} | {r['table_before']:.3g} | — | — | "
+                      f"{r['base']['adv_acs_sup_raw']:.2f} (base) | **refused: no certified ACS** | | | {r['seed']} |")
                 continue
             d = r['dense']
-            cert = r.get('certified_exact_acs')
-            cert_s = '✓' if cert else ('exact by constr.' if r.get('exact_acs_by_construction') else '—')
-            intr = d['nij_mean'] if task == 'cs' else d['acs_mean']
-            sup = d['nij_sup'] if task == 'cs' else d['acs_sup']
+            if task == 'acs':
+                verdict = '**certified exact ACS**' if r.get('certified_exact_acs') else 'NOT certified (defects)'
+                adv = r.get('adv_acs_sup', float('nan'))
+                chart = r.get('chart_acs', float('nan'))
+                intr, sup = d['acs_mean'], d['acs_sup']
+            else:
+                verdict = 'exact ACS by constr.' if r.get('exact_acs_by_construction') else 'free field'
+                adv = r.get('adv_nij_sup', float('nan'))
+                chart = r.get('chart_cs', float('nan'))
+                intr, sup = d['nij_mean'], d['nij_sup']
             print(f"| {NAMES[case]} | {task.upper()} | {r['formulation']} | {r['table_before']:.3g} | "
-                  f"**{r['_score']:.3e}** | {intr:.3e} / {sup:.3e} | {cert_s} | "
-                  f"{r['steps_done']} | {r['seed']} |")
+                  f"{chart:.2e} | {intr:.2e} / {sup:.2e} | **{adv:.2e}** | {verdict} | "
+                  f"{r.get('feat') or '—'} | {r['steps_done']} | {r['seed']} |")
 
     if show_all:
         print("\nAll runs:")

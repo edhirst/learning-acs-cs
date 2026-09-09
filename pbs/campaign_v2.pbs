@@ -1,0 +1,62 @@
+#!/bin/bash
+#PBS -N nijv2
+#PBS -q par16
+#PBS -l nodes=1:ppn=16
+#PBS -l walltime=240:00:00
+#PBS -j oe
+
+# UNIFORM UNSUPERVISED PIPELINE v2 (CENAPAD LOVELACE, CPU only), all 9 cases:
+#   phase A  ACS from scratch: harmonic-ladder polynomial stage → MLP refinement
+#            → ADVERSARIAL certification (sup ‖K²+Id_T‖ < 1) → exact polar ACS.
+#   phase B  CS from the PINN's OWN certified ACS (--base-from), Nijenhuis-only
+#            conjugation search. S⁴ (no ACS exists) fails certification in A and
+#            the CS unit refuses in B — the built-in negative control.
+# No explicit/classical structure is used anywhere in training.
+#
+# Scratch discipline as in campaign_uniform.pbs: results in
+# /work/tomas/<jobname>_<jobid>/results, synced back to
+# $PBS_O_WORKDIR/results_from_HPC/<jobid>/ every 6h and at exit.
+#
+# Unit line format:  CASE SEED STEPS HIDDEN [STAGES]   (jobs_v2_acs.txt / jobs_v2_cs.txt)
+# Submit: qsub pbs/campaign_v2.pbs      Summary: python extra/campaign_summary.py results_from_HPC/<jobid>
+
+CODE_ROOT="$PBS_O_WORKDIR"
+cd "$CODE_ROOT"
+module load python/3.8.11-intel-2021.3.0
+source nijenhuis/bin/activate
+export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
+
+JOB_ID=${PBS_JOBID%%.*}
+SCRATCH="/work/tomas/${PBS_JOBNAME:-nijv2}_${JOB_ID}"
+OUT_ROOT="$SCRATCH/results"; LOG_ROOT="$SCRATCH/logs"
+mkdir -p "$OUT_ROOT" "$LOG_ROOT" "$SCRATCH/tmp"; export TMPDIR="$SCRATCH/tmp"
+WALL_MIN_ACS=${WALL_MIN_ACS:-600}
+WALL_MIN_CS=${WALL_MIN_CS:-4000}
+NPAR=${NPAR:-14}
+export CODE_ROOT OUT_ROOT LOG_ROOT WALL_MIN_ACS WALL_MIN_CS
+
+FINAL_DIR="$CODE_ROOT/results_from_HPC/$JOB_ID"
+sync_back () { mkdir -p "$FINAL_DIR"; rsync -a --exclude 'state.pt' "$OUT_ROOT/" "$FINAL_DIR/" 2>> "$LOG_ROOT/rsync_err.txt"; }
+trap sync_back EXIT
+( while sleep 21600; do sync_back; done ) & SYNC_PID=$!
+
+echo "== nijv2 phase A (ACS, $(wc -l < jobs_v2_acs.txt) units) =="; date
+xargs -P "$NPAR" -L 1 -a jobs_v2_acs.txt bash -c '
+  set -- $0 "$@"; case=$1; seed=$2; steps=$3; hidden=$4
+  dir="$OUT_ROOT/${case}_acs_s${seed}"; mkdir -p "$dir"
+  python "$CODE_ROOT/extra/campaign_unit.py" --case "$case" --task acs --seed "$seed" \
+      --steps "$steps" --hidden "$hidden" --poly-steps 3000 --wall-minutes "$WALL_MIN_ACS" \
+      --out "$dir" >> "$LOG_ROOT/${case}_acs_s${seed}.txt" 2>&1
+'
+sync_back
+echo "== nijv2 phase B (CS from own certified ACS, $(wc -l < jobs_v2_cs.txt) units) =="; date
+xargs -P "$NPAR" -L 1 -a jobs_v2_cs.txt bash -c '
+  set -- $0 "$@"; case=$1; seed=$2; steps=$3; hidden=$4; stages=${5:-2}
+  dir="$OUT_ROOT/${case}_cs_s${seed}"; mkdir -p "$dir"
+  python "$CODE_ROOT/extra/campaign_unit.py" --case "$case" --task cs --seed "$seed" \
+      --steps "$steps" --hidden "$hidden" --stages "$stages" \
+      --base-from "$OUT_ROOT/${case}_acs_s${seed}" --wall-minutes "$WALL_MIN_CS" \
+      --out "$dir" >> "$LOG_ROOT/${case}_cs_s${seed}.txt" 2>&1
+'
+date; kill "$SYNC_PID" 2>/dev/null; sync_back
+echo "== done; results in $FINAL_DIR (scratch kept at $SCRATCH) =="
