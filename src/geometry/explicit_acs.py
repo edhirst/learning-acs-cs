@@ -53,7 +53,10 @@ def is_frame_case(case: str) -> bool:
 
 
 def ambient_manifold(case: str) -> AmbientManifold:
-    return AmbientManifold(AMBIENT_CASES[case])
+    """Ambient (projector) model of ANY case: a product of unit spheres
+    S^{m_1}×…×S^{m_k} ⊂ ℝ^{m_1+1}×…×ℝ^{m_k+1}. Used for every case in the
+    uniform ambient formulation (parallelizable ones included)."""
+    return AmbientManifold(factor_dims(case))
 
 
 def _cross3_matrix(x: torch.Tensor) -> torch.Tensor:
@@ -84,4 +87,5 @@ def base_acs(case: str, p: torch.Tensor, projector) -> torch.Tensor:
         return octonion_product_acs(p, projector)
     if case == 's4':
         raise ValueError("S^4 admits no almost complex structure: no base point exists")
-    raise KeyError(case)
+    raise ValueError(f"no explicit ambient base ACS registered for '{case}': "
+                     "run the cs unit with --base-from <its acs unit> (own certified ACS)")

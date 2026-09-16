@@ -1,8 +1,11 @@
 """Uniform chart-free PINN campaign — one (case, task, seed) unit.
 
-Formulation is chosen by topology (src/geometry/explicit_acs.py):
-  parallelizable  (s1xs1, s3xs1, s3xs3, s5xs1)  → global-frame Nijenhuis, no charts
-  non-parallelizable (s2, s4, s6, s2xs2, s4xs2) → ambient-projector Nijenhuis, no charts
+Formulation (--formulation, default 'ambient'): ONE common description for
+all nine cases — every case is a product of unit spheres in ℝ^N, fields are
+J = P·M(p)·P with P the tangential projector, and the Nijenhuis tensor is
+assembled from ambient brackets (src/loss/ambient_loss.py). No charts. The
+global-frame Nijenhuis remains available for the parallelizable cases
+(--formulation frame / auto).
 
 Tasks (unsupervised PINN, identical across formulations):
   acs  free endomorphism field K (frame: K = net(x); ambient: K = P·net(x)·P),
@@ -73,11 +76,19 @@ TABLE_BEFORE = {
 # ---------------------------------------------------------------------------
 
 class Geometry:
-    def __init__(self, case):
+    """formulation: 'ambient' (default; every case as a product of unit spheres
+    with the tangential projector — one common description for all cases),
+    'frame' (global-frame Nijenhuis, parallelizable cases only) or 'auto'
+    (frame where available)."""
+
+    def __init__(self, case, formulation='ambient'):
         self.case = case
         self.dims = factor_dims(case)
         self.d = sum(self.dims)
-        if is_frame_case(case):
+        use_frame = is_frame_case(case) and formulation in ('frame', 'auto')
+        if formulation == 'frame' and not is_frame_case(case):
+            raise ValueError(f"'{case}' is not parallelizable: no global frame; use --formulation ambient")
+        if use_frame:
             self.kind = 'frame'
             self.frame = FRAMES[case]()
             self.N = self.frame.ambient_dim
@@ -203,7 +214,7 @@ class CurriculumNet(nn.Module):
 # room for defect cores, so the residual flow settles on a global structure
 # (or, on S⁴, stays loudly non-zero). Product-only classes are skipped on
 # single spheres. Acceptance = adversarial sup ‖K²+Id_T‖ < 1 (certifiable).
-LADDER = ['c', 'lin', 'bilin', 'lin+c', 'lin+bilin', 'all2']
+LADDER = ['c', 'lin', 'bilin', 'quad_h', 'lin+c', 'lin+bilin', 'all2']
 
 
 def make_field(geo, task, model, base_fn=None):
@@ -248,6 +259,9 @@ def make_field(geo, task, model, base_fn=None):
 def load_acs_field(geo, run_dir):
     """Rebuild the frozen free ACS field K(x) of a finished acs unit."""
     ck = torch.load(os.path.join(run_dir, 'final.pt'), map_location='cpu', weights_only=False)
+    if ck.get('kind', geo.kind) != geo.kind:
+        raise ValueError(f"base ACS in {run_dir} was trained in the '{ck['kind']}' formulation, "
+                         f"this unit runs '{geo.kind}': use the same --formulation for both stages")
     n_mat = geo.d if geo.kind == 'frame' else geo.N
     if ck.get('model_type') == 'curriculum':
         model = CurriculumNet(geo.N, n_mat, ck['hidden'], feat=ck.get('feat', 'all2'),
@@ -571,6 +585,9 @@ def full_report(geo, task, J_fn, meta, n_dense, n_chart, adv_starts=256, adv_ste
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--case', required=True, choices=ALL_CASES)
+    ap.add_argument('--formulation', default='ambient', choices=['ambient', 'frame', 'auto'],
+                    help="'ambient' (default): one common ambient-projector description for ALL cases; "
+                         "'frame': global-frame Nijenhuis (parallelizable cases only); 'auto': frame where available")
     ap.add_argument('--task', required=True, choices=['acs', 'cs'])
     ap.add_argument('--seed', type=int, default=7)
     ap.add_argument('--out', required=True)
@@ -590,15 +607,18 @@ def main():
                     help='cs: directory of a finished acs unit; its certified polar-corrected field is the base ACS')
     ap.add_argument('--feat', default='auto',
                     help="acs phase 1 feature class: 'auto' climbs the harmonic ladder " + str(LADDER))
-    ap.add_argument('--lam0', type=float, default=0.0, help='acs phase 1: initial Dirichlet weight (0 = off)')
-    ap.add_argument('--lam1', type=float, default=1e-3, help='acs phase 1: final Dirichlet weight')
+    ap.add_argument('--lam0', type=float, default=0.0,
+                    help='acs phase 1: force the Dirichlet homotopy with this initial weight on every attempt (0 = ladder default)')
+    ap.add_argument('--lam-retry', type=float, default=3.0,
+                    help='acs phase 1: initial Dirichlet weight of the retry attempt after a rejected plain attempt (0 = no retry)')
+    ap.add_argument('--lam1', type=float, default=1e-3, help='acs phase 1: final Dirichlet weight of the anneal')
     ap.add_argument('--adv-starts', type=int, default=256)
     ap.add_argument('--adv-steps', type=int, default=150)
     args = ap.parse_args()
 
     os.makedirs(args.out, exist_ok=True)
     torch.manual_seed(args.seed)
-    geo = Geometry(args.case)
+    geo = Geometry(args.case, args.formulation)
     d, N = geo.d, geo.N
     steps = args.steps or (10000 if args.task == 'acs' else 40000)
     hidden = [int(h) for h in args.hidden.split(',')] if args.hidden else \
@@ -687,33 +707,46 @@ def main():
         classes = [args.feat] if args.feat != 'auto' else \
             [f for f in LADDER if ('bilin' not in f or len(geo.dims) == 2)]
         best = None
+        # Per class: attempt 1 = plain residual flow; attempt 2 (only if
+        # rejected) = the same flow with the annealed intrinsic-Dirichlet
+        # homotopy λ: lam_retry → lam1 (removes orientation walls where the
+        # structure is parallel/Kähler-type, e.g. S¹×S¹, S², S²×S²).
+        attempts = [0.0] + ([args.lam_retry] if args.lam_retry > 0 else [])
+        if args.lam0 > 0:
+            attempts = [args.lam0]
+        accepted = False
         for feat in classes:
-            model.poly = PolyNet(N, n_mat, out_scale, feat=feat, blocks=blocks).to(DTYPE)
-            opt_p = torch.optim.Adam(model.poly.parameters(), lr=5e-3)
-            sched_p = torch.optim.lr_scheduler.CosineAnnealingLR(opt_p, T_max=args.poly_steps, eta_min=2e-4)
-            for ps in range(args.poly_steps):
-                x = geo.sample(BATCH)
-                loss, info = unit_loss(geo, args.task, J_fn, x)
-                if args.lam0 > 0:
-                    lam = args.lam0 * (args.lam1 / args.lam0) ** (ps / max(1, args.poly_steps - 1))
-                    dir_e = dirichlet_energy(geo, J_fn, x)
-                    info['dirichlet'], info['lam'] = dir_e.item(), lam
-                    loss = loss + lam * dir_e
-                if not bool(torch.isfinite(loss)):
-                    continue
-                opt_p.zero_grad(); loss.backward(); opt_p.step(); sched_p.step()
-            ev = dense_eval(geo, args.task, J_fn, 1000)
-            adv, _ = adversarial_sup(geo, lambda x: acs_residual(geo, J_fn, x),
-                                     max(32, args.adv_starts // 4), max(30, args.adv_steps // 3))
-            entry = {'phase': 'poly', 'feat': feat, 'n_params': sum(p.numel() for p in model.poly.parameters()),
-                     'elapsed_min': elapsed() / 60.0, 'adv_acs_sup': adv, **ev}
-            ladder_log.append(entry)
-            progress.write(json.dumps(entry) + '\n'); progress.flush()
-            print(f"[{tag}] ladder {feat:10s} ({entry['n_params']} params) | held-out {ev} | adversarial sup {adv:.3f}"
-                  f" -> {'ACCEPT' if adv < 1 else 'reject'}", flush=True)
-            if best is None or adv < best[0]:
-                best = (adv, feat, {k: v.clone() for k, v in model.poly.state_dict().items()})
-            if adv < 1.0:
+            for lam0 in attempts:
+                model.poly = PolyNet(N, n_mat, out_scale, feat=feat, blocks=blocks).to(DTYPE)
+                opt_p = torch.optim.Adam(model.poly.parameters(), lr=5e-3)
+                sched_p = torch.optim.lr_scheduler.CosineAnnealingLR(opt_p, T_max=args.poly_steps, eta_min=2e-4)
+                for ps in range(args.poly_steps):
+                    x = geo.sample(BATCH)
+                    loss, info = unit_loss(geo, args.task, J_fn, x)
+                    if lam0 > 0:
+                        lam = lam0 * (args.lam1 / lam0) ** (ps / max(1, args.poly_steps - 1))
+                        dir_e = dirichlet_energy(geo, J_fn, x)
+                        info['dirichlet'], info['lam'] = dir_e.item(), lam
+                        loss = loss + lam * dir_e
+                    if not bool(torch.isfinite(loss)):
+                        continue
+                    opt_p.zero_grad(); loss.backward(); opt_p.step(); sched_p.step()
+                ev = dense_eval(geo, args.task, J_fn, 1000)
+                adv, _ = adversarial_sup(geo, lambda x: acs_residual(geo, J_fn, x),
+                                         max(32, args.adv_starts // 4), max(30, args.adv_steps // 3))
+                entry = {'phase': 'poly', 'feat': feat, 'lam0': lam0,
+                         'n_params': sum(p.numel() for p in model.poly.parameters()),
+                         'elapsed_min': elapsed() / 60.0, 'adv_acs_sup': adv, **ev}
+                ladder_log.append(entry)
+                progress.write(json.dumps(entry) + '\n'); progress.flush()
+                print(f"[{tag}] ladder {feat:10s} λ0={lam0:<4g} ({entry['n_params']} params) | held-out {ev} "
+                      f"| adversarial sup {adv:.3f} -> {'ACCEPT' if adv < 1 else 'reject'}", flush=True)
+                if best is None or adv < best[0]:
+                    best = (adv, feat, {k: v.clone() for k, v in model.poly.state_dict().items()})
+                if adv < 1.0:
+                    accepted = True
+                    break
+            if accepted:
                 break
         if best is not None and best[0] >= 1.0:          # nothing certified: keep the least bad
             model.poly = PolyNet(N, n_mat, out_scale, feat=best[1], blocks=blocks).to(DTYPE)
