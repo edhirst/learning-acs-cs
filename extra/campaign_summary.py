@@ -73,7 +73,7 @@ def main():
         print("\nAll runs:")
         for r in sorted(runs, key=lambda r: (ORDER.index(r['case']), r['task'], r['seed'])):
             print(f"  {r['_dir']}: score {r['_score']:.3e}  dense {r['dense']}  "
-                  f"wall-stopped={r['stopped_by_wall']}  {r['elapsed_min']:.0f} min")
+                  f"wall-stopped={r.get('stopped_by_wall')}  {r.get('elapsed_min', float('nan')):.0f} min")
 
 
 if __name__ == '__main__':
