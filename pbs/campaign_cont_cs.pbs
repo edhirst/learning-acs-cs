@@ -1,0 +1,58 @@
+#!/bin/bash
+#PBS -N nijcont
+#PBS -q par16
+#PBS -l nodes=1:ppn=16
+#PBS -l walltime=240:00:00
+#PBS -j oe
+
+# CONTINUATION CAMPAIGN — the six 6D CS units (S6, S4xS2, S3xS3, S5xS1),
+# ambient formulation, CS from the unit's own certified ACS of job 1019352:
+#   seeds 7, 8  : WARM START from the 80k-step final.pt of 1019352 (--init-from),
+#                 lower lr, tail-aware sampling, chunked L-BFGS finisher
+#   seeds 9, 10 : fresh O(1) start from the seed-7 / seed-8 certified ACS,
+#                 same tail sampling and finisher (seed variance / trap escape)
+# 16 units, 14 in parallel (single-threaded), per-unit wall 6000 min.
+#
+# PREV = directory holding the 1019352 results (ACS final.pt + CS final.pt),
+# relative to $PBS_O_WORKDIR. Override: qsub -v PREV=results_from_HPC/1019352
+# Unit lines (jobs_cont_cs.txt):  CASE SEED STEPS HIDDEN STAGES BASE_SEED WARM(0|1)
+# Summary afterwards: python extra/campaign_summary.py results_from_HPC/<jobid>
+
+CODE_ROOT="$PBS_O_WORKDIR"
+cd "$CODE_ROOT"
+module load python/3.8.11-intel-2021.3.0
+source nijenhuis/bin/activate
+export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
+
+JOB_ID=${PBS_JOBID%%.*}
+SCRATCH="/work/tomas/${PBS_JOBNAME:-nijcont}_${JOB_ID}"
+OUT_ROOT="$SCRATCH/results"; LOG_ROOT="$SCRATCH/logs"
+mkdir -p "$OUT_ROOT" "$LOG_ROOT" "$SCRATCH/tmp"; export TMPDIR="$SCRATCH/tmp"
+PREV="$CODE_ROOT/${PREV:-results_from_HPC/1019352}"
+WALL_MIN=${WALL_MIN:-6000}
+NPAR=${NPAR:-14}
+LR_WARM=${LR_WARM:-2e-4}
+LBFGS=${LBFGS:-3000}
+export CODE_ROOT OUT_ROOT LOG_ROOT PREV WALL_MIN LR_WARM LBFGS
+
+[ -d "$PREV" ] || { echo "PREV not found: $PREV"; exit 1; }
+
+FINAL_DIR="$CODE_ROOT/results_from_HPC/$JOB_ID"
+sync_back () { mkdir -p "$FINAL_DIR"; rsync -a --exclude 'state.pt' "$OUT_ROOT/" "$FINAL_DIR/" 2>> "$LOG_ROOT/rsync_err.txt"; }
+trap sync_back EXIT
+( while sleep 21600; do sync_back; done ) & SYNC_PID=$!
+
+echo "== nijcont: $(wc -l < jobs_cont_cs.txt) CS units from $PREV =="; date
+xargs -P "$NPAR" -L 1 -a jobs_cont_cs.txt bash -c '
+  set -- $0 "$@"; case=$1; seed=$2; steps=$3; hidden=$4; stages=$5; bseed=$6; warm=$7
+  dir="$OUT_ROOT/${case}_cs_s${seed}"; mkdir -p "$dir"
+  EXTRA=""
+  if [ "$warm" = "1" ]; then EXTRA="--init-from $PREV/${case}_cs_s${seed} --lr $LR_WARM"; fi
+  python "$CODE_ROOT/extra/campaign_unit.py" --case "$case" --task cs --seed "$seed" \
+      --formulation ambient --steps "$steps" --hidden "$hidden" --stages "$stages" \
+      --base-from "$PREV/${case}_acs_s${bseed}" $EXTRA --tail \
+      --lbfgs "$LBFGS" --lbfgs-chunk 250 --lbfgs-batch 2048 \
+      --wall-minutes "$WALL_MIN" --out "$dir" >> "$LOG_ROOT/${case}_cs_s${seed}.txt" 2>&1
+'
+date; kill "$SYNC_PID" 2>/dev/null; sync_back
+echo "== done; results in $FINAL_DIR (scratch kept at $SCRATCH) =="

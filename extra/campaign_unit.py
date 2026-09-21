@@ -594,8 +594,20 @@ def main():
     ap.add_argument('--steps', type=int, default=None)
     ap.add_argument('--hidden', default=None)
     ap.add_argument('--stages', type=int, default=None)
-    ap.add_argument('--rar', action='store_true')
-    ap.add_argument('--lbfgs', type=int, default=200)
+    ap.add_argument('--rar', action='store_true',
+                    help='cs: residual-adaptive half batches (worst of a 2x candidate pool)')
+    ap.add_argument('--tail', action='store_true',
+                    help='cs: tail-aware batches = uniform half + worst of a pool + a hard set of '
+                         'adversarially ascended points (refreshed every --tail-refresh steps)')
+    ap.add_argument('--tail-refresh', type=int, default=500)
+    ap.add_argument('--tail-hard', type=int, default=24, help='number of adversarial points per batch')
+    ap.add_argument('--lr', type=float, default=1e-3, help='initial Adam lr (use ~3e-4 for warm starts)')
+    ap.add_argument('--init-from', default=None,
+                    help='cs: warm start from the final.pt of a previous unit of the same case/architecture')
+    ap.add_argument('--lbfgs', type=int, default=200, help='total L-BFGS finisher iterations')
+    ap.add_argument('--lbfgs-batch', type=int, default=768)
+    ap.add_argument('--lbfgs-chunk', type=int, default=200,
+                    help='iterations per L-BFGS call; a fresh batch is drawn for each chunk')
     ap.add_argument('--wall-minutes', type=float, default=4200.0)
     ap.add_argument('--eval-every', type=int, default=2000)
     ap.add_argument('--ckpt-every', type=int, default=1000)
@@ -665,9 +677,26 @@ def main():
               f"Nij mean {base_info['base_nij_mean']:.3e}", flush=True)
     J_fn, meta = make_field(geo, args.task, model, base_fn=base_fn)
 
-    opt = torch.optim.Adam(model.parameters(), lr=1e-3)
-    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=steps, eta_min=1e-5)
+    init_from_info = None
     state_path = os.path.join(args.out, 'state.pt')
+    if args.init_from and not os.path.exists(state_path):
+        ck = torch.load(os.path.join(args.init_from, 'final.pt'), map_location='cpu', weights_only=False)
+        for k in ('case', 'task', 'hidden', 'stages', 'kind'):
+            if ck.get(k) != {'case': args.case, 'task': args.task, 'hidden': hidden,
+                             'stages': stages, 'kind': geo.kind}[k]:
+                raise ValueError(f"--init-from mismatch on '{k}': checkpoint {ck.get(k)!r} vs unit "
+                                 f"{ {'case': args.case, 'task': args.task, 'hidden': hidden, 'stages': stages, 'kind': geo.kind}[k]!r}")
+        model.load_state_dict(ck['model'])
+        prev = os.path.join(args.init_from, 'result.json')
+        prev_res = json.load(open(prev)) if os.path.exists(prev) else {}
+        init_from_info = {'dir': args.init_from, 'prev_steps': prev_res.get('steps_done'),
+                          'prev_nij_mean': (prev_res.get('dense') or {}).get('nij_mean'),
+                          'prev_base_from': ck.get('base_from')}
+        print(f"[{tag}] warm start from {args.init_from} (prev steps {init_from_info['prev_steps']}, "
+              f"prev Nij mean {init_from_info['prev_nij_mean']})", flush=True)
+
+    opt = torch.optim.Adam(model.parameters(), lr=args.lr)
+    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=steps, eta_min=1e-5)
     start_step, elapsed_prev, init_info, poly_done = 0, 0.0, None, False
     if os.path.exists(state_path):
         st = torch.load(state_path, map_location='cpu', weights_only=False)
@@ -675,7 +704,7 @@ def main():
             feat_used = st['feat']
             model.poly = PolyNet(N, n_mat, out_scale, feat=feat_used, blocks=blocks).to(DTYPE)
             J_fn, meta = make_field(geo, args.task, model, base_fn=base_fn)
-            opt = torch.optim.Adam(model.parameters(), lr=1e-3)
+            opt = torch.optim.Adam(model.parameters(), lr=args.lr)
             sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=steps, eta_min=1e-5)
         model.load_state_dict(st['model']); opt.load_state_dict(st['opt'])
         sched.load_state_dict(st['sched'])
@@ -753,16 +782,38 @@ def main():
             model.poly.load_state_dict(best[2])
         feat_used = model.poly.feat
         J_fn, meta = make_field(geo, args.task, model, base_fn=base_fn)
-        opt = torch.optim.Adam(model.parameters(), lr=1e-3)
+        opt = torch.optim.Adam(model.parameters(), lr=args.lr)
         sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=steps, eta_min=1e-5)
         poly_done = True
         save_state(0)
+
+    # Tail-aware sampling state (cs): a hard set of adversarially ascended
+    # points, refreshed periodically; the sup is 100–1000x the mean on the
+    # unfinished cases, so the mean loss alone does not press on the tail.
+    hard_set = None
+    cs_residual = (lambda x: nij_norm(geo, J_fn, x))
+
+    def refresh_hard_set():
+        pts = []
+        for _ in range(max(1, args.tail_hard // 8)):
+            _, xa = adversarial_sup(geo, cs_residual, n_starts=8, steps=20)
+            pts.append(xa.unsqueeze(0))
+        return torch.cat(pts, dim=0)
 
     for step in range(start_step, steps):
         if elapsed() > 0.85 * wall_s:
             stopped_by_wall = True
             break
-        if args.rar and args.task == 'cs':
+        if args.task == 'cs' and args.tail:
+            if hard_set is None or step % args.tail_refresh == 0:
+                hard_set = refresh_hard_set()
+            n_hard = len(hard_set)
+            n_pool = BATCH // 2 - n_hard
+            xc = geo.sample(4 * n_pool)
+            r = cs_residual(xc).detach()
+            idx = torch.topk(r, n_pool).indices
+            x = torch.cat([geo.sample(BATCH - BATCH // 2), xc[idx], hard_set], dim=0)
+        elif args.rar and args.task == 'cs':
             xc = geo.sample(2 * BATCH)
             r = nij_norm(geo, J_fn, xc).detach()
             idx = torch.topk(r, BATCH // 2).indices
@@ -789,21 +840,48 @@ def main():
             print(f"[{tag}] step {step+1:6d} | batch {info} | held-out {ev}", flush=True)
     save_state(step + 1 if not stopped_by_wall else step)
 
-    # L-BFGS polish (time-guarded)
+    # Second-order finisher: L-BFGS in chunks, a fresh large batch per chunk
+    # (time-guarded; a chunk that makes the held-out loss worse is reverted).
+    lbfgs_log = []
     if elapsed() < 0.92 * wall_s and args.lbfgs > 0:
-        xf = geo.sample(768)
-        lb = torch.optim.LBFGS(model.parameters(), lr=1.0, max_iter=args.lbfgs,
-                               history_size=100, line_search_fn='strong_wolfe')
+        done = 0
+        x_val = geo.sample(1500)
+        best_val = (nij_norm(geo, J_fn, x_val).detach() ** 2).mean().item() if args.task == 'cs' \
+            else (acs_residual(geo, J_fn, x_val) ** 2).mean().item()
+        while done < args.lbfgs and elapsed() < 0.95 * wall_s:
+            n_it = min(args.lbfgs_chunk, args.lbfgs - done)
+            xf = geo.sample(args.lbfgs_batch)
+            if args.task == 'cs' and args.tail and hard_set is not None:
+                xf = torch.cat([xf, hard_set], dim=0)
+            snapshot = {k: v.clone() for k, v in model.state_dict().items()}
+            lb = torch.optim.LBFGS(model.parameters(), lr=1.0, max_iter=n_it,
+                                   history_size=100, line_search_fn='strong_wolfe')
 
-        def closure():
-            lb.zero_grad()
-            l, _ = unit_loss(geo, args.task, J_fn, xf)
-            l.backward()
-            return l
-        try:
-            lb.step(closure)
-        except Exception as e:                     # keep the Adam result on failure
-            print(f"[{tag}] LBFGS failed ({type(e).__name__}); keeping Adam weights", flush=True)
+            def closure():
+                lb.zero_grad()
+                l, _ = unit_loss(geo, args.task, J_fn, xf)
+                l.backward()
+                return l
+            try:
+                lb.step(closure)
+            except Exception as e:                 # keep the previous weights on failure
+                print(f"[{tag}] LBFGS chunk failed ({type(e).__name__}); reverting", flush=True)
+                model.load_state_dict(snapshot)
+                break
+            val = (nij_norm(geo, J_fn, x_val).detach() ** 2).mean().item() if args.task == 'cs' \
+                else (acs_residual(geo, J_fn, x_val) ** 2).mean().item()
+            reverted = val > best_val
+            if reverted:
+                model.load_state_dict(snapshot)
+            else:
+                best_val = val
+            done += n_it
+            rec = {'phase': 'lbfgs', 'iters_done': done, 'val_loss': val, 'best_val': best_val,
+                   'reverted': reverted, 'elapsed_min': elapsed() / 60.0}
+            lbfgs_log.append(rec)
+            progress.write(json.dumps(rec) + '\n'); progress.flush()
+            print(f"[{tag}] lbfgs {done:5d}/{args.lbfgs} | held-out loss {val:.3e} (best {best_val:.3e})"
+                  f"{' REVERTED' if reverted else ''}", flush=True)
         save_state(steps)
 
     torch.save({'model': model.state_dict(), 'case': args.case, 'task': args.task,
@@ -817,7 +895,8 @@ def main():
     result = {'case': args.case, 'task': args.task, 'seed': args.seed,
               'formulation': geo.kind, 'hidden': hidden, 'stages': stages,
               'model_type': 'curriculum' if curriculum else 'mlp', 'feat': feat_used,
-              'ladder': ladder_log, 'base': base_info,
+              'ladder': ladder_log, 'base': base_info, 'init_from': init_from_info,
+              'tail': bool(args.tail), 'lr': args.lr, 'lbfgs': lbfgs_log,
               'steps_done': min(step + 1, steps), 'steps_planned': steps,
               'stopped_by_wall': stopped_by_wall, 'elapsed_min': elapsed() / 60.0,
               'init': init_info, 'exact_acs_by_construction': meta['exact_acs'],
