@@ -1,7 +1,7 @@
 """Re-run the a-posteriori certification of campaign ACS units from their
-saved final.pt (used after the polar-correction fix: the inverse square root
-must use the general eigendecomposition, since −K² is not symmetric for a
-non-normal K).
+saved final.pt. The polar inverse square root uses the differentiable
+Newton–Schulz implementation from campaign_unit, valid under the certified
+residual bound even when −K² is not symmetric.
 
 Usage:  python extra/campaign_recertify.py RESULTS_ROOT [--n 6000]
 Updates result.json in place (keys: corrected, certified_exact_acs,
@@ -16,12 +16,13 @@ import sys
 import json
 import glob
 import argparse
+import numpy as np
 import torch
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
-from extra.campaign_unit import (Geometry, Net, make_field, dense_eval,
-                                 polar_corrected, chart_protocol, DTYPE)
+from extra.campaign_unit import (Geometry, load_acs_field, dense_eval,
+                                 polar_corrected, chart_protocol)
 
 
 def main():
@@ -31,16 +32,13 @@ def main():
     ap.add_argument('--n-chart', type=int, default=2000)
     args = ap.parse_args()
     torch.manual_seed(123)
+    np.random.seed(123)
 
     for p in sorted(glob.glob(os.path.join(args.root, '*_acs_*', 'result.json'))):
         d = os.path.dirname(p)
         r = json.load(open(p))
-        ck = torch.load(os.path.join(d, 'final.pt'), map_location='cpu', weights_only=False)
-        geo = Geometry(r['case'])
-        n_mat = geo.d if geo.kind == 'frame' else geo.N
-        model = Net(geo.N, n_mat, ck['stages'], ck['hidden'], 0.3).to(DTYPE)
-        model.load_state_dict(ck['model']); model.eval()
-        K_fn, _ = make_field(geo, 'acs', model)
+        geo = Geometry(r['case'], r.get('formulation', 'ambient'))
+        K_fn = load_acs_field(geo, d)
         raw = dense_eval(geo, 'acs', K_fn, args.n)
         line = f"{os.path.basename(d):16s} raw acs {raw['acs_mean']:.2e}/{raw['acs_sup']:.2e}"
         r['dense'] = raw

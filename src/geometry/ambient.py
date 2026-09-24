@@ -24,9 +24,14 @@ class AmbientManifold:
     def __init__(self, factor_dims):
         """factor_dims: manifold dims of the factors, e.g. (4, 2) or (6,)."""
         self.factor_dims = tuple(factor_dims)
-        self.ambient_dims = tuple(m + 1 for m in factor_dims)
+        if not self.factor_dims:
+            raise ValueError("a sphere product must contain at least one factor")
+        if any(not isinstance(m, int) or isinstance(m, bool) or m < 1
+               for m in self.factor_dims):
+            raise ValueError(f"sphere dimensions must be positive integers, got {self.factor_dims!r}")
+        self.ambient_dims = tuple(m + 1 for m in self.factor_dims)
         self.ambient_dim = sum(self.ambient_dims)
-        self.dim = sum(factor_dims)
+        self.dim = sum(self.factor_dims)
 
     def sample(self, n: int, dtype=torch.float64) -> torch.Tensor:
         parts = []

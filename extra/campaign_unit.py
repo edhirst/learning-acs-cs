@@ -1,7 +1,7 @@
 """Uniform chart-free PINN campaign — one (case, task, seed) unit.
 
 Formulation (--formulation, default 'ambient'): ONE common description for
-all nine cases — every case is a product of unit spheres in ℝ^N, fields are
+all registered cases — every case is a product of unit spheres in ℝ^N, fields are
 J = P·M(p)·P with P the tangential projector, and the Nijenhuis tensor is
 assembled from ambient brackets (src/loss/ambient_loss.py). No charts. The
 global-frame Nijenhuis remains available for the parallelizable cases
@@ -14,8 +14,9 @@ Tasks (unsupervised PINN, identical across formulations):
        sup ‖K²+Id_T‖ < 1.
   cs   exact-ACS parametrization J = e^{B_s}⋯e^{B_1} J_base e^{−B_1}⋯e^{−B_s}
        (B_k tangential net outputs, initialised at O(1) ⇒ a generic
-       NON-integrable start), loss = mean ‖N(J)‖² only. J_base is the
-       canonical J₀ (frame cases) or a classical explicit ACS (ambient cases);
+       NON-integrable start), loss = mean ‖N(J)‖² only. J_base is normally the
+       certified ACS learned by an earlier unit (--base-from), with canonical
+       or classical explicit structures retained as optional fallbacks;
        s4 has no ACS, so its cs unit runs the free-field two-term loss
        (w·‖K²+P‖² + ‖N‖²) as the "nothing exists" control.
 
@@ -36,6 +37,8 @@ import sys
 import json
 import time
 import argparse
+import itertools
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -47,10 +50,8 @@ from src.geometry.explicit_acs import (ALL_CASES, factor_dims, is_frame_case,
 from src.loss.frame_loss import frame_nij_norm
 from src.loss.ambient_loss import (ambient_nij_norm, compute_J_and_DJ,
                                    compute_P_and_DP)
-from src.geometry.sphere import EvenSphere, RADIAL_MIDPOINT
-from src.geometry.sphere_product import SphereProduct
-from src.loss.sphere_loss import _nij_tensor, OverlapLoss
-from src.loss.product_loss import ProductOverlapLoss
+from src.geometry.sphere import EvenSphere, RADIAL_MIDPOINT, sphere_uniform_sample
+from src.loss.sphere_loss import _nij_tensor
 
 DTYPE = torch.float64
 BATCH = 192
@@ -150,19 +151,32 @@ class PolyNet(nn.Module):
         """feat: harmonic content of the class —
              'all2'  : 1, x, x⊗x (degree ≤ 2)        'lin'   : x only (ℓ = 1)
              'lin+c' : 1, x                          'quad_h': x⊗x only
-             'bilin' : x_A ⊗ x_B across the two product factors (bidegree (1,1);
-                       `blocks` = ambient block sizes of the factors)
+             'bilin' : x_A ⊗ x_B across every pair of distinct product factors
+                       (`blocks` = ambient block sizes of all factors)
              'lin+bilin': x, x_A ⊗ x_B"""
         super().__init__()
         self.feat, self.n_in = feat, n_in
         iu = torch.triu_indices(n_in, n_in)
         self.register_buffer('iu', iu)
-        if blocks is not None and len(blocks) == 2:
-            na = blocks[0]
-            ia, ib = torch.meshgrid(torch.arange(na), torch.arange(na, n_in), indexing='ij')
-            self.register_buffer('bil', torch.stack([ia.reshape(-1), ib.reshape(-1)]))
+        if blocks is not None and sum(blocks) != n_in:
+            raise ValueError(f"ambient block sizes must sum to n_in={n_in}, got {blocks!r}")
+        if blocks is not None and len(blocks) >= 2:
+            offsets = [0]
+            for width in blocks:
+                offsets.append(offsets[-1] + width)
+            pairs = []
+            for a, b in itertools.combinations(range(len(blocks)), 2):
+                ia, ib = torch.meshgrid(
+                    torch.arange(offsets[a], offsets[a + 1]),
+                    torch.arange(offsets[b], offsets[b + 1]),
+                    indexing='ij',
+                )
+                pairs.append(torch.stack([ia.reshape(-1), ib.reshape(-1)]))
+            self.register_buffer('bil', torch.cat(pairs, dim=1))
         else:
             self.bil = None
+        if feat in ('bilin', 'lin+bilin') and self.bil is None:
+            raise ValueError(f"feature class {feat!r} requires at least two ambient factor blocks")
         n_feat = self.features(torch.zeros(1, n_in)).shape[1]
         self.lin = nn.Linear(n_feat, n_mat * n_mat, bias=False)
         with torch.no_grad():
@@ -182,10 +196,10 @@ class PolyNet(nn.Module):
             return torch.cat([one, x], dim=1)
         if self.feat == 'quad_h':
             return quad
-        bil = x[:, self.bil[0]] * x[:, self.bil[1]]
         if self.feat == 'bilin':
-            return bil
+            return x[:, self.bil[0]] * x[:, self.bil[1]]
         if self.feat == 'lin+bilin':
+            bil = x[:, self.bil[0]] * x[:, self.bil[1]]
             return torch.cat([x, bil], dim=1)
         raise ValueError(self.feat)
 
@@ -259,6 +273,10 @@ def make_field(geo, task, model, base_fn=None):
 def load_acs_field(geo, run_dir):
     """Rebuild the frozen free ACS field K(x) of a finished acs unit."""
     ck = torch.load(os.path.join(run_dir, 'final.pt'), map_location='cpu', weights_only=False)
+    if ck.get('case') not in (None, geo.case):
+        raise ValueError(f"base ACS in {run_dir} is for case {ck['case']!r}, expected {geo.case!r}")
+    if ck.get('task') not in (None, 'acs'):
+        raise ValueError(f"base checkpoint in {run_dir} has task {ck['task']!r}, expected 'acs'")
     if ck.get('kind', geo.kind) != geo.kind:
         raise ValueError(f"base ACS in {run_dir} was trained in the '{ck['kind']}' formulation, "
                          f"this unit runs '{geo.kind}': use the same --formulation for both stages")
@@ -500,39 +518,100 @@ def chart_nij(J_of, x_chart, dims, chunk=400):
 
 
 def chart_protocol(geo, J_fn, n_test):
-    """Returns (chart_cs = mean hard-cutoff Nij over patches, chart_acs = overlap)."""
+    """Evaluate a global field in all ``2**k`` product charts.
+
+    Returns ``(chart_cs, chart_acs)``: the mean hard-cutoff coordinate
+    Nijenhuis norm over every chart and the mean consistency residual over
+    every pair of overlapping charts.  The implementation is deliberately
+    factor-count agnostic; in particular, individual factors may be odd
+    dimensional even though the total dimension of an ACS candidate is even.
+    """
     J_amb = ambient_field(geo, J_fn)
     dims = geo.dims
-    if len(dims) == 1:
-        m = dims[0]
-        sphere = EvenSphere(dimension=m)
-        x1 = sphere.sample_points_patch1(n_test).to(DTYPE)
-        x2 = EvenSphere.patch_change_coords(x1)
-        J1f, J2f = chart_field(J_amb, dims, (0,)), chart_field(J_amb, dims, (1,))
-        n1, _ = chart_nij(J1f, x1, dims)
-        n2, _ = chart_nij(J2f, x2, dims)
-        with torch.no_grad():
-            ov, _ = OverlapLoss(overlap_size=OVERLAP_SIZE).to(DTYPE)(
-                J1f(x1), J2f(x2), x1, x2, hard_cutoff=True)
-        return 0.5 * (n1 + n2), ov.item()
-    ma, mb = dims
-    sp = SphereProduct(ma, mb)
-    xa0, xb0 = sp.sample_points(n_test)
-    xa0, xb0 = xa0.to(DTYPE), xb0.to(DTYPE)
-    pa = {0: xa0, 1: EvenSphere.patch_change_coords(xa0)}
-    pb = {0: xb0, 1: EvenSphere.patch_change_coords(xb0)}
+    factor_coords = []
+    for m in dims:
+        x0 = torch.as_tensor(sphere_uniform_sample(n_test, m), dtype=DTYPE)
+        factor_coords.append((x0, EvenSphere.patch_change_coords(x0)))
+
+    patches = list(itertools.product((0, 1), repeat=len(dims)))
     nijs, J_dict = [], {}
-    for ia, ib in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-        J_of = chart_field(J_amb, dims, (ia, ib))
-        xc = torch.cat([pa[ia], pb[ib]], dim=1)
+    for patch in patches:
+        J_of = chart_field(J_amb, dims, patch)
+        xc = torch.cat([factor_coords[a][patch[a]] for a in range(len(dims))], dim=1)
         n_mean, _ = chart_nij(J_of, xc, dims)
         nijs.append(n_mean)
         with torch.no_grad():
-            J_dict[(ia, ib)] = J_of(xc)
-    with torch.no_grad():
-        ov, _ = ProductOverlapLoss(ma, mb, OVERLAP_SIZE, OVERLAP_SIZE).to(DTYPE)(
-            J_dict, xa0, xb0, pa[1], pb[1], hard_cutoff=True)
-    return sum(nijs) / 4.0, ov.item()
+            J_dict[patch] = J_of(xc)
+    ov = product_chart_overlap(J_dict, factor_coords, dims, patches)
+    return sum(nijs) / len(nijs), ov.item()
+
+
+def _batch_block_diag(blocks):
+    """Batched block diagonal assembly without in-place tensor mutation."""
+    batch = blocks[0].shape[0]
+    total = sum(block.shape[1] for block in blocks)
+    rows, off = [], 0
+    for block in blocks:
+        width = block.shape[1]
+        left = block.new_zeros(batch, width, off)
+        right = block.new_zeros(batch, width, total - off - width)
+        rows.append(torch.cat([left, block, right], dim=2))
+        off += width
+    return torch.cat(rows, dim=1)
+
+
+def product_chart_overlap(J_dict, factor_coords, dims, patches=None,
+                          overlap_size=OVERLAP_SIZE):
+    """Mean tensor-transition residual over every product-chart pair.
+
+    A pair may flip one or several sphere factors.  Its transition Jacobian
+    is assembled block diagonally from the per-factor patch changes, so this
+    is the direct ``k``-factor generalisation of ``ProductOverlapLoss``.
+    """
+    if patches is None:
+        patches = list(itertools.product((0, 1), repeat=len(dims)))
+    batch = next(iter(J_dict.values())).shape[0]
+    dtype = next(iter(J_dict.values())).dtype
+    device = next(iter(J_dict.values())).device
+    r_outer = RADIAL_MIDPOINT + overlap_size
+    r_inner = (1.0 - r_outer) / (1.0 + r_outer)
+    r_floor = max(0.05, r_inner - 2.0 * overlap_size)
+    pair_losses = []
+
+    for source, target in itertools.combinations(patches, 2):
+        flipped = [a for a in range(len(dims)) if source[a] != target[a]]
+        src_blocks, tgt_blocks = [], []
+        weight = torch.ones(batch, dtype=dtype, device=device)
+        valid = torch.ones(batch, dtype=torch.bool, device=device)
+        for a, m in enumerate(dims):
+            if a in flipped:
+                xs = factor_coords[a][source[a]].to(device=device, dtype=dtype)
+                xt = factor_coords[a][target[a]].to(device=device, dtype=dtype)
+                src_blocks.append(EvenSphere.patch_change_jacobian(xs))
+                tgt_blocks.append(EvenSphere.patch_change_jacobian(xt))
+                rho_s, rho_t = xs.norm(dim=1), xt.norm(dim=1)
+                valid &= (rho_s >= r_floor) & (rho_t >= r_floor)
+                weight *= ((rho_s >= r_inner) & (rho_s <= r_outer)).to(dtype)
+            else:
+                eye = torch.eye(m, dtype=dtype, device=device).unsqueeze(0).expand(batch, m, m)
+                src_blocks.append(eye)
+                tgt_blocks.append(eye)
+
+        F_src = _batch_block_diag(src_blocks)
+        F_tgt = _batch_block_diag(tgt_blocks)
+        J_src, J_tgt = J_dict[source], J_dict[target]
+        J_src_to_tgt = F_src @ J_src @ torch.linalg.inv(F_src)
+        J_tgt_to_src = F_tgt @ J_tgt @ torch.linalg.inv(F_tgt)
+        norm_fwd = torch.sqrt(((J_src_to_tgt - J_tgt) ** 2).sum(dim=(1, 2)) + 1e-20)
+        norm_back = torch.sqrt(((J_tgt_to_src - J_src) ** 2).sum(dim=(1, 2)) + 1e-20)
+        weight = weight * valid.to(dtype)
+        w_sum = weight.sum()
+        if w_sum >= 1.0:
+            pair_losses.append((weight * (norm_fwd + norm_back)).sum() / (2.0 * w_sum))
+
+    if not pair_losses:
+        return next(iter(J_dict.values())).sum() * 0.0
+    return torch.stack(pair_losses).mean()
 
 
 # ---------------------------------------------------------------------------
@@ -627,9 +706,11 @@ def main():
     ap.add_argument('--adv-starts', type=int, default=256)
     ap.add_argument('--adv-steps', type=int, default=150)
     args = ap.parse_args()
+    table_before = TABLE_BEFORE.get(args.case, {}).get(args.task)
 
     os.makedirs(args.out, exist_ok=True)
     torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
     geo = Geometry(args.case, args.formulation)
     d, N = geo.d, geo.N
     steps = args.steps or (10000 if args.task == 'acs' else 40000)
@@ -661,7 +742,7 @@ def main():
             base_info['status'] = 'no_certified_base'
             result = {'case': args.case, 'task': args.task, 'seed': args.seed,
                       'formulation': geo.kind, 'status': 'no_certified_base',
-                      'base': base_info, 'table_before': TABLE_BEFORE[args.case][args.task]}
+                      'base': base_info, 'table_before': table_before}
             with open(os.path.join(args.out, 'result.json'), 'w') as f:
                 json.dump(result, f, indent=2)
             print(f"[{tag}] NO CERTIFIED BASE ACS (adversarial sup {adv:.3f} >= 1): CS stage not run",
@@ -698,8 +779,14 @@ def main():
     opt = torch.optim.Adam(model.parameters(), lr=args.lr)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=steps, eta_min=1e-5)
     start_step, elapsed_prev, init_info, poly_done = 0, 0.0, None, False
+    ladder_log = []
     if os.path.exists(state_path):
         st = torch.load(state_path, map_location='cpu', weights_only=False)
+        expected_state = {'case': args.case, 'task': args.task, 'seed': args.seed,
+                          'hidden': hidden, 'stages': stages, 'kind': geo.kind}
+        for key, expected in expected_state.items():
+            if key in st and st[key] != expected:
+                raise ValueError(f"resume state mismatch on {key!r}: {st[key]!r} vs {expected!r}")
         if curriculum and st.get('feat'):
             feat_used = st['feat']
             model.poly = PolyNet(N, n_mat, out_scale, feat=feat_used, blocks=blocks).to(DTYPE)
@@ -710,6 +797,11 @@ def main():
         sched.load_state_dict(st['sched'])
         start_step, elapsed_prev, init_info = st['step'], st['elapsed'], st.get('init')
         poly_done = st.get('poly_done', False)
+        ladder_log = st.get('ladder_log', [])
+        if st.get('torch_rng_state') is not None:
+            torch.set_rng_state(st['torch_rng_state'])
+        if st.get('numpy_rng_state') is not None:
+            np.random.set_state(st['numpy_rng_state'])
         print(f"[{tag}] resumed at step {start_step} ({elapsed_prev/60:.1f} min used)", flush=True)
     if init_info is None:
         x0 = geo.sample(300)
@@ -726,15 +818,17 @@ def main():
     def save_state(step_):
         torch.save({'model': model.state_dict(), 'opt': opt.state_dict(),
                     'sched': sched.state_dict(), 'step': step_, 'poly_done': poly_done,
-                    'feat': feat_used,
-                    'elapsed': elapsed(), 'init': init_info}, state_path)
+                    'feat': feat_used, 'case': args.case, 'task': args.task,
+                    'seed': args.seed, 'hidden': hidden, 'stages': stages, 'kind': geo.kind,
+                    'elapsed': elapsed(), 'init': init_info, 'ladder_log': ladder_log,
+                    'torch_rng_state': torch.get_rng_state(),
+                    'numpy_rng_state': np.random.get_state()}, state_path)
 
     # Phase 1 (ACS): polynomial field only (MLP frozen), climbing the harmonic
     # ladder; optional annealed intrinsic Dirichlet term λ(t): λ0 → λ1.
-    ladder_log = []
     if curriculum and not poly_done and start_step == 0:
         classes = [args.feat] if args.feat != 'auto' else \
-            [f for f in LADDER if ('bilin' not in f or len(geo.dims) == 2)]
+            [f for f in LADDER if ('bilin' not in f or len(geo.dims) >= 2)]
         best = None
         # Per class: attempt 1 = plain residual flow; attempt 2 (only if
         # rejected) = the same flow with the annealed intrinsic-Dirichlet
@@ -900,7 +994,7 @@ def main():
               'steps_done': min(step + 1, steps), 'steps_planned': steps,
               'stopped_by_wall': stopped_by_wall, 'elapsed_min': elapsed() / 60.0,
               'init': init_info, 'exact_acs_by_construction': meta['exact_acs'],
-              'table_before': TABLE_BEFORE[args.case][args.task], **rep}
+              'table_before': table_before, **rep}
     with open(os.path.join(args.out, 'result.json'), 'w') as f:
         json.dump(result, f, indent=2)
     verdict = ('CERTIFIED exact ACS' if rep.get('certified_exact_acs') else
@@ -908,7 +1002,7 @@ def main():
     print(f"[{tag}] RESULT: {verdict} | adv acs sup {rep.get('adv_acs_sup', float('nan')):.3e} "
           f"| adv Nij sup {rep['adv_nij_sup']:.3e} | dense {rep['dense']} "
           f"| chart {args.task} = {rep['chart_cs'] if args.task == 'cs' else rep['chart_acs']:.3e} "
-          f"(table before {TABLE_BEFORE[args.case][args.task]})", flush=True)
+          f"(table before {table_before if table_before is not None else 'n/a'})", flush=True)
 
 
 if __name__ == '__main__':

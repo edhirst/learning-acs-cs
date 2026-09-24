@@ -11,6 +11,7 @@ of it anyway).
     s3xs1     0    frame         ℝ⁴×ℝ²                      canonical J₀ (frame)
     s3xs3     0    frame         ℝ⁴×ℝ⁴                      canonical J₀ (frame)
     s5xs1     0    frame         ℝ⁶×ℝ²                      canonical J₀ (frame)
+    s4xs1xs1  0    ambient       ℝ⁵×ℝ²×ℝ²                   learned + polar corrected
     s2        2    ambient       ℝ³                         J v = x × v  (integrable)
     s4        2    ambient       ℝ⁵                         NONE (S⁴ has no ACS)
     s6        2    ambient       ℝ⁷                         octonionic (G₂)
@@ -39,6 +40,7 @@ AMBIENT_CASES = {
     's6':    (6,),
     's2xs2': (2, 2),
     's4xs2': (4, 2),
+    's4xs1xs1': (4, 1, 1),
 }
 
 ALL_CASES = list(FRAME_CASES) + list(AMBIENT_CASES)

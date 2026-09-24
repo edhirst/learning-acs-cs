@@ -11,9 +11,11 @@ import sys
 import json
 import glob
 
-ORDER = ['s2', 's4', 's6', 's1xs1', 's2xs2', 's3xs1', 's3xs3', 's4xs2', 's5xs1']
+ORDER = ['s2', 's4', 's6', 's1xs1', 's2xs2', 's3xs1', 's3xs3', 's4xs2',
+         's5xs1', 's4xs1xs1']
 NAMES = {'s2': 'S2', 's4': 'S4', 's6': 'S6', 's1xs1': 'S1xS1', 's2xs2': 'S2xS2',
-         's3xs1': 'S3xS1', 's3xs3': 'S3xS3', 's4xs2': 'S4xS2', 's5xs1': 'S5xS1'}
+         's3xs1': 'S3xS1', 's3xs3': 'S3xS3', 's4xs2': 'S4xS2', 's5xs1': 'S5xS1',
+         's4xs1xs1': 'S4xS1xS1'}
 
 
 def main():
@@ -50,8 +52,10 @@ def main():
             if r is None:
                 print(f"| {NAMES[case]} | {task.upper()} | — | — | (no result) | | | | | | |")
                 continue
+            before = r.get('table_before')
+            before_text = '—' if before is None else f'{before:.3g}'
             if r.get('status') == 'no_certified_base':
-                print(f"| {NAMES[case]} | {task.upper()} | {r['formulation']} | {r['table_before']:.3g} | — | — | "
+                print(f"| {NAMES[case]} | {task.upper()} | {r['formulation']} | {before_text} | — | — | "
                       f"{r['base']['adv_acs_sup_raw']:.2f} (base) | **refused: no certified ACS** | | | {r['seed']} |")
                 continue
             d = r['dense']
@@ -65,7 +69,7 @@ def main():
                 adv = r.get('adv_nij_sup', float('nan'))
                 chart = r.get('chart_cs', float('nan'))
                 intr, sup = d['nij_mean'], d['nij_sup']
-            print(f"| {NAMES[case]} | {task.upper()} | {r['formulation']} | {r['table_before']:.3g} | "
+            print(f"| {NAMES[case]} | {task.upper()} | {r['formulation']} | {before_text} | "
                   f"{chart:.2e} | {intr:.2e} / {sup:.2e} | **{adv:.2e}** | {verdict} | "
                   f"{r.get('feat') or '—'} | {r['steps_done']} | {r['seed']} |")
 

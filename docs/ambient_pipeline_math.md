@@ -11,6 +11,10 @@ Cases: $S^2$, $S^4$, $S^6$, $S^1\times S^1$, $S^2\times S^2$, $S^3\times S^1$,
 $S^3\times S^3$, $S^4\times S^2$, $S^5\times S^1$. Tasks: an almost complex
 structure (ACS) and a complex structure (CS) on each.
 
+The implementation is not limited to two factors. The additional registered
+case $S^4\times S^1\times S^1$ exercises the same ambient pipeline with three
+factors ($d=6$, $N=9$); it is kept separate from the original nine-case table.
+
 ---
 
 ## 1. Objects and goal
@@ -51,6 +55,11 @@ $S^4$.
 Every case is a product of unit spheres
 
 $$M = S^{m_1}\times\cdots\times S^{m_k} \subset \mathbb R^{m_1+1}\times\cdots\times\mathbb R^{m_k+1} = \mathbb R^N,\qquad d = \sum m_i,\quad N = \sum (m_i+1).$$
+
+Sampling, projection, ambient Nijenhuis evaluation, retraction, adversarial
+search, and the final $2^k$-chart cross-check all iterate over this factor
+list. Thus adding a case is registry/configuration work rather than a new
+geometric implementation.
 
 A point is $p = (x_1,\dots,x_k)$ with $|x_i| = 1$. The tangent space is
 $T_pM = \bigoplus_i x_i^\perp$ and the orthogonal projector onto it is the
@@ -132,7 +141,7 @@ $N\times N$ matrix (or several). Two families are used.
 |---|---|---|
 | `c` | $1$ | degree 0 |
 | `lin` | $p_a$ | degree 1 |
-| `bilin` | $x_{A,a}\,x_{B,b}$ (two-factor products only) | bidegree $(1,1)$ |
+| `bilin` | $x_{A,a}\,x_{B,b}$ for every pair of distinct factors $A<B$ | pairwise multidegree $(1,1)$ |
 | `quad_h` | $p_ap_b$, $a\le b$ | degrees 2 and 0 |
 | `lin+c`, `lin+bilin`, `all2` | unions of the above; `all2` $=\{1, p_a, p_ap_b\}$ | degree $\le 2$ |
 
@@ -411,6 +420,7 @@ for each case M, seed:
 | `src/geometry/explicit_acs.py` | case registry; classical ACS (offline checks / optional bases) |
 | `extra/campaign_unit.py` | the unit: ladder, Dirichlet retry, MLP refinement, adversarial sup, Newton–Schulz polar, CS stage, chart protocol |
 | `extra/campaign_summary.py` | before/after table with verdicts |
+| `scratch/submit_S4xS1xS1_{ACS,CS}.sh` | separate Lovelace submissions for the three-factor case |
 | `extra/chern_class_ambient.py` | $c_1$ on the $S^2$ cycle |
 | `extra/acs_homotopy_probe.py` | the experiments behind §4.2–4.4 |
 | `pbs/campaign_ambient.pbs`, `jobs_ambient_{acs,cs}.txt` | the HPC job (phase A: ACS, phase B: CS from own ACS) |
