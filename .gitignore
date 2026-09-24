@@ -23,10 +23,8 @@ outputs/**
 # TensorBoard
 events.out.tfevents.*
 
-# Scratch / temp scripts. Keep the two portable Lovelace submission scripts.
-scratch/*
-!scratch/submit_S4xS1xS1_ACS.sh
-!scratch/submit_S4xS1xS1_CS.sh
+# Scratch / temp scripts
+scratch/
 
 # Codex local files
 .codex/
