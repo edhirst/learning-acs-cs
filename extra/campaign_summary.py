@@ -1,15 +1,16 @@
 """Aggregate campaign_unit results into the before/after table.
 
 Usage:  python extra/campaign_summary.py RESULTS_ROOT [--all]
-Scans RESULTS_ROOT/*/result.json; per (case, task) keeps the best seed by the
-chart-protocol score (--all lists every run).
+        [--expected-run RECIPE/s7 ...]
+Recursively scans result.json; ranks ACS by maximum found and CS by mean
+Nijenhuis. --expected-run flags missing results without hiding other runs.
 """
 from __future__ import annotations
 
 import os
-import sys
 import json
 import glob
+import argparse
 
 ORDER = ['s2', 's4', 's6', 's1xs1', 's2xs2', 's3xs1', 's3xs3', 's4xs2',
          's5xs1', 's4xs1xs1']
@@ -19,8 +20,15 @@ NAMES = {'s2': 'S2', 's4': 'S4', 's6': 'S6', 's1xs1': 'S1xS1', 's2xs2': 'S2xS2',
 
 
 def main():
-    root = sys.argv[1]
-    show_all = '--all' in sys.argv
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('root')
+    parser.add_argument('--all', action='store_true', dest='show_all')
+    parser.add_argument('--expected-run', action='append', default=[])
+    args = parser.parse_args()
+    root, show_all = args.root, args.show_all
+    for expected in args.expected_run:
+        if not os.path.isfile(os.path.join(root, expected, 'result.json')):
+            print(f"MISSING RESULT: {expected} — job may have failed or been killed before writing a result; inspect its PBS/log output.")
     runs = []
     for p in glob.glob(os.path.join(root, '**', 'result.json'), recursive=True):
         with open(p) as f:
@@ -80,6 +88,7 @@ def main():
         print("\nAll runs:")
         for r in sorted(runs, key=lambda r: (ORDER.index(r['case']), r['task'], r['seed'])):
             print(f"  {r['_dir']}: score {r['_score']:.3e}  dense {r['dense']}  "
+                  f"status={r.get('status', 'legacy')}  counts={r.get('counts', r.get('steps_done'))}  "
                   f"wall-stopped={r.get('stopped_by_wall')}  {r.get('elapsed_min', float('nan')):.0f} min")
 
 

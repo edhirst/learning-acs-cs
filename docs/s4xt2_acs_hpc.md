@@ -1,6 +1,7 @@
 # Ambient ACS campaign: implementation and Lovelace handoff
 
-The next experiment is **ACS only**. No CS job, hold or dependency is needed.
+The next experiment is **ACS only**. The four pilots are independent; an
+optional summary job waits for all four using an `afterany` dependency.
 This implements the first phase of [the ambient ACS plan](s4xt2_ambient_acs_plan.md).
 Stop after the first four pilots and review their results before spending the
 larger multi-seed/long-run budget. Existence of an ACS does not guarantee that
@@ -41,17 +42,27 @@ git status --short
 git add src/geometry/ambient.py extra/campaign_unit.py \
   extra/campaign_summary.py extra/campaign_recertify.py \
   extra/acs_training.py extra/acs_local_checks.py \
-  extra/validate_ambient_acs.py extra/test_acs_training.py \
+  extra/validate_ambient_acs.py extra/test_acs_training.py extra/test_acs_pbs.py \
   configs/ambient/s4xs1xs1_acs docs/s4xt2_ambient_acs_plan.md \
   docs/s4xt2_research_plan.md docs/s4xt2_acs_hpc.md
 git commit -m "Add reproducible ambient ACS pilot campaign"
-git push origin no_overlaps
+git cat-file -e HEAD:extra/acs_training.py
+git cat-file -e HEAD:configs/ambient/s4xs1xs1_acs/pilot_trilin_tail.yaml
+git push origin s4t2
 ```
 
-Copy the two ignored scripts separately, using your working SSH hostname/alias:
+The branch is now `s4t2`, as selected for this campaign. Check
+`git branch --show-current` before committing/pushing; do not accidentally push
+the old `no_overlaps` branch. `git status --short` entries starting with `??`
+are untracked and will not be included by `git commit -a` or `git push`.
+The `git cat-file` checks above verify that the files actually exist in the
+commit, not just in the working directory.
+
+Copy the four ignored scripts separately, using your working SSH hostname/alias:
 
 ```bash
 scp scratch/submit_S4xS1xS1_ACS_v2.sh scratch/submit_S4xS1xS1_ACS_audit.sh \
+  scratch/submit_S4xS1xS1_ACS_pilots.sh scratch/submit_S4xS1xS1_ACS_summary.sh \
   ehirst@lovelace:/home/lovelace/proj/proj925/ehirst/nijenhuis/
 ```
 
@@ -61,15 +72,38 @@ On Lovelace:
 cd /home/lovelace/proj/proj925/ehirst/nijenhuis/github
 git branch --show-current
 git status --short
-test "$(git branch --show-current)" = no_overlaps && git pull --ff-only origin no_overlaps
+test "$(git branch --show-current)" = s4t2 && git pull --ff-only origin s4t2
+git cat-file -e HEAD:extra/acs_training.py
+git cat-file -e HEAD:configs/ambient/s4xs1xs1_acs/pilot_trilin_tail.yaml
 test -f extra/acs_training.py
 test -f configs/ambient/s4xs1xs1_acs/pilot_trilin_tail.yaml
 cd ..
 ```
 
-The branch should be `no_overlaps`; stop and resolve a different branch or local
+The branch should be `s4t2`; stop and resolve a different branch or local
 conflicts rather than resetting your checkout. Pulling a branch into a different
 checked-out branch is not the same as switching to that branch.
+
+### If you see “Missing extra/acs_training.py”
+
+Being on `s4t2` does not establish that its latest commit contains the new files.
+At the time this error was reported, this local checkout had the new runner and
+configs as **untracked files**, with HEAD still at `1383f80`. A push of that
+branch alone cannot publish them. Add/commit/push the explicit file list above,
+then pull and verify `git cat-file` on Lovelace before resubmitting.
+
+During the fix, the implementation was committed as `f1cf650` (`astra plan`);
+that commit does contain the runner and configs. The follow-up changes to this
+runbook, `extra/campaign_summary.py`, and `extra/test_acs_pbs.py` also need their
+own commit/push. The four `scratch/` scripts still need copying separately.
+
+If the file is committed and present remotely, the remaining possibility is
+checkout discovery: the job searches the directory where `qsub` was called and
+its `github/` child. Override that explicitly with
+`-v REPO_DIR=/home/lovelace/proj/proj925/ehirst/nijenhuis/github` (combine it with
+other `-v` variables using commas). The updated scripts print the searched paths
+on failure. Reading a `#PBS -k oe` log from your home directory does not by itself
+tell you where the job was submitted.
 
 ## 1. Submit a short smoke test
 
@@ -80,7 +114,7 @@ your site's queue documentation if rejected. If changing the PBS wall limit,
 also set `WALL_MINUTES` to no more than 85% of its minutes.
 
 ```bash
-qsub -v RECIPE=smoke,SEED=7,WALL_MINUTES=10 submit_S4xS1xS1_ACS_v2.sh
+qsub -v REPO_DIR=/home/lovelace/proj/proj925/ehirst/nijenhuis/github,RECIPE=smoke,SEED=7,WALL_MINUTES=10 submit_S4xS1xS1_ACS_v2.sh
 qstat -u "$USER"
 ```
 
@@ -101,8 +135,24 @@ outputs/s4xs1xs1_acs/pilots/<recipe>/s<seed>/<full-PBS-job-id>/
 
 ## 2. First bounded HPC pilots: seed 7 only
 
-After the smoke succeeds, submit these four independent jobs. They do not depend
-on each other and none should be held for a CS job:
+After the smoke succeeds, run this launcher on the **login node with bash**, not
+with qsub. It submits all four pilots and their held summary, saves the returned
+job IDs, and refuses to construct a dependency if any submission fails:
+
+```bash
+cd /home/lovelace/proj/proj925/ehirst/nijenhuis
+bash submit_S4xS1xS1_ACS_pilots.sh
+```
+
+The default seed is 7; use `SEED=8 bash ...` for a later approved repetition.
+Each invocation uses a new timestamped campaign root, preventing old/missing
+results from being confused with this campaign. The launcher prints the exact
+summary report path and writes `submission.tsv` alongside it. If submission
+partly fails, already-submitted jobs remain queued; inspect that manifest and
+`qstat` rather than blindly rerunning all four.
+
+Alternatively, these manual commands submit only the pilots (no automatic
+summary). They do not depend on each other and none should be held for a CS job:
 
 ```bash
 qsub -v RECIPE=pilot_all2_uniform,SEED=7 submit_S4xS1xS1_ACS_v2.sh
@@ -147,9 +197,38 @@ optimizer/scheduler and records the source checksum. We will configure the
 seed-10 legacy comparisons after inspecting that checkpoint's actual metadata;
 do not silently assume which ladder feature class it saved.
 
-## 3. Bring back results; pause before the long campaign
+## 3. Automatic held summary; pause before the long campaign
 
-With the `nijenhuis` conda environment active:
+The launcher already submits the following equivalent scheduler dependency:
+
+```bash
+qsub -W "depend=afterany:JOB_ID_0:JOB_ID_1:JOB_ID_2:JOB_ID_3" \
+  -v "REPO_DIR=/absolute/path/to/github,SUMMARY_ROOT=/absolute/campaign/root,PILOT_SEED=7" \
+  submit_S4xS1xS1_ACS_summary.sh
+```
+
+Use real full job IDs, not these placeholders. `afterany` waits for all four jobs
+to terminate even if they exit with errors or code 75; `afterok` would suppress
+the summary in those cases. The dependency hold releases automatically: **do not
+add `-h`**, which would introduce a separate user hold. The summary reports
+missing results and includes incomplete statuses and actual phase counters.
+
+If the pilots were submitted manually in the older layout, omit `PILOT_SEED`
+and set `SUMMARY_ROOT` to the existing
+`/home/lovelace/proj/proj925/ehirst/nijenhuis/outputs/s4xs1xs1_acs/pilots`.
+`PILOT_SEED` enables exact expected-path checks for the launcher's new layout only.
+
+PBS caveat: a job deleted before it ever runs may not satisfy `afterany`.
+If you cancel such a predecessor, inspect/recreate the summary dependency rather
+than assuming it will release. Submit the summary immediately after the pilots,
+while their IDs are known to PBS. These semantics are documented in the
+[PBS Professional reference guide](https://help.altair.com/2022.1.0/PBS%20Professional/PBSReferenceGuide2022.1.pdf).
+
+The summary job requests one GB and ten minutes and writes
+`SUMMARY_ROOT/summary.<summary-job-id>.txt`. This is just a report: it does not
+submit CS or declare a mathematical certificate.
+
+To summarize manually, with the `nijenhuis` conda environment active:
 
 ```bash
 cd /home/lovelace/proj/proj925/ehirst/nijenhuis
@@ -191,8 +270,11 @@ sufficient allocation. This audit is ACS-only; Nijenhuis/CS work remains deferre
 
 Verified on 2026-09-25 with Python 3.10 / PyTorch 2.5.1, CPU float64:
 
-- Focused tests: **33 passed** (including the eight existing product tests).
-- All three test files: **42 passed, ten pre-existing dtype failures**.
+- Initial focused tests: **33 passed** (including the eight existing product tests).
+- Initial three test files: **42 passed, ten pre-existing dtype failures**.
+- Submission-fix regression suite: **41 passed**, adding eight PBS/summary
+  tests. These include failed or empty job IDs, explicit checkout paths,
+  automatic afterany dependencies, and missing/incomplete pilot reports.
 - Thirteen bounded actual runs completed: six cross-manifold controls,
   three target smoke seeds, and four full-width pilot wiring checks.
 - S2 linear control: raw RMS 1.39e-4, maximum found 4.08e-4.
@@ -209,8 +291,10 @@ Verified on 2026-09-25 with Python 3.10 / PyTorch 2.5.1, CPU float64:
 
 ```bash
 python -m pytest -q extra/test_acs_training.py extra/test_ambient_products.py
+python -m pytest -q extra/test_acs_pbs.py
 python -m extra.acs_local_checks --out scratch/acs_local_checks/NEW_RUN_NAME
-bash -n scratch/submit_S4xS1xS1_ACS_v2.sh scratch/submit_S4xS1xS1_ACS_audit.sh
+bash -n scratch/submit_S4xS1xS1_ACS_v2.sh scratch/submit_S4xS1xS1_ACS_audit.sh \
+  scratch/submit_S4xS1xS1_ACS_pilots.sh scratch/submit_S4xS1xS1_ACS_summary.sh
 ```
 
 The existing `extra/test_all.py` had ten dtype mismatch failures before these
