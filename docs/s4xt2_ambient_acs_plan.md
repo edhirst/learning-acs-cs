@@ -40,6 +40,24 @@ independent candidate validation and CS remain deferred. Only the auditor's
 quick path has been run locally; its full 100k/three-restart budget is reserved
 for a genuinely promising learned candidate on the HPC.
 
+### HPC evidence and next checkpoint
+
+The user has now completed the seed-7 pilots. `all2+trilin` with uniform sampling
+was best: raw RMS 2.82e-4, maximum found 6.78e-4. The five-step L-BFGS attempt was
+rejected and rolled back, not a job failure. The quick independent audit agreed
+on raw residuals and gave corrected identity error 2.35e-15, tangency error
+7.24e-16, root agreement 4.81e-15 and passing first/second derivative checks.
+The raw RMS gate is still unmet; the quick audit is not final validation.
+
+The next bounded batch is a checksum-verified 10,000-step uniform continuation
+at Adam 1e-5 -> 1e-6, batch 768, no L-BFGS, plus unchanged winning-recipe random
+starts on seeds 8 and 9. The continuation uses sampling seed 107 and is explicitly
+identified as descended from seed 7, not an independent discovery. The original
+checkpoint is read-only and a new output directory is required. See the
+[follow-up commands](s4xt2_acs_hpc.md#follow-up-after-the-seed-7-quick-audit).
+Stop for these HPC results before spending the full audit budget or returning
+to CS. No acceptance thresholds have been weakened.
+
 ## 1. Objective and fixed experimental rules
 
 Learn a globally defined ACS on S4 × S1 × S1 using the same ambient formulation

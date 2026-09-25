@@ -140,3 +140,86 @@ def test_summary_expected_run_warning_when_no_results(tmp_path):
     assert result.returncode == 0
     assert 'MISSING RESULT: pilot/s7' in result.stdout
     assert 'no result.json found' in result.stdout
+
+
+def test_followup_launcher_three_jobs_checksum_and_summary(shell_env, tmp_path):
+    import hashlib
+    source = tmp_path / 'audited candidate.pt'
+    source.write_bytes(b'checkpoint fixture\n')
+    digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    env = {**shell_env, 'STAGE': 'followup', 'SOURCE_CHECKPOINT': str(source), 'SOURCE_SHA256': digest}
+    result = subprocess.run(['bash', script('submit_S4xS1xS1_ACS_pilots.sh')],
+                            cwd=env['PBS_O_WORKDIR'], env=env, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    submitted = calls(env)
+    assert len(submitted) == 4  # three training jobs plus the held summary
+    continuation = submitted[0][submitted[0].index('-v') + 1]
+    assert 'RECIPE=polish_trilin_uniform,SEED=107' in continuation
+    assert f'INIT_FROM={source},SOURCE_SHA256={digest}' in continuation
+    for index, seed in ((1, 8), (2, 9)):
+        fresh = submitted[index][submitted[index].index('-v') + 1]
+        assert f'RECIPE=pilot_trilin_uniform,SEED={seed}' in fresh
+        assert 'INIT_FROM=' not in fresh
+    assert submitted[-1][submitted[-1].index('-W') + 1] == 'depend=afterany:101.server:102.server:103.server'
+    assert source.read_bytes() == b'checkpoint fixture\n'
+
+
+def test_followup_hash_mismatch_submits_nothing(shell_env, tmp_path):
+    source = tmp_path / 'wrong.pt'
+    source.write_bytes(b'changed')
+    env = {**shell_env, 'STAGE': 'followup', 'SOURCE_CHECKPOINT': str(source), 'SOURCE_SHA256': '0' * 64}
+    result = subprocess.run(['bash', script('submit_S4xS1xS1_ACS_pilots.sh')],
+                            cwd=env['PBS_O_WORKDIR'], env=env, capture_output=True, text=True)
+    assert result.returncode == 2
+    assert 'checksum does not match' in result.stderr
+    assert calls(env) == []
+
+
+def test_polish_wrapper_requires_source_or_resume(shell_env):
+    env = {**shell_env, 'RECIPE': 'polish_trilin_uniform', 'SEED': '107'}
+    result = subprocess.run(['bash', script('submit_S4xS1xS1_ACS_v2.sh')],
+                            cwd=env['PBS_O_WORKDIR'], env=env, capture_output=True, text=True)
+    assert result.returncode == 2
+    assert 'refusing a fresh MLP start' in result.stderr
+
+
+def test_summary_reads_followup_manifest_without_assuming_four_pilots(shell_env, tmp_path):
+    root = tmp_path / 'followup'
+    root.mkdir()
+    manifest = 'role\tjob_id\toutput\n'
+    for recipe, seed, job in [('polish_trilin_uniform', 107, 101), ('pilot_trilin_uniform', 8, 102),
+                              ('pilot_trilin_uniform', 9, 103)]:
+        manifest += f'{recipe}\t{job}.server\t{root / recipe / f"s{seed}"}\n'
+    manifest += f'summary\t200.server\t{root / "summary.200.server.txt"}\n'
+    (root / 'submission.tsv').write_text(manifest)
+    env = {**shell_env, 'SUMMARY_ROOT': str(root)}
+    result = subprocess.run(['bash', script('submit_S4xS1xS1_ACS_summary.sh')],
+                            env=env, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    report = (root / 'summary.200.server.txt').read_text()
+    assert report.count('MISSING RESULT:') == 3
+    assert 'polish_trilin_uniform/s107' in report
+    assert 'pilot_trilin_uniform/s8' in report
+    assert 'pilot_trilin_uniform/s9' in report
+
+
+def test_polish_wrapper_passes_checked_continuation_to_real_runner(shell_env, tmp_path):
+    import hashlib
+    import torch
+    from extra.acs_training import Runner, read_config
+    config = read_config(REPO / 'configs/ambient/s4xs1xs1_acs/polish_trilin_uniform.yaml')
+    source = Runner(config, tmp_path / 'fixture')
+    source.model.refinement_phase(zero_output=False)
+    checkpoint = tmp_path / 'candidate.pt'
+    torch.save(source.payload(), checkpoint)
+    digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+    env = {**shell_env, 'RECIPE': 'polish_trilin_uniform', 'SEED': '107',
+           'INIT_FROM': str(checkpoint), 'SOURCE_SHA256': digest, 'WALL_MINUTES': '0.00000001'}
+    result = subprocess.run(['bash', script('submit_S4xS1xS1_ACS_v2.sh')],
+                            cwd=env['PBS_O_WORKDIR'], env=env, capture_output=True, text=True)
+    assert result.returncode == 75, result.stderr
+    result_path = Path(env['PBS_O_WORKDIR']) / 'outputs/s4xs1xs1_acs/pilots/polish_trilin_uniform/s107/200.server/result.json'
+    record = json.loads(result_path.read_text())
+    assert record['phase'] == 'refine'
+    assert record['source']['sha256'] == digest
+    assert hashlib.sha256(checkpoint.read_bytes()).hexdigest() == digest

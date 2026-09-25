@@ -317,6 +317,57 @@ def test_all_shipped_configs_validate():
         read_config(path)
 
 
+def test_audited_continuation_checksum_provenance_and_resume(tmp_path):
+    from extra.acs_training import sha256
+    cfg = tiny(poly_steps=0, refine_steps=2, refine_lr=1e-5, lr_min=1e-6, seed=107)
+    source = Runner(tiny(seed=7), tmp_path / 'source_run')
+    source.model.refinement_phase(zero_output=False)
+    checkpoint = tmp_path / 'source.pt'
+    torch.save(source.payload(), checkpoint)
+    original = checkpoint.read_bytes()
+    digest = sha256(checkpoint)
+    with pytest.raises(ValueError, match='does not match'):
+        Runner(cfg, tmp_path / 'wrong_hash', init_from=checkpoint, expected_source_sha256='0' * 64)
+    assert not (tmp_path / 'wrong_hash').exists()
+    with pytest.raises(ValueError, match='requires --init-from'):
+        Runner(cfg, tmp_path / 'no_source', expected_source_sha256=digest)
+    runner = Runner(cfg, tmp_path / 'continuation', init_from=checkpoint, expected_source_sha256=digest)
+    points = runner.geo.sample(3)
+    torch.testing.assert_close(runner.field(points), source.field(points), rtol=0, atol=0)
+    assert runner.optimizer.param_groups[0]['lr'] == 1e-5
+    assert not runner.optimizer.state
+    runner.run(max_updates=1)
+    resumed = Runner(cfg, runner.out, resume=True)
+    result = resumed.run()
+    assert result['counts']['poly'] == 0
+    assert result['counts']['refine'] == 2
+    assert result['source']['sha256'] == digest
+    assert result['source']['optimizer_restarted']
+    assert load_checkpoint(runner.out)['source']['sha256'] == digest
+    assert checkpoint.read_bytes() == original
+
+
+def test_polishing_full_width_batch_and_schedule_short_run(tmp_path):
+    from dataclasses import replace
+    from pathlib import Path
+    from extra.acs_training import sha256
+    path = Path(__file__).resolve().parents[1] / 'configs/ambient/s4xs1xs1_acs/polish_trilin_uniform.yaml'
+    cfg = replace(read_config(path), refine_steps=2, validation_size=16,
+                  boundary_starts=2, boundary_steps=2, audit_starts=2, audit_steps=2)
+    assert cfg.hidden == (256, 256, 256, 256) and cfg.batch == 768
+    source = Runner(cfg, tmp_path / 'fixture')
+    source.model.refinement_phase(zero_output=False)
+    checkpoint = tmp_path / 'full_width.pt'
+    torch.save(source.payload(), checkpoint)
+    digest = sha256(checkpoint)
+    runner = Runner(cfg, tmp_path / 'polish', init_from=checkpoint, expected_source_sha256=digest)
+    result = runner.run()
+    assert result['status'] == 'completed_pending_independent_audit'
+    assert result['counts'] == {'poly': 0, 'refine': 2, 'lbfgs': 0}
+    assert result['best_raw']['rms'] > 0 and torch.isfinite(torch.tensor(result['best_raw']['rms']))
+    assert sha256(checkpoint) == digest
+
+
 def test_short_audit_never_claims_final_success_even_for_exact_fixture(tmp_path):
     from extra.validate_ambient_acs import audit
     runner = Runner(tiny(), tmp_path / 'fixture')

@@ -266,6 +266,99 @@ never a rigorous global certificate. A quick report **cannot** set this flag.
 An audit killed by the scheduler produces no completed report; rerun with a
 sufficient allocation. This audit is ACS-only; Nijenhuis/CS work remains deferred.
 
+## Follow-up after the seed-7 quick audit
+
+The reported campaign `pilots_20260925_181049_3240935` completed all four pilots.
+The uniform `all2+trilin` recipe was the strongest on this seed: training
+validation RMS 2.82e-4 and maximum found 6.78e-4. The five L-BFGS iterations were
+rejected because both comparison RMS and maximum worsened; the previous weights
+were restored. Do not force that finisher to continue or resume a completed run.
+
+Independent quick audit `final.audit.1023437.ada.json` (seed 800007) reported:
+
+| Diagnostic | Observed |
+| --- | ---: |
+| Fresh uniform raw RMS | 2.779e-4 |
+| Raw maximum found | 6.783e-4 |
+| Corrected identity maximum | 2.351e-15 |
+| Corrected tangency maximum | 7.240e-16 |
+| Independent matrix-root difference | 4.815e-15 |
+| First derivative finite-difference error | 6.521e-11 |
+| Second derivative finite-difference error | 5.304e-6 |
+| Tangent condition number at tested worst points | 1.0074 |
+
+The correction and derivative checks pass their thresholds. The chart-overlap
+score near 1e-10 is the legacy overlap helper's reporting floor, below the audit
+threshold of 1e-9. `screening_targets_passed` remains false because raw uniform
+RMS exceeds 1e-4. `numerically_validated` also cannot be granted by a quick
+audit. This is encouraging numerical evidence, not a uniform global certificate
+or an integrability/CS result. Keep the original candidate and audit unchanged.
+
+### Prepare the three-job follow-up
+
+Publish the new tracked configuration/runner/summary/test/doc changes on `s4t2`,
+then copy the **updated** ignored wrappers:
+
+```bash
+git add extra/acs_training.py extra/campaign_summary.py \
+  extra/test_acs_training.py extra/test_acs_pbs.py \
+  configs/ambient/s4xs1xs1_acs/polish_trilin_uniform.yaml \
+  docs/s4xt2_acs_hpc.md docs/s4xt2_ambient_acs_plan.md
+git commit -m "Add checked ACS polishing and reproducibility follow-up"
+git push origin s4t2
+scp scratch/submit_S4xS1xS1_ACS_v2.sh scratch/submit_S4xS1xS1_ACS_pilots.sh \
+  scratch/submit_S4xS1xS1_ACS_summary.sh \
+  ehirst@lovelace:/home/lovelace/proj/proj925/ehirst/nijenhuis/
+```
+
+On Lovelace, pull the commit and verify the new config before submitting:
+
+```bash
+cd /home/lovelace/proj/proj925/ehirst/nijenhuis/github
+git pull --ff-only origin s4t2
+git cat-file -e HEAD:configs/ambient/s4xs1xs1_acs/polish_trilin_uniform.yaml
+cd ..
+STAGE=followup \
+SOURCE_CHECKPOINT="$PWD/outputs/s4xs1xs1_acs/pilots_20260925_181049_3240935/pilot_trilin_uniform/s7/final.pt" \
+SOURCE_SHA256=a0cc96594b91b5dccb8be014bd80a971c3991dc56f0023c5e3c79b9fae185a86 \
+bash submit_S4xS1xS1_ACS_pilots.sh
+```
+
+Run that launcher **once** on the login node, not via qsub. It verifies the source
+checksum before any submission, and the Python loader verifies it again inside
+the polishing job. It submits:
+
+1. `polish_trilin_uniform/s107`: the existing seed-7 candidate, unchanged at
+   initialization, then 10,000 additional refinement steps with uniform samples,
+   no tail term and no L-BFGS. Adam starts at 1e-5 (the old schedule's terminal
+   rate) and decays to 1e-6. Batch size rises from 192 to 768 to reduce stochastic
+   variation. No polynomial/ladder stage is rerun. The optimizer is new; this is
+   a continuation, not an exact resume. Seed 107 changes the sampling stream;
+   **it is not an independent random-start ACS discovery**. Source checksum and
+   source counters are retained in the manifest, results and saved checkpoints.
+2. `pilot_trilin_uniform/s8`: the unchanged winning pilot recipe from random weights.
+3. `pilot_trilin_uniform/s9`: the same independent experiment with seed 9.
+4. A summary held with `afterany` on these three jobs, reading the submission
+   manifest so missing continuation/repeat outputs are explicitly reported.
+
+The output root is a new `outputs/s4xs1xs1_acs/followup_<timestamp>_<pid>/`.
+Resource requests stay at four hours/10 GB with the three-hour application guard.
+Polishing does more work per step than the old pilots; no runtime guarantee is
+inferred from their four-minute timings. As before, an interrupted job exits 75
+and can be resumed with the same config, seed and OUT, `RESUME=1`, and no INIT_FROM.
+
+Send the held summary and the polishing `result.json`/`progress.jsonl`. If a new
+candidate reaches raw RMS <=1e-4 and maximum found <=1e-2, select it for the full
+held-out audit; do not consume that audit repeatedly while choosing settings.
+If it stalls, inspect the trajectory before extending its budget or changing
+the optimizer. No CS jobs or automatic acceptance/promotion are submitted.
+
+Local follow-up verification: 48 focused tests pass, including a two-step run at
+the full 4×256 width and batch 768, source-hash rejection, immutable source
+weights, continuation/resume provenance, and the three-job held summary. The
+combined suite has 57 passes and the same ten previously recorded legacy dtype
+failures. Long polishing and repeat runs have not been executed locally.
+
 ## Local verification
 
 Verified on 2026-09-25 with Python 3.10 / PyTorch 2.5.1, CPU float64:

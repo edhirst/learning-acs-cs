@@ -280,11 +280,14 @@ def sha256(path):
 class Runner:
     """CPU/float64 staged optimizer with explicit resumable phase state."""
 
-    def __init__(self, cfg, out, resume=False, init_from=None, migrate=False):
+    def __init__(self, cfg, out, resume=False, init_from=None, migrate=False,
+                 expected_source_sha256=None):
         self.cfg = cfg.validate()
         self.out = Path(out)
         if resume and init_from:
             raise ValueError('--resume and --init-from are mutually exclusive')
+        if expected_source_sha256 and not init_from:
+            raise ValueError('--expected-source-sha256 requires --init-from')
         if resume and not (self.out / 'state.pt').is_file():
             raise ValueError('--resume requires state.pt in --out')
         if resume and (self.out / 'final.pt').exists():
@@ -317,7 +320,12 @@ class Runner:
         if init_from:
             source_path = Path(init_from)
             source_path = source_path / 'final.pt' if source_path.is_dir() else source_path
+            source_digest = sha256(source_path)
+            if expected_source_sha256 is not None and source_digest != expected_source_sha256.lower():
+                raise ValueError('Source checkpoint SHA256 does not match the audited candidate')
             checkpoint = load_checkpoint(source_path)
+            if sha256(source_path) != source_digest:
+                raise ValueError('Source checkpoint changed during loading')
             with torch.random.fork_rng():
                 self.model = restore_model(checkpoint, cfg.case)
                 if tuple(checkpoint['hidden']) != cfg.hidden:
@@ -331,8 +339,9 @@ class Runner:
             if not self.model.mlp_active:
                 self.model.refinement_phase(zero_output=True)
             self.phase = 'refine'
-            self.source = {'path': str(source_path.resolve()), 'sha256': sha256(source_path),
+            self.source = {'path': str(source_path.resolve()), 'sha256': source_digest,
                            'feat': checkpoint['feat'], 'migrated': bool(migrate),
+                           'counts': checkpoint.get('counts'),
                            'optimizer_restarted': True}
         self.set_optimizer()
         if resume:
@@ -380,6 +389,7 @@ class Runner:
                 'feat': self.model.poly.feat, 'mlp_active': self.model.mlp_active,
                 'feature_keys': self.model.poly.feature_keys(),
                 'blocks': [d + 1 for d in self.geo.dims], 'feature_scaling': 'none',
+                'source': self.source,
                 'model': copy.deepcopy(self.model.state_dict()), 'counts': dict(self.counts),
                 'phase': self.phase}
 
@@ -658,6 +668,7 @@ class Runner:
         result = {'schema_version': SCHEMA, 'case': self.cfg.case, 'task': 'acs',
                   'formulation': 'ambient', 'seed': self.cfg.seed, 'feat': self.cfg.feat,
                   'status': status, 'phase': self.phase, 'counts': self.counts,
+                  'source': self.source,
                   'steps_done': self.adam_steps, 'lbfgs': self.lbfgs_log,
                   'stopped_by_wall': status == 'incomplete',
                   'elapsed_min': (self.previous_elapsed + time.monotonic() - self.start) / 60,
@@ -683,6 +694,7 @@ def main(argv=None):
     mode.add_argument('--resume', action='store_true')
     mode.add_argument('--init-from')
     parser.add_argument('--migrate-features', action='store_true')
+    parser.add_argument('--expected-source-sha256', help='Refuse continuation unless this audited source checksum matches')
     args = parser.parse_args(argv)
     if args.migrate_features and not args.init_from:
         parser.error('--migrate-features requires --init-from')
@@ -692,7 +704,7 @@ def main(argv=None):
     if args.wall_minutes is not None:
         cfg.wall_minutes = args.wall_minutes
     runner = Runner(cfg, args.out, resume=args.resume, init_from=args.init_from,
-                    migrate=args.migrate_features)
+                    migrate=args.migrate_features, expected_source_sha256=args.expected_source_sha256)
     old_handlers = {}
     for sig in (signal.SIGTERM, signal.SIGINT):
         old_handlers[sig] = signal.signal(sig, lambda *_: setattr(runner, 'stop_requested', True))

@@ -1,0 +1,17 @@
+# Continuation of the audited seed-7 final.pt, NOT a fresh random start.
+# New sampling seed 107; unchanged features/MLP; no ladder or L-BFGS rerun.
+seed: 107
+feat: all2+trilin
+hidden: [256, 256, 256, 256]
+poly_steps: 0
+refine_steps: 10000
+sampling: uniform
+tail_weight: 0.0
+# Keep the previous run's terminal Adam rate, then reduce another factor of ten.
+refine_lr: 0.00001
+lr_min: 0.000001
+# Reduce stochastic variation during polishing, while retaining a uniform loss.
+batch: 768
+pool_size: 768
+lbfgs_steps: 0
+wall_minutes: 180.0

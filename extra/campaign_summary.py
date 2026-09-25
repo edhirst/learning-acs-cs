@@ -2,6 +2,7 @@
 
 Usage:  python extra/campaign_summary.py RESULTS_ROOT [--all]
         [--expected-run RECIPE/s7 ...]
+        [--expected-manifest submission.tsv]
 Recursively scans result.json; ranks ACS by maximum found and CS by mean
 Nijenhuis. --expected-run flags missing results without hiding other runs.
 """
@@ -11,6 +12,7 @@ import os
 import json
 import glob
 import argparse
+import csv
 
 ORDER = ['s2', 's4', 's6', 's1xs1', 's2xs2', 's3xs1', 's3xs3', 's4xs2',
          's5xs1', 's4xs1xs1']
@@ -24,8 +26,17 @@ def main():
     parser.add_argument('root')
     parser.add_argument('--all', action='store_true', dest='show_all')
     parser.add_argument('--expected-run', action='append', default=[])
+    parser.add_argument('--expected-manifest', help='Submission TSV with role, job_id, output columns')
     args = parser.parse_args()
     root, show_all = args.root, args.show_all
+    if args.expected_manifest:
+        with open(args.expected_manifest, newline='') as stream:
+            rows = csv.DictReader(stream, delimiter='\t')
+            if not {'role', 'job_id', 'output'}.issubset(rows.fieldnames or []):
+                parser.error('Submission manifest must contain role, job_id, output columns')
+            for row in rows:
+                if row['role'] != 'summary':
+                    args.expected_run.append(os.path.relpath(row['output'], root))
     for expected in args.expected_run:
         if not os.path.isfile(os.path.join(root, expected, 'result.json')):
             print(f"MISSING RESULT: {expected} — job may have failed or been killed before writing a result; inspect its PBS/log output.")
@@ -89,6 +100,7 @@ def main():
         for r in sorted(runs, key=lambda r: (ORDER.index(r['case']), r['task'], r['seed'])):
             print(f"  {r['_dir']}: score {r['_score']:.3e}  dense {r['dense']}  "
                   f"status={r.get('status', 'legacy')}  counts={r.get('counts', r.get('steps_done'))}  "
+                  f"origin={'continuation' if r.get('source') else 'random-start/legacy'}  "
                   f"wall-stopped={r.get('stopped_by_wall')}  {r.get('elapsed_min', float('nan')):.0f} min")
 
 
