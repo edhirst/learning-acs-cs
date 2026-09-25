@@ -33,10 +33,10 @@ class AmbientManifold:
         self.ambient_dim = sum(self.ambient_dims)
         self.dim = sum(self.factor_dims)
 
-    def sample(self, n: int, dtype=torch.float64) -> torch.Tensor:
+    def sample(self, n: int, dtype=torch.float64, generator=None) -> torch.Tensor:
         parts = []
         for na in self.ambient_dims:
-            v = torch.randn(n, na, dtype=dtype)
+            v = torch.randn(n, na, dtype=dtype, generator=generator)
             parts.append(v / v.norm(dim=1, keepdim=True))
         return torch.cat(parts, dim=1)
 

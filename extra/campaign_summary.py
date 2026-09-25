@@ -22,10 +22,10 @@ def main():
     root = sys.argv[1]
     show_all = '--all' in sys.argv
     runs = []
-    for p in glob.glob(os.path.join(root, '*', 'result.json')):
+    for p in glob.glob(os.path.join(root, '**', 'result.json'), recursive=True):
         with open(p) as f:
             r = json.load(f)
-        r['_dir'] = os.path.basename(os.path.dirname(p))
+        r['_dir'] = os.path.relpath(os.path.dirname(p), root)
         if 'dense' not in r:                      # e.g. status 'no_certified_base' (S⁴ CS)
             r['_score'] = float('inf')
             r['dense'] = {'acs_mean': float('nan'), 'acs_sup': float('nan'),
@@ -60,7 +60,10 @@ def main():
                 continue
             d = r['dense']
             if task == 'acs':
-                verdict = '**certified exact ACS**' if r.get('certified_exact_acs') else 'NOT certified (defects)'
+                if r.get('schema_version', 1) >= 2:
+                    verdict = r.get('status', 'pending audit')
+                else:
+                    verdict = 'legacy sampled check passed (not proof)' if r.get('certified_exact_acs') else 'legacy check failed'
                 adv = r.get('adv_acs_sup', float('nan'))
                 chart = r.get('chart_acs', float('nan'))
                 intr, sup = d['acs_mean'], d['acs_sup']

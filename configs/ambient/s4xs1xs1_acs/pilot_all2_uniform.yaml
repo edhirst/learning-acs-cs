@@ -1,0 +1,8 @@
+# A0: historical degree-two representation, with corrected phase handling.
+feat: all2
+hidden: [256, 256, 256, 256]
+sampling: uniform
+tail_weight: 0.0
+poly_steps: 5000
+refine_steps: 5000
+wall_minutes: 180.0

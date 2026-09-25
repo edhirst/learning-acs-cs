@@ -88,7 +88,7 @@ class Geometry:
         self.d = sum(self.dims)
         use_frame = is_frame_case(case) and formulation in ('frame', 'auto')
         if formulation == 'frame' and not is_frame_case(case):
-            raise ValueError(f"'{case}' is not parallelizable: no global frame; use --formulation ambient")
+            raise ValueError(f"No global frame is registered for '{case}'; use --formulation ambient")
         if use_frame:
             self.kind = 'frame'
             self.frame = FRAMES[case]()
@@ -142,10 +142,11 @@ class Net(nn.Module):
 
 
 class PolyNet(nn.Module):
-    """Degree-≤2 polynomial field in the ambient coordinates: features
-    [1, x_i, x_i x_j (i≤j)] → n_mat×n_mat. The lowest 'harmonics' of the
-    spectral curriculum: a low-degree field cannot form many orientation
-    domain walls, so the ACS flow settles into one global orientation."""
+    """Polynomial ambient matrix field, optionally with three-factor terms.
+
+    ``all2+trilin`` adds products with one coordinate from each of three
+    distinct sphere factors. These are generic features, not an ACS ansatz.
+    """
 
     def __init__(self, n_in, n_mat, out_scale, feat='all2', blocks=None):
         """feat: harmonic content of the class —
@@ -177,6 +178,18 @@ class PolyNet(nn.Module):
             self.bil = None
         if feat in ('bilin', 'lin+bilin') and self.bil is None:
             raise ValueError(f"feature class {feat!r} requires at least two ambient factor blocks")
+        triples = []
+        if blocks is not None and len(blocks) >= 3:
+            for factors in itertools.combinations(range(len(blocks)), 3):
+                grids = torch.meshgrid(*[
+                    torch.arange(offsets[a], offsets[a + 1]) for a in factors
+                ], indexing='ij')
+                triples.append(torch.stack([g.reshape(-1) for g in grids]))
+        # Deterministic from blocks; nonpersistent keeps old checkpoints compatible.
+        self.register_buffer('tri', torch.cat(triples, dim=1) if triples else
+                             torch.empty(3, 0, dtype=torch.long), persistent=False)
+        if feat in ('trilin', 'all2+trilin') and not triples:
+            raise ValueError(f"feature class {feat!r} requires at least three ambient factor blocks")
         n_feat = self.features(torch.zeros(1, n_in)).shape[1]
         self.lin = nn.Linear(n_feat, n_mat * n_mat, bias=False)
         with torch.no_grad():
@@ -188,6 +201,9 @@ class PolyNet(nn.Module):
         quad = x[:, self.iu[0]] * x[:, self.iu[1]]
         if self.feat == 'all2':
             return torch.cat([one, x, quad], dim=1)
+        if self.feat in ('trilin', 'all2+trilin'):
+            tri = x[:, self.tri[0]] * x[:, self.tri[1]] * x[:, self.tri[2]]
+            return tri if self.feat == 'trilin' else torch.cat([one, x, quad, tri], dim=1)
         if self.feat == 'c':
             return one
         if self.feat == 'lin':
@@ -202,6 +218,17 @@ class PolyNet(nn.Module):
             bil = x[:, self.bil[0]] * x[:, self.bil[1]]
             return torch.cat([x, bil], dim=1)
         raise ValueError(self.feat)
+
+    def feature_keys(self):
+        """Monomial indices in coefficient order (also used for safe migration)."""
+        linear = [(i,) for i in range(self.n_in)]
+        quadratic = [tuple(t) for t in self.iu.T.tolist()]
+        bilinear = [] if self.bil is None else [tuple(t) for t in self.bil.T.tolist()]
+        triple = [tuple(t) for t in self.tri.T.tolist()]
+        return {'c': [()], 'lin': linear, 'lin+c': [()] + linear,
+                'quad_h': quadratic, 'all2': [()] + linear + quadratic,
+                'bilin': bilinear, 'lin+bilin': linear + bilinear,
+                'trilin': triple, 'all2+trilin': [()] + linear + quadratic + triple}[self.feat]
 
     def forward(self, x):
         return self.lin(self.features(x)).reshape(-1, 1, self.n_mat, self.n_mat)
@@ -219,9 +246,25 @@ class CurriculumNet(nn.Module):
         self.poly = PolyNet(n_in, n_mat, out_scale_poly, feat=feat, blocks=blocks)
         self.mlp = Net(n_in, n_mat, 1, hidden, out_scale_mlp)
         self.n_mat, self.stages = n_mat, 1
+        # Default preserves the historical forward map/checkpoint interpretation.
+        self.mlp_active = True
+
+    def polynomial_phase(self):
+        self.mlp_active = False
+        self.mlp.requires_grad_(False)
+        self.mlp.zero_grad(set_to_none=True)
+
+    def refinement_phase(self, zero_output=True):
+        if zero_output:
+            with torch.no_grad():
+                self.mlp.net[-1].weight.zero_()
+                self.mlp.net[-1].bias.zero_()
+        self.mlp_active = True
+        self.mlp.requires_grad_(True)
 
     def forward(self, x):
-        return self.poly(x) + self.mlp(x)
+        poly = self.poly(x)
+        return poly + self.mlp(x) if self.mlp_active else poly
 
 
 # Harmonic ladder: lowest spherical-harmonic content first. A low class has no
@@ -287,6 +330,8 @@ def load_acs_field(geo, run_dir):
     else:
         model = Net(geo.N, n_mat, ck['stages'], ck['hidden'], 0.3).to(DTYPE)
     model.load_state_dict(ck['model'])
+    if isinstance(model, CurriculumNet) and not ck.get('mlp_active', True):
+        model.polynomial_phase()
     model.eval()
     for p in model.parameters():
         p.requires_grad_(False)
@@ -1006,4 +1051,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if '--config' in sys.argv or any(a.startswith('--config=') for a in sys.argv):
+        from extra.acs_training import main as acs_main
+        acs_main()
+    else:
+        main()

@@ -37,6 +37,9 @@ def main():
     for p in sorted(glob.glob(os.path.join(args.root, '*_acs_*', 'result.json'))):
         d = os.path.dirname(p)
         r = json.load(open(p))
+        if r.get('schema_version', 1) >= 2:
+            print(f"{d}: skipped new ACS experiment; use extra/validate_ambient_acs.py")
+            continue
         geo = Geometry(r['case'], r.get('formulation', 'ambient'))
         K_fn = load_acs_field(geo, d)
         raw = dense_eval(geo, 'acs', K_fn, args.n)
