@@ -1,5 +1,10 @@
 # Ambient ACS campaign: implementation and Lovelace handoff
 
+**Current handoff:** the seed-7 lineage now passed its full numerical ACS audit.
+Use [the production ACS recipe and audited CS smoke instructions](s4xt2_reproduce_and_cs.md)
+for new runs. The historical pilot/follow-up instructions below are retained
+for provenance, not the recommended default for new ACS runs.
+
 The next experiment is **ACS only**. The four pilots are independent; an
 optional summary job waits for all four using an `afterany` dependency.
 This implements the first phase of [the ambient ACS plan](s4xt2_ambient_acs_plan.md).

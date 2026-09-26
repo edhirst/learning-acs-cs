@@ -57,6 +57,26 @@ def calls(env):
     return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
 
 
+@pytest.mark.parametrize('name', ['submit_S4xS1xS1_ACS_reproduce.sh', 'submit_S4xS1xS1_CS_v2.sh'])
+def test_new_recipe_and_cs_wrappers_pass_arguments_and_exit75(shell_env, name):
+    python = Path(shell_env['PATH'].split(':')[0]) / 'python3'
+    python.write_text('#!/bin/bash\nprintf "%s\\n" "$@"\nexit "${FAKE_EXIT:-0}"\n')
+    env = {**shell_env, 'BASE_DIR': '/absolute/audited base',
+           'BASE_AUDIT': '/absolute/audited base/report.json'}
+    result = subprocess.run(['bash', script(name)], env=env, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    if 'CS_v2' in name:
+        assert 'extra/cs_pilot.py' in result.stdout
+        assert '--base-from\n/absolute/audited base' in result.stdout
+        assert '--base-audit\n/absolute/audited base/report.json' in result.stdout
+        assert 's4xs1xs1_cs/smoke.yaml' in result.stdout
+    else:
+        assert 'extra/acs_recipe.py' in result.stdout
+        assert 's4xs1xs1_acs/reproduce.yaml' in result.stdout
+    stopped = subprocess.run(['bash', script(name)], env={**env, 'FAKE_EXIT': '75'}, capture_output=True)
+    assert stopped.returncode == 75
+
+
 def test_launcher_builds_valid_afterany_dependency_and_manifest(shell_env):
     result = subprocess.run(['bash', script('submit_S4xS1xS1_ACS_pilots.sh')],
                             cwd=shell_env['PBS_O_WORKDIR'], env=shell_env, capture_output=True, text=True)

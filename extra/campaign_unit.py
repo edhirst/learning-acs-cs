@@ -664,22 +664,28 @@ def product_chart_overlap(J_dict, factor_coords, dims, patches=None,
 # ---------------------------------------------------------------------------
 
 def dense_eval(geo, task, J_fn, n, chunk=500):
-    accs, nijs = [], []
+    accs, raw_acs, nijs = [], [], []
     for s in range(0, n, chunk):
         x = geo.sample(min(chunk, n - s))
         with torch.no_grad():
-            accs.append(acs_residual(geo, J_fn, x))
+            J = J_fn(x)
+            squared = ((J @ J + identity_T(geo, x)) ** 2).sum(dim=(1, 2))
+            raw_acs.append(squared.sqrt())
+            accs.append((squared + 1e-20).sqrt())
         nijs.append(nij_norm(geo, J_fn, x).detach())
-    acs, nij = torch.cat(accs), torch.cat(nijs)
+    acs, raw, nij = torch.cat(accs), torch.cat(raw_acs), torch.cat(nijs)
     return {'acs_mean': acs.mean().item(), 'acs_sup': acs.max().item(),
+            'acs_floorfree_sup': raw.max().item(),
+            'nij_rms': nij.square().mean().sqrt().item(),
             'nij_mean': nij.mean().item(), 'nij_sup': nij.max().item()}
 
 
-def full_report(geo, task, J_fn, meta, n_dense, n_chart, adv_starts=256, adv_steps=150):
+def full_report(geo, task, J_fn, meta, n_dense, n_chart, adv_starts=256, adv_steps=150,
+                eval_chunk=500):
     """Dense + ADVERSARIAL evaluation. Certification of an ACS requires the
     adversarial sup of ‖K²+Id_T‖ to be < 1 (then the polar correction is an
     exact ACS); the adversarial sup of ‖N‖ is reported for the final field."""
-    rep = {'dense': dense_eval(geo, task, J_fn, n_dense)}
+    rep = {'dense': dense_eval(geo, task, J_fn, n_dense, chunk=eval_chunk)}
     field_for_chart = J_fn
     if task == 'acs' or not meta['exact_acs']:
         adv, _ = adversarial_sup(geo, lambda x: acs_residual(geo, J_fn, x), adv_starts, adv_steps)
@@ -706,7 +712,7 @@ def full_report(geo, task, J_fn, meta, n_dense, n_chart, adv_starts=256, adv_ste
 # Main
 # ---------------------------------------------------------------------------
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('--case', required=True, choices=ALL_CASES)
     ap.add_argument('--formulation', default='ambient', choices=['ambient', 'frame', 'auto'],
@@ -718,6 +724,13 @@ def main():
     ap.add_argument('--steps', type=int, default=None)
     ap.add_argument('--hidden', default=None)
     ap.add_argument('--stages', type=int, default=None)
+    ap.add_argument('--identity-init', action='store_true',
+                    help='cs: zero the output layer so conjugation starts exactly at the base ACS')
+    ap.add_argument('--batch', type=int, default=BATCH)
+    ap.add_argument('--n-initial', type=int, default=None,
+                    help='override base/initial diagnostic sample sizes for bounded CS pilots')
+    ap.add_argument('--n-validation', type=int, default=1500)
+    ap.add_argument('--eval-chunk', type=int, default=500)
     ap.add_argument('--rar', action='store_true',
                     help='cs: residual-adaptive half batches (worst of a 2x candidate pool)')
     ap.add_argument('--tail', action='store_true',
@@ -750,7 +763,13 @@ def main():
     ap.add_argument('--lam1', type=float, default=1e-3, help='acs phase 1: final Dirichlet weight of the anneal')
     ap.add_argument('--adv-starts', type=int, default=256)
     ap.add_argument('--adv-steps', type=int, default=150)
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
+    if min(args.batch, args.n_validation, args.eval_chunk) < 1 or (args.n_initial is not None and args.n_initial < 1):
+        ap.error('batch and diagnostic sizes must be positive')
+    if args.identity_init and (args.task != 'cs' or not args.base_from):
+        ap.error('--identity-init requires CS with --base-from')
+    if args.tail and args.batch // 2 <= max(1, args.tail_hard // 8):
+        ap.error('--batch is too small for the requested tail hard set')
     table_before = TABLE_BEFORE.get(args.case, {}).get(args.task)
 
     os.makedirs(args.out, exist_ok=True)
@@ -775,6 +794,10 @@ def main():
                               feat=feat_used, blocks=blocks).to(DTYPE)
     else:
         model = Net(N, n_mat, stages, hidden, out_scale).to(DTYPE)
+    if args.identity_init:
+        with torch.no_grad():
+            model.net[-1].weight.zero_()
+            model.net[-1].bias.zero_()
 
     base_fn, base_info = None, None
     if args.task == 'cs' and args.base_from:
@@ -794,8 +817,8 @@ def main():
                   flush=True)
             return
         base_fn = polar_corrected(geo, K_base)
-        xb = geo.sample(400)
-        base_info['status'] = 'certified'
+        xb = geo.sample(args.n_initial or 400)
+        base_info['status'] = 'sampled_admissible_not_certified'
         base_info['base_acs_residual_sup'] = acs_residual(geo, base_fn, xb).max().item()
         base_info['base_nij_mean'] = nij_norm(geo, base_fn, xb).mean().item()
         print(f"[{tag}] base ACS from {args.base_from}: adversarial raw sup {adv:.3f}, "
@@ -849,7 +872,7 @@ def main():
             np.random.set_state(st['numpy_rng_state'])
         print(f"[{tag}] resumed at step {start_step} ({elapsed_prev/60:.1f} min used)", flush=True)
     if init_info is None:
-        x0 = geo.sample(300)
+        x0 = geo.sample(args.n_initial or 300)
         _, init_info = unit_loss(geo, args.task, J_fn, x0)
         print(f"[{tag}] init: {init_info}", flush=True)
 
@@ -857,7 +880,7 @@ def main():
     t0 = time.time()
     elapsed = lambda: elapsed_prev + (time.time() - t0)
     wall_s = args.wall_minutes * 60.0
-    nonfinite, step = 0, start_step
+    nonfinite, nonfinite_batches, step = 0, 0, start_step
     stopped_by_wall = False
 
     def save_state(step_):
@@ -947,21 +970,22 @@ def main():
             if hard_set is None or step % args.tail_refresh == 0:
                 hard_set = refresh_hard_set()
             n_hard = len(hard_set)
-            n_pool = BATCH // 2 - n_hard
+            n_pool = args.batch // 2 - n_hard
             xc = geo.sample(4 * n_pool)
             r = cs_residual(xc).detach()
             idx = torch.topk(r, n_pool).indices
-            x = torch.cat([geo.sample(BATCH - BATCH // 2), xc[idx], hard_set], dim=0)
+            x = torch.cat([geo.sample(args.batch - args.batch // 2), xc[idx], hard_set], dim=0)
         elif args.rar and args.task == 'cs':
-            xc = geo.sample(2 * BATCH)
+            xc = geo.sample(2 * args.batch)
             r = nij_norm(geo, J_fn, xc).detach()
-            idx = torch.topk(r, BATCH // 2).indices
-            x = torch.cat([xc[idx], geo.sample(BATCH - BATCH // 2)], dim=0)
+            idx = torch.topk(r, args.batch // 2).indices
+            x = torch.cat([xc[idx], geo.sample(args.batch - args.batch // 2)], dim=0)
         else:
-            x = geo.sample(BATCH)
+            x = geo.sample(args.batch)
         loss, info = unit_loss(geo, args.task, J_fn, x)
         if not bool(torch.isfinite(loss)):
             nonfinite += 1
+            nonfinite_batches += 1
             if nonfinite >= 200:
                 print(f"[{tag}] aborting: 200 consecutive non-finite losses", flush=True)
                 break
@@ -973,7 +997,7 @@ def main():
         if (step + 1) % args.ckpt_every == 0:
             save_state(step + 1)
         if (step + 1) % args.eval_every == 0 or step == steps - 1:
-            ev = dense_eval(geo, args.task, J_fn, 1500)
+            ev = dense_eval(geo, args.task, J_fn, args.n_validation, chunk=args.eval_chunk)
             rec = {'step': step + 1, 'elapsed_min': elapsed() / 60.0, 'batch': info, **ev}
             progress.write(json.dumps(rec) + '\n'); progress.flush()
             print(f"[{tag}] step {step+1:6d} | batch {info} | held-out {ev}", flush=True)
@@ -1030,18 +1054,20 @@ def main():
                os.path.join(args.out, 'final.pt'))
 
     rep = full_report(geo, args.task, J_fn, meta, args.n_dense, args.n_chart,
-                      args.adv_starts, args.adv_steps)
+                      args.adv_starts, args.adv_steps, eval_chunk=args.eval_chunk)
     result = {'case': args.case, 'task': args.task, 'seed': args.seed,
               'formulation': geo.kind, 'hidden': hidden, 'stages': stages,
               'model_type': 'curriculum' if curriculum else 'mlp', 'feat': feat_used,
               'ladder': ladder_log, 'base': base_info, 'init_from': init_from_info,
               'tail': bool(args.tail), 'lr': args.lr, 'lbfgs': lbfgs_log,
               'steps_done': min(step + 1, steps), 'steps_planned': steps,
+              'nonfinite_batches': nonfinite_batches,
               'stopped_by_wall': stopped_by_wall, 'elapsed_min': elapsed() / 60.0,
               'init': init_info, 'exact_acs_by_construction': meta['exact_acs'],
               'table_before': table_before, **rep}
     with open(os.path.join(args.out, 'result.json'), 'w') as f:
         json.dump(result, f, indent=2)
+    progress.close()
     verdict = ('CERTIFIED exact ACS' if rep.get('certified_exact_acs') else
                ('exact by construction' if meta['exact_acs'] else 'NOT certified (defects)'))
     print(f"[{tag}] RESULT: {verdict} | adv acs sup {rep.get('adv_acs_sup', float('nan')):.3e} "

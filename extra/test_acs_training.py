@@ -314,7 +314,11 @@ def test_all_shipped_configs_validate():
     paths = list(root.glob('*.yaml'))
     assert paths
     for path in paths:
-        read_config(path)
+        if path.name == 'reproduce.yaml':
+            from extra.acs_recipe import read_recipe
+            read_recipe(path)
+        else:
+            read_config(path)
 
 
 def test_audited_continuation_checksum_provenance_and_resume(tmp_path):
