@@ -1,0 +1,17 @@
+# Additional steps from a checked CS checkpoint; not a fresh identity start.
+seed: 107
+steps: 10000
+hidden: [128, 128]
+stages: 2
+batch: 32
+lr: 0.0001
+wall_minutes: 180.0
+eval_every: 250
+ckpt_every: 100
+n_initial: 128
+n_validation: 1024
+eval_chunk: 32
+n_dense: 2048
+n_chart: 128
+adv_starts: 32
+adv_steps: 40

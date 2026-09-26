@@ -1,5 +1,8 @@
 # Reproduce the learned ACS; begin bounded CS experiments
 
+After reviewing the completed one-/two-exponential pilots, use the
+[checked continuation handoff](s4xt2_cs_continuation.md) for longer CS runs.
+
 ## Validated ACS artifact
 
 The user-supplied full audit of
