@@ -20,7 +20,7 @@ def digest(path):
     return h.hexdigest()
 
 
-def verify(source_dir, base_dir):
+def verify(source_dir, base_dir, stage='s207'):
     source_dir, base_dir = Path(source_dir), Path(base_dir)
     result = json.loads((source_dir / 'result.json').read_text())
     diagnostic = json.loads((source_dir / 'diagnostic/report.json').read_text())
@@ -29,13 +29,19 @@ def verify(source_dir, base_dir):
     source_hash = digest(source_dir / 'final.pt')
     points_hash = digest(source_dir / 'diagnostic/diagnostic_points.pt')
     base_hash, audit_hash = digest(base_dir / 'final.pt'), digest(audit_path)
-    expected = {'case': 's4xs1xs1', 'task': 'cs', 'mode': 'replay', 'seed': 207,
-                'steps_done': 2000, 'steps_planned': 2000, 'selected_step': 2000,
+    if stage not in ('s207', 's307'):
+        raise ValueError('Unknown reviewed source stage')
+    seed, steps, selected, parent = ((207, 2000, 2000, PARENT_SHA256) if stage == 's207' else
+                                    (307, 5000, 4750, '18abf4ce5e70a3bffe3d9264016cda7f4ff3141de84f38124f2e4e2c01bdb4d4'))
+    expected = {'case': 's4xs1xs1', 'task': 'cs', 'mode': 'replay', 'seed': seed,
+                'steps_done': steps, 'steps_planned': steps, 'selected_step': selected,
                 'status': 'completed_pending_independent_audit'}
     if any(result.get(k) != v for k, v in expected.items()):
-        raise ValueError('Expected the completed, selected step-2000 s207 replay run')
-    if result.get('source', {}).get('sha256') != PARENT_SHA256:
-        raise ValueError('Replay run does not descend from the reviewed s107 checkpoint')
+        raise ValueError(f'Expected the completed, selected step-{selected} {stage} replay run')
+    if result.get('source', {}).get('sha256') != parent:
+        raise ValueError('Replay run does not descend from the reviewed parent checkpoint')
+    if stage == 's307' and result.get('config', {}).get('matched', {}).get('sampling', {}).get('target_count') != 4:
+        raise ValueError('Expected the selected 12.5-percent replay arm')
     if (diagnostic.get('status') != 'completed_diagnostic'
             or diagnostic.get('sha256') != source_hash
             or diagnostic.get('points_sha256') != points_hash):
@@ -56,9 +62,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source-dir', required=True)
     parser.add_argument('--base-dir', required=True)
+    parser.add_argument('--stage', choices=['s207', 's307'], default='s207')
     args = parser.parse_args()
     try:
-        print(verify(args.source_dir, args.base_dir))
+        print(verify(args.source_dir, args.base_dir, args.stage))
     except (OSError, ValueError) as exc:
         parser.exit(2, f'ERROR: {exc}\n')
 

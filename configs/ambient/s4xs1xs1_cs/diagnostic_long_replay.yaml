@@ -1,0 +1,9 @@
+seed: 942407
+uniform_count: 16384
+circle_points: 16
+searches: 3
+pool_size: 4096
+starts: 128
+steps: 100
+chunk: 16
+wall_minutes: 90.0
