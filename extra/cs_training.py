@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import torch
 
-from extra.acs_training import atomic_json, atomic_torch_save, sha256
+from extra.acs_training import Stopped, atomic_json, atomic_torch_save, sha256
 from extra.cs_pilot import checked_base, read_config
 from extra.campaign_unit import (Geometry, Net, load_acs_field, make_field,
                                  polar_corrected, nij_norm, adversarial_sup)
@@ -153,10 +153,23 @@ class Runner:
                           'base': self.base, 'optimizer': self.optimizer.state_dict(),
                           'scheduler': self.scheduler.state_dict(), 'train_rng': self.train_rng.get_state(),
                           'validation': self.validation, 'initial': self.initial, 'best': self.best,
+                          'training_extension': self.training_state(),
                           'elapsed_seconds': self.previous_elapsed + time.monotonic() - self.started},
                          self.out / 'state.pt')
         if self.best:
             atomic_torch_save(self.best, self.out / 'best.pt')
+
+    def training_state(self):
+        """Optional sampler state, included in the same atomic checkpoint."""
+        return None
+
+    def training_batch(self):
+        return self.geo.manifold.sample(self.cfg['batch'], generator=self.train_rng)
+
+    def check_inputs(self):
+        if (sha256(self.base['checkpoint']) != self.base['sha256']
+                or sha256(self.base['audit']) != self.base['audit_sha256']):
+            raise RuntimeError('ACS base/audit changed during training')
 
     def run(self, max_updates=None):
         updates = 0
@@ -166,7 +179,10 @@ class Runner:
         while self.step < self.cfg['steps']:
             if self.stop_requested or time.monotonic() - self.started >= 60*self.cfg['wall_minutes']:
                 break
-            x = self.geo.manifold.sample(self.cfg['batch'], generator=self.train_rng)
+            try:
+                x = self.training_batch()
+            except Stopped:
+                break
             self.optimizer.zero_grad()
             loss = nij_norm(self.geo, self.field, x).square().mean()
             if not torch.isfinite(loss):
@@ -204,9 +220,7 @@ class Runner:
                 report['adv_nij_sup'], _ = adversarial_sup(
                     self.geo, lambda x: nij_norm(self.geo, self.field, x),
                     self.cfg['adv_starts'], self.cfg['adv_steps'])
-            if (sha256(self.base['checkpoint']) != self.base['sha256']
-                    or sha256(self.base['audit']) != self.base['audit_sha256']):
-                raise RuntimeError('ACS base/audit changed during training')
+            self.check_inputs()
             atomic_torch_save(self.best, self.out / 'final.pt')
             report['status'] = 'completed_pending_independent_audit'
         report['elapsed_min'] = (self.previous_elapsed + time.monotonic() - self.started) / 60

@@ -38,6 +38,10 @@ def checked_base(base_dir, audit_path):
 def read_config(path):
     with open(path) as stream:
         cfg = yaml.safe_load(stream)
+    return validate_config(cfg)
+
+
+def validate_config(cfg):
     keys = {'seed', 'steps', 'hidden', 'stages', 'batch', 'lr', 'wall_minutes',
             'eval_every', 'ckpt_every', 'n_dense', 'n_chart', 'adv_starts', 'adv_steps',
             'n_initial', 'n_validation', 'eval_chunk'}
