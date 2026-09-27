@@ -254,12 +254,15 @@ class Runner(Continuation):
         return report
 
 
-def comparison(root):
+def comparison(root, experiment='uniform-replay'):
     """Read both arms, including failed/missing runs; never promote to CS success."""
     root = Path(root)
-    report = {'numerically_validated_cs': False, 'arms': {}, 'comparable': False}
-    lines = ['Matched CS comparison (not an integrability certificate)', '']
-    for mode in ('uniform', 'replay'):
+    if experiment not in ('uniform-replay', 'replay-mixtures'):
+        raise ValueError('Unknown comparison experiment')
+    modes = ('uniform', 'replay') if experiment == 'uniform-replay' else ('replay25', 'replay12p5')
+    report = {'experiment': experiment, 'numerically_validated_cs': False, 'arms': {}, 'comparable': False}
+    lines = [f'Matched CS comparison: {experiment} (not an integrability certificate)', '']
+    for mode in modes:
         result_path, diagnostic_path = root / mode / 'result.json', root / mode / 'diagnostic' / 'report.json'
         result = json.loads(result_path.read_text()) if result_path.exists() else {}
         diagnostic = json.loads(diagnostic_path.read_text()) if diagnostic_path.exists() else {}
@@ -271,14 +274,23 @@ def comparison(root):
         if diagnostic:
             lines.append(f"  fresh uniform={diagnostic.get('uniform')}")
             lines.append(f"  worst found={diagnostic.get('combined_completed_groups', {}).get('nij_max_found')}")
-    a, b = (report['arms'][m] for m in ('uniform', 'replay'))
+    a, b = (report['arms'][m] for m in modes)
     if all(arm['training'].get('status') == 'completed_pending_independent_audit'
            and arm['diagnostic'].get('status') == 'completed_diagnostic'
            and arm['diagnostic_matches_final'] for arm in (a, b)):
         ca, cb = (dict(arm['training']['config']) for arm in (a, b))
-        ca['matched'] = {**ca['matched'], 'mode': 'comparison'}
-        cb['matched'] = {**cb['matched'], 'mode': 'comparison'}
-        report['comparable'] = (ca == cb and a['training']['source'] == b['training']['source']
+        if experiment == 'uniform-replay':
+            variants_valid = ca['matched']['mode'] == 'uniform' and cb['matched']['mode'] == 'replay'
+            ca['matched'] = {**ca['matched'], 'mode': 'comparison'}
+            cb['matched'] = {**cb['matched'], 'mode': 'comparison'}
+        else:
+            variants_valid = (ca['matched']['mode'] == cb['matched']['mode'] == 'replay'
+                              and ca['batch'] == cb['batch'] == 32
+                              and ca['matched']['sampling']['target_count'] == 8
+                              and cb['matched']['sampling']['target_count'] == 4)
+            for cfg in (ca, cb):
+                cfg['matched'] = {**cfg['matched'], 'sampling': {**cfg['matched']['sampling'], 'target_count': 'comparison'}}
+        report['comparable'] = (variants_valid and ca == cb and a['training']['source'] == b['training']['source']
                                 and a['training']['audited_base'] == b['training']['audited_base']
                                 and a['training']['initial_validation'] == b['training']['initial_validation']
                                 and a['training']['witness_input'] == b['training']['witness_input']
@@ -297,6 +309,7 @@ def main():
     sub = parser.add_subparsers(dest='command', required=True)
     summary = sub.add_parser('summary')
     summary.add_argument('--root', required=True)
+    summary.add_argument('--experiment', choices=['uniform-replay', 'replay-mixtures'], default='uniform-replay')
     train = sub.add_parser('train')
     for key in ('config', 'base-from', 'base-audit', 'out', 'witness-dir'):
         train.add_argument('--' + key, required=True)
@@ -307,7 +320,7 @@ def main():
     train.add_argument('--expected-source-sha256')
     args = parser.parse_args()
     if args.command == 'summary':
-        comparison(args.root)
+        comparison(args.root, args.experiment)
         return
     runner = Runner(read_config(args.config, args.mode), args.base_from, args.base_audit, args.out,
                     args.witness_dir, args.init_from, args.resume, args.expected_source_sha256)

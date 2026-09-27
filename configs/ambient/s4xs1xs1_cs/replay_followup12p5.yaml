@@ -1,0 +1,30 @@
+# Same experiment as replay_followup25.yaml except four targeted points per batch.
+training:
+  seed: 307
+  steps: 5000
+  hidden: [128, 128]
+  stages: 2
+  batch: 32
+  lr: 0.00002
+  wall_minutes: 120.0
+  eval_every: 250
+  ckpt_every: 100
+  n_initial: 128
+  n_validation: 4096
+  eval_chunk: 16
+  n_dense: 4096
+  n_chart: 128
+  adv_starts: 32
+  adv_steps: 40
+sampling:
+  target_count: 4
+  capacity: 256
+  refresh_every: 250
+  pool_size: 512
+  starts: 32
+  ascent_steps: 20
+  jitter: 0.05
+  separation: 0.05
+  challenge_pool: 2048
+  challenge_starts: 64
+  challenge_steps: 40
