@@ -145,3 +145,25 @@ in `AGENTS.md` §5.
   (34 pages, 0 errors, 0 undefined references, same 37 hyperref warnings). verify_construction.py:
   pass. sphere_products.py: pass.
 - **Open points:** none.
+
+### 2026-10-01-TSG-5 — Table 11.1: count products, not rows
+- **Date:** 2026-10-01
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Claude Code (Claude Opus 5.5)
+- **Type:** edit
+- **Based on:** `abe16ce`
+- **Where:** `main.tex`, proof of Corollary D ("The list.") and Remark~\ref{rem:wasopen}.
+- **Change:** "they are exactly the rows of Table~\ref{tab:spheres}" → "they are exactly the
+  products listed in Table~\ref{tab:spheres}". "the nine rows of Table~\ref{tab:spheres} not
+  marked …" → "the nine products in the rows of Table~\ref{tab:spheres} not marked …".
+- **Why:** the table groups several products per row. Counted from the LaTeX source, it has
+  22 rows holding the 40 products. The rows not marked "classical" or "---" are 8, holding 9
+  products: $S^6$, $S^4\times S^2$, $S^4\times T^2$, $S^6\times S^2$, $S^6\times T^2$,
+  $S^4\times S^2\times S^2$, $S^4\times S^2\times T^2$, $S^4\times S^3\times S^1$,
+  $S^4\times T^4$. Both numbers, 40 and nine, are correct counts of products, so only the noun
+  was wrong. The nine also agree with the script, which lists 3 products of dimension 6 and 6
+  of dimension 8 needing a 2026 input.
+- **Verification:** rows and products counted by parsing the `tabular` in `main.tex`;
+  `sphere_products.py` output compared. LaTeX build: pass (34 pages, 0 errors, 0 undefined
+  references, same 37 hyperref warnings). verify_construction.py: pass. sphere_products.py: pass.
+- **Open points:** none.
