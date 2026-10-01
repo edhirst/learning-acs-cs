@@ -1,0 +1,2259 @@
+\documentclass{article}
+\usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
+\usepackage{amsmath,amsthm,amssymb,amsfonts,mathtools,bm,bbm,array,graphicx,float,mathdots,dsfont,mathrsfs,latexsym}
+\usepackage{caption,subcaption,multirow,longtable,lscape,wrapfig,tikz,tikz-cd,comment}
+\captionsetup{font=footnotesize}
+\usepackage[colorlinks=true, pdfstartview=FitV,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage[toc,page]{appendix}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\DeclareMathOperator{\Z}{\mathbb{Z}}
+\usepackage{blkarray}
+\usepackage{amsmath}
+
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{conjecture}{Conjecture}[section]
+
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+\newcommand{\hflogo}{\raisebox{-0.2em}{\includegraphics[height=1em]{figures/huggingface-color.png}}}
+\newcommand{\ghlogo}{\raisebox{-0.2em}{\includegraphics[height=1em]{figures/github.png}}}
+
+
+% --- theorem environments and macros for this article ---
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem*{maintheorem}{Main Theorem}
+\newtheorem*{theoremB}{Theorem B}
+\newtheorem*{theoremC}{Theorem C}
+\newtheorem*{corollaryD}{Corollary D}
+\theoremstyle{definition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{construction}[theorem]{Construction}
+\theoremstyle{plain}
+\newcommand{\Ric}{\operatorname{Ric}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\HH}{\mathbb{H}}
+\newcommand{\ip}[2]{\langle #1,#2\rangle}
+\newcommand{\artanh}{\operatorname{artanh}}
+\newcommand{\sech}{\operatorname{sech}}
+\newcommand{\Vs}{\mathcal V_{\mathrm s}}
+\newcommand{\Vb}{\mathcal V_{\mathrm b}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\PP}{\mathbb{P}}
+\newcommand{\cX}{\mathcal{X}}
+\newcommand{\cO}{\mathcal{O}}
+\newcommand{\eb}{\bar e}
+\newcommand{\Ut}{\widetilde{U}}
+\newcommand{\Yo}{Y^{\circ}}
+\DeclareMathOperator{\Ima}{Im}
+\DeclareMathOperator{\Rea}{Re}
+\DeclareMathOperator{\Aut}{Aut}
+
+\title{An Explicit Complex Structure on $S^4 \times T^2$}
+\author{Edward Hirst\textsuperscript{1}\footnote{\href{mailto:ehirst@unicamp.br}{ehirst@unicamp.br}}, 
+Tancredi Schettini Gherardini\textsuperscript{2,3}\footnote{\href{mailto:tsg@math.uni-bonn.de}{tsg@math.uni-bonn.de}}\\
+Tom\'as S. R. Silva\textsuperscript{1}\footnote{\href{mailto:tomas@ime.unicamp.br}{tomas@ime.unicamp.br}},
+Jakob Stein\textsuperscript{1}\footnote{\href{mailto:jstein@unicamp.br}{jstein@unicamp.br}}}
+\date{\small\today\\ \mbox{}\\
+\raggedright
+\textit{\small \qquad\qquad \textsuperscript{1} Instituto de Matemática, Estatística e Computação Científica (IMECC), Universidade Estadual de \\\qquad\qquad\qquad\qquad\qquad\qquad Campinas (UNICAMP), 13083-859, Campinas, S\~ao Paulo, Brazil\\
+\qquad\qquad\qquad\qquad\qquad \textsuperscript{2} Mathematisches Institut (MI), University of Bonn, Bonn, Germany\\
+\qquad\qquad\qquad\qquad\qquad \textsuperscript{3} Max Planck Institute for Mathematics, Bonn, Germany \\
+}}
+
+\begin{document}
+\maketitle
+% \begingroup
+% \renewcommand{\thefootnote}{}
+% \footnotetext{Authors listed alphabetically.}
+% \endgroup
+\renewcommand{\thefootnote}{\arabic{footnote}}
+\setcounter{footnote}{0}
+
+\begin{abstract}
+We construct a compact complex threefold $Y$ diffeomorphic to $S^4\times S^1\times S^1$.
+Hence the six-manifold $S^4\times T^2$ admits a complex structure, which answers
+affirmatively, for $V=T^2$, Calabi's question whether $V^2\times S^4$ admits a complex
+structure. The threefold carries a holomorphic map $f\colon Y\to\PP^1$. Its fibres over
+$\C^*$ are complex $2$-tori, and its two singular fibres are $E\times I_1$ (an elliptic
+curve times a nodal rational curve). It also carries a free holomorphic $T^2$-action,
+and its algebraic dimension is one.
+The construction uses a holomorphic family of complex $2$-tori over $\C^*$ whose two
+cusps have \emph{opposite chirality}: the elliptic curve at one cusp is oriented
+oppositely to the one at the other. Such a family cannot be polarised, since polarised
+families over $\C^*$ have no cusps, and its very general member is a torus with
+trivial N\'eron--Severi group. The family is
+completed by Mumford--Tate fillings and one Kodaira logarithmic transform of
+multiplicity one. The quotient by the $T^2$-action is a simply connected homotopy
+$4$-sphere, and the identification with $S^4\times T^2$ follows from Wall's
+$h$-cobordism theorem and the $s$-cobordism theorem. By Iwase's classification of
+torus fibrations, the quotient is in fact diffeomorphic to $S^4$.
+We also run the Calabi--Eckmann construction over the complex $S^2\times S^4$ of Liang,
+Liu and Zhang, using a holomorphic line bundle whose Chern class generates $H^2$. This
+gives complex structures on $S^4\times S^3\times S^{2q+1}$ for every $q\ge0$. Combined
+with the Main Theorem and the 2026 constructions on $S^6$ and $S^2\times S^4$, it follows
+that every almost complex product of spheres of dimension at most eight is complex.
+
+
+%\small Code: \ghlogo \, \href{...}{\texttt{...}}.
+\end{abstract}
+\newpage
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+\tableofcontents
+\newpage
+
+%======================================================================
+\section{Introduction}
+%======================================================================
+
+\subsection{Main result}
+Calabi observed that $V^2\times S^4$ is almost complex for every closed orientable
+surface $V^2$, and asked whether it admits a complex structure \cite{Calabi58}; see
+\cite[\S1]{GFL26} and \cite{EuhSekigawa13} for recent accounts. The case $V=S^2$
+was treated in 2026 by Guo, Fang and Lu \cite{GFL26} and by Liang, Liu and Zhang
+\cite{LLZ26}. Both build on the 2026 complex structures on $S^6$
+\cite{AC26,Engel26}, and \cite{LLZ26} explicitly assume the validity of the
+construction of \cite{AC26}. The Main Theorem does not depend on any of these works:
+its proof uses only the classical results listed in \S\ref{sec:facts} and the explicit
+computations below.
+
+\begin{maintheorem}
+There is a compact complex manifold $Y$ of complex dimension $3$ that is diffeomorphic
+to $S^4\times S^1\times S^1$. In particular, the smooth manifold $S^4\times T^2$
+admits an integrable almost complex structure.
+\end{maintheorem}
+
+\begin{theoremB}
+The threefold $Y$ of the Main Theorem has the following properties.
+\begin{enumerate}
+\item There is a proper surjective holomorphic map $f\colon Y\to\PP^1$. Its fibres
+  over $\C^*$ are complex $2$-tori, and its fibres over $0$ and $\infty$ are
+  isomorphic to $I_1\times E_0$ and $I_1\times E_\infty$. Here $I_1$ is a nodal
+  rational curve and $E_0\cong E_\infty\cong\C/(\Z+i\Z)$. The two cusps differ in the
+orientation of the marked lattice bases, $(1,i)$ and $(-1,i)$.
+\item The real torus $T^2$ acts freely and holomorphically on $Y$, preserving $f$.
+  The quotient $W=Y/T^2$ is a smooth homotopy $4$-sphere, and $Y\cong W\times T^2$
+  as principal $T^2$-bundles. The complex Lie group $\C^2$ acts holomorphically on
+  $Y$ by fibrewise translations, transitively on the smooth fibres of $f$.
+\item $c_1(Y)=0$ in $H^2(Y;\Z)$, and $K_Y\cong f^*\cO_{\PP^1}(-4)$. In particular $K_Y$
+  is topologically trivial but not a torsion element of $\mathrm{Pic}(Y)$.
+\item The smooth fibres of $f$ are null-homologous in $H_4(Y;\Z)$. Consequently $Y$ is
+  neither K\"ahler nor balanced.
+\item Every meromorphic function on $Y$ is pulled back from $\PP^1$, i.e.\
+  $\mathcal M(Y)=f^*\C(\PP^1)$. In particular the algebraic dimension of $Y$ is $1$.
+\end{enumerate}
+In addition, $W$ is diffeomorphic to the standard $S^4$
+(Proposition~\ref{prop:Wstandard}); this uses Iwase's classification of torus
+fibrations \cite{Iwase84}, and gives a second proof of the Main Theorem.
+\end{theoremB}
+
+\subsection{Idea of the construction}
+Matsumoto showed that $S^4$ is the total space of a genus-one \emph{achiral}
+Lefschetz fibration over $S^2$ \cite{Matsumoto82}. It has two singular fibres of types
+$I_1^+$ and $I_1^-$, of \emph{opposite} signs, with the same vanishing cycle $a$
+\cite[Thm.~4.2]{Matsumoto85}; see also \cite[Ex.~8.4.7]{GompfStipsicz99}. The fibration
+has no section: a twisted gluing kills the dual cycle $b$. Our quotient $W$ will carry
+a fibration with the same singular fibres, the same monodromy and the same twist
+class. Such a fibration
+cannot be holomorphic, because a family of elliptic curves only has positive nodes.
+
+For complex $2$-tori the situation is different. Write the fibre near a cusp as
+$X_t=\C^2/\langle e_1,e_2,e_3,e_4\rangle$, with vanishing cycle $e_1=(2\pi,0)$. The
+intermediate quotient $\C^2/\langle e_1,e_2,e_3\rangle$ is an extension of the
+elliptic curve $E_t=\C/\langle\eb_2,\eb_3\rangle$ (spanned by the second coordinates
+of $e_2,e_3$) by $\C^*=\C/2\pi\Z$, and $X_t$ is its quotient by the infinite cyclic
+group generated by $e_4$. The compact torus $X_t$ itself is not such an extension: the
+kernel of a homomorphism of compact complex tori is compact. As $t$ tends to the cusp,
+$X_t$ degenerates to a central fibre $I_1\times E$, whose smooth locus is
+$\C^*\times E$. The orientation of $E$ relative to the complex orientation of the
+fibre is an extra sign, not fixed by holomorphy
+(Remark~\ref{rem:chirality}). We write down an explicit holomorphic family of
+$2$-tori over $\C^*$ (\S\ref{sec:family}) with three properties:
+\begin{itemize}
+\item the elliptic curve is $\C/\langle 1,i\rangle$ at $t=0$ and
+  $\C/\langle -1,i\rangle$ at $t=\infty$, so the two cusps have opposite
+  chirality;
+\item the full rank-$4$ lattice nevertheless stays nondegenerate for every
+  $t\in\C^*$;
+\item the vanishing cycle is the same at both ends.
+\end{itemize}
+The second property depends on a null conic in the period map. The family cannot be
+polarised, since polarised families over $\C^*$ have no cusps
+(Remark~\ref{rem:polarised}). Individual fibres can still be projective: $X_1$ is a
+product of elliptic curves. But outside a countable set of parameters the fibres
+have trivial N\'eron--Severi group, and hence no curves and no non-constant
+meromorphic functions (Proposition~\ref{prop:NS}).
+
+We then do three things:
+\begin{enumerate}
+\item fill both cusps with Mumford--Tate models (\S\ref{sec:filling});
+\item perform one logarithmic transform of multiplicity one, whose class is the
+  coinvariant $[e_4]$ (\S\ref{sec:twist}), obtaining a compact complex threefold $Y$;
+\item observe that translations in two monodromy-invariant lattice directions give
+  a free holomorphic $T^2$-action (\S\ref{sec:torus}).
+\end{enumerate}
+The quotient $W=Y/T^2$ inherits a genus-one achiral fibration
+$f_W\colon W\to\PP^1$ with one node of each sign and a common vanishing cycle. These
+are the singular-fibre data of Matsumoto's fibration of $S^4$, but we do not identify
+$f_W$ with Matsumoto's map. Instead we prove directly that $W$ is simply connected
+with $\chi(W)=2$ (\S\ref{sec:topology}), hence a homotopy $4$-sphere.
+The Main Theorem then follows from the triviality of the $T^2$-bundle, Wall's
+$h$-cobordism theorem and the $s$-cobordism theorem (\S\ref{sec:proof}).
+Alternatively, $f_W$ is a good torus fibration in the sense of Matsumoto, and Iwase's
+classification of such fibrations \cite{Iwase84} identifies $W$ with the standard
+$S^4$ (Proposition~\ref{prop:Wstandard}).
+
+\subsection{Relation to the constructions on $S^6$ and $S^2\times S^4$}
+The toolkit is the same as in \cite{AC26,Engel26,GFL26}:
+\begin{itemize}
+\item an explicit period map of complex $2$-tori over a punctured $\PP^1$, whose very
+  general member is non-algebraic;
+\item Mumford-type toric fillings of the cusps;
+\item Kodaira logarithmic transforms \cite{Kodaira63};
+\item $\pi_1$ via van Kampen, and a classification or cobordism theorem for the
+  diffeomorphism type.
+\end{itemize}
+The $(3,4,\infty)$ modular family used there does not seem suited to $S^4\times T^2$.
+Let $Y\to\PP^1$ be a $2$-torus fibration with $Y\simeq S^4\times T^2$. Assume that
+global sections of $R^1f_*\Q$ are detected on a smooth fibre. This holds, for instance,
+when every singular fibre is of the type $I_1\times E$ used here; we have not checked
+it for other degenerations. Then $b_1=2$ forces all local monodromies to be
+transvections with a common vanishing direction (Remark~\ref{rem:necessity}). In
+particular, no local monodromy can be of finite order other than the identity, so the
+monodromies of order $3$ and $4$ of the $(3,4,\infty)$ family are excluded under this
+assumption. Our family is in this sense the simplest possibility: two cusps,
+monodromies $T^{\pm1}$.
+
+\subsection{Products of spheres}\label{sec:introspheres}
+Calabi's question is part of the broader problem of deciding which products of spheres
+admit complex structures. The known results are as follows.
+\begin{itemize}
+\item Products of two odd-dimensional spheres are complex: these are the Hopf and
+  Calabi--Eckmann manifolds \cite{CalabiEckmann53}.
+\item Among products of even-dimensional spheres, the almost complex ones are exactly
+  the products of copies of $S^2$, $S^6$ and $S^2\times S^4$ \cite{Sutherland65}. Since
+  2026 all of these are complex \cite{AC26,Engel26,GFL26,LLZ26}.
+\item Products containing both an $S^4$-factor and odd-dimensional factors are almost
+  complex, being parallelisable \cite{Staples67}, but were not covered by these
+  constructions. $S^4\times T^2$ is the smallest of them.
+\end{itemize}
+
+In \S\ref{sec:spheres} we combine the Main Theorem with these results. One more input is
+needed: the complex $S^2\times S^4$ of Liang, Liu and Zhang \cite{LLZ26}, a compact complex
+threefold $X_+$, carries a holomorphic line bundle $L_+$ whose Chern class generates
+$H^2(X_+;\Z)$. Running the Calabi--Eckmann construction over $X_+\times\PP^q$, with the
+line bundles $L_+$ and $\cO_{\PP^q}(-1)$, gives the following.
+
+\begin{theoremC}
+Assume the input \textup{(I3)} of \S\ref{sec:inputs}, i.e.\ the complex
+$S^2\times S^4$ of \cite{LLZ26} with its line bundle $L_+$. Then:
+\begin{enumerate}
+\item for every $q\ge0$ there is a holomorphic elliptic-curve bundle over
+  $X_+\times\PP^q$ whose total space is diffeomorphic to $S^4\times S^3\times S^{2q+1}$;
+\item there is a holomorphic elliptic-curve bundle over $X_+\times X_+$ whose total space
+  is diffeomorphic to $S^4\times S^3\times S^4\times S^3$.
+\end{enumerate}
+In particular $S^4\times S^3\times S^1$ admits a complex structure.
+\end{theoremC}
+
+\begin{corollaryD}
+Assume the inputs \textup{(I1)--(I3)} of \S\ref{sec:inputs}. Then a product of spheres
+of dimension at most eight admits a complex structure if and only if it admits an
+almost complex structure. The only such products with no almost complex structure are
+$S^4$, $S^8$ and $S^4\times S^4$.
+\end{corollaryD}
+
+Corollary~D uses the Main Theorem for exactly two products: $S^4\times T^2$, and
+$S^4\times T^4\cong Y\times E$ with $E$ an elliptic curve. It uses Theorem~C for
+$S^4\times S^3\times S^1$. Without the Main Theorem, $S^4\times T^2$ would be the only open
+case in dimension at most six, and $S^4\times T^4$ the only open case in dimension eight
+(Remark~\ref{rem:wasopen}).
+
+\subsection{Novelty}\label{sec:novelty}
+As far as we have been able to determine (\S\ref{sec:literature}), no complex structure
+on $S^4\times T^2$, or on $V^2\times S^4$ with $V$ of positive genus, was previously
+known. The question for $V=T^2$ is recorded as open in \cite{Calabi58} and
+\cite{MO89798}. Theorem~C is a direct combination of \cite{LLZ26} with the
+Calabi--Eckmann construction. We have not seen it stated.
+
+\subsection*{Conventions}
+Manifolds are smooth, Hausdorff and second countable. We identify $\C^2$ with $\R^4$
+via
+\[(z,w)\mapsto(\Rea z,\Ima z,\Rea w,\Ima w);\]
+this is the complex orientation, and $\det_\R$ denotes the real $4\times4$ determinant. For $u,v\in\C$ put
+$\omega(u,v)=\Ima(\bar u v)=\Rea u\,\Ima v-\Ima u\,\Rea v$. An action of a discrete
+group $\Gamma$ on a locally compact Hausdorff space $X$ is \emph{properly discontinuous}
+if $\{\gamma:\gamma K\cap K\neq\emptyset\}$ is finite for every compact $K\subset X$. A free,
+properly discontinuous action by biholomorphisms of a complex manifold has a complex
+manifold as quotient, and the quotient map is a covering. $D_\varepsilon=\{|t|<\varepsilon\}$ and
+$D^*_\varepsilon=D_\varepsilon\setminus\{0\}$.
+
+%======================================================================
+\section{Preliminaries}
+%======================================================================
+
+\subsection{Lattices in $\C^2$}
+
+\begin{lemma}[determinant formula]\label{lem:det}
+Let $e_1=(2\pi,0)$ and $e_j=(x_j,\eb_j)\in\C^2$ for $j=2,3,4$. Then
+\[
+\det\nolimits_\R(e_1,e_2,e_3,e_4)=2\pi\,\det\begin{pmatrix}\Ima x_2&\Ima x_3&\Ima x_4\\
+\Rea\eb_2&\Rea\eb_3&\Rea\eb_4\\ \Ima\eb_2&\Ima\eb_3&\Ima\eb_4\end{pmatrix}
+=2\pi\,\Ima X\cdot(\Rea\eb\times\Ima\eb),
+\]
+where $X=(x_2,x_3,x_4)$, $\eb=(\eb_2,\eb_3,\eb_4)$ and $\times$ is the cross product
+in $\R^3$.
+\end{lemma}
+\begin{proof}
+The real coordinate vector of $e_1$ is $(2\pi,0,0,0)$. Expand along the first column.
+\end{proof}
+
+\begin{lemma}[local determinant identity]\label{lem:localdet}
+Let $\alpha_2,\alpha_3,\eb_2,\eb_3,\eb_4\in\C$ with $\omega(\eb_2,\eb_3)\ne0$,
+and let $\ell\in\C$. Let $\varphi\colon\C\to\R$ be the $\R$-linear functional with
+$\varphi(\eb_j)=\Rea\alpha_j$ for $j=2,3$, and put $P=\Rea\ell-\varphi(\eb_4)$. Then
+\[
+\det\nolimits_\R\big((2\pi,0),(-i\alpha_2,\eb_2),(-i\alpha_3,\eb_3),(-i\ell,\eb_4)\big)=
+-2\pi\,P\,\omega(\eb_2,\eb_3).
+\]
+\end{lemma}
+\begin{proof}
+By Lemma~\ref{lem:det} the left side is $2\pi L(\Ima X)$, where
+\[L(v)=\det[v;\Rea\eb;\Ima\eb],\qquad \Ima X=-(\Rea\alpha_2,\Rea\alpha_3,\Rea\ell).\]
+\begin{itemize}
+\item Write $\varphi(x+iy)=px+qy$. Then
+  $u:=(\varphi(\eb_2),\varphi(\eb_3),\varphi(\eb_4))=p\Rea\eb+q\Ima\eb$, so $L(u)=0$.
+\item Hence $L(\Ima X)=-L(u+(0,0,P))=-P\,L(0,0,1)$.
+\item Finally $L(0,0,1)=\Rea\eb_2\Ima\eb_3-\Ima\eb_2\Rea\eb_3=\omega(\eb_2,\eb_3)$.
+\end{itemize}
+(This identity is also checked symbolically; see Appendix~\ref{app:checks}.)
+\end{proof}
+
+\begin{lemma}[families of lattices]\label{lem:latticefamily}
+Let $B$ be a complex manifold, and let $v_1,\dots,v_4\colon B\to\C^2$ be holomorphic with
+$\det_\R(v_1(b),\dots,v_4(b))\neq0$ for all $b$. Then $\Z^4$, acting on $\C^2\times B$ by
+$(v,b)\mapsto(v+\sum n_jv_j(b),b)$, acts freely and properly discontinuously. The
+quotient is a complex manifold, and the projection to $B$ is a proper holomorphic
+submersion with fibres the complex tori $\C^2/\bigoplus_j\Z v_j(b)$.
+\end{lemma}
+\begin{proof}
+Let $V(b)\in GL_4(\R)$ have columns $v_j(b)$.
+\begin{itemize}
+\item On a compact $L\subset B$, $\|V(b)^{-1}\|\le C_L$, so
+  $|\sum n_jv_j(b)|\ge |n|/C_L$. Hence only finitely many $n$ move a compact subset of
+  $\C^2\times L$ into itself. Freeness is clear.
+\item The preimage of a compact $L$ is the image of the compact set
+  $\{(\sum s_jv_j(b),b): s\in[0,1]^4,\ b\in L\}$, so the projection is proper.
+\end{itemize}
+\end{proof}
+
+\subsection{The toric surface $\cX$}\label{sec:toric}
+Let $N=\Z^2$, $v_n=(n,1)$ and $\sigma_n=\mathrm{cone}(v_n,v_{n+1})$ for $n\in\Z$. The
+cones $\sigma_n$ and their faces form an infinite fan $\Sigma$, whose support is the
+open upper half-plane together with the origin. Any two cones of $\Sigma$ meet in a
+common face, and every compact subset of the open upper half-plane meets only finitely
+many cones; this is the finiteness used in Mumford's construction \cite{Mumford72}. The
+fan is not locally finite at the origin, which lies in every cone. Each
+$\sigma_n$ is unimodular, since $\det(v_n,v_{n+1})=-1$. Let $\cX=\cX_\Sigma$ be the
+associated smooth toric surface, obtained by gluing the affine charts
+$U_{\sigma_n}\cong\C^2$ along the open subsets corresponding to common faces
+\cite{Fulton93}. Since infinitely many charts are involved, we verify directly in
+Lemma~\ref{lem:toric}(0) that the result is a Hausdorff, second countable complex
+surface. Write $(\zeta,t)$ for the coordinates on its dense torus
+$(\C^*)^2$, given by the characters $(1,0)$ and $(0,1)$.
+
+\begin{lemma}\label{lem:toric}\leavevmode
+\begin{enumerate}
+\setcounter{enumi}{-1}
+\item \emph{Separation.} $\cX$ is a Hausdorff, second countable complex manifold of
+  dimension $2$.
+\item \emph{Charts.} $\cX=\bigcup_n U_n$ with $U_n\cong\C^2$, coordinates
+  $x_n=\zeta^{-1}t^{n+1}$ and $y_n=\zeta t^{-n}$. On $U_n$ we have $t=x_ny_n$ and
+  $\zeta=x_n^ny_n^{n+1}$. On $U_n\cap U_{n+1}=\{x_n\neq0\}$ we have $x_{n+1}=tx_n$ and
+  $y_{n+1}=1/x_n$.
+\item \emph{The map $t$.} The character $t$ extends to a holomorphic function
+  $t\colon\cX\to\C$. Every point with $t\neq0$ lies in the dense torus, so
+  $t^{-1}(t_0)\cong\C^*_\zeta$ for $t_0\ne0$.
+\item \emph{Central fibre.} $t^{-1}(0)=\bigcup_n D_n$, where $D_n\cong\PP^1$ is the
+  divisor of $v_n$; $D_n\cap U_n=\{x_n=0\}$ and $D_{n+1}\cap U_n=\{y_n=0\}$. Thus
+  $t^{-1}(0)$ is an infinite chain of $\PP^1$'s, with $D_n\cap D_{n+1}=\{P_n\}$ the
+  origin of $U_n$, and $D_n\cap D_m=\emptyset$ for $|n-m|\ge2$.
+\item \emph{Torus action.} $\lambda\in\C^*$ acts by $\lambda\cdot(\zeta,t)=(\lambda\zeta,t)$,
+  i.e.\ $\lambda\cdot(x_n,y_n)=(\lambda^{-1}x_n,\lambda y_n)$. It preserves $t$, each $D_n$
+  and each $P_n$.
+\item \emph{Shift.} The lattice automorphism $A(a,b)=(a+b,b)$ maps $\sigma_n$ to
+  $\sigma_{n+1}$. The induced automorphism $\psi$ of $\cX$ is $(\zeta,t)\mapsto(t\zeta,t)$
+  on the torus; it maps $U_n$ to $U_{n+1}$ with $x_{n+1}\circ\psi=x_n$ and
+  $y_{n+1}\circ\psi=y_n$. It commutes with the $\C^*$-action, preserves $t$, and maps
+  $D_n$ to $D_{n+1}$ and $P_n$ to $P_{n+1}$.
+\item \emph{Log form.} On $U_n$, $\tfrac{d\zeta}{\zeta}\wedge dt=-dx_n\wedge dy_n$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+Items (1)--(6) are standard toric computations \cite{Fulton93}; the formulas in (1),
+(5) and (6) are checked in Appendix~\ref{app:checks}.
+\begin{itemize}
+\item (1): the dual basis of $(v_n,v_{n+1})$ is
+  $(m^{(n)}_1,m^{(n)}_2)=((-1,n+1),(1,-n))$, and $x_n=\chi^{m^{(n)}_1}$,
+  $y_n=\chi^{m^{(n)}_2}$.
+\item (2): $\langle(0,1),v_n\rangle=1\ge0$ for all $n$.
+\item (5): with $A=\begin{pmatrix}1&1\\0&1\end{pmatrix}$ one has
+  $A^Tm^{(n+1)}_1=m^{(n)}_1$ and $A^Tm^{(n+1)}_2=m^{(n)}_2$. Since
+  $\chi^m\circ\psi=\chi^{A^Tm}$, this gives $x_{n+1}\circ\psi=x_n$ and
+  $y_{n+1}\circ\psi=y_n$.
+\end{itemize}
+(0) Let $m=n+k$ with $k\ge1$, and write $t_j=x_jy_j$ on $U_j$. On the dense torus,
+(1) gives $x_m=t^kx_n$ and $y_m=t^{-k}y_n$. Hence the set of pairs
+$(p,q)\in U_n\times U_m$ that are identified in $\cX$ is
+\[R_{n,m}=\big\{(p,q):\ t_n(p)=t_m(q),\ \ x_m(q)=t_n(p)^k\,x_n(p),\ \ t_n(p)^{k-1}x_n(p)\,y_m(q)=1\big\}.\]
+\begin{itemize}
+\item For $k=1$ this is the graph of the gluing map $(x_n,y_n)\mapsto(tx_n,1/x_n)$ on
+  the overlap $\{x_n\neq0\}$.
+\item For $k\ge2$ the last equation forces $t\ne0$ and $x_n\ne0$, so $R_{n,m}$ is the
+  graph of the identification of the two dense tori, which is the overlap
+  $U_n\cap U_m$ (the cones meet only in $\{0\}$).
+\end{itemize}
+Each $R_{n,m}$ is defined by polynomial equations, so it is closed in $U_n\times U_m$.
+By symmetry the same holds for $m<n$, and $R_{n,n}$ is the diagonal. Thus the
+equivalence relation on $\bigsqcup_nU_n$ is closed. The quotient map is open,
+since the identifications are by homeomorphisms between open subsets. A quotient of a
+Hausdorff space by an open map with closed equivalence relation is Hausdorff. The atlas
+$\{U_n\}_{n\in\Z}$ is countable, so $\cX$ is second countable.
+\end{proof}
+
+For $0<\varepsilon<1$ put $\cX^\varepsilon=t^{-1}(D_\varepsilon)$, and for $\rho\ge1$ define the
+\emph{slabs}
+\[W_n(\rho)=\{p\in U_n:\ |x_n(p)|<\rho,\ |y_n(p)|<\rho,\ |t(p)|<\varepsilon\}.\]
+
+\begin{lemma}[slabs]\label{lem:slabs}
+Let $0<\varepsilon<1/16$.
+\begin{enumerate}
+\item The slabs $W_n(2)$ cover $\cX^\varepsilon$.
+\item If $|n-m|\ge2$, then $W_n(2)\cap W_m(2)=\emptyset$.
+\item Each $W_n(2)$ is contractible. Each $W_n(2)\cap W_{n+1}(2)$ is connected and
+  homotopy equivalent to $S^1$.
+\item $\psi(W_n(\rho))=W_{n+1}(\rho)$, and $\lambda\cdot W_n(\rho)\subset W_n(\rho\max(|\lambda|,|\lambda|^{-1}))$.
+\item If $p\in W_n(2)$ and $t(p)\neq0$, then
+  $\frac{\log|\zeta(p)|}{\log|t(p)|}\in(n-\tfrac12,\,n+\tfrac32)$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(5) On the torus, $|x_n|<2$ means $|\zeta|>|t|^{n+1}/2$, and $|y_n|<2$ means
+$|\zeta|<2|t|^n$. Take logarithms, divide by $\log|t|<0$, and use
+$\log2/|\log|t||<\tfrac12$.
+
+(1) Let $p$ be a torus point. Put $n=\lfloor\log|\zeta|/\log|t|\rfloor$. Then
+$|t|^{n+1}<|\zeta|\le|t|^n$, so $|x_n|<1$ and $|y_n|\le1$.
+Now let $p\in D_n$, so $p\in U_{n-1}\cup U_n$.
+\begin{itemize}
+\item If $p\in U_n$ and $|y_n(p)|<2$, then $p\in W_n(2)$.
+\item Otherwise either $p=P_{n-1}$, or $p\in U_n$ with $|y_n(p)|\ge2$. In the second
+  case $p\in U_{n-1}\cap U_n$ and $|x_{n-1}(p)|=1/|y_n(p)|\le\tfrac12$. In both cases
+  $p\in U_{n-1}$ with $y_{n-1}(p)=0$ and $|x_{n-1}(p)|\le\tfrac12$, so $p\in W_{n-1}(2)$.
+\end{itemize}
+
+(2) By (3) of Lemma~\ref{lem:toric}, $W_n(2)\cap t^{-1}(0)\subset D_n\cup D_{n+1}$, and
+$P_m\in W_n$ only for $m=n$. So the central parts are disjoint for $|n-m|\ge2$.
+For torus points with $m\ge n+2$, a common point would need
+$|t|^{n+1}/2<|\zeta|<2|t|^m$, i.e.\ $|t|^{m-n-1}>1/4$. This is impossible since
+$|t|<1/16$.
+
+(3) In the coordinates $(x,y)=(x_n,y_n)$, $W_n(2)=\{|x|,|y|<2,\ |xy|<\varepsilon\}$ is
+star-shaped about $0$. By Lemma~\ref{lem:toric}(1),
+\[W_n(2)\cap W_{n+1}(2)=\{\tfrac12<|x|<2,\ |y|<\min(2,\varepsilon/|x|)\},\]
+which retracts onto $\{|x|=1,y=0\}$.
+
+(4) This follows from Lemma~\ref{lem:toric}(4),(5).
+\end{proof}
+
+\begin{lemma}[topology of $\cX^\varepsilon$]\label{lem:Xtop}
+For $0<\varepsilon<1/16$, $\cX^\varepsilon$ is connected and simply connected, and
+\[H_q(\cX^\varepsilon;\Z)\cong\Z,\ 0,\ \Z[\tau,\tau^{-1}],\ 0\quad\text{for } q=0,\ 1,\ 2,\ \ge3,\]
+where $\tau$ acts on $H_2$ through $\psi_*$. Moreover, any homeomorphism
+$p\mapsto\kappa(t(p))\cdot\psi(p)$, with $\kappa\colon D_\varepsilon\to\C^*$ admitting a continuous logarithm, acts on homology as $\psi_*$.
+\end{lemma}
+\begin{proof}
+Put $Z_N=\bigcup_{|n|\le N}W_n(2)$. By Lemma~\ref{lem:slabs}, adding $W_{N+1}(2)$ to
+$Z_N$ (or $W_{-N-1}(2)$) attaches a contractible set along a connected set
+$\simeq S^1$.
+\begin{itemize}
+\item Van Kampen shows that each $Z_N$ is simply connected.
+\item Mayer--Vietoris shows that each such step adds one free generator to $H_2$
+  and changes nothing else. Explicitly, when $W_{n+1}$ is attached to $Z_n$ (along
+  $W_n\cap W_{n+1}$), the boundary map $H_2(Z_{n+1})\to H_1(W_n\cap W_{n+1})\cong\Z$ is
+  onto, and $H_2(Z_n)$ is its kernel.
+\item The sphere $D_{n+1}$ lies in $W_n\cup W_{n+1}$: on $D_{n+1}$, $y_{n+1}=1/x_n$, so
+  every point has $|x_n|<2$ or $|y_{n+1}|<2$. The circle $\{|x_n|=1\}\subset D_{n+1}$
+  cuts it into two discs, one in each slab. So the boundary map sends $[D_{n+1}]$ to a
+  generator of $H_1(W_n\cap W_{n+1})$.
+\end{itemize}
+Hence $H_2(Z_N)$ is free on the classes $[D_m]$ of the compact components in
+$Z_N$, and $H_2(\cX^\varepsilon)$, the direct limit, is free on $\{[D_n]\}_{n\in\Z}$.
+Since $\psi$ is holomorphic and maps $D_n$ to $D_{n+1}$, it preserves complex
+orientations, so $\psi_*[D_n]=[D_{n+1}]$. Thus $H_2\cong\Z[\tau^{\pm1}]$ as a
+$\Z[\tau^{\pm1}]$-module, with $[D_n]\leftrightarrow\tau^n$.
+The map $p\mapsto\kappa(t(p))^u\cdot p$, with $\kappa^u=\exp(u\log\kappa)$ and
+$u\in[0,1]$, is an isotopy from the identity to $p\mapsto\kappa(t(p))\cdot p$, which
+gives the last statement.
+\end{proof}
+
+\subsection{Standard facts used}\label{sec:facts}
+\begin{enumerate}
+\item[(F1)] Principal $T^k$-bundles over a CW complex $B$ are classified by
+  $H^2(B;\Z^k)$, and topologically trivial smooth principal bundles are smoothly
+  trivial.
+\item[(F2)] (Milnor \cite{Milnor68}) For an infinite cyclic covering $\widetilde X\to X$
+  with deck generator $\tau$ there is an exact sequence
+  $\cdots\to H_q(\widetilde X)\xrightarrow{\tau_*-1}H_q(\widetilde X)\to H_q(X)\to
+  H_{q-1}(\widetilde X)\to\cdots$.
+\item[(F3)] (Wall \cite{Wall64}) Two smooth closed simply connected $4$-manifolds with
+  isomorphic intersection forms are $h$-cobordant. For homotopy spheres this is the
+  statement $\Theta_4=0$ \cite{KervaireMilnor63}, where $\Theta_4$ is the group of
+  $h$-cobordism classes of homotopy $4$-spheres. It does not assert the smooth
+  $4$-dimensional Poincar\'e conjecture.
+\item[(F4)] The Whitehead group $\mathrm{Wh}(\Z^2)$ vanishes \cite{BHS64}. The
+  $s$-cobordism theorem \cite{Kervaire65,Milnor66} says an $h$-cobordism of dimension $\ge6$
+  with vanishing Whitehead torsion is a product.
+\end{enumerate}
+
+%======================================================================
+\section{The family of $2$-tori over $\C^*$}\label{sec:family}
+%======================================================================
+
+\begin{construction}\label{con:family}
+For $t\in\C^*$ consider the following holomorphic automorphisms of
+$\C^*_\zeta\times\C_w\times\C^*_t$, all of which preserve $t$:
+\begin{align*}
+g_2(\zeta,w,t)&=(e^{t}\zeta,\ w+1-t^2,\ t),\\
+g_3(\zeta,w,t)&=(e^{-it}\zeta,\ w+i(1+t^2),\ t),\\
+g_4(\zeta,w,t)&=(t\zeta,\ w+2t,\ t).
+\end{align*}
+They commute. Let $\Gamma^\circ=\langle g_2,g_3,g_4\rangle$ and $\Yo=(\C^*\times\C\times\C^*)/\Gamma^\circ$.
+\end{construction}
+
+In the additive coordinate $z$, $\zeta=e^{iz}$, and for a choice of $\log t$, the
+lifts of $g_2,g_3,g_4$, together with $z\mapsto z+2\pi$, are the translations by
+\begin{equation}\label{eq:lattice}
+e_1=(2\pi,0),\quad e_2(t)=(-it,\,1-t^2),\quad e_3(t)=(-t,\,i(1+t^2)),\quad e_4(t)=(-i\log t,\,2t).
+\end{equation}
+Changing the branch of $\log t$ by $2\pi i$ replaces $e_4$ by $e_4+e_1$, so
+$\Lambda_t=\bigoplus_{j}\Z e_j(t)\subset\C^2$ is independent of the branch.
+
+\begin{lemma}\label{lem:det-family}
+For all $t\in\C^*$, with $r=|t|$,
+\[
+\det\nolimits_\R(e_1,e_2,e_3,e_4)=2\pi(1+r^2)\big(2r^2-(1-r^2)\ln r\big)>0.
+\]
+\end{lemma}
+\begin{proof}
+Write $t=a+ib$. We have $\Ima x_2=-a$, $\Ima x_3=-b$, $\Ima x_4=-\ln r$, and
+\[
+\Rea\eb=(1-a^2+b^2,\,-2ab,\,2a),\qquad \Ima\eb=(-2ab,\,1+a^2-b^2,\,2b).
+\]
+A direct computation gives
+$\Rea\eb\times\Ima\eb=(1+r^2)\cdot(-2a,\,-2b,\,1-r^2)$, so by Lemma~\ref{lem:det}
+\[
+\det\nolimits_\R=2\pi(1+r^2)(2a^2+2b^2-(1-r^2)\ln r).
+\]
+The factors $1-r^2$ and $\ln r$ have opposite signs for $r\ne1$ and vanish only at
+$r=1$, so $(1-r^2)\ln r\le0$. Hence $\det_\R\ge 4\pi r^2(1+r^2)>0$.
+\end{proof}
+
+\begin{lemma}\label{lem:Yo}
+$\Gamma^\circ\cong\Z^3$ acts freely and properly discontinuously, and $\Yo$ is a complex
+manifold. The map $f\colon\Yo\to\C^*$, $[\zeta,w,t]\mapsto t$, is a proper holomorphic
+submersion with fibres $X_t=\C^2/\Lambda_t$, which are compact complex $2$-tori. The
+monodromy of $\{H_1(X_t;\Z)=\Lambda_t\}$ around $t=0$ (counterclockwise) is
+\[
+T\colon e_1\mapsto e_1,\quad e_2\mapsto e_2,\quad e_3\mapsto e_3,\quad e_4\mapsto e_4+e_1.
+\]
+The zero section $t\mapsto[1,0,t]$ is a holomorphic section of $f$.
+\end{lemma}
+\begin{proof}
+Let $B\subset\C^*$ be a simply connected open disc and fix $\log t$ on $B$. The map
+$\C^2\times B\to\C^*\times\C\times B$, $(z,w,t)\mapsto(e^{iz},w,t)$, is the quotient
+by translation by $e_1$. Under it, $\Gamma^\circ$ corresponds to the translations by
+$e_2,e_3,e_4$ modulo $e_1$.
+\begin{itemize}
+\item By Lemmas~\ref{lem:latticefamily} and \ref{lem:det-family}, the $\Z^4$-action
+  on $\C^2\times B$ is free and properly discontinuous, with quotient
+  $f^{-1}(B)\to B$ a proper holomorphic submersion with fibres $\C^2/\Lambda_t$.
+\item Since $\Gamma^\circ$ preserves $t$, proper discontinuity and freeness on all of
+  $\C^*\times\C\times\C^*$ follow by covering a compact set's image in $\C^*$ by
+  finitely many such discs.
+\item $\Gamma^\circ\cong\Z^3$ because $e_1,\dots,e_4$ are $\R$-independent.
+\item The monodromy statement is the branch change above.
+\end{itemize}
+\end{proof}
+
+\begin{remark}[opposite chirality]\label{rem:chirality}
+Call the second coordinates $\eb_2(t)=1-t^2$ and $\eb_3(t)=i(1+t^2)$ of $e_2,e_3$ the
+two \emph{projected period vectors}. They satisfy
+$\omega(\eb_2,\eb_3)=1-|t|^4$.
+\begin{itemize}
+\item For $|t|\ne1$ they span a lattice in $\C$, with modulus
+  $\tau_E(t)=\eb_3/\eb_2=i(1+t^2)/(1-t^2)$. This is $i$ at $t=0$ and $-i$ at
+  $t=\infty$. Near the two cusps these are the lattices of the elliptic curves $E_0$
+  and $E_\infty$, which therefore have opposite orientations (Lemma~\ref{lem:atinfty}).
+\item On $|t|=1$ they are $\R$-linearly dependent, so they do not span a lattice. For
+  $t=e^{i\theta}$ with $\theta\notin\pi\Z$, $\tau_E=-\cot\theta$ is real, and if
+  $\cot\theta$ is irrational they span a dense subgroup of a real line. At $t=\pm1$,
+  $\eb_2=0$.
+\end{itemize}
+By Lemma~\ref{lem:det-family}, the full rank-$4$ lattice $\Lambda_t$ nevertheless stays
+nondegenerate across $|t|=1$.
+
+The vector $\eb(t)=(1-t^2,\,i(1+t^2),\,2t)$ parametrises the null conic
+$\{x^2+y^2+z^2=0\}\subset\PP^2$. This conic has no real points, which is what makes
+$\Rea\eb\times\Ima\eb$ nowhere zero.
+\end{remark}
+
+\subsection{Periods and N\'eron--Severi groups}
+Let $B\subset\C^*$ be an open disc, and fix a branch of $\log t$ on $B$, so that
+$e_1,\dots,e_4$ is a basis of $\Lambda_t=H_1(X_t;\Z)$ depending holomorphically on
+$t\in B$. For $j<k$ let $\Sigma_{jk}\subset X_t$ be the $2$-torus spanned by $e_j$ and
+$e_k$, oriented by $(e_j,e_k)$. The classes $[\Sigma_{jk}]$ form a basis of
+$H_2(X_t;\Z)=\Lambda^2\Lambda_t$. The \emph{periods} of the holomorphic $2$-form
+$\sigma=dz\wedge dw$ are
+\[p_{jk}(t)=\int_{\Sigma_{jk}}\sigma=z_jw_k-z_kw_j,\qquad e_j=(z_j,w_j).\]
+
+\begin{lemma}[periods]\label{lem:periods}
+\begin{enumerate}
+\item The periods are
+\begin{align*}
+p_{12}&=2\pi(1-t^2), & p_{13}&=2\pi i(1+t^2), & p_{14}&=4\pi t,\\
+p_{23}&=2t, & p_{24}&=i(1-t^2)\log t-2it^2, & p_{34}&=-(1+t^2)\log t-2t^2.
+\end{align*}
+\item If $c=(c_{jk})\in\Z^6$ and $\sum_{j<k}c_{jk}p_{jk}$ vanishes identically on $B$,
+  then $c=0$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(1) Parametrise $\Sigma_{jk}$ by $(a,b)\mapsto ae_j+be_k$, $(a,b)\in[0,1]^2$. Then
+$dz\wedge dw$ pulls back to $(z_jw_k-z_kw_j)\,da\wedge db$. Insert \eqref{eq:lattice};
+see also Appendix~\ref{app:checks}.
+
+(2) Write $F=\sum c_{jk}p_{jk}=A(t)+C(t)\log t$ with polynomials
+\begin{align*}
+C(t)&=ic_{24}(1-t^2)-c_{34}(1+t^2),\\
+A(t)&=2\pi c_{12}(1-t^2)+2\pi ic_{13}(1+t^2)+(4\pi c_{14}+2c_{23})\,t-2(ic_{24}+c_{34})\,t^2.
+\end{align*}
+\begin{itemize}
+\item If $C\not\equiv0$, then $\log t=-A/C$ on $B$. Continuing analytically once around
+  $0$ changes the left side by $2\pi i$ and leaves the right side unchanged, which is
+  impossible. So $C\equiv0$, and then $A\equiv0$.
+\item The constant term of $C$ is $ic_{24}-c_{34}$. Since $c_{24},c_{34}$ are real,
+  $c_{24}=c_{34}=0$.
+\item The constant term of $A$ is $2\pi(c_{12}+ic_{13})$, so $c_{12}=c_{13}=0$.
+\item The linear term of $A$ is $4\pi c_{14}+2c_{23}$. Since $\pi$ is irrational,
+  $c_{14}=c_{23}=0$.
+\end{itemize}
+\end{proof}
+
+\begin{proposition}[N\'eron--Severi groups of the fibres]\label{prop:NS}
+\begin{enumerate}
+\item There is a countable subset $\mathcal E$ of $\C^*$ with the following property.
+  For every $t\in\C^*\setminus\mathcal E$ the N\'eron--Severi group of $X_t$ is zero,
+  $X_t$ contains no curves, and $X_t$ has no non-constant meromorphic functions, i.e.\
+  $a(X_t)=0$.
+\item The fibre over $t=1$ is a product of elliptic curves,
+  \[X_1\cong\C/(2\pi\Z+i\Z)\times\C/(2\Z+2i\Z),\]
+  hence a projective abelian surface. In particular $1\in\mathcal E$, so not every
+  smooth fibre is non-algebraic.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(1) By the Lefschetz $(1,1)$-theorem, $\mathrm{NS}(X_t)$ is the group of integral
+classes of type $(1,1)$.
+\begin{itemize}
+\item A real class $\gamma\in H^2(X_t;\R)$ is of type $(1,1)$ if and only if
+  $\int_{X_t}\gamma\wedge\sigma=0$. Indeed, only the $(0,2)$-part of $\gamma$
+  contributes to this integral. That part is a multiple of $\bar\sigma$, and
+  $\int\bar\sigma\wedge\sigma\ne0$. Moreover, $\gamma^{2,0}=\overline{\gamma^{0,2}}$.
+\item Write the Poincar\'e dual of an integral class $\gamma$ as
+  $\sum c_{jk}[\Sigma_{jk}]$ with $c\in\Z^6$, using the convention
+  $\int_{X_t}\alpha\wedge\gamma=\int_{\mathrm{PD}(\gamma)}\alpha$. Then
+  $\int\gamma\wedge\sigma=\sum c_{jk}p_{jk}(t)$.
+\item For $c\ne0$, this holomorphic function on $B$ is not identically zero by
+  Lemma~\ref{lem:periods}. So its zeros form a discrete, hence countable, subset of
+  $B$.
+\item $\C^*$ is covered by countably many discs $B$, and $\Z^6$ is countable. So the
+  set $\mathcal E$ of $t$ with $\mathrm{NS}(X_t)\ne0$ is countable.
+\end{itemize}
+Now let $t\notin\mathcal E$. A curve $C\subset X_t$ would have $[C]\ne0$ in
+$\mathrm{NS}(X_t)$, since $\int_C\omega_0>0$ for a flat K\"ahler form $\omega_0$ on
+$X_t$. A non-constant meromorphic function has a non-empty polar divisor. So neither
+exists.
+
+(2) At $t=1$ the generators are $e_1=(2\pi,0)$, $e_2=(-i,0)$, $e_3=(-1,2i)$ and
+$e_4=(0,2)$. In the coordinates $(z',w)=(z-\tfrac i2w,\ w)$ they become $(2\pi,0)$,
+$(-i,0)$, $(0,2i)$ and $(-i,2)$. Replacing the last vector by $e_4-e_2=(0,2)$ exhibits
+$\Lambda_1$ as the product lattice $(2\pi\Z+i\Z)\times(2\Z+2i\Z)$.
+\end{proof}
+
+%======================================================================
+\section{Filling the cusps}\label{sec:filling}
+%======================================================================
+
+\begin{proposition}[Mumford--Tate filling]\label{prop:filling}
+Let $\varepsilon_0\in(0,1/16)$, let $\alpha_2,\alpha_3,\eb_2,\eb_3,\eb_4$ be holomorphic on
+$D_{\varepsilon_0}$, and let $\nu\in\C^*$, such that
+\begin{enumerate}
+\item[(H1)] $\alpha_2(0)=\alpha_3(0)=\eb_4(0)=0$;
+\item[(H2)] $\omega(\eb_2(t),\eb_3(t))\neq0$ for $t\in D_{\varepsilon_0}$.
+\end{enumerate}
+On $\cX^{\varepsilon_0}\times\C_w$, where $\cX^{\varepsilon_0}=t^{-1}(D_{\varepsilon_0})$
+and $t=t(p)$, define
+\[
+G_j(p,w)=(e^{\alpha_j(t)}\cdot p,\ w+\eb_j(t))\ \ (j=2,3),\qquad
+G_4(p,w)=(\nu\cdot\psi(p),\ w+\eb_4(t)).
+\]
+There is $\varepsilon\in(0,\varepsilon_0)$ with the following properties, where
+$\Ut=\cX^\varepsilon\times\C$ and $\Gamma=\langle G_2,G_3,G_4\rangle$.
+\begin{enumerate}
+\item[(a)] $\Gamma\cong\Z^3$ acts on $\Ut$ freely and properly discontinuously by
+  biholomorphisms preserving $t$.
+\item[(b)] $U=\Ut/\Gamma$ is a complex threefold and $f=t\colon U\to D_\varepsilon$ is
+  proper.
+\item[(c)] $f^{-1}(0)\cong I_1\times E$, where $E=\C/(\Z\eb_2(0)+\Z\eb_3(0))$ and
+  $I_1=t^{-1}(0)/\langle \nu\psi\rangle$ is a nodal rational curve. Near every point of
+  $f^{-1}(0)$ there are local coordinates in which $f=xy$.
+\item[(d)] $f^{-1}(D^*_\varepsilon)$ is the open subset
+  $(\C^*_\zeta\times\C_w\times D^*_\varepsilon)/\Gamma$,
+  on which $G_2,G_3,G_4$ act by
+  $(\zeta,w)\mapsto(e^{\alpha_j}\zeta,w+\eb_j)$ and $(\zeta,w)\mapsto(\nu t\zeta,w+\eb_4)$.
+  Its fibres are the tori with lattice
+  \[\big\langle(2\pi,0),\ (-i\alpha_2,\eb_2),\ (-i\alpha_3,\eb_3),\ (-i\log(\nu t),\eb_4)\big\rangle.\]
+\item[(e)] The section $t\mapsto[(\zeta{=}1,t),0]$ extends holomorphically over $t=0$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+\emph{Step 0: constants.} Shrinking $\varepsilon_0$, we may assume the data are holomorphic
+on a neighbourhood of $\overline D_{\varepsilon_0}$. Then there are constants
+$c_0,C_0,C_1>0$ such that for $|t|\le\varepsilon_0$, real $a,b$ and $u\in\C$:
+\begin{itemize}
+\item $|a\eb_2(t)+b\eb_3(t)|\ge c_0(|a|+|b|)$;
+\item $|\alpha_j(t)|+|\eb_4(t)|\le C_0|t|$;
+\item $|\varphi_t(u)|\le C_1|t||u|$, where $\varphi_t\colon\C\to\R$ is the $\R$-linear
+  functional with $\varphi_t(\eb_j(t))=\Rea\alpha_j(t)$ for $j=2,3$. It exists by (H2),
+  and the estimate follows from (H1).
+\end{itemize}
+For $t\neq0$ put $P(t)=\log|\nu|+\log|t|-\varphi_t(\eb_4(t))$. Then $P(t)/\log|t|\to1$ as
+$t\to0$. Choose $\varepsilon<\varepsilon_0$
+such that $P(t)/\log|t|\in[\tfrac12,\tfrac32]$ for $0<|t|<\varepsilon$. This $\varepsilon$
+depends only on the data, not on any compact set. For the two cusps used below, $P$ is
+computed exactly in Remark~\ref{rem:Pexact}, and $\varepsilon=10^{-2}$ suffices.
+
+\emph{Step 1: the action.}
+\begin{itemize}
+\item The maps are holomorphic and preserve $t$, since the $\C^*$-action and $t$ are
+  holomorphic and $t\circ\psi=t$.
+\item They commute, since $\psi$ commutes with the $\C^*$-action.
+\item On $t^{-1}(0)\times\C$, $G_2^aG_3^bG_4^k$ acts by
+  $(\nu^k\psi^k,\ w+a\eb_2(0)+b\eb_3(0))$, which is the identity only for $a=b=k=0$.
+  Hence $\Gamma\cong\Z^3$.
+\end{itemize}
+
+\emph{Step 2: the open part.} For $t\ne0$ the fibre of $\cX$ is $\C^*_\zeta$ and $\psi$
+acts by $\zeta\mapsto t\zeta$, which gives the formulas in (d). By
+Lemma~\ref{lem:localdet} with $\ell=\log(\nu t)$, the lattice there has determinant
+$-2\pi P(t)\,\omega(\eb_2,\eb_3)\neq0$.
+
+\emph{Step 3: a normalised height.} On torus points of $\Ut$ put
+$H(p,w)=\log|\zeta(p)|-\varphi_t(w)$. Since $\log|e^{\alpha_j}|=\Rea\alpha_j=\varphi_t(\eb_j)$,
+\[
+H\circ G_2=H,\qquad H\circ G_3=H,\qquad H\circ G_4=H+P(t).
+\]
+
+\emph{Step 4: freeness.} Suppose $\gamma=G_2^aG_3^bG_4^k$ fixes $(p,w)$.
+\begin{itemize}
+\item If $t(p)=0$, then $a\eb_2(0)+b\eb_3(0)=0$, so $a=b=0$, and $\nu^k\psi^k(p)=p$
+  forces $k=0$, because $\nu^k\psi^k$ maps $D_n$ to $D_{n+k}$ and $P_n$ to $P_{n+k}$.
+\item If $t(p)\ne0$, a fixed point means that $ae_2+be_3+ke_4\in\Z e_1$ for the
+  lattice of Step 2, which is impossible unless $a=b=k=0$.
+\end{itemize}
+
+\emph{Step 5: proper discontinuity.} Let $K\subset\Ut$ be compact. Then
+$K\subset\big(\bigcup_{|n|\le N}W_n(2)\big)\times\{|w|\le R\}$ for some $N,R$
+(Lemma~\ref{lem:slabs}(1)). Let $\gamma=G_2^aG_3^bG_4^k$ and $q=(p,w)\in K$ with
+$\gamma q\in K$.
+\begin{itemize}
+\item \emph{The $w$-coordinate.} Comparing $w$-coordinates gives
+  $|a\eb_2+b\eb_3|\le 2R+|k|C_0\varepsilon$, so
+  $|a|+|b|\le c_0^{-1}(2R+|k|C_0\varepsilon)$. It therefore suffices to bound $|k|$.
+\item \emph{If $t(p)=0$.} $q$ and $\gamma q$ lie on components $D_m$ with $|m|\le N+1$,
+  and $\gamma$ shifts component indices by $k$. So $|k|\le 2N+1$.
+\item \emph{If $t(p)\neq0$.} By Lemma~\ref{lem:slabs}(5) and Step~0,
+  \[\Big|\frac{H(q')}{\log|t|}\Big|\le N+2+\frac{C_1R\,\varepsilon}{\log(1/\varepsilon)}=:B_K\]
+  for $q'\in\{q,\gamma q\}$. By Step~3, $H(\gamma q)-H(q)=kP(t)$, and
+  $P(t)/\log|t|\ge\tfrac12$. Hence $|k|\le 4B_K$.
+\end{itemize}
+
+\emph{Step 6: properness of $f$.} Fix $\varepsilon'<\varepsilon$ and let
+\[\Pi_t=\{s_2\eb_2(t)+s_3\eb_3(t):s_j\in[0,1]\},\qquad R_0=\max_{|t|\le\varepsilon'}\max_{u\in\Pi_t}|u|.\]
+Let $q=(p,w)$ with $|t(p)|\le\varepsilon'$.
+\begin{itemize}
+\item If $t\neq0$: replace $q$ by $G_4^kq$ with $H\in(P(t),0]$ (Step 3), then by
+  $G_2^aG_3^bq$ with $w\in\Pi_t$; $H$ is unchanged. Now
+  $\log|\zeta|=H+\varphi_t(w)\in(\log|t|-C_2,\,C_2)$ with
+  $C_2=|\log|\nu||+C_0C_1\varepsilon^2+C_1R_0\varepsilon$. So in the chart $U_0$,
+  $|y_0|=|\zeta|<e^{C_2}$ and $|x_0|=|t|/|\zeta|<e^{C_2}$.
+\item If $t=0$: use $G_4^k$ to move $p$ into $D_0$, then $G_2,G_3$ to put
+  $w\in\Pi_0$.
+\end{itemize}
+Hence every $\Gamma$-orbit in $f^{-1}(\overline{D}_{\varepsilon'})$ meets the compact set
+\[K_0=\Big\{(p,w):\ p\in\big(\{|x_0|,|y_0|\le e^{C_2}\}\cup\{|x_{-1}|,|y_{-1}|\le1\}\big),\
+|t(p)|\le\varepsilon',\ w\in\Pi_{t(p)}\Big\}.\]
+This uses $D_0\subset\{|x_0|=0,|y_0|\le1\}\cup\{y_{-1}=0,|x_{-1}|\le1\}$. So
+$f^{-1}(\overline D_{\varepsilon'})$ is the image of $K_0$ and is compact.
+
+\emph{Step 7: central fibre and local form.} At $t=0$, $G_2=(\mathrm{id},w+\eb_2(0))$,
+$G_3=(\mathrm{id},w+\eb_3(0))$ and $G_4=(\nu\psi,w)$, by (H1). So
+\[f^{-1}(0)=(t^{-1}(0)/\langle \nu\psi\rangle)\times E.\]
+The quotient of the chain by $\nu\psi$ is $D_0$ with $P_{-1}\sim P_0$, i.e.\ $I_1$. In
+the chart $U_n\times\C$, $f=x_ny_n$; this proves (c).
+
+(b) follows from (a), Step 6 and the smoothness of $\Ut$.
+
+(e) The point $(\zeta=1,t)$ has $x_0=t$ and $y_0=1$, which tends to the point
+$(0,1)\in D_0\cap U_0$.
+\end{proof}
+
+\subsection{The cusp at $t=0$}
+Take $\alpha_2=t$, $\alpha_3=-it$, $\eb_2=1-t^2$, $\eb_3=i(1+t^2)$, $\eb_4=2t$ and $\nu=1$.
+Then (H1) holds, and (H2) holds with $\omega(\eb_2,\eb_3)=1-|t|^4$. Over $D^*_\varepsilon$ the
+generators of Proposition~\ref{prop:filling}(d) are exactly $g_2,g_3,g_4$. Let
+$U_0\to D_\varepsilon$ be the filling, and let
+$\iota_0\colon U_0|_{D^*_\varepsilon}\xrightarrow{\ \sim\ }\Yo|_{D^*_\varepsilon}$ be the
+identity of $(\C^*\times\C\times D^*_\varepsilon)/\Gamma^\circ$.
+
+\subsection{The cusp at $t=\infty$}
+\begin{lemma}\label{lem:atinfty}
+On $\C^*\times\C\times\{|t|>1\}$ the map
+\[\Theta(\zeta,w,t)=(\zeta e^{w/t},\ w/t^2,\ 1/t)=:(\zeta',w',s)\]
+is a biholomorphism onto $\C^*\times\C\times D^*_1$, with inverse
+$(\zeta',w',s)\mapsto(\zeta'e^{-w'/s},w'/s^2,1/s)$. It conjugates
+\begin{align*}
+g_2&\mapsto h_2=(e^{s}\zeta',\ w'+s^2-1),\qquad
+g_3\mapsto h_3=(e^{is}\zeta',\ w'+i(1+s^2)),\\
+g_4^{-1}&\mapsto h_4=(e^{-2}s\,\zeta',\ w'-2s).
+\end{align*}
+Hence $\Yo|_{|t|>1}\cong(\C^*\times\C\times D^*_1)/\langle h_2,h_3,h_4\rangle$. The data
+\[
+\alpha_2=s,\quad \alpha_3=is,\quad \eb_2=s^2-1,\quad \eb_3=i(1+s^2),\quad \eb_4=-2s,\quad \nu=e^{-2}
+\]
+satisfy (H1) and (H2), with $\omega(\eb_2,\eb_3)=|s|^4-1<0$.
+\end{lemma}
+\begin{proof}
+For a map $(\zeta,w)\mapsto(m\zeta,w+u)$ with $m,u$ depending only on $t$,
+\[\zeta e^{w/t}\mapsto me^{u/t}\cdot\zeta e^{w/t},\qquad w/t^2\mapsto w/t^2+u/t^2.\]
+Insert $(m,u)=(e^t,1-t^2)$, $(e^{-it},i(1+t^2))$ and $(t,2t)$; see also
+Appendix~\ref{app:checks}. The value of $\omega$ is a direct computation.
+\end{proof}
+
+Let $U_\infty\to D_\varepsilon$ ($s$-coordinate) be the filling for these data (after
+shrinking $\varepsilon$ so that both fillings exist), and let
+$\iota_\infty\colon U_\infty|_{D^*_\varepsilon}\xrightarrow{\sim}\Yo|_{|t|>1/\varepsilon}$ be
+$\Theta^{-1}$. The central fibre is $I_1\times E_\infty$, where $E_\infty=\C/(\Z(-1)+\Z i)$ is
+$\C/(\Z+i\Z)$ with the marked basis $(-1,i)$, of opposite orientation to the basis
+$(1,i)$ at $0$.
+The zero sections correspond, since $\Theta(1,0,t)=(1,0,1/t)$.
+
+\begin{remark}[the heights $P$ exactly]\label{rem:Pexact}
+By Lemma~\ref{lem:localdet}, $P=-\det_\R/(2\pi\,\omega(\eb_2,\eb_3))$, where $\det_\R$ is
+the determinant of the lattice in Proposition~\ref{prop:filling}(d).
+\begin{itemize}
+\item At $t=0$ this lattice is $\Lambda_t$, and $\omega(\eb_2,\eb_3)=1-r^4$ with $r=|t|$.
+  So Lemma~\ref{lem:det-family} gives
+  \[P_0(r)=\log r-\frac{2r^2}{1-r^2}.\]
+\item At $\infty$, put $\rho=|s|$. In the additive coordinates $(z'',w')$ with
+  $\zeta'=e^{iz''}$, the map $\Theta$ is the $\C$-linear map
+  $(z,w)\mapsto(z-iw/t,\ w/t^2)$. Its real determinant is $|t|^{-4}=\rho^4$. It maps
+  $(e_1,e_2,e_3,-e_4)$ to a basis of the lattice at $\infty$, up to adding multiples of
+  $e_1$ to the basis vectors.
+\item Hence $\det_\R=-\rho^4\cdot2\pi(1+r^2)(2r^2-(1-r^2)\log r)$ with $r=1/\rho$. This
+  equals $-2\pi(1+\rho^2)(2-(1-\rho^2)\log\rho)$. With $\omega(\eb_2,\eb_3)=\rho^4-1$
+  this gives
+  \[P_\infty(\rho)=\log\rho-\frac{2}{1-\rho^2}.\]
+\end{itemize}
+Therefore, for $0<r<1$,
+\[\frac{P_0(r)}{\log r}=1+\frac{2r^2}{(1-r^2)\,|\log r|},\qquad
+\frac{P_\infty(r)}{\log r}=1+\frac{2}{(1-r^2)\,|\log r|}.\]
+Both are increasing in $r$ and tend to $1$ as $r\to0$. So for $0<r<10^{-2}$ they lie in
+$(1,1.000044)$ and $(1,1.434339)$, respectively, and $\varepsilon=10^{-2}$ satisfies
+the condition of Step~0 at both cusps. At $r=1/16$ the second ratio is $1.724\ldots>\tfrac32$,
+so $\varepsilon=1/16$ does not work at $\infty$.
+\end{remark}
+
+%======================================================================
+\section{The logarithmic transform and the threefold $Y$}\label{sec:twist}
+%======================================================================
+
+The following map is a logarithmic transform of multiplicity one in the sense of
+Kodaira \cite{Kodaira63}: a regluing by a holomorphic section over a punctured disc.
+Its topological type is a nonzero class $[e_4]$ in the coinvariants
+$\Lambda/(T-1)\Lambda$.
+
+\begin{lemma}\label{lem:Phi}
+On $\Yo|_{D^*_\varepsilon}$ define
+\[
+\Phi[\zeta,w,t]=\big[\,e^{i\pi s(s-1)}\zeta,\ \ w+2ts,\ \ t\,\big],\qquad s=\tfrac{\log t}{2\pi i}.
+\]
+\begin{enumerate}
+\item $\Phi$ is a well-defined biholomorphism over the identity of $D^*_\varepsilon$ and
+  commutes with $g_2,g_3,g_4$.
+\item In additive coordinates $\Phi$ is fibrewise translation by
+  $\tilde\sigma(s)=(\pi s(s-1),\,2ts)$, and $\tilde\sigma(s+1)-\tilde\sigma(s)=e_4(s)$,
+  where $e_4(s)=(2\pi s,2t)$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+Replacing $s$ by $s+1$ multiplies $e^{i\pi s(s-1)}$ by
+\[e^{i\pi((s+1)s-s(s-1))}=e^{2\pi is}=t\]
+and adds $2t$ to $w+2ts$. So the two values differ by $g_4$, and $\Phi$ is well
+defined on the quotient. It is locally given by a holomorphic formula. It commutes
+with the $g_j$ because all of them are of the form $(\zeta,w)\mapsto(m\zeta,w+u)$ with
+$m,u$ depending only on $t$. Its inverse is given by the same formula with signs
+reversed. Statement (2) is a direct computation, using $-i\log t=2\pi s$.
+\end{proof}
+
+\begin{construction}\label{con:Y}
+Fix $\varepsilon$ as above, and put $Y_{\rm mid}=\Yo|_{\varepsilon/2<|t|<2/\varepsilon}$. Define
+\[
+Y=\big(U_0\ \sqcup\ Y_{\rm mid}\ \sqcup\ U_\infty\big)\big/\!\sim
+\]
+with the identifications
+\begin{itemize}
+\item $q\sim\Phi(\iota_0(q))$ for $q\in U_0$ with $\varepsilon/2<|t(q)|<\varepsilon$;
+\item $q\sim\iota_\infty(q)$ for $q\in U_\infty$ with $\varepsilon/2<|s(q)|<\varepsilon$.
+\end{itemize}
+The maps $t$ and $s=1/t$ glue to $f\colon Y\to\PP^1$.
+\end{construction}
+
+\begin{proposition}\label{prop:Y}
+$Y$ is a compact connected complex manifold of dimension $3$, and $f$ is a proper
+surjective holomorphic map. Over $\C^*$ its fibres are the tori $X_t$, and
+$f^{-1}(0)\cong I_1\times E_0$, $f^{-1}(\infty)\cong I_1\times E_\infty$.
+\end{proposition}
+\begin{proof}
+The gluing maps are biholomorphisms between open subsets, compatible with $f$ and
+equal to the identity on the base.
+\begin{itemize}
+\item \emph{Hausdorff.} Each of $U_0$, $Y_{\rm mid}$ and $U_\infty$ is the full
+  preimage of an open subset of $\PP^1$, and maps injectively onto an open subset of
+  $Y$. The gluing maps cover the identity of the base, so every fibre of $f$ lies
+  entirely in at least one piece. Let $q_1\ne q_2$.
+  \begin{itemize}
+  \item If $f(q_1)\ne f(q_2)$, separate them by preimages of disjoint discs.
+  \item If $f(q_1)=f(q_2)=t_0$, choose a piece containing the whole fibre over $t_0$.
+    It contains both points, and they can be separated inside it.
+  \end{itemize}
+\item \emph{Compact.} $Y$ is the union of the compact sets
+  $f^{-1}(|t|\le3\varepsilon/4)$, $f^{-1}(3\varepsilon/4\le|t|\le4/(3\varepsilon))$ and
+  $f^{-1}(|s|\le3\varepsilon/4)$, by Proposition~\ref{prop:filling}(b) and
+  Lemma~\ref{lem:Yo}.
+\item \emph{Connected.} Each piece is connected and the pieces overlap.
+\end{itemize}
+\end{proof}
+
+%======================================================================
+\section{The torus action}\label{sec:torus}
+%======================================================================
+
+\begin{proposition}\label{prop:torus}
+For $c=(c_2,c_3)\in\R^2$ define, on each piece:
+\begin{align*}
+\text{on }\Yo:\quad &A_c[\zeta,w,t]=[e^{(c_2-ic_3)t}\zeta,\ w+c_2(1-t^2)+ic_3(1+t^2),\ t],\\
+\text{on }\Ut_0:\quad &\tilde A_c(p,w)=(e^{(c_2-ic_3)t}\cdot p,\ w+c_2\eb_2(t)+c_3\eb_3(t)),\\
+\text{on }\Ut_\infty:\quad &\tilde A'_c(p,w')=(e^{(c_2+ic_3)s}\cdot p,\ w'+c_2(s^2-1)+ic_3(1+s^2)).
+\end{align*}
+These define an action of $T^2=\R^2/\Z^2$ on $Y$ by biholomorphisms, preserving $f$,
+which is free and real-analytic. Allowing $c\in\C^2$ gives a holomorphic action of
+$(\C^*)^2=\C^2/\Z^2$.
+\end{proposition}
+We write $m_c$ for the multiplier of the $\cX$-factor: $m_c=e^{(c_2-ic_3)t}$ on $\Ut_0$
+and $m_c=e^{(c_2+ic_3)s}$ on $\Ut_\infty$. On both pieces, then,
+$\tilde A_c(p,w)=(m_c\cdot p,\ w+c_2\eb_2+c_3\eb_3)$, with the data $\eb_2,\eb_3$ of the
+respective cusp.
+\begin{proof}
+\emph{Well defined on each piece.}
+\begin{itemize}
+\item Each formula is additive in $c$, and $c=(1,0),(0,1)$ give $g_2,g_3$ (resp.\
+  $G_2,G_3$ and $h_2,h_3$). So $\Z^2$ acts trivially on the quotients.
+\item Each formula is a map $(\zeta,w)\mapsto(m\zeta,w+u)$ with $m,u$ depending only on
+  the base, so it commutes with $g_4$, $G_4$, $h_4$ and with $\Phi$.
+\end{itemize}
+\emph{Compatible with the gluings.} On $U_0|_{D^*}$ the formula is that of $\Yo$, since
+$\iota_0$ is the identity. The conjugate of $A_c$ by $\Theta$ is $\tilde A'_c$, by the
+computation in the proof of Lemma~\ref{lem:atinfty} with
+$(m,u)=(e^{(c_2-ic_3)t},c_2(1-t^2)+ic_3(1+t^2))$:
+\[me^{u/t}=e^{(c_2+ic_3)/t},\qquad u/t^2=c_2(s^2-1)+ic_3(1+s^2).\]
+(See Appendix~\ref{app:checks}.)
+
+\emph{Free.}
+\begin{itemize}
+\item On $X_t$, $t\in\C^*$, $A_c$ is translation by $c_2e_2(t)+c_3e_3(t)$. This lies in
+  $\Lambda_t$ only if $c\in\Z^2$, by $\R$-independence of $e_1,\dots,e_4$.
+\item On $f^{-1}(0)=I_1\times E_0$ the action is $(\mathrm{id},\ u\mapsto u+c_2+ic_3)$,
+  since $e^{(c_2-ic_3)\cdot0}=1$, and this is free on $T^2$.
+\item On $f^{-1}(\infty)$ it is translation by $-c_2+ic_3$ on $E_\infty$.
+\end{itemize}
+\emph{Holomorphic.} Each $A_c$ is holomorphic in all variables for fixed $c$, and also
+for complex $c$.
+\end{proof}
+
+\begin{corollary}\label{cor:W}
+$W:=Y/T^2$ is a smooth, closed, connected, orientable $4$-manifold, and $\pi\colon Y\to W$
+is a smooth principal $T^2$-bundle. The map $f$ factors as $f=f_W\circ\pi$ with
+$f_W\colon W\to\PP^1$ smooth and proper.
+\end{corollary}
+\begin{proof}
+A free smooth action of a compact Lie group gives a smooth principal bundle. The
+quotient of an oriented manifold by a free action of a connected group is orientable.
+The function $f$ is $T^2$-invariant.
+\end{proof}
+
+%======================================================================
+\section{Topology of $W$}\label{sec:topology}
+%======================================================================
+
+Let $N_0=\pi(U_0)$, $M=\pi(Y_{\rm mid})$ and $N_\infty=\pi(U_\infty)$. These are open in
+$W$ and cover it. We have $N_0\cap N_\infty=\emptyset$, and $O_0=N_0\cap M$, $O_\infty=N_\infty\cap M$ lie over
+the annuli $\varepsilon/2<|t|<\varepsilon$ and $1/\varepsilon<|t|<2/\varepsilon$.
+
+\subsection{The regular part}
+Let $e_1^*,\dots,e_4^*$ be the real dual basis of $(e_1,\dots,e_4)$ on $\C^2=\R^4$. Under
+$e_4\mapsto e_4+e_1$ the dual basis changes to $(e_1^*-e_4^*,e_2^*,e_3^*,e_4^*)$, so
+$e_4^*$ is a well-defined continuous function of $t\in\C^*$. Moreover
+$e_4^*(\Lambda_t)\subset\Z$ and $e_4^*(e_2)=e_4^*(e_3)=0$.
+
+\begin{lemma}\label{lem:regular}
+\begin{enumerate}
+\item For $t\in\C^*$, $f_W^{-1}(t)=X_t/T^2=\C^2/(\Lambda_t+\R e_2+\R e_3)$ is a $2$-torus
+  with $H_1=\Z a\oplus\Z b$, where $a=[e_1]$ and $b=[e_4]$.
+\item $M\to\{\varepsilon/2<|t|<2/\varepsilon\}$ is a smooth $T^2$-bundle with monodromy
+  $a\mapsto a$, $b\mapsto b+a$. With base point on the image of the zero section and
+  $x$ the loop $\theta\mapsto[1,0,r_0e^{i\theta}]$,
+  \[\pi_1(M)=\langle a,b,x\mid [a,b],\ [x,a],\ xbx^{-1}=b a^{\pm1}\rangle.\]
+\item The map $\Psi\colon M\to S^1\times S^1$, $\Psi[v,t]=(\arg t,\ e_4^*(v)\bmod\Z)$, is well
+  defined and continuous. It induces an isomorphism
+  $\pi_1(M)/\langle\!\langle a\rangle\!\rangle\cong\Z^2$ with $x\mapsto(1,0)$, $b\mapsto(0,1)$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(1) $e_1,\dots,e_4$ is a real basis, so $\R^4/(\R e_2+\R e_3)\cong\R e_1\oplus\R e_4$.
+
+(2) Ehresmann's theorem applies, since $f_W$ is a proper submersion over $\C^*$. The
+monodromy is that of Lemma~\ref{lem:Yo}, and the zero section gives the semidirect
+product description.
+
+(3) $\Psi$ is well defined by the properties of $e_4^*$. Modulo the normal closure of
+$a$, $\pi_1(M)$ is the free abelian group on $b,x$, and $\Psi_*$ sends these to the
+standard basis.
+\end{proof}
+
+\subsection{The local pieces}
+\begin{lemma}\label{lem:Nlocal}
+Let $j\in\{0,\infty\}$.
+\begin{enumerate}
+\item $N_j\cong\cX^\varepsilon/\langle\hat\psi\rangle$, where
+  $\hat\psi(p)=\kappa(t(p))\cdot \nu\,\psi(p)$, $\kappa=\exp\big((\gamma_2-i\gamma_3)t\big)$
+  (resp.\ $\exp((\gamma_2+i\gamma_3)s)$), and $(\gamma_2,\gamma_3)\colon D_\varepsilon\to\R^2$ is the
+  real-analytic solution of $\gamma_2\eb_2+\gamma_3\eb_3=-\eb_4$. The action of
+  $\langle\hat\psi\rangle$ is free and properly discontinuous.
+\item $\pi_1(N_j)\cong\Z$, generated by $\hat\psi$, and
+  $H_q(N_j;\Z)\cong\Z,\Z,\Z,0,0$ for $q=0,1,2,3,4$. In particular $\chi(N_j)=1$.
+\item Let $a_j,b_j,x_j$ generate $\pi_1(O_j)$: the fibre classes $a_j=[e_1]$ and
+  $b_j=[e_4]$ (resp.\ $[-e_4]$), and the loop $x_j$ around the cusp on the zero section
+  of $U_j$. Under $O_j\subset N_j$ these map to $1$, $\hat\psi$ and $1$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(1) $\R^2$ acts on $\Ut_j$ by $\tilde A_c$, and $\Gamma\subset\R^2\times\langle G_4\rangle$, so
+$N_j=U_j/T^2=\Ut_j/(\R^2\times\langle G_4\rangle)$.
+\begin{itemize}
+\item Since $\eb_2(t),\eb_3(t)$ is a real basis of $\C$, the slice $\{w=0\}$ meets every
+  $\R^2$-orbit exactly once. The map
+  $(p,w)\mapsto m_c\cdot p$, with $c=c(t,w)$ solving $w+c_2\eb_2+c_3\eb_3=0$, is a
+  real-analytic submersion identifying $\Ut_j/\R^2$ with $\cX^\varepsilon$. (Here
+  $m_c=e^{(c_2-ic_3)t}$ for $j=0$ and $m_c=e^{(c_2+ic_3)s}$ for $j=\infty$.)
+\item $G_4$ maps $(p,0)$ to $(\nu\psi(p),\eb_4)$, which lies on the $\R^2$-orbit of
+  $(\hat\psi(p),0)$.
+\end{itemize}
+Since $\R^2$ is central in $\R^2\times\langle G_4\rangle$,
+$N_j=(\Ut_j/\R^2)/\langle G_4\rangle=\cX^\varepsilon/\langle\hat\psi\rangle$. Explicitly, the
+slice inclusion $p\mapsto(p,0)$ and the slice map $(p,w)\mapsto m_{c(t,w)}\cdot p$ are
+smooth and equivariant. They induce mutually inverse smooth maps
+$\cX^\varepsilon/\langle\hat\psi\rangle\leftrightarrow U_j/T^2$, since $U_j\to U_j/T^2$ is a
+smooth principal bundle. So these spaces are diffeomorphic, and under the
+diffeomorphism $f_W$ corresponds to $t$.
+\begin{itemize}
+\item \emph{Free.} Suppose $\hat\psi^k$ fixes $p$. Then $\tilde A_cG_4^k$ fixes $(p,0)$ for
+  some $c$. Its image in $U_j$ is fixed by the class $[c]\in T^2$, so $c\in\Z^2$ by
+  freeness of the $T^2$-action. Then $\tilde A_cG_4^k\in\Gamma$, and $k=0$ by freeness of
+  $\Gamma$.
+\item \emph{Properly discontinuous.} Let $K\subset\cX^\varepsilon$ be compact. Put
+  $\widetilde K=\tilde A_{[0,1]^2}(K\times\{0\})$, which is compact. If
+  $\hat\psi^kK\cap K\ne\emptyset$, write $\tilde A_cG_4^k=G_2^{\lfloor c_2\rfloor}G_3^{\lfloor c_3\rfloor}G_4^k\circ
+  \tilde A_{\{c\}}$ with $\{c\}\in[0,1)^2$; the element
+  $G_2^{\lfloor c_2\rfloor}G_3^{\lfloor c_3\rfloor}G_4^k\in\Gamma$ then moves $\widetilde K$ to meet
+  $\widetilde K$. By Proposition~\ref{prop:filling}(a) only finitely many $k$ occur.
+\end{itemize}
+
+(2) By Lemma~\ref{lem:Xtop}, $\cX^\varepsilon$ is simply connected, so it is the universal
+cover of $N_j$ and $\pi_1(N_j)=\langle\hat\psi\rangle\cong\Z$. Now $\hat\psi=\kappa'\cdot\psi$
+with $\kappa'=\nu\,\kappa(t)$, which has the continuous logarithm $\log\nu+(\gamma_2\mp i\gamma_3)t$ (sign $-$ at $0$, $+$ at $\infty$, with $s$ in place of $t$). So Lemma~\ref{lem:Xtop} gives $\hat\psi_*=\psi_*=\tau$ on homology. The
+Wang sequence (F2) gives short exact sequences
+\[0\to\mathrm{coker}(\tau_*-1\mid H_q(\cX^\varepsilon))\to H_q(N_j)\to\ker(\tau_*-1\mid H_{q-1}(\cX^\varepsilon))\to0.\]
+Since $\tau_*=1$ on $H_0=\Z$, $H_1=0$, and $\tau-1$ is injective with cokernel $\Z$ on
+$\Z[\tau^{\pm1}]$, these give
+\begin{itemize}
+\item $H_0(N_j)=\Z$;
+\item $H_1(N_j)=\ker(\tau_*-1\mid H_0)=\Z$;
+\item $H_2(N_j)=\mathrm{coker}(\tau-1\mid\Z[\tau^{\pm1}])=\Z$;
+\item $H_3(N_j)=\ker(\tau-1\mid\Z[\tau^{\pm1}])=0$, and $H_4(N_j)=0$.
+\end{itemize}
+
+(3) The loops $a_j$ (the $\zeta$-circle) and $x_j$ (the loop $t=re^{i\theta}$,
+$\zeta=1$, $w=0$; on it $c=0$ in the slice map) lift to closed loops in
+$\cX^\varepsilon$. The fibre loop $b_j$ lifts to a path from $p$ to $\hat\psi(p)$.
+\end{proof}
+
+\subsection{The effect of the logarithmic transform}
+\begin{lemma}\label{lem:twistclass}
+Let $\gamma$ be the image in $M$, via $\Phi\circ\iota_0$, of the loop $x_0$. Then
+$\Psi_*(\gamma)=(1,1)$, hence $\gamma\equiv xb\pmod{\langle\!\langle a\rangle\!\rangle}$. On the other
+hand, $x_\infty$ maps to $x^{-1}$ under $\iota_\infty$.
+\end{lemma}
+\begin{proof}
+The loop is $\theta\mapsto[\tilde\sigma(s(\theta)),t(\theta)]$ in additive coordinates, with
+$t(\theta)=re^{i\theta}$ and $s(\theta)$ a continuous branch. Its $\arg t$ winds once.
+Since $e_4^*$ is continuous and single-valued, the change of $e_4^*$ along the loop is
+\[e_4^*\big(\tilde\sigma(s(0)+1)-\tilde\sigma(s(0))\big)=e_4^*(e_4)=1\]
+by Lemma~\ref{lem:Phi}(2). The loop $x$ has $e_4^*\equiv0$ along it. For $\infty$:
+$\iota_\infty$ maps zero section to zero section (\S\ref{sec:filling}), and a
+counterclockwise loop in $s$ is clockwise in $t$.
+\end{proof}
+
+\begin{proposition}\label{prop:pi1W}
+$\pi_1(W)=1$.
+\end{proposition}
+\begin{proof}
+All pieces and intersections are path-connected, so we apply van Kampen to
+$W=(N_0\cup M)\cup N_\infty$.
+\begin{itemize}
+\item By Lemma~\ref{lem:Nlocal}(3), gluing $N_\infty$ imposes $a=1$ and $x_\infty=1$,
+  i.e.\ $x=1$ by Lemma~\ref{lem:twistclass}. It
+  also identifies the generator of $\pi_1(N_\infty)$ with $b^{\mp1}$, up to a factor
+  in $\langle\!\langle a\rangle\!\rangle$.
+\item Gluing $N_0$ along $O_0$ via $\Phi\circ\iota_0$ imposes $a=1$ and $\gamma=1$. It
+  also identifies the generator of $\pi_1(N_0)$ with $b$. (Basepoint changes only
+  conjugate these relations.)
+\end{itemize}
+By Lemma~\ref{lem:twistclass}, $\gamma=xb\,n$ with $n\in\langle\!\langle a\rangle\!\rangle$. So
+$1=\gamma=b$ in the quotient. Thus all generators $a,b,x$ of $\pi_1(M)$ and the generators
+of $\pi_1(N_j)$ are trivial.
+\end{proof}
+
+\begin{proposition}\label{prop:chiW}
+$\chi(W)=2$.
+\end{proposition}
+\begin{proof}
+All pieces have finitely generated homology, so the Mayer--Vietoris sequence of
+the open cover $\{N_0,\,M,\,N_\infty\}$ gives
+\[\chi(W)=\chi(N_0)+\chi(M)+\chi(N_\infty)-\chi(O_0)-\chi(O_\infty).\]
+$M$, $O_0$ and $O_\infty$ are $T^2$-bundles over annuli, so their Euler characteristics
+vanish; $\chi(N_j)=1$ by Lemma~\ref{lem:Nlocal}(2).
+\end{proof}
+
+\begin{corollary}\label{cor:homotopysphere}
+$W$ is a smooth homotopy $4$-sphere.
+\end{corollary}
+\begin{proof}
+$W$ is closed, oriented and simply connected.
+\begin{itemize}
+\item Hence $H_1=0$, $H_3\cong H^1=0$, $H_4=\Z$, and $H_2\cong H^2\cong\mathrm{Hom}(H_2,\Z)$
+  is free.
+\item Then $\chi(W)=2+b_2=2$, so $H_2=0$.
+\item The collapse map $W\to S^4$ of degree one is a homology isomorphism of simply
+  connected spaces, hence a homotopy equivalence by Whitehead's theorem.
+\end{itemize}
+\end{proof}
+
+%======================================================================
+\section{Proof of the Main Theorem}\label{sec:proof}
+%======================================================================
+
+\begin{proof}[Proof of the Main Theorem]
+\emph{The bundle is trivial.} By Corollary~\ref{cor:W}, $Y\to W$ is a principal
+$T^2$-bundle. By Corollary~\ref{cor:homotopysphere}, $H^2(W;\Z^2)=0$. By (F1) the bundle
+is smoothly trivial, so $Y\cong W\times T^2$.
+
+\emph{$h$-cobordism.} By (F3), $W$ is $h$-cobordant to $S^4$: both are simply connected
+with zero intersection form. Let $H^5$ be such an $h$-cobordism. Then $H\times T^2$ is a
+$7$-dimensional $h$-cobordism between $W\times T^2$ and $S^4\times T^2$, with fundamental
+group $\Z^2$.
+
+\emph{$s$-cobordism.} Its Whitehead torsion lies in $\mathrm{Wh}(\Z^2)=0$ (F4). By the
+$s$-cobordism theorem (F4),
+\[Y\cong W\times T^2\cong S^4\times T^2.\]
+
+\emph{Transport.} If $F\colon S^4\times T^2\to Y$ is a diffeomorphism and $J_Y$ is the
+complex structure of $Y$, then $F^*J_Y$ is an almost complex structure on
+$S^4\times T^2$. It is integrable, since $F$ is a biholomorphism from
+$(S^4\times T^2,F^*J_Y)$ to $Y$; equivalently, $N_{F^*J_Y}=F^*N_{J_Y}=0$.
+\end{proof}
+
+\subsection{The quotient $W$ is the standard $S^4$}
+The Main Theorem only needs $W$ to be a homotopy sphere. Using Iwase's classification
+of torus fibrations with twin singular fibres \cite{Iwase84}, one can say more. We
+follow the definitions of \cite[\S2]{Matsumoto85}. A \emph{(good) torus fibration} is a
+proper surjective smooth map $f\colon M^4\to B^2$ of oriented manifolds with two
+properties. First, near every point it is given in local complex coordinates by
+$\xi=z_1^mz_2^n$ or $\xi=\bar z_1^mz_2^n$. Second, it is a smooth $T^2$-bundle off a
+discrete set of critical values. A singular fibre of type $I_1^\pm$ is an immersed
+$2$-sphere with one transverse self-intersection of sign $\pm1$. A \emph{twin} singular
+fibre ($Tw$) consists of two embedded $2$-spheres meeting transversely in two points,
+of opposite signs.
+
+\begin{proposition}\label{prop:Wstandard}
+$W$ is diffeomorphic to $S^4$. Consequently $Y\cong S^4\times T^2$ as principal
+$T^2$-bundles, and the diffeomorphism of the Main Theorem can be chosen
+$T^2$-equivariant.
+\end{proposition}
+\begin{proof}
+Fix an orientation of $W$.
+
+\emph{Step 1: $f_W$ is a torus fibration with two singular fibres, each of type
+$I_1^+$ or $I_1^-$.}
+\begin{itemize}
+\item Over $\C^*$, $f_W$ is a smooth $T^2$-bundle (Lemma~\ref{lem:regular}).
+\item By the proof of Lemma~\ref{lem:Nlocal}(1), there is a diffeomorphism
+  $N_j\cong\cX^\varepsilon/\langle\hat\psi\rangle$ under which $f_W$ corresponds to $t$
+  (to $s$ at $\infty$). The quotient map
+  $\cX^\varepsilon\to\cX^\varepsilon/\langle\hat\psi\rangle$ is a covering. So the holomorphic
+  chart $(x_0,y_0)$ of $U_0\subset\cX^\varepsilon$ near $P_0$ gives smooth complex
+  coordinates on $W$ near the singular point of $f_W^{-1}(0)$, in which $f_W=x_0y_0$.
+\item If these coordinates are positively oriented for $W$, then $f_W=z_1z_2$ with
+  $(z_1,z_2)=(x_0,y_0)$. Otherwise $f_W=\bar z_1z_2$ with the positively oriented
+  coordinates $(z_1,z_2)=(\bar x_0,y_0)$.
+\item Elsewhere on the singular fibre, $dt\ne0$, so $f_W$ is locally $\xi=z_1$.
+\item The singular fibre is the image of the chain $t^{-1}(0)$ modulo $\hat\psi$,
+  i.e.\ $D_0$ with $P_{-1}$ and $P_0$ identified. This is an immersed $2$-sphere with
+  one transverse self-intersection. It is not multiple, since $f_W=x_0y_0$ is reduced.
+  The same holds at $\infty$.
+\end{itemize}
+
+\emph{Step 2: merging the nodes.} Let $D\subset\PP^1$ be a closed disc containing $0$
+and $\infty$ in its interior and no other critical value, e.g.\ the complement of a
+small open disc around $t=1$. The monodromy around $\partial D$ is trivial, since
+$\partial D$ also bounds a disc without critical values. By
+\cite[Thm.~4.1]{Matsumoto85}, the fibration $f_W|_{f_W^{-1}(D)}$ can be deformed,
+without changing it near the boundary, into a torus fibration with a single singular
+fibre, of type $Tw$ with divisor $R+S$. This gives a torus fibration $W\to S^2$ whose
+only singular fibre is a non-multiple twin fibre.
+
+\emph{Step 3: Iwase's theorem.} Iwase proved the following (see
+\cite[\S1]{Matsumoto85} for this statement).
+\begin{quote}
+Let $M\to S^2$ be a torus fibration whose singular fibres are non-multiple twin
+fibres, and assume $e(M)\neq0$. Then the diffeomorphism type of $M$ is determined by
+$\pi_1(M)$, $e(M)$, $w_2(M)$ and the parity of the intersection form on $H_2(M;\Z)$.
+\end{quote}
+The $4$-sphere is the total space of such a fibration, with a single twin fibre
+\cite{Matsumoto82}, \cite[\S2, \S4]{Matsumoto85}. Both $W$ and $S^4$ have $\pi_1=1$ and
+$e=2$ (Propositions~\ref{prop:pi1W} and \ref{prop:chiW}). Both have $H^2(\,\cdot\,;\Z)=0$
+and $H^2(\,\cdot\,;\Z/2)=0$ (Corollary~\ref{cor:homotopysphere}), so $w_2=0$ and the
+intersection form is zero, hence even. Therefore $W\cong S^4$.
+
+The last statement follows from $Y\cong W\times T^2$ (\S\ref{sec:proof}).
+\end{proof}
+
+\begin{remark}
+Proposition~\ref{prop:Wstandard} identifies the total space $W$ with $S^4$. It does not
+show that $f_W$ is equivalent, as a fibration, to Matsumoto's fibration of $S^4$
+\cite{Matsumoto82,Matsumoto85,GompfStipsicz99}, although the two have the same singular
+fibres, monodromy and twist class. The proposition gives a second proof of the Main
+Theorem, which replaces (F3)--(F4) by Iwase's classification. The proof in
+\S\ref{sec:proof} uses only the classical results (F1)--(F4).
+\end{remark}
+
+%======================================================================
+\section{Further properties (Theorem B)}\label{sec:props}
+%======================================================================
+
+\begin{proof}[Proof of Theorem B]
+(1) This is Proposition~\ref{prop:Y}.
+
+(2) The $T^2$-statements are Proposition~\ref{prop:torus} and \S\ref{sec:proof}. For
+$(z_0,w_0)\in\C^2$, the formulas
+\[
+[\zeta,w,t]\mapsto[e^{iz_0}\zeta,w+w_0,t],\qquad (p,w)\mapsto(e^{iz_0}\cdot p,w+w_0),\qquad
+(p,w')\mapsto(e^{iz_0+w_0s}\cdot p,\ w'+w_0s^2)
+\]
+on $\Yo$, $\Ut_0$ and $\Ut_\infty$ commute with all generators and with $\Phi$. They are
+compatible with $\Theta$, by the same computation as in Lemma~\ref{lem:atinfty}. So
+they define a holomorphic $\C^2$-action, which is transitive on each $X_t$.
+
+\emph{The kernel.} If $(z_0,w_0)$ acts trivially, then $(z_0,w_0)\in\Lambda_t$ for every $t$.
+Writing $(z_0,w_0)=\sum n_je_j(t)$ with locally constant integers, the second
+coordinate $n_2(1-t^2)+in_3(1+t^2)+2n_4t$ must be constant in $t$, so
+$n_2=n_3=n_4=0$. Hence the kernel is $\Z(2\pi,0)$, and
+$\Aut^0(Y)\supset\C^2/\Z(2\pi,0)\cong\C^*\times\C$.
+
+(3) \emph{$c_1=0$.} Let $O\subset X_t$ be a $T^2$-orbit. Under $Y\cong W\times T^2$ it is
+$\{pt\}\times T^2$, which generates $H_2(Y;\Z)\cong\Z$. There is an exact sequence of
+holomorphic vector bundles on $X_t$,
+\[0\to TX_t\to TY|_{X_t}\to N_{X_t}\to0,\qquad N_{X_t}=f^*T_t\PP^1|_{X_t}\cong\cO_{X_t}.\]
+Here $TX_t\cong\cO^2$ is trivialised by translations. By additivity of $c_1$,
+$c_1(TY|_{X_t})=0$. So $c_1(Y)\cdot[O]=0$, and $c_1(Y)=0$ because
+$H^2(Y;\Z)\cong\Z$ is free.
+
+The sequence splits as a sequence of smooth complex vector bundles, but not
+holomorphically. Its extension class is the Kodaira--Spencer class of $f$ at $t$. That
+class is nonzero, because the period ratio $p_{13}/p_{12}=i(1+t^2)/(1-t^2)$ of
+Lemma~\ref{lem:periods} has derivative $4it/(1-t^2)^2\ne0$; at $t=\pm1$ use
+$p_{12}/p_{13}$ instead. Only $c_1$ is used above.
+
+\emph{The canonical bundle.} Consider the meromorphic $3$-form $\Omega$ given on $\Yo$ by
+$dz\wedge dw\wedge dt=\tfrac1{i}\tfrac{d\zeta}{\zeta}\wedge dw\wedge dt$.
+\begin{itemize}
+\item It is invariant under the $g_j$ and $\Phi$, which are of the form
+  $(z,w,t)\mapsto(z+\mu(t),w+u(t),t)$.
+\item On $\Ut_0$, since $\tfrac{d\zeta}{\zeta}\wedge dw\wedge dt=-\tfrac{d\zeta}{\zeta}\wedge dt\wedge dw$,
+  it equals $\tfrac{1}{i}\,dx_n\wedge dy_n\wedge dw$ (Lemma~\ref{lem:toric}(6)), which is
+  holomorphic and nowhere zero.
+\item Near $\infty$, $\Omega=-s^{-4}\,dz''\wedge dw'\wedge ds$ with $\zeta'=e^{iz''}$
+  (Appendix~\ref{app:checks}), and $dz''\wedge dw'\wedge ds$ is a nowhere-zero
+  holomorphic form on $\Ut_\infty$.
+\end{itemize}
+Hence $\mathrm{div}(\Omega)=-4F_\infty$, and $K_Y\cong\cO_Y(-4F_\infty)=f^*\cO(-4)$, because
+$F_\infty=f^*[\infty]$ is reduced. If $f^*\cO(-4m)$ were trivial for some $m\ge1$, it
+would have a nonzero section. But $f_*\cO_Y=\cO_{\PP^1}$ (connected fibres) gives
+$H^0(Y,f^*\cO(-4m))=H^0(\PP^1,\cO(-4m))=0$.
+
+(4) Under $Y\cong W\times T^2$, a smooth fibre is $\pi^{-1}(f_W^{-1}(t))=f_W^{-1}(t)\times T^2$,
+and $H_2(W)=0$, so $[F]=0$ in $H_4(Y;\Z)$.
+\begin{itemize}
+\item \emph{Not balanced.} A balanced metric $\omega_Y$ ($d\omega_Y^2=0$) would give
+  $0<\int_F\omega_Y^2=\langle[\omega_Y^2],[F]\rangle=0$.
+\item \emph{Not K\"ahler.} K\"ahler metrics are balanced. Alternatively,
+  $H^2(Y;\R)=\R a$ with $a^2=0$.
+\end{itemize}
+(As a consistency check: $c_1(Y)=-c_1(f^*\cO(-4))=4\,\mathrm{PD}[F]=0$.)
+
+(5) Pulling back rational functions by $f$ gives $f^*\C(\PP^1)\subset\mathcal M(Y)$.
+Conversely, let $h\in\mathcal M(Y)$, and let $\mathcal E$ be the countable set of
+Proposition~\ref{prop:NS}.
+\begin{itemize}
+\item \emph{Over a disc.} Let $B\subset\C^*$ be an open disc. Pull $h$ back along the
+  holomorphic covering $\C^2\times B\to f^{-1}(B)$ to a meromorphic function $H$,
+  invariant under $\Lambda_t$.
+\item \emph{Restriction to fibres.} The irreducible components of the polar set of $H$
+  form a locally finite family. Every fibre $\C^2\times\{t\}$ meets the compact set
+  $\{0\}\times K$ for $t$ in a compact $K\subset B$. So only a discrete set of fibres
+  lies in the polar set.
+\item For every other $t$, $H(\cdot,t)$ is a $\Lambda_t$-periodic meromorphic function
+  on $\C^2$, i.e.\ a meromorphic function on $X_t$. For $t\notin\mathcal E$ it is
+  constant by Proposition~\ref{prop:NS}.
+\item \emph{$H$ depends only on $t$.} The set of such $t$ is dense in $B$. So
+  $\partial_zH$ and $\partial_wH$ vanish on a dense subset of the open set where they
+  are holomorphic, hence identically. Since the complement of the polar set is
+  connected, $H=c_B\circ\mathrm{pr}_B$ for a meromorphic function $c_B$ on $B$. (Take
+  $c_B=H(z_0,w_0,\cdot)$ for $(z_0,w_0)$ such that $\{(z_0,w_0)\}\times B$ is not
+  contained in the polar set.)
+\item \emph{Gluing.} The functions $c_B$ glue to a meromorphic function $c$ on $\C^*$
+  with $h=f^*c$ on $\Yo$.
+\item \emph{The ends.} Let $\sigma_0$ be the holomorphic section of $U_0\to
+  D_\varepsilon$ of Proposition~\ref{prop:filling}(e). Off a discrete set,
+  $\sigma_0(t)$ is a point where $h=f^*c$ is holomorphic. So $\sigma_0(D_\varepsilon)$
+  is not contained in the polar set of $h$, and $h\circ\sigma_0$ is meromorphic on
+  $D_\varepsilon$. It equals $c$ on $D_\varepsilon^*$, so $c$ is meromorphic at $0$. The
+  same argument with the section of $U_\infty$ applies at $\infty$.
+\end{itemize}
+Thus $c\in\C(\PP^1)$, and $h=f^*c$, since both sides are meromorphic on $Y$ and agree on
+the dense open set $\Yo$. Hence $\mathcal M(Y)=f^*\C(\PP^1)$, and $a(Y)=1$.
+\end{proof}
+
+\begin{remark}[deformations]\label{rem:deform}
+Replace $g_2,g_3,g_4$ by
+\[(e^{\lambda t}\zeta,w+1-t^2),\qquad(e^{-i\lambda t}\zeta,w+i(1+t^2)),\qquad
+(e^{i\beta}t\zeta,w+2t)\]
+with $\lambda>0$ and $\beta\in\C$. Then the determinant of Lemma~\ref{lem:det-family}
+becomes $2\pi(1+r^2)D(r)$, where $r=|t|$, $b=\Ima\beta$ and
+\[D(r)=2\lambda r^2+(b-\ln r)(1-r^2).\]
+
+\emph{The admissible region.} $D$ is positive for every $r>0$ if and only if
+\begin{equation}\label{eq:admissible}
+|\Ima\beta-\lambda|<\sqrt{\lambda(\lambda+1)}+\operatorname{arsinh}\sqrt\lambda.
+\end{equation}
+\begin{itemize}
+\item $D(1)=2\lambda>0$.
+\item For $0<r<1$, $D(r)>0$ if and only if $b>g(r)$, where
+  $g(r)=\ln r-2\lambda r^2/(1-r^2)$. The function $g$ tends to $-\infty$ at both ends
+  of $(0,1)$. Its derivative $1/r-4\lambda r/(1-r^2)^2$ vanishes only where
+  $1-r^2=2\sqrt\lambda\,r$, i.e.\ at $r_\lambda=\sqrt{\lambda+1}-\sqrt\lambda$. There
+  $r_\lambda^2/(1-r_\lambda^2)=r_\lambda/(2\sqrt\lambda)$, so
+  \[S_\lambda:=\max_{(0,1)}g=\ln r_\lambda-\sqrt\lambda\,r_\lambda
+  =\lambda-\sqrt{\lambda(\lambda+1)}-\operatorname{arsinh}\sqrt\lambda.\]
+\item For $r>1$, substitute $r=1/\rho$. Since $1/(1-\rho^2)=1+\rho^2/(1-\rho^2)$,
+  $D(1/\rho)>0$ if and only if $b<2\lambda-g(\rho)$.
+\item So $D>0$ on $(0,\infty)$ if and only if $S_\lambda<b<2\lambda-S_\lambda$, which is
+  \eqref{eq:admissible}.
+\end{itemize}
+The region \eqref{eq:admissible} contains $\Ima\beta=0$ for every $\lambda>0$, since
+$\sqrt{\lambda(\lambda+1)}>\lambda$. It is not all of $\{\lambda>0\}\times\C$. For
+example, at $\lambda=1$ and $\beta=-2i$ one has $D(\tfrac12)=-1+\tfrac34\ln2<0$. So
+$D$ vanishes for some $r\in(\tfrac12,1)$, and the four period vectors fail to span a
+lattice there. Outside \eqref{eq:admissible} the construction breaks down.
+
+\emph{Modified proofs.} For $(\lambda,\beta)$ satisfying \eqref{eq:admissible}, the
+proofs above go through with the following changes:
+\begin{itemize}
+\item use $\Theta_\lambda(\zeta,w,t)=(\zeta e^{\lambda w/t},w/t^2,1/t)$ at $\infty$;
+\item there the filling data are $\alpha_2=\lambda s$, $\alpha_3=i\lambda s$, and the
+  constant becomes $\nu=e^{-i\beta-2\lambda}$;
+\item the twist becomes translation by $(\pi s(s-1)+\beta s,\ 2ts)$;
+\item the $T^2$-action has multipliers $e^{\lambda(c_2-ic_3)t}$ near $0$ and
+  $e^{\lambda(c_2+ic_3)s}$ near $\infty$.
+\end{itemize}
+This gives a family of complex structures on $S^4\times T^2$, parametrised by the
+region \eqref{eq:admissible}. The original construction is $(\lambda,\beta)=(1,0)$. We
+have not determined which members are biholomorphic.
+\end{remark}
+
+%======================================================================
+\section{Remarks and consistency checks}\label{sec:remarks}
+%======================================================================
+
+\begin{remark}[Leray spectral sequence: a heuristic check]
+This remark is not used in the proof; the Betti numbers follow rigorously from
+$Y\cong W\times T^2$.
+\begin{itemize}
+\item Rationally, the monodromy-invariant covectors are $e_2^*,e_3^*,e_4^*$.
+\item In the Leray spectral sequence of $f$, the twist class $[e_4]$ gives
+  $d_2(e_4^*)=\pm\omega_{\PP^1}$, while $d_2(e_2^*)=d_2(e_3^*)=0$.
+\item This yields $b_1(Y)=2$, and the class of $H^2(\PP^1)$ dies.
+\item The surviving class $e_2^*\wedge e_3^*$ accounts for $b_2(Y)=1$.
+\end{itemize}
+A complete Leray computation would need the sheaves $R^qf_*\Q$ at the singular fibres;
+we do not carry it out.
+\end{remark}
+
+\begin{remark}[signature]
+Matsumoto's local signature of a genus-one node is $\mp\tfrac23$ for positive and
+negative nodes. Since $\sigma(W)=0$, the two nodes of $f_W$ must have opposite signs,
+in accordance with Remark~\ref{rem:chirality}.
+\end{remark}
+
+\begin{remark}[polarised families have no cusps over $\C^*$]\label{rem:polarised}
+Let $\{A_t\}_{t\in\C^*}$ be a holomorphic family of polarised abelian surfaces.
+\begin{itemize}
+\item Its period map lifts to the universal cover, $\C\to\mathfrak H_2$. Siegel space
+  is biholomorphic to a bounded domain, so the lift is constant by Liouville's theorem.
+\item Hence the monodromy fixes a point of $\mathfrak H_2$ and has finite order. After a
+  finite base change the family is trivial near $0$ and $\infty$; in particular it has
+  no cusp there.
+\end{itemize}
+So the family of \S\ref{sec:family}, whose monodromy $T$ has infinite order, admits
+no polarisation over $\C^*$. Its period map takes values in the space of complex
+structures on $\R^4$, which is not hyperbolic, and is non-constant.
+
+This argument concerns polarisations of the whole family. It does not by itself
+decide whether individual fibres are projective, and some are: $X_1$ is an abelian
+surface. Non-algebraicity of the very general fibre is a statement about integral
+Hodge classes. We prove it directly from the periods in Proposition~\ref{prop:NS}:
+$\mathrm{NS}(X_t)=0$ outside a countable set. The same non-algebraic phenomenon
+underlies \cite{AC26}.
+\end{remark}
+
+\begin{remark}[a necessary condition]\label{rem:necessity}
+Let $f\colon Y\to\PP^1$ be a fibration by complex $2$-tori with finitely many singular
+fibres and connected fibres, with $Y\simeq S^4\times T^2$. Assume that the restriction
+$H^0(\PP^1,R^1f_*\Q)\to H^1(F_t;\Q)^{\pi_1}$ to a smooth fibre is injective. A section
+that vanishes on one smooth fibre vanishes on the whole regular locus, so this holds
+whenever each singular fibre has a neighbourhood $N$ with $H^1(N;\Q)\to H^1(F_t;\Q)$
+injective. That is the case for the fibres $I_1\times E$ used here, since
+$H_1(F_t)\to H_1(I_1\times E)$ is onto. The assumption is used in the second and
+third steps below.
+\begin{itemize}
+\item The base contributes no $H^1$, so $b_1(Y)=2$ means
+  $\ker(d_2\colon H^0(R^1)\to H^2(\PP^1;\Q))$ has rank $2$.
+\item If $d_2=0$, then $f^*[\mathrm{pt}]\ne0$ in $H^2$, and the cup product of the two
+  classes in $H^1$ is a second, independent class (it projects to
+  $\psi_1\wedge\psi_2\neq0$ in $E_\infty^{0,2}$). That gives $b_2\ge2$, a contradiction.
+\item The other ranks give $b_1\ne2$, so $\mathrm{rank}\,H^0(R^1)=3$. Hence every
+  monodromy fixes a common rational hyperplane $\Pi\subset H^1(F_t;\Q)$ (or acts
+  trivially).
+\end{itemize}
+Monodromies of a holomorphic family preserve the complex orientation of the fibres,
+so they have determinant $1$. An element $T$ of $SL_4$ fixing $\Pi$ pointwise
+satisfies $T^*=I+u\otimes\ell$ with $\ell|_\Pi=0$ and $\det T=1+\ell(u)=1$. So $u\in\Pi$,
+and $T$ is a transvection. Dually, every monodromy is a transvection
+$\lambda\mapsto\lambda+u_\gamma(\lambda)\lambda_0$ with a common $\lambda_0$. A transvection
+$I+N$ with $N^2=0$ satisfies $(I+N)^k=I+kN$. So nontrivial monodromies of finite
+order, as in the $(3,4,\infty)$ family, cannot occur. In our construction
+$\lambda_0=e_1$.
+\end{remark}
+
+\begin{remark}[questions]
+\begin{enumerate}
+\item $W$ is diffeomorphic to $S^4$ (Proposition~\ref{prop:Wstandard}). Is $f_W$
+  equivalent to Matsumoto's fibration? Can one write an explicit diffeomorphism
+  $W\cong S^4$, and hence an explicit integrable $J$ on the round $S^4\times T^2$?
+\item Compute the Dolbeault cohomology and the Kuranishi space of $Y$.
+\item Twist by $n[e_4]$ instead of $[e_4]$, and call the quotient $W_n$. The arguments
+  of \S\ref{sec:topology} give $\chi(W_n)=2$, and $\pi_1(W_n)=\Z/n$ for $n\ne0$. So for
+  $n\ne0$, $W_n$ is a rational homology $4$-sphere. Untwisted, $\pi_1(W_0)=\Z$, so
+  $b_1=b_3=1$ and $b_2=2$. Steps 1--2 of the proof of
+  Proposition~\ref{prop:Wstandard} apply to every $W_n$. So Iwase's theorem
+  determines $W_n$ from $\pi_1(W_n)$, $w_2(W_n)$ and the parity of its intersection
+  form. Which $4$-manifolds are they?
+\item Calabi's question for $V^2$ of genus $\ge2$ remains open as far as we know. For
+  the products of spheres of dimensions $10$ and $12$ that remain open, see
+  \S\ref{sec:higherdim}.
+\end{enumerate}
+\end{remark}
+
+%======================================================================
+\section{Products of spheres}\label{sec:spheres}
+%======================================================================
+
+In this section we combine the Main Theorem with the 2026 constructions and determine
+which products of spheres of dimension at most eight admit complex structures. The one
+new ingredient besides the Main Theorem is Theorem~C. It applies a Calabi--Eckmann type
+construction to the complex $S^2\times S^4$ of Liang, Liu and Zhang \cite{LLZ26}, and
+gives complex structures on $S^4\times S^3\times S^{2q+1}$.
+
+Unlike the Main Theorem, Theorem~C and Corollary~D depend on recent preprints. We list
+these inputs explicitly in \S\ref{sec:inputs}.
+
+Throughout this section, products of spheres carry their standard smooth structures, and
+$S^n$ always has $n\ge1$. Products of spheres of dimension $n$ correspond to partitions of
+$n$.
+
+\subsection{Inputs}\label{sec:inputs}
+Besides classical constructions (complex projective spaces, elliptic curves, Hopf and
+Calabi--Eckmann manifolds, and products), we use:
+\begin{enumerate}
+\item[(I1)] $S^6$ admits a complex structure \cite{AC26,Engel26}. We write
+  $X_{\rm sph}\cong S^6$ for the compact complex threefold of \cite{AC26}.
+\item[(I2)] $S^2\times S^4$ admits a complex structure \cite{GFL26,LLZ26}.
+\item[(I3)] \emph{The package (LLZ).} There is a compact connected complex threefold
+  $X_+$, a diffeomorphism $X_+\cong S^2\times S^4$, and a holomorphic line bundle
+  $L_+\to X_+$ whose first Chern class generates $H^2(X_+;\Z)\cong\Z$ \cite{LLZ26}.
+\end{enumerate}
+These inputs depend on one another as follows.
+\begin{itemize}
+\item (I3) implies (I2).
+\item (I3) assumes more than (I1). It starts from the specific threefold $X_{\rm sph}$
+  together with the following properties:
+  \begin{itemize}
+  \item $\mathrm{Aut}^0(X_{\rm sph})\cong\C^*$;
+  \item the fixed curve of this action has normal weights $\pm1$;
+  \item the structure of the cusp fibre, with its $\C^*$-invariant double curves.
+  \end{itemize}
+  See \cite[Thm.~4.5, Prop.~4.6, Props.~9.23--9.24, Rem.~9.25]{AC26}.
+\item Engel's independent account \cite{Engel26} verifies the construction of
+  $X_{\rm sph}$, but treats these auxiliary properties only in a remark.
+\item (I2) also rests on \cite{AC26} by either route: \cite{GFL26} reuse its analytic
+  framework, and \cite{LLZ26} start from $X_{\rm sph}$.
+\end{itemize}
+So none of (I1)--(I3) is independent of \cite{AC26}.
+
+\subsection{Elliptic bundles over a complex base}\label{sec:CE}
+The following proposition is the Calabi--Eckmann construction \cite{CalabiEckmann53},
+with $\PP^p\times\PP^q$ replaced by an arbitrary compact complex base. It is standard;
+see \cite{Morimoto63,Hofer93,GoldsteinProkushkin04,GGP08} for this and related
+constructions on torus bundles. We give a complete proof, since everything below rests
+on it.
+
+\begin{proposition}\label{prop:CE}
+Let $B$ be a compact connected complex manifold of dimension $n$, let $L_1,L_2\to B$ be
+holomorphic line bundles, and fix $\tau\in\C\setminus\R$. Let
+\[
+\mathcal P=L_1^\times\times_BL_2^\times=\{(v_1,v_2)\in L_1\oplus L_2:\ v_1\neq0\neq v_2\},
+\]
+and let $\C$ act on $\mathcal P$ by
+\[
+t\cdot(v_1,v_2)=(e^{t}v_1,\ e^{\tau t}v_2).
+\]
+Then:
+\begin{enumerate}
+\item $Z=\mathcal P/\C$ is a compact complex manifold of dimension $n+1$;
+\item $Z\to B$ is a holomorphic fibre bundle with fibre the elliptic curve
+  $E_\tau=\C/(\Z+\tau\Z)$, and structure group $E_\tau$ acting by translations;
+\item for any hermitian metrics on $L_1$ and $L_2$, $Z$ is diffeomorphic to the
+  principal $T^2$-bundle
+  \[\mathcal Q=S(L_1)\times_BS(L_2)=\{(v_1,v_2)\in\mathcal P:\ |v_1|=|v_2|=1\}.\]
+\end{enumerate}
+\end{proposition}
+
+The proof occupies Lemmas~\ref{lem:Htau}--\ref{lem:Q}. Let $G=(\C^*)^2$. The map
+$\exp\colon\C^2\to G$, $(z_1,z_2)\mapsto(e^{z_1},e^{z_2})$, is a surjective holomorphic
+homomorphism with kernel $2\pi i\Z^2$. Put
+\[H_\tau=\{(e^t,e^{\tau t}):t\in\C\}=\exp\big(\C\cdot(1,\tau)\big)\subset G.\]
+
+\begin{lemma}\label{lem:Htau}
+\begin{enumerate}
+\item The map $t\mapsto(e^t,e^{\tau t})$ is injective. So the $\C$-action on $\mathcal P$
+  is the action of the subgroup $H_\tau\cong\C$, acting through the fibrewise
+  $G$-action $(w_1,w_2)\cdot(v_1,v_2)=(w_1v_1,w_2v_2)$.
+\item The map
+  \[\rho\colon G\to E'_\tau=\C/2\pi i(\Z+\tau\Z),\qquad (w_1,w_2)\mapsto[\log w_2-\tau\log w_1],\]
+  is a well-defined surjective holomorphic homomorphism with kernel $H_\tau$. Hence $H_\tau$
+  is a closed complex subgroup, and $G/H_\tau\cong E'_\tau$ is an elliptic curve,
+  isomorphic to $E_\tau$ via $z\mapsto z/2\pi i$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(1) Suppose $e^t=e^{\tau t}=1$. Then $t=2\pi im$ and $\tau t=2\pi in$ with
+$m,n\in\Z$, so $\tau m=n$. Since $\tau\notin\R$, this forces $m=0$, hence $t=0$.
+
+(2) \emph{Well defined.} Changing the branches of the logarithms by $2\pi im$ and $2\pi in$
+changes $\log w_2-\tau\log w_1$ by $2\pi i(n-\tau m)$. So $\rho$ is well defined. It is
+locally given by a holomorphic formula, it is a homomorphism, and it is surjective since
+$\rho(1,e^z)=[z]$.
+
+\emph{Kernel.} Clearly $\rho(e^t,e^{\tau t})=[\tau t-\tau t]=0$. Conversely, suppose
+$\rho(w)=0$. Choose logarithms $(z_1,z_2)$ of $w$ with $z_2-\tau z_1=2\pi i(n-\tau m)$. Then
+$(z_1-2\pi im,\ z_2-2\pi in)$ is also a logarithm of $w$, and it satisfies
+$z_2'=\tau z_1'$. So $w=(e^{t},e^{\tau t})$ with $t=z_1-2\pi im$.
+
+\emph{Quotient.} Since $1$ and $\tau$ are $\R$-independent, $2\pi i(\Z+\tau\Z)$ is a lattice
+in $\C$, so $E'_\tau$ is a compact complex torus of dimension one. A holomorphic
+homomorphism of complex Lie groups has constant rank. If it is surjective, the rank is
+maximal by Sard's theorem, so it is a submersion. Hence $\ker\rho=H_\tau$ is a closed
+complex subgroup, and $\rho$ induces an isomorphism $G/H_\tau\cong E'_\tau$ of complex Lie
+groups.
+\end{proof}
+
+\begin{lemma}\label{lem:Z}
+$Z=\mathcal P/H_\tau$ is a compact complex manifold of dimension $n+1$, and $Z\to B$ is a
+holomorphic fibre bundle with fibre $E'_\tau$ and structure group $E'_\tau$ acting by
+translations. The projection $\mathcal P\to Z$ is a holomorphic surjective submersion
+whose fibres are exactly the $H_\tau$-orbits.
+\end{lemma}
+\begin{proof}
+\emph{Trivialisations of $\mathcal P$.} Choose an open cover $\{U_\alpha\}$ of $B$ and
+nowhere-zero holomorphic sections $s^{(j)}_\alpha$ of $L_j|_{U_\alpha}$. Write
+$s^{(j)}_\beta=g^{(j)}_{\alpha\beta}\,s^{(j)}_\alpha$ with $g^{(j)}_{\alpha\beta}\in\cO^*(U_{\alpha\beta})$, and put
+$g_{\alpha\beta}=(g^{(1)}_{\alpha\beta},g^{(2)}_{\alpha\beta})\colon U_{\alpha\beta}\to G$. The maps
+\[
+U_\alpha\times G\to\mathcal P|_{U_\alpha},\qquad (b,w)\mapsto\big(w_1s^{(1)}_\alpha(b),\ w_2s^{(2)}_\alpha(b)\big),
+\]
+are biholomorphisms. Their transition maps are $(b,w)\mapsto(b,g_{\alpha\beta}(b)\,w)$, so
+$\mathcal P$ is a holomorphic principal $G$-bundle. In these charts $H_\tau$ acts by
+multiplication on the $G$-factor. This commutes with the transition maps because $G$ is
+abelian.
+
+\emph{The glued manifold.} Glue the complex manifolds $U_\alpha\times E'_\tau$ along
+$U_{\alpha\beta}\times E'_\tau$ by the biholomorphisms
+\[(b,e)\mapsto\big(b,\ e+\rho(g_{\alpha\beta}(b))\big).\]
+They satisfy the cocycle condition, because $g_{\alpha\beta}$ does and $\rho$ is a homomorphism.
+Call the result $Z'$. It is a complex manifold and a holomorphic fibre bundle over $B$ with
+fibre $E'_\tau$ and translation transition maps.
+\begin{itemize}
+\item \emph{Hausdorff.} Points in different fibres are separated by preimages of
+  disjoint open sets of $B$. Two points in the fibre over $b$ lie in a single chart
+  $U_\alpha\times E'_\tau$ with $b\in U_\alpha$, and are separated there.
+\item \emph{Second countable.} The cover may be taken countable.
+\item \emph{Compact.} Cover $B$ by finitely many compact sets $K_\alpha\subset U_\alpha$. Then
+  $Z'$ is the union of the compact images of the sets $K_\alpha\times E'_\tau$.
+\end{itemize}
+
+\emph{Identification with $\mathcal P/H_\tau$.} The local maps
+$U_\alpha\times G\to U_\alpha\times E'_\tau$, $(b,w)\mapsto(b,\rho(w))$, are compatible with
+the transition maps. So they glue to a holomorphic map $\pi\colon\mathcal P\to Z'$.
+\begin{itemize}
+\item $\pi$ is a surjective submersion, because $\rho$ is.
+\item Its fibres are the $H_\tau$-orbits, because $\ker\rho=H_\tau$.
+\end{itemize}
+So $\pi$ induces a continuous bijection $\mathcal P/H_\tau\to Z'$. It is open, since
+submersions are open maps, hence a homeomorphism. We identify $Z=\mathcal P/H_\tau$ with
+$Z'$, and use Lemma~\ref{lem:Htau} to identify $E'_\tau$ with $E_\tau$.
+\end{proof}
+
+Fix hermitian metrics on $L_1$ and $L_2$, and define
+\[\mu\colon\mathcal P\to\R^2,\qquad \mu(v)=(\log|v_1|,\ \log|v_2|),\]
+so that $\mathcal Q=\mu^{-1}(0)$. Let $\mathrm A_\tau\colon\C\to\R^2$ be the $\R$-linear
+map $\mathrm A_\tau(t)=(\Rea t,\ \Rea(\tau t))$. For $t=a+ib$,
+$\mathrm A_\tau(t)=(a,\ a\Rea\tau-b\Ima\tau)$, so $\det\mathrm A_\tau=-\Ima\tau\neq0$ and
+$\mathrm A_\tau$ is an isomorphism. Since $|e^tv_1|=e^{\Rea t}|v_1|$ and
+$|e^{\tau t}v_2|=e^{\Rea(\tau t)}|v_2|$,
+\begin{equation}\label{eq:mu}
+\mu(t\cdot v)=\mu(v)+\mathrm A_\tau(t)\qquad(t\in\C,\ v\in\mathcal P).
+\end{equation}
+
+\begin{lemma}\label{lem:Q}
+$\mathcal Q$ is a compact smooth submanifold of $\mathcal P$ and a principal
+$T^2$-bundle over $B$. The composite $\Phi\colon\mathcal Q\hookrightarrow\mathcal P\to Z$
+is a diffeomorphism.
+\end{lemma}
+\begin{proof}
+\emph{$\mathcal Q$.} By \eqref{eq:mu}, the derivative of $\mu$ along each $H_\tau$-orbit is
+the isomorphism $\mathrm A_\tau$. So $\mu$ is a submersion, and $\mathcal Q=\mu^{-1}(0)$ is
+a smooth submanifold. It is the fibre product of the unit circle bundles $S(L_1)$ and
+$S(L_2)$. Hence it is a principal $U(1)^2$-bundle over $B$, and compact because $B$ is.
+
+\emph{Injectivity of $\Phi$.} If $v,v'\in\mathcal Q$ and $v'=t\cdot v$, then by
+\eqref{eq:mu} $\mathrm A_\tau(t)=\mu(v')-\mu(v)=0$, so $t=0$ and $v'=v$.
+
+\emph{The inverse.} Define $\tilde\Psi\colon\mathcal P\to\mathcal Q$ by
+\[\tilde\Psi(v)=t(v)\cdot v,\qquad t(v)=-\mathrm A_\tau^{-1}\mu(v).\]
+By \eqref{eq:mu}, $\mu(\tilde\Psi(v))=0$, so $\tilde\Psi$ does land in $\mathcal Q$, and
+it is smooth. It is $H_\tau$-invariant: \eqref{eq:mu} gives $t(s\cdot v)=t(v)-s$, so
+$\tilde\Psi(s\cdot v)=t(v)\cdot v=\tilde\Psi(v)$. Since $\mathcal P\to Z$ is a surjective
+submersion (Lemma~\ref{lem:Z}), $\tilde\Psi$ descends to a smooth map $\Psi\colon Z\to\mathcal Q$.
+\begin{itemize}
+\item For $v\in\mathcal Q$ we have $t(v)=0$, so $\Psi\circ\Phi=\mathrm{id}_{\mathcal Q}$.
+\item $\tilde\Psi(v)$ lies in the $H_\tau$-orbit of $v$, so $\Phi\circ\Psi=\mathrm{id}_Z$.
+\end{itemize}
+\end{proof}
+
+Lemmas~\ref{lem:Htau}, \ref{lem:Z} and~\ref{lem:Q} prove Proposition~\ref{prop:CE}.
+
+\begin{remark}[one line bundle]\label{rem:onebundle}
+If $L_2$ is trivial, then $Z\cong L_1^\times/\lambda^{\Z}$, the quotient of $L_1^\times$ by
+fibrewise multiplication by $\lambda=e^{2\pi i/\tau}$.
+\begin{itemize}
+\item The slice $\{v_2=1\}$ meets every $H_\tau$-orbit.
+\item The elements of $H_\tau$ preserving the slice are those with $e^{\tau t}=1$, i.e.\
+  $t\in\frac{2\pi i}{\tau}\Z$. They act on $v_1$ by powers of $\lambda$.
+\item $|\lambda|=\exp(2\pi\Ima\tau/|\tau|^2)\neq1$.
+\end{itemize}
+Conversely, every $\lambda$ with $|\lambda|\neq1$ arises, from $\tau=2\pi i/\log\lambda$. In
+this case Proposition~\ref{prop:CE}(3) says $L_1^\times/\lambda^{\Z}\cong S(L_1)\times S^1$.
+For $L_1=\cO_{\PP^{p}}(-1)$ this is the Hopf manifold
+$(\C^{p+1}\setminus0)/\lambda^{\Z}\cong S^{2p+1}\times S^1$.
+\end{remark}
+
+\subsection{Circle bundles}\label{sec:circlebundles}
+We use the following standard facts.
+\begin{enumerate}
+\item[(C1)] Every complex line bundle $L$ over a manifold has a hermitian metric. The
+  unit circle bundle $S(L)$ is a smooth principal $U(1)$-bundle with associated line
+  bundle $L$. Its Chern class is $c_1(L)$, the Euler class of the underlying oriented
+  real plane bundle. Rescaling the metric gives an isomorphic circle bundle.
+\item[(C2)] Smooth principal $U(1)$-bundles over a manifold $B$ are classified up to
+  smooth isomorphism by their Chern class in $H^2(B;\Z)$ \cite{Husemoller}.
+\item[(C3)] If $\varphi\colon B'\to B$ is a diffeomorphism and $\pi\colon\mathcal Q\to B$ is a
+  smooth fibre bundle, then $(b',x)\mapsto x$ is a diffeomorphism from the total space of
+  $\varphi^*\mathcal Q$ onto $\mathcal Q$.
+\item[(C4)] Give $\cO(-1)\to\PP^q$ the metric induced from $\C^{q+1}$. Then
+  $S(\cO(-1))=\{(\ell,v):v\in\ell,\ |v|=1\}$, and $(\ell,v)\mapsto v$ is a diffeomorphism
+  onto $S^{2q+1}$. For $q=1$ this is the Hopf fibration.
+  \begin{itemize}
+  \item $S(\cO(1))$ is $S(\cO(-1))$ with the inverse $U(1)$-action, so over $\PP^1$
+    both total spaces are $S^3$.
+  \item For $q=0$, $\PP^0$ is a point and $S(\cO(-1))=S^1$.
+  \end{itemize}
+\end{enumerate}
+
+\begin{lemma}\label{lem:productcircle}
+Let $B=B_1\times B_2$, and let $L_j=\mathrm{pr}_j^*L'_j$ for line bundles $L'_j\to B_j$,
+with the pulled-back metrics. Then $S(L_1)\times_BS(L_2)\cong S(L'_1)\times S(L'_2)$.
+\end{lemma}
+\begin{proof}
+$S(L_1)=S(L'_1)\times B_2$ and $S(L_2)=B_1\times S(L'_2)$. A pair
+$((u_1,b_2),(b_1,u_2))$ lies in the fibre product exactly when $u_1$ lies over $b_1$ and
+$u_2$ lies over $b_2$. So $((u_1,b_2),(b_1,u_2))\mapsto(u_1,u_2)$ is a diffeomorphism onto
+$S(L'_1)\times S(L'_2)$, with inverse $(u_1,u_2)\mapsto((u_1,\pi(u_2)),(\pi(u_1),u_2))$.
+\end{proof}
+
+\begin{lemma}\label{lem:S3S4}
+Let $X$ be a manifold diffeomorphic to $S^2\times S^4$, and let $L\to X$ be a complex line
+bundle whose Chern class generates $H^2(X;\Z)$. Then $S(L)$ is diffeomorphic to
+$S^3\times S^4$.
+\end{lemma}
+\begin{proof}
+Let $\varphi\colon S^2\times S^4\to X$ be a diffeomorphism.
+\begin{itemize}
+\item By Künneth, $H^2(S^2\times S^4;\Z)=\Z x$ with $x=\mathrm{pr}_1^*a$, where
+  $a=c_1(\cO_{\PP^1}(1))$ under $S^2=\PP^1$. Since $\varphi^*$ is an isomorphism,
+  $\varphi^*c_1(L)=\varepsilon x$ for some $\varepsilon=\pm1$.
+\item The circle bundle $\mathrm{pr}_1^*S(\cO(\varepsilon))$ over $S^2\times S^4$ has Chern
+  class $\varepsilon x$. By (C2), $\varphi^*S(L)\cong\mathrm{pr}_1^*S(\cO(\varepsilon))$ as smooth
+  principal bundles.
+\item The total space of $\mathrm{pr}_1^*S(\cO(\varepsilon))$ is
+  $S(\cO(\varepsilon))\times S^4\cong S^3\times S^4$, by (C4).
+\item By (C3), the total space of $\varphi^*S(L)$ is diffeomorphic to $S(L)$.
+\end{itemize}
+\end{proof}
+
+\subsection{The complex $S^2\times S^4$ of Liang--Liu--Zhang}\label{sec:LLZ}
+We recall the construction of \cite{LLZ26}, with references for each step. We then give
+an independent proof that $c_1(L_+)$ is primitive, which is the property Theorem~C uses.
+\begin{enumerate}
+\item \emph{The source.} The threefold $X_{\rm sph}$ of \cite{AC26} has
+  $\mathrm{Aut}^0(X_{\rm sph})\cong\C^*$. The $\C^*$-action fixes a smooth rational curve $C$
+  with normal weights $\pm1$. One of the double curves $D_-$ of the cusp fibre is
+  $\C^*$-invariant and meets $C$ in two points $Q,Q'$ \cite[\S1]{LLZ26}.
+\item \emph{Blow-up and quotient.} Let $\widetilde X=\mathrm{Bl}_C(X_{\rm sph})$, with
+  exceptional divisor $\mathcal E$.
+  \begin{itemize}
+  \item The involution $-1\in\C^*$ lifts to an involution $\tilde\iota$ of $\widetilde X$.
+    In local coordinates $\tilde\iota(z,x,t)=(z,-x,t)$, with $\mathcal E=\{x=0\}$, so
+    $\tilde\iota$ fixes $\mathcal E$ pointwise and acts freely elsewhere.
+  \item The quotient has coordinates $(z,x^2,t)$. So
+    $\varpi\colon\widetilde X\to X_-=\widetilde X/\langle\tilde\iota\rangle$ is a holomorphic
+    double cover of a compact complex manifold, branched along the smooth divisor
+    $\mathcal F=\varpi(\mathcal E)$, and $\varpi|_{\mathcal E}\colon\mathcal E\to\mathcal F$ is a
+    biholomorphism \cite[\S2.1]{LLZ26}.
+  \end{itemize}
+\item \emph{The line bundle on $X_-$.} The anti-invariant part of $\varpi_*\cO_{\widetilde X}$
+  is a line bundle $L_-^{-1}$. One has $L_-^{\otimes2}\cong\cO_{X_-}(\mathcal F)$
+  \cite[\S4.1]{LLZ26} and
+  \begin{equation}\label{eq:qL}
+  \varpi^*L_-\cong\cO_{\widetilde X}(\mathcal E)\qquad\text{\cite[(4)]{LLZ26}}.
+  \end{equation}
+\item \emph{The flop.} The curve $C_-=\varpi(\widetilde D_-)$, the image of the strict
+  transform of $D_-$, is a smooth rational curve with normal bundle
+  $\cO(-1)\oplus\cO(-1)$ \cite[Lemma 3.1]{LLZ26}. The analytic Atiyah flop along $C_-$
+  gives a compact complex threefold $X_+$ with flopped curve $C_+$
+  \cite[Def.~3.2]{LLZ26}. Put $X^\circ=X_-\setminus C_-=X_+\setminus C_+$.
+\item \emph{The line bundle on $X_+$.} Let $\widehat X$ be the common blow-up, with
+  exceptional divisor $R\cong\PP^1\times\PP^1$. There is a unique holomorphic line bundle
+  $L_+$ on $X_+$ with
+  $\mathrm{Bl}_{C_+}^*L_+\cong\mathrm{Bl}_{C_-}^*L_-\otimes\cO_{\widehat X}(R)$
+  \cite[(6)]{LLZ26}. Since $R$ lies over $C_\pm$, restricting to the complement of $R$ gives
+  \begin{equation}\label{eq:LU}
+  L_+|_{X^\circ}\cong L_-|_{X^\circ}.
+  \end{equation}
+\item \emph{Topology.} $X_+$ is simply connected, with torsion-free homology and
+  $H^2(X_+;\Z)\cong\Z$ \cite[Prop.~3.5]{LLZ26}. By Wall's and Jupp's classification
+  \cite{Wall66,Jupp73} there is an orientation-preserving diffeomorphism
+  $X_+\cong S^2\times S^4$ \cite[Thm.~1.2 and \S5.2]{LLZ26}.
+\end{enumerate}
+
+\cite{LLZ26} show that $c_1(L_+)$ generates $H^2(X_+)$ by computing
+$c_1(L_-)^3=1$ \cite[Lemma 4.1]{LLZ26} and using
+$H^2(X_-)\cong H^2(X^\circ)\cong H^2(X_+)$. The following direct argument avoids the cubic
+form.
+
+\begin{lemma}\label{lem:primitive}
+$c_1(L_+)$ generates $H^2(X_+;\Z)$. More precisely, there is a smooth rational curve
+$\Sigma\subset X^\circ$ with $\deg(L_+|_\Sigma)=-1$.
+\end{lemma}
+\begin{proof}
+\emph{Choice of $\Sigma$.} The curve $D_-$ is not contained in $C$, so $D_-\cap C$ is finite;
+it is $\{Q,Q'\}$. Choose $c\in C\setminus D_-$. Let $\Sigma_c=\mathrm{Bl}_C^{-1}(c)\cong\PP^1$ be
+the fibre of $\mathcal E\to C$ over $c$, and put $\Sigma=\varpi(\Sigma_c)$.
+
+\emph{$\Sigma$ lies in $X^\circ$.}
+\begin{itemize}
+\item The strict transform $\widetilde D_-$ meets $\mathcal E$ only over $D_-\cap C$, so
+  $\Sigma_c\cap\widetilde D_-=\emptyset$.
+\item $\tilde\iota$ fixes $\Sigma_c\subset\mathcal E$ pointwise, so
+  $\Sigma_c\cap\tilde\iota(\widetilde D_-)=\tilde\iota(\Sigma_c\cap\widetilde D_-)=\emptyset$.
+\item Since $\varpi^{-1}(C_-)=\widetilde D_-\cup\tilde\iota(\widetilde D_-)$, it follows that
+  $\Sigma\cap C_-=\emptyset$, i.e.\ $\Sigma\subset X^\circ$.
+\end{itemize}
+
+\emph{The degree.} $\varpi|_{\mathcal E}$ is a biholomorphism onto $\mathcal F$, so
+$\varpi|_{\Sigma_c}\colon\Sigma_c\to\Sigma$ is an isomorphism of smooth rational curves.
+Using \eqref{eq:LU} and \eqref{eq:qL},
+\[
+\deg(L_+|_\Sigma)=\deg(L_-|_\Sigma)=\deg\big((\varpi^*L_-)|_{\Sigma_c}\big)=\deg\big(\cO_{\widetilde X}(\mathcal E)|_{\Sigma_c}\big)=-1.
+\]
+The last equality holds because $\cO_{\widetilde X}(\mathcal E)|_{\mathcal E}$ is the
+tautological bundle $\cO_{\PP(N_{C})}(-1)$, which has degree $-1$ on each fibre of
+$\mathcal E\to C$.
+
+\emph{Conclusion.} So $\langle c_1(L_+),[\Sigma]\rangle=-1$ for the integral class
+$[\Sigma]\in H_2(X_+;\Z)$. If $c_1(L_+)=m\,g$ for a generator $g$ of $H^2(X_+;\Z)\cong\Z$, then
+$m\langle g,[\Sigma]\rangle=-1$, so $m=\pm1$.
+\end{proof}
+
+This uses only items (2)--(6) above. It is consistent with \cite[Lemma 4.1]{LLZ26}: for
+instance $L_-|_{\mathcal F}\cong\cO(-1,-1)$, so $c_1(L_-)^2\cdot[\mathcal F]=2=2\,c_1(L_-)^3$.
+
+\begin{remark}[the complex $S^2\times S^4$ of Guo--Fang--Lu]
+For the complex $S^2\times S^4$ of \cite{GFL26} we did not find a holomorphic line bundle
+with primitive Chern class. The two components $D_0,D_1$ of its cusp fibre satisfy
+$[D_0]=2x=-[D_1]$ in $H^2(S^2\times S^4;\Z)=\Z x$ (end of the proof of
+\cite[Prop.~2.2]{GFL26}). Applied to $\cO(D_0)$, the construction below would give a
+lens-space factor $L(2,1)$ in place of $S^3$. Theorem~C therefore uses \cite{LLZ26}.
+\end{remark}
+
+\subsection{Proof of Theorem C}\label{sec:proofC}
+\begin{proof}[Proof of Theorem C]
+Assume (I3), and fix $\tau\in\C\setminus\R$, for instance $\tau=i$.
+
+\emph{$S^4\times S^3\times S^{2q+1}$, $q\ge0$.}
+\begin{itemize}
+\item Let $B=X_+\times\PP^q$, a compact connected complex manifold of dimension $3+q$.
+\item Let $L_1=\mathrm{pr}_1^*L_+$ and $L_2=\mathrm{pr}_2^*\cO_{\PP^q}(-1)$. For $q=0$, $L_2$ is
+  the trivial bundle.
+\item By Proposition~\ref{prop:CE}, $Z_q=(L_1^\times\times_BL_2^\times)/\C$ is a compact
+  complex manifold of dimension $q+4$, and a holomorphic $E_\tau$-bundle over $B$.
+\item Also by Proposition~\ref{prop:CE}, it is diffeomorphic to
+  \[
+  S(L_1)\times_BS(L_2)\ \cong\ S(L_+)\times S(\cO_{\PP^q}(-1))\ \cong\ (S^3\times S^4)\times S^{2q+1}.
+  \]
+  The first step is Lemma~\ref{lem:productcircle}. The second uses
+  Lemma~\ref{lem:S3S4}, which applies by (I3) and Lemma~\ref{lem:primitive}, together
+  with (C4).
+\item As a check, the real dimensions agree: $3+4+(2q+1)=2(q+4)$.
+\end{itemize}
+
+\emph{$(S^4\times S^3)^2$.} Let $B=X_+\times X_+$ and $L_j=\mathrm{pr}_j^*L_+$.
+Proposition~\ref{prop:CE} and Lemmas~\ref{lem:productcircle} and~\ref{lem:S3S4} give a
+compact complex manifold of dimension $7$, diffeomorphic to
+$S(L_+)\times S(L_+)\cong(S^3\times S^4)^2$.
+\end{proof}
+
+\begin{remark}\label{rem:Zq}
+\begin{enumerate}
+\item \emph{The case $q=0$.} By Remark~\ref{rem:onebundle}, $Z_0\cong L_+^\times/2^{\Z}$, the
+  quotient of $L_+$ minus its zero section by $v\mapsto2v$. The map
+  $v\mapsto(v/|v|,\ \log|v|\bmod\log2)$ identifies it with
+  $S(L_+)\times S^1\cong S^4\times S^3\times S^1$.
+\item \emph{Relation to Calabi--Eckmann.} With $X_+$ replaced by $\PP^p$ and $L_+$ by
+  $\cO(-1)$, the construction is exactly the Calabi--Eckmann manifold
+  $S^{2p+1}\times S^{2q+1}$. The only new ingredient is the base $X_+$ with its line bundle
+  $L_+$.
+\item \emph{Not Kähler.} $H^2(S^4\times S^3\times S^{2q+1};\R)=0$ for every $q\ge0$, so
+  $Z_q$ is not Kähler.
+\item \emph{Canonical bundle.} $Z_q\to X_+\times\PP^q$ is a holomorphic principal
+  $E_\tau$-bundle. Its vertical tangent bundle is trivial, so
+  $K_{Z_q}\cong\pi^*K_{X_+\times\PP^q}$.
+\item \emph{Why this does not give $S^4\times T^2$.} Here every $S^4$-factor comes from
+  $X_+\cong S^2\times S^4$, so it arrives paired with the $S^3$ of a Hopf circle over the
+  $S^2$-factor. To obtain $S^4\times T^2$ in this way, one would need a compact complex
+  surface carrying a principal $T^2$-bundle with total space $S^4\times T^2$. We know of
+  none, and the obvious base $S^4$ is not complex. The Main Theorem is therefore
+  genuinely needed for $S^4\times T^2$ and $S^4\times T^4$ below.
+\end{enumerate}
+\end{remark}
+
+\subsection{Products of spheres of dimension at most eight}\label{sec:dim8}
+\begin{lemma}\label{lem:noacs}
+$S^4$, $S^8$ and $S^4\times S^4$ admit no almost complex structure.
+\end{lemma}
+\begin{proof}
+Let $M$ be one of these manifolds, of dimension $2m\in\{4,8\}$.
+\begin{itemize}
+\item \emph{Pontryagin classes vanish.} $TS^n\oplus\underline\R\cong\underline\R^{n+1}$, so
+  $M$ is stably parallelisable and all its Pontryagin classes vanish.
+\item \emph{Chern classes.} Suppose $J$ is an almost complex structure with Chern classes
+  $c_i=c_i(TM,J)$. Since $TM\otimes\C\cong(TM,J)\oplus\overline{(TM,J)}$, we have
+  $\sum_k(-1)^kp_k=c(TM,J)\,c(\overline{TM,J})$. In low degrees this gives
+  \[p_1=c_1^2-2c_2,\qquad p_2=c_2^2-2c_1c_3+2c_4.\]
+  Moreover $c_m=e(TM)$ for the orientation of $J$, and $\langle e(TM),[M]\rangle=\chi(M)$,
+  which is $2$, $2$ and $4$ respectively.
+\item \emph{$M=S^4$.} $c_1=0$ since $H^2=0$. Then $0=p_1=-2c_2$ forces $c_2=0$, since
+  $H^4(S^4;\Z)\cong\Z$. But $c_2=e\neq0$.
+\item \emph{$M=S^8$ or $S^4\times S^4$.} $c_1=c_3=0$ since $H^2=H^6=0$. Then $0=p_1=-2c_2$
+  forces $c_2=0$, since $H^4$ is torsion-free. Then $0=p_2=2c_4=2e$. But $2e\neq0$ in
+  $H^8(M;\Z)\cong\Z$.
+\end{itemize}
+\end{proof}
+
+This recovers the case $S^4$ of Ehresmann and Hopf, the case $S^8$ of Borel--Serre
+\cite{BorelSerre53}, and the case $S^4\times S^4$ of Sutherland \cite{Sutherland65} and
+Datta--Subramanian \cite{DattaSubramanian90}.
+
+\begin{proof}[Proof of Corollary D]
+\emph{The list.} The products of spheres of dimension $2,4,6,8$ correspond to the
+partitions of these numbers. There are $2$, $5$, $11$ and $22$ of them, $40$ in all, and
+they are exactly the rows of Table~\ref{tab:spheres}.
+
+\emph{Not almost complex.} By Lemma~\ref{lem:noacs}, $S^4$, $S^8$ and $S^4\times S^4$ admit
+no almost complex structure.
+
+\emph{Complex.} Each of the other $37$ products is diffeomorphic to the complex manifold
+in the second column of the table. A product of complex manifolds is complex. The
+notation is:
+\begin{itemize}
+\item $\mathcal H_k=(\C^k\setminus0)/2^{\Z}\cong S^{2k-1}\times S^1$ is a Hopf manifold;
+\item $\mathrm{CE}_{p,q}\cong S^{2p+1}\times S^{2q+1}$ is a Calabi--Eckmann manifold
+  \cite{CalabiEckmann53};
+\item $E$ is an elliptic curve, so $E\cong T^2$;
+\item $X_{S^2\times S^4}$ is either complex $S^2\times S^4$ of (I2);
+\item $Y\cong S^4\times T^2$ is the threefold of the Main Theorem;
+\item $Z_0\cong S^4\times S^3\times S^1$ is from Theorem~C.
+\end{itemize}
+The third column records which input each entry uses. Hence, given (I1)--(I3) and the
+Main Theorem, every product of spheres of dimension at most eight other than $S^4$, $S^8$
+and $S^4\times S^4$ is complex, and these three are not almost complex.
+\end{proof}
+
+\begin{table}[ht]
+\centering
+\small
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{@{}llll@{}}
+\toprule
+dim & product & complex manifold & input\\
+\midrule
+2 & $S^2$ & $\PP^1$ & classical\\
+  & $T^2$ & $E$ & classical\\
+\midrule
+4 & $S^4$ & none (Lemma~\ref{lem:noacs}) & ---\\
+  & $S^3\times S^1$ & $\mathcal H_2$ & classical\\
+  & $S^2\times S^2$, $S^2\times T^2$, $T^4$ & $(\PP^1)^2$, $\PP^1\times E$, $E^2$ & classical\\
+\midrule
+6 & $S^5\times S^1$, $S^3\times S^3$ & $\mathcal H_3$, $\mathrm{CE}_{1,1}$ & classical\\
+  & $S^3\times S^2\times S^1$, $S^3\times T^3$ & $\mathcal H_2\times\PP^1$, $\mathcal H_2\times E$ & classical\\
+  & $(S^2)^3$, $(S^2)^2\times T^2$, $S^2\times T^4$, $T^6$ & products of $\PP^1$ and $E$ & classical\\
+  & $S^6$ & $X_{\rm sph}$ & (I1)\\
+  & $S^4\times S^2$ & $X_{S^2\times S^4}$ & (I2)\\
+  & $S^4\times T^2$ & $Y$ & Main Theorem\\
+\midrule
+8 & $S^8$, $S^4\times S^4$ & none (Lemma~\ref{lem:noacs}) & ---\\
+  & $S^7\times S^1$, $S^5\times S^3$ & $\mathcal H_4$, $\mathrm{CE}_{2,1}$ & classical\\
+  & $S^5\times S^2\times S^1$, $S^5\times T^3$ & $\mathcal H_3\times\PP^1$, $\mathcal H_3\times E$ & classical\\
+  & $S^3\times S^3\times S^2$, $S^3\times S^3\times T^2$ & $\mathrm{CE}_{1,1}\times\PP^1$, $\mathrm{CE}_{1,1}\times E$ & classical\\
+  & $S^3\times S^2\times S^2\times S^1$, $S^3\times S^2\times T^3$, $S^3\times T^5$ & $\mathcal H_2\times(\PP^1)^2$, $\mathcal H_2\times\PP^1\times E$, $\mathcal H_2\times E^2$ & classical\\
+  & $(S^2)^4$, $(S^2)^3\times T^2$, $(S^2)^2\times T^4$, $S^2\times T^6$, $T^8$ & products of $\PP^1$ and $E$ & classical\\
+  & $S^6\times S^2$, $S^6\times T^2$ & $X_{\rm sph}\times\PP^1$, $X_{\rm sph}\times E$ & (I1)\\
+  & $S^4\times S^2\times S^2$ & $X_{S^2\times S^4}\times\PP^1$ & (I2)\\
+  & $S^4\times S^2\times T^2$ & $X_{S^2\times S^4}\times E$, or $Y\times\PP^1$ & (I2) or Main Thm.\\
+  & $S^4\times S^3\times S^1$ & $Z_0$ & (I3), Theorem~C\\
+  & $S^4\times T^4$ & $Y\times E$ & Main Theorem\\
+\bottomrule
+\end{tabular}
+\medskip
+\caption{The $40$ products of spheres of dimension at most eight.}\label{tab:spheres}
+\end{table}
+
+\begin{remark}[what was open]\label{rem:wasopen}
+Before 2026, the almost complex products of spheres of dimension at most eight with no
+known complex structure were, to our knowledge, the nine rows of Table~\ref{tab:spheres}
+not marked ``classical'' or ``---''. They are almost complex: $S^6$ and $S^2\times S^4$
+classically, and the others as products of almost complex manifolds or by Staples'
+theorem \cite{Staples67}.
+\begin{itemize}
+\item The constructions of \cite{AC26,Engel26,GFL26,LLZ26} settle $S^6$,
+  $S^2\times S^4$ and their products with $\PP^1$ and $E$.
+\item The Main Theorem settles $S^4\times T^2$ and $S^4\times T^4$.
+\item Theorem~C settles $S^4\times S^3\times S^1$.
+\end{itemize}
+Without the Main Theorem, $S^4\times T^2$ would be the only open case in dimension $\le6$,
+and $S^4\times T^4$ the only one in dimension $8$.
+\end{remark}
+
+\subsection{Higher dimensions}\label{sec:higherdim}
+For products of even-dimensional spheres, Sutherland's theorem
+\cite[Thm.~3.1]{Sutherland65} (as stated in \cite{LLZ26}; \cite{DattaSubramanian90} treats
+two factors) says that the almost complex ones are exactly the products of copies of
+$S^2$, $S^6$ and $S^2\times S^4$. Given (I1) and (I2), all of these are complex
+\cite[Cor.~1.3]{LLZ26}. Products with an odd-dimensional factor are parallelisable
+\cite{Staples67}, hence almost complex.
+
+The known complex blocks are:
+\begin{itemize}
+\item $S^2$, $S^6$, $S^2\times S^4$;
+\item $S^{2p+1}\times S^{2q+1}$ (Calabi--Eckmann, which includes Hopf manifolds and $T^2$);
+\item $S^4\times S^3\times S^{2q+1}$ and $(S^4\times S^3)^2$ (Theorem~C);
+\item $S^4\times T^2$ (Main Theorem).
+\end{itemize}
+No known block contains an $S^{2n}$ with $n\ge4$. Each $S^4$-factor must be absorbed in one
+of four ways:
+\begin{itemize}
+\item by an $S^2$-factor;
+\item by two $S^1$-factors;
+\item by an $S^3$-factor and one further odd sphere;
+\item together with a second $S^4$-factor, by two $S^3$-factors.
+\end{itemize}
+
+An exhaustive search over these blocks (Appendix~\ref{app:spheres}) finds the following
+almost complex products with no complex structure obtainable in this way:
+\begin{itemize}
+\item dimension $10$: $S^8\times T^2$, $S^5\times S^4\times S^1$, $S^4\times S^4\times T^2$;
+\item dimension $12$: $S^{10}\times T^2$, $S^8\times S^3\times S^1$, $S^8\times S^2\times T^2$,
+  $S^8\times T^4$, $S^7\times S^4\times S^1$, $S^4\times S^4\times S^3\times S^1$.
+\end{itemize}
+The simplest of these, $S^{2n}\times T^2$ for $n\ge4$, are the higher-dimensional analogues
+of Calabi's question.
+
+%======================================================================
+\section{Relation to the literature}\label{sec:literature}
+%======================================================================
+
+To the best of our knowledge, no complex structure on $S^4\times T^2$ has previously
+been constructed or claimed. We summarise the work most closely related to the
+present construction.
+
+\subsection*{Calabi's question}
+\begin{itemize}
+\item Calabi posed the question for every closed orientable surface $V^2$
+  \cite[p.~408]{Calabi58}. The torus case is the genus-one instance.
+\item MathOverflow question 89798 \cite{MO89798} (2012) extends the question about
+  $S^2\times S^4$ explicitly to $\Sigma\times S^4$ for all compact Riemann surfaces
+  $\Sigma$. It was recorded there as open in 2015.
+\item Euh and Sekigawa prove non-integrability only for \emph{orthogonal} almost
+  complex structures with respect to special metrics. These are the round product
+  \cite{EuhSekigawa13}, and warped products of a closed surface of nonnegative
+  curvature (hence including flat $T^2$) with a round $S^4$ \cite{EuhSekigawa16}.
+\item The 2026 constructions on $S^2\times S^4$ treat $V=S^2$ only \cite{GFL26,LLZ26}.
+\end{itemize}
+
+\subsection*{The 2026 constructions}
+\begin{itemize}
+\item The constructions on $S^6$ \cite{AC26,Engel26} and on $S^2\times S^4$
+  \cite{GFL26,LLZ26}, and the subsequent constructions of which we are aware (complex
+  structures on $S^6$, on rational homology spheres, and on torus-fibred threefolds
+  with finite fundamental group), all have finite fundamental group.
+\item None of them treats $S^4\times T^2$. None uses two cusps of opposite chirality
+  or a multiplicity-one logarithmic transform.
+\item Engel remarks that it is unclear which $6$-manifolds the torus-fibration method
+  produces \cite[Rem.~8.5]{Engel26}.
+\item These works depend on one another. \cite{GFL26} reuse the analytic framework of
+  \cite{AC26}, and \cite{LLZ26} explicitly assume the validity of the construction of
+  \cite{AC26}; see \S\ref{sec:inputs}. We cite them for their stated results and have
+  not independently verified their proofs. The Main Theorem and Theorem~B do not use
+  any of them. Theorem~C and Corollary~D do, as recorded in \S\ref{sec:inputs}.
+\end{itemize}
+
+\subsection*{Classical families}
+We know of no classical family of non-K\"ahler manifolds that contains a manifold
+homotopy equivalent to $S^4\times T^2$. Recall that $\pi_1(S^4\times T^2)=\Z^2$,
+$\pi_2=0$, and the Betti numbers are $1,2,1,0,1,2,1$. For each family we name the
+invariant that rules it out.
+\begin{itemize}
+\item \emph{Calabi--Eckmann, Hopf and Brieskorn--Van de Ven manifolds.} In real dimension
+  six these are products of two odd-dimensional (homotopy) spheres, so $b_2=0$.
+\item \emph{LVM manifolds.} An LVM manifold $N$ is either a projective space or the
+  quotient of a link $X_A$ by the free diagonal circle action
+  \cite[\S12, discussion before Thm.~12.2]{BosioMeersseman06}.
+  \begin{itemize}
+  \item By \cite[Lemma~0.9]{BosioMeersseman06}, $X_A$ is equivariantly diffeomorphic
+    to $X_B\times(S^1)^k$, with $X_B$ a $2$-connected link and $k$ the rank of
+    $\pi_1(X_A)$.
+  \item If $k=0$, the exact sequence of $S^1\to X_A\to N$ gives $\pi_1(N)=0$.
+  \item If $k\ge1$, then $N\cong X_B\times T^{k-1}$ (loc.\ cit., \S12). So
+    $\pi_1(N)=\Z^2$ forces $k=3$ and $N\cong X_B\times T^2$, with $X_B$ a closed
+    $2$-connected $4$-manifold.
+  \item By Poincar\'e duality such an $X_B$ has $\chi(X_B)=2$. But every link has
+    Euler characteristic $0$ \cite[Lemma~0.10]{BosioMeersseman06}.
+  \end{itemize}
+  So no LVM manifold has fundamental group $\Z^2$ in complex dimension three.
+\item \emph{Maximal torus actions.} Compact complex manifolds with maximal torus
+  actions are classified \cite{Ishida19}. The standard $T^4$-action on $S^4\times T^2$
+  does not occur there, since two of its characteristic submanifolds meet in a
+  disconnected set. This excludes only that action. We have not determined whether
+  $S^4\times T^2$ carries another maximal torus action compatible with a complex
+  structure. Our $T^2$-action is not maximal.
+\item \emph{Twistor spaces.} A twistor space $Z\to M^4$ has
+  $H^*(Z;\Q)\cong H^*(M;\Q)\otimes H^*(S^2;\Q)$ by Leray--Hirsch. So
+  $b_3(Z)=b_3(M)+b_1(M)$, and $b_1(Z)=2$ forces $b_3(Z)\ge2$, whereas
+  $b_3(S^4\times T^2)=0$.
+\item \emph{Vaisman manifolds} have odd $b_1$ \cite{Vaisman82}.
+\item \emph{Kato manifolds}, i.e.\ compact complex manifolds with a global spherical
+  shell, have $\pi_1\cong\Z$ \cite{Kato77}; see \cite[\S1]{IOP19}.
+\item \emph{Compact homogeneous complex manifolds.} Such an $X$ fibres over a
+  rational homogeneous manifold $Q$ with a compact complex parallelisable fibre
+  $F=\Gamma\backslash L$ \cite{Tits62,Wang54}; $F$ is connected since $Q$ is simply
+  connected. Suppose $X\simeq S^4\times T^2$.
+  \begin{itemize}
+  \item If $Q$ is a point, then the universal cover $\widetilde X\simeq S^4$ is
+    homotopy equivalent to the universal cover of the complex Lie group $L$. That cover
+    is either contractible or has $H^3\ne0$, a contradiction.
+  \item Otherwise $\dim_\C F\le2$. A complex Lie group of dimension $\le2$ with a
+    cocompact lattice is abelian, so $F$ is a torus $T^{2d}$. The exact sequence
+    $0=\pi_2(X)\to\pi_2(Q)\to\pi_1(F)\to\pi_1(X)\to0$ gives $2d=b_2(Q)+2$, with
+    $b_2(Q)\ge1$ and $\dim_\C Q=3-d$. Hence $d=2$ and $Q=\PP^1$, but then
+    $b_2(Q)=1\ne2$.
+  \end{itemize}
+\item $S^4\times T^2$ is not symplectic, since $H^2$ is generated by a class $a$ with
+  $a^2=0$. So any complex structure on it is non-K\"ahler.
+\end{itemize}
+
+\subsection*{Products of spheres}
+\begin{itemize}
+\item Only $S^2$ and $S^6$ are almost complex among spheres \cite{BorelSerre53}.
+\item Among products of even-dimensional spheres, the almost complex ones are the
+  products of copies of $S^2$, $S^6$ and $S^2\times S^4$ \cite[Thm.~3.1]{Sutherland65}. We
+  rely on the statement in \cite{LLZ26}; for two factors see also
+  \cite{DattaSubramanian90}.
+\item A product of spheres with an odd-dimensional factor is parallelisable
+  \cite{Staples67}.
+\item Products of two odd-dimensional spheres are complex \cite{CalabiEckmann53}.
+  Calabi--Eckmann type constructions on torus bundles over complex bases are standard
+  \cite{Morimoto63,Hofer93,GoldsteinProkushkin04,GGP08}.
+\item Given the complex $S^6$, the complex $S^2\times S^4$ of \cite{LLZ26} makes every
+  almost complex product of even-dimensional spheres complex \cite[Cor.~1.3]{LLZ26}.
+\end{itemize}
+
+\subsection*{The closest antecedent}
+Di Scala, Kasuya and Zuddas \cite{DKZ17} make the positive half of the
+Matsumoto--Fukaya fibration holomorphic on $\R^4\subset S^4$. This gives non-K\"ahler
+complex structures on $\R^4$, and they show that these surfaces admit no smooth
+complex compactification. The present construction realises \emph{both} nodes. It
+does so after fibring by $T^2$, using $2$-tori that are very generally non-algebraic, and in compact complex
+dimension three.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Acknowledgements}
+EH is supported by S\~ao Paulo Research Foundation (FAPESP) grant 2024/18994-7.
+TSG is supported by the 2024 Max Planck--Humboldt Research Award bestowed on Geordie Williamson and Catharina Stroppel by the Max Planck Society and the Alexander von Humboldt Foundation.
+The symbolic and numerical verifications were carried out in Python (\texttt{sympy}, \texttt{numpy}, \texttt{scipy}); the computations and the first draft of this note were prepared with the assistance of Claude (Anthropic).
+
+%======================================================================
+\appendix
+\section{Symbolic verification}\label{app:checks}
+%======================================================================
+
+The accompanying \texttt{sympy} script \texttt{verify\_construction.py}, in the
+\texttt{code/} folder of the source files, checks the following items in exact symbolic
+arithmetic.
+\begin{enumerate}
+\item The determinant of Lemma~\ref{lem:det-family}; it is independent of $\arg t$.
+\item The monodromy $e_4\mapsto e_4+e_1$.
+\item The conjugation formulas of Lemma~\ref{lem:atinfty}.
+\item $\tilde\sigma(s+1)-\tilde\sigma(s)=e_4(s)$ (Lemma~\ref{lem:Phi}).
+\item The extension of the $T^2$-action across $\infty$ (Proposition~\ref{prop:torus}).
+\item The Jacobian determinants $\partial(z,w)/\partial(z'',w')=s^{-2}$ on
+  fibres, and $\partial(z,w,t)/\partial(z'',w',s)=-s^{-4}$.
+\item The determinant of Remark~\ref{rem:deform}.
+\item The toric chart identities of Lemma~\ref{lem:toric}(1),(5),(6), including the
+  dual-basis identities $A^Tm^{(n+1)}_i=m^{(n)}_i$.
+\item $\omega(\eb_2,\eb_3)=1-|t|^4$ near $0$ and $|s|^4-1$ near $\infty$.
+\item Lemma~\ref{lem:localdet} for arbitrary symbolic data.
+\item The exact heights $P_0$ and $P_\infty$ of Remark~\ref{rem:Pexact}, computed
+  from the filling data, and the resulting bounds at $\varepsilon=10^{-2}$ and
+  $\varepsilon=1/16$.
+\item The periods of Lemma~\ref{lem:periods}, the absence of integral relations among
+  them, and the product decomposition of $X_1$ in Proposition~\ref{prop:NS}.
+\item The derivative of the period ratio $p_{13}/p_{12}$ used in \S\ref{sec:props}.
+\item The critical point, the maximum and the counterexample in the description of
+  the admissible region \eqref{eq:admissible}.
+\end{enumerate}
+
+\subsection{Enumeration of products of spheres}\label{app:spheres}
+The accompanying script \texttt{sphere\_products.py}, also in \texttt{code/}, does the
+following:
+\begin{enumerate}
+\item it enumerates the products of spheres of dimensions $2,4,\dots,12$, i.e.\ the
+  partitions of these numbers;
+\item it decides almost complexity by Sutherland's theorem (all factors even) or
+  Staples' theorem (some factor odd);
+\item it searches all decompositions of each almost complex product into the known
+  complex blocks of \S\ref{sec:higherdim};
+\item it records the inclusion-minimal sets of inputs (I1), (I2), (I3) and the Main
+  Theorem that each product needs.
+\end{enumerate}
+It asserts the classification of Corollary~D in dimension $8$. In particular, it checks
+that $S^4\times S^3\times S^1$ needs (I3), that $S^4\times T^4$ needs the Main Theorem, and
+that no almost complex product of dimension $8$ is left over. It also produces the
+lists of \S\ref{sec:higherdim}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\newpage
+\addcontentsline{toc}{section}{References}
+\bibliographystyle{utphys}
+\bibliography{references}{}
+
+\end{document}

@@ -1,0 +1,33 @@
+# LaTeX build products of manuscript_draft/ (rebuild with latexmk; never commit them)
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.synctex(busy)
+manuscript_draft/main.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+.pytest_cache/
+
+# Local files of the code branches of this repository (never part of this branch)
+outputs/**
+results_from_HPC/
+scratch/
+
+# Agent-tool and editor local settings, OS files
+.claude/
+.codex/
+.github/
+.idea/
+.vscode/
+.DS_Store
