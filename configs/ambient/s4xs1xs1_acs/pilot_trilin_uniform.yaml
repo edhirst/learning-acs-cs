@@ -1,8 +1,0 @@
-# A1: isolate the additional three-factor features.
-feat: all2+trilin
-hidden: [256, 256, 256, 256]
-sampling: uniform
-tail_weight: 0.0
-poly_steps: 5000
-refine_steps: 5000
-wall_minutes: 180.0
