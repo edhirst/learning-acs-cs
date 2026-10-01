@@ -99,3 +99,25 @@ in `AGENTS.md` §5.
 - **Verification:** `manuscript_draft/` is untouched; this commit changes only `AGENTS.md`,
   `README.md` and `LEDGER.md`.
 - **Open points:** none.
+
+### 2026-10-01-TSG-3 — Lemma 2.6, proof: name the space obtained by attaching one slab
+- **Date:** 2026-10-01
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Claude Code (Claude Opus 5.5)
+- **Type:** edit
+- **Based on:** `0205e49`
+- **Where:** `main.tex`, proof of Lemma~\ref{lem:Xtop}, second bullet ("Mayer--Vietoris …").
+- **Change:** `the boundary map $H_2(Z_{n+1})\to H_1(W_n\cap W_{n+1})$` →
+  `the boundary map $H_2(Z_n\cup W_{n+1})\to H_1(W_n\cap W_{n+1})$`.
+- **Why:** $Z_N=\bigcup_{|n|\le N}W_n(2)$ is symmetric. So attaching $W_{n+1}$ to $Z_n$
+  gives $Z_n\cup W_{n+1}$, which is not $Z_{n+1}$: the latter also contains $W_{-n-1}$.
+  The Mayer–Vietoris sequence of $Z_n\cup W_{n+1}=Z_n\cup_{W_n\cap W_{n+1}}W_{n+1}$
+  reads $0=H_2(W_n\cap W_{n+1})\to H_2(Z_n)\to H_2(Z_n\cup W_{n+1})\xrightarrow{\partial}
+  H_1(W_n\cap W_{n+1})\cong\Z\to H_1(Z_n)\oplus H_1(W_{n+1})=0$. This is exactly the
+  statement made, for the corrected space. Here $W_{n+1}\cap Z_n=W_{n+1}\cap W_n$ by
+  Lemma~\ref{lem:slabs}(2), and $H_1(Z_n)=0$ because $Z_n$ is simply connected. The meaning
+  of the proof is unchanged.
+- **Verification:** sequence re-derived as above. LaTeX build: pass (34 pages, 0 errors,
+  0 undefined references, same 37 hyperref warnings as the baseline; the PDF text shows the
+  new formula). verify_construction.py: pass. sphere_products.py: pass.
+- **Open points:** none.
