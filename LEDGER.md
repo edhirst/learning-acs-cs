@@ -167,3 +167,66 @@ in `AGENTS.md` §5.
   `sphere_products.py` output compared. LaTeX build: pass (34 pages, 0 errors, 0 undefined
   references, same 37 hyperref warnings). verify_construction.py: pass. sphere_products.py: pass.
 - **Open points:** none.
+
+### 2026-10-01-TSG-6 — Full review of the manuscript: scope, outcome, open points
+- **Date:** 2026-10-01
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Claude Code (Claude Opus 5.5)
+- **Type:** flag
+- **Based on:** `74362a6`
+- **Where:** all of `main.tex`, plus `code/`.
+- **Change:** none. This entry records the review behind TSG-3 to TSG-5 and lists what was
+  deliberately left to the authors.
+- **Scope and outcome:** every section was read, and every computation was re-derived by hand.
+  - Lemmas 2.1–2.6: the determinant identities; the toric charts, dual bases, shift and log
+    form; Hausdorffness; the slab bounds; the Mayer–Vietoris induction.
+  - §3: the lattice determinant, the null conic, the periods and the no-relation argument,
+    the change of basis at $t=1$.
+  - §4: every step of the Mumford–Tate filling, including the bounds in Steps 5–6; the
+    conjugation at $\infty$; both exact heights and the bounds at $r=10^{-2}$ and $r=1/16$.
+  - §5–§7: the twist; the gluing; the $T^2$-action; $e_4^*$; the slice argument; the Wang
+    sequences; $\pi_1(W)=1$; $\chi(W)=2$.
+  - §8–§9: the $h$- and $s$-cobordism argument; Theorem B(1)–(5); the deformation region,
+    critical point and counterexample.
+  - §10–§12: the remarks; Proposition~\ref{prop:CE} and its lemmas; Theorem C; the
+    obstruction lemma; Table 11.1 checked against the partitions and their complex models;
+    the higher-dimensional lists against `sphere_products.py`; the literature arguments that
+    the manuscript itself proves (LVM, twistor, homogeneous manifolds).
+  - Appendix A matches the script's 15 checks item by item.
+
+  **No mathematical error was found.** TSG-3 to TSG-5 fix three local imprecisions.
+- **Verification:** LaTeX build, `verify_construction.py` and `sphere_products.py` all pass
+  after every commit. The build matches the baseline: 34 pages, 0 errors, 0 undefined
+  references, the same 37 hyperref warnings.
+- **Open points (flags, not changed):**
+  1. *Proof of Proposition~\ref{prop:Wstandard}, Steps 1–2.* Step 1 shows only that each node
+     is of type $I_1^+$ or $I_1^-$. Step 2 then merges them by [Matsumoto85, Thm.~4.1]. That
+     the two nodes have **opposite signs and the same vanishing cycle** $a=[e_1]$ follows
+     from the trivial monodromy around $\partial D$: the local monodromies are the
+     transvections $T$ and $T^{-1}$ along $a$. It also follows from the signature remark
+     ($\sigma(W)=0$). Consider stating it explicitly before invoking Thm.~4.1. The reviewer
+     could not consult [Matsumoto85] to confirm that theorem's exact hypotheses.
+  2. *Notation clash.* In Lemma~\ref{lem:Q}, $\Phi$ and $\Psi$ denote the maps
+     $\mathcal Q\to Z$ and $Z\to\mathcal Q$. Elsewhere, $\Phi$ is the logarithmic transform
+     (Lemma~\ref{lem:Phi}, Construction~\ref{con:Y}, \S\ref{sec:topology}) and $\Psi$ is the
+     map $M\to S^1\times S^1$ (Lemma~\ref{lem:regular}). Consider renaming the two maps of
+     Lemma~\ref{lem:Q}.
+  3. *PDF bookmarks.* The 37 baseline hyperref warnings come from mathematics in 10 section
+     and subsection titles: 26 math shifts, 8 superscripts, 2 `\times`, 1 `\infty`. The
+     bookmarks drop these symbols. Using `\texorpdfstring{$…$}{…}` in those 10 titles would
+     remove all 37 warnings without changing the typeset text.
+  4. *Pinpoint citations to check against the sources.* The reviewer could not consult these:
+     - LLZ26: (4), (6), Lemma 3.1, Def.~3.2, Prop.~3.5, Lemma 4.1, Thm.~1.2, Cor.~1.3,
+       §§1, 2.1, 4.1, 5.2;
+     - AC26: Thm.~4.5, Prop.~4.6, Props.~9.23–9.24, Rem.~9.25;
+     - GFL26: proof of Prop.~2.2;
+     - Engel26: Rem.~8.5;
+     - Matsumoto85: §§1, 2, 4, Thms.~4.1–4.2;
+     - BosioMeersseman06: §12, Lemmas 0.9–0.10;
+     - Calabi58: p.~408;
+     - GompfStipsicz99: Ex.~8.4.7;
+     - Sutherland65: Thm.~3.1.
+
+     Per `AGENTS.md` §3.2 they were not changed.
+  5. The open points of TSG-1 (the unused `\hflogo`; `amsmath` and `multirow` loaded twice)
+     remain open.
