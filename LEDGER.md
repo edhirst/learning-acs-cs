@@ -37,7 +37,7 @@ in `AGENTS.md` §5.
 ### <ID> — <short title>
 - **Date:** YYYY-MM-DD
 - **Collaborator:** <name of the human who deployed the agent>
-- **Agent:** <tool and model, e.g. "Claude Code (Claude Opus 5.5)">
+- **Agent:** <tool and model, e.g. "Claude Code (Claude Opus 5.5)", "Codex (<model>)", or "ChatGPT (<model>), via chat; applied by <collaborator>">
 - **Type:** edit | statement | addition | structure | revert | flag | infra
 - **Based on:** <short hash of the commit the work started from>
 - **Where:** <file and location, e.g. "main.tex, proof of Lemma~\ref{lem:slabs}(3)">
@@ -77,3 +77,25 @@ in `AGENTS.md` §5.
      not in `figures/`. This is harmless while the macro is unused, but the build
      would fail if it were used.
   2. `amsmath` and `multirow` are each loaded twice in the preamble. This is harmless.
+
+### 2026-10-01-TSG-2 — Cover ChatGPT and other chat assistants without repository access
+- **Date:** 2026-10-01
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Claude Code (Claude Opus 5.5)
+- **Type:** infra
+- **Based on:** `fd02c6d`
+- **Where:** `AGENTS.md` (introduction, §1.5, new §7); `README.md` (the `AGENTS.md` row, a Codex
+  note, and a new section "Using ChatGPT, or another chat assistant without access to the
+  repository"); `LEDGER.md` (examples in the template's Agent field).
+- **Change:** a chat assistant cannot run git, the build or the checks. So it now works only
+  from the exact files it is given. It returns changes as unified diffs or exact OLD/NEW
+  pairs, never as rewritten text. It shows its verification, and it drafts the ledger entry
+  and the commit message. The collaborator applies the proposal, checks `git diff`, runs the
+  build and both scripts, completes the entry and commits. The README also covers Codex,
+  which works in the repository and reads `AGENTS.md`, and data settings before uploading
+  the unpublished manuscript to a chat service. §1.5 now allows the AI service the
+  collaborator has chosen.
+- **Why:** requested by TSG, since some collaborators use ChatGPT.
+- **Verification:** `manuscript_draft/` is untouched; this commit changes only `AGENTS.md`,
+  `README.md` and `LEDGER.md`.
+- **Open points:** none.

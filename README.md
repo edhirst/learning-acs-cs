@@ -7,7 +7,7 @@ It shares no files with the code branches of this repository.
 | path | contents |
 |---|---|
 | `manuscript_draft/` | the manuscript: `main.tex`, `references.bib`, `utphys.bst`, `figures/`, and `code/` (the verification scripts of Appendix A) |
-| `AGENTS.md` | binding instructions for every agent. Read automatically by tools that support `AGENTS.md` (e.g. Codex and the GitHub Copilot coding agent) |
+| `AGENTS.md` | binding instructions for every agent. Read automatically by tools that work in the repository and support `AGENTS.md` (e.g. OpenAI Codex, also when launched from ChatGPT, and the GitHub Copilot coding agent). A chat assistant such as ChatGPT must be given the file explicitly (see below) |
 | `CLAUDE.md` | makes Claude Code load `AGENTS.md` automatically |
 | `LEDGER.md` | append-only record of every change: when, by whom, why, and how it was verified |
 | `.gitignore` | keeps LaTeX build products and local files out of the repository |
@@ -25,6 +25,42 @@ It shares no files with the code branches of this repository.
    `LEDGER.md` entry, and the build and check results it reports. Then push with
    `git push origin agentic_ledger`, or authorise the agent to push. `AGENTS.md`
    forbids agents to push without your approval.
+
+If you use **Codex** (from ChatGPT, the Codex CLI or an IDE), it works directly in the
+repository and reads `AGENTS.md`. Proceed as above, on the branch `agentic_ledger`, and
+review its diff before anything is pushed or merged.
+
+## Using ChatGPT, or another chat assistant without access to the repository
+
+In a chat window the assistant cannot run git or the checks, so you apply its proposal,
+run the checks and make the commit. `AGENTS.md` §7 tells the assistant what to deliver.
+
+1. **Before uploading the unpublished manuscript**, check your data settings. In ChatGPT
+   you can, for example, turn off training on your conversations (Settings → Data
+   controls), or use a temporary chat.
+2. Synchronise: `git fetch origin && git switch agentic_ledger && git pull --ff-only origin agentic_ledger`.
+3. In a new conversation, upload `AGENTS.md`, `LEDGER.md` and the files the task needs,
+   usually `manuscript_draft/main.tex` (add `references.bib` or the scripts in `code/`
+   if the task involves them). Then write, for example:
+   > Read AGENTS.md and follow it strictly. You have no access to the repository, so
+   > follow its §7. Task: check the proof of Lemma~\ref{lem:slabs} line by line.
+   > Propose only changes you can prove, as a unified diff or as exact OLD/NEW pairs,
+   > and flag everything else.
+4. Apply the proposal.
+   - **Diff:** save it as `change.patch`, then run
+     `git apply --check change.patch && git apply change.patch`. Chat assistants often
+     get the line counts in hunk headers wrong. If git calls the patch corrupt, add
+     `--recount` to both commands. If it still fails, ask for OLD/NEW pairs instead.
+     Delete `change.patch` afterwards.
+   - **OLD → NEW pairs:** make each replacement in your editor. Each OLD must occur
+     exactly once in the file.
+5. Check with `git diff` that it contains exactly the proposed changes and nothing else.
+6. From `manuscript_draft/`, run the build and both scripts (`AGENTS.md` §3.3).
+7. Complete the ledger entry drafted by the assistant. Fill in **Based on** with
+   `git rev-parse --short HEAD` (run before committing), and fill in **Verification**
+   with what you actually ran and its results. Never record a check that nobody ran.
+8. Append the entry to `LEDGER.md`. Commit `LEDGER.md` and the changed files, staged by
+   explicit path, with the message `[<ID>] <summary>`. Then push.
 
 ## Reviewing and undoing changes
 

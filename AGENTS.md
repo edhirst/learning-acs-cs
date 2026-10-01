@@ -6,6 +6,9 @@ Agents deployed by any of the collaborators work here to improve its mathematica
 content and the quality of its exposition. These instructions bind every agent.
 Only the human collaborators may change them.
 
+They apply equally to assistants used without access to the repository, such as
+ChatGPT in a chat window. §7 explains how such an assistant must work.
+
 ## 0. The prime rule
 
 **The manuscript may only get better.** Commit a change only after you have verified
@@ -27,9 +30,10 @@ A missed improvement costs nothing. An error that nobody notices can cost the pa
 4. Never commit build products (the compiled PDF, `.aux`, `.log`, `.bbl`, …) or
    caches. Stage files by explicit path. Never use `git add -A`, `git add .` or
    `git commit -a`.
-5. The manuscript is unpublished. Do not upload or paste it, or substantial parts of
-   it, to any external service (gists, issue trackers, forums, web forms). You may
-   search the web for references, but do not paste the manuscript's text into searches.
+5. The manuscript is unpublished. Apart from the AI service your collaborator has
+   chosen to use, do not upload or paste it, or substantial parts of it, to any
+   external service (gists, issue trackers, forums, web forms). You may search the
+   web for references, but do not paste the manuscript's text into searches.
 
 ## 2. Before you start
 
@@ -183,3 +187,36 @@ Run these commands from `manuscript_draft/`:
 Git keeps every version, so any change can be undone, but only once someone notices
 that it was wrong. Review your own change as strictly as you would want a referee to
 review the paper.
+
+## 7. Assistants without access to the repository (ChatGPT and other chat assistants)
+
+If you work in a chat window and cannot run `git` in this repository, §0–§6 still
+bind you. The collaborator who uses you does the git work, runs the checks and makes
+the commit. Work as follows.
+
+1. **Work only from what you have been given.** Base every proposal on the exact file
+   contents that the collaborator uploaded or pasted, together with `AGENTS.md` and
+   `LEDGER.md`. If you need another part of the manuscript (a definition, an earlier
+   lemma, the bibliography), ask for it. Never reconstruct or paraphrase the
+   manuscript from memory.
+2. **Never return a rewritten file or section.** Rewriting text changes it silently in
+   places that nobody re-checks. Return each change in one of two forms:
+   - a unified diff against the file exactly as you were given it, which the
+     collaborator can apply with `git apply`; or
+   - an exact replacement pair. **OLD** is copied character for character from the
+     file and is long enough to occur exactly once. **NEW** is its replacement.
+
+   Everything outside the changed lines must stay byte-for-byte identical, including
+   spacing and line breaks.
+3. **Show your verification.** For each change, give the argument or derivation that
+   justifies it (§3.1). If you ran code yourself, for example sympy in a sandbox,
+   include the code and its output. State explicitly that you did not run the LaTeX
+   build or the repository's scripts, unless you actually ran them on the current
+   files.
+4. **Draft the ledger entry and the commit message** (§5). Write the Agent field as
+   `ChatGPT (<model shown in the interface>), via chat; applied by <collaborator>`,
+   with the name of the assistant you actually are. In **Verification**, keep what you
+   checked separate from what the collaborator must still run: the build and the two
+   scripts of §3.3. Leave **Based on** for the collaborator to fill in.
+5. If you are not certain that a change is correct and an improvement, propose a
+   `flag` entry instead (§0).
