@@ -121,3 +121,27 @@ in `AGENTS.md` §5.
   0 undefined references, same 37 hyperref warnings as the baseline; the PDF text shows the
   new formula). verify_construction.py: pass. sphere_products.py: pass.
 - **Open points:** none.
+
+### 2026-10-01-TSG-4 — Remark 11.8(1): $Z_0\cong L_+^\times/2^{\Z}$ holds for a specific $\tau$
+- **Date:** 2026-10-01
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Claude Code (Claude Opus 5.5)
+- **Type:** edit
+- **Based on:** `8f9c0e8`
+- **Where:** `main.tex`, Remark~\ref{rem:Zq}(1) ("The case $q=0$").
+- **Change:** "By Remark~\ref{rem:onebundle}, $Z_0\cong L_+^\times/2^{\Z}$, the quotient … by
+  $v\mapsto2v$." → "By Remark~\ref{rem:onebundle}, for $\tau=2\pi i/\log2$ one has
+  $Z_0\cong L_+^\times/2^{\Z}$, the quotient … by $v\mapsto2v$ (for $\tau=i$, replace $2$ by
+  $e^{2\pi}$)."
+- **Why:** $Z_0$ depends on $\tau$. By Remark~\ref{rem:onebundle}, $Z_0\cong L_+^\times/\lambda^{\Z}$
+  with $\lambda=e^{2\pi i/\tau}$. The proof of Theorem C fixes "for instance $\tau=i$", which
+  gives $\lambda=e^{2\pi}$, not $2$. The value $\lambda=2$ corresponds to
+  $\tau=2\pi i/\log 2$. The conclusion $Z_0\cong S(L_+)\times S^1\cong S^4\times S^3\times S^1$ is
+  unaffected, since it holds for every $\tau$. For any real $\lambda>1$, such as both values
+  here, the explicit map $v\mapsto(v/|v|,\log|v|\bmod\log\lambda)$ is well defined.
+- **Verification:** $\lambda=e^{2\pi i/\tau}$ evaluated for both values of $\tau$ (gives
+  $2.0000000000$ and $535.4916555248=e^{2\pi}$). This agrees with
+  $|\lambda|=\exp(2\pi\Ima\tau/|\tau|^2)$ from Remark~\ref{rem:onebundle}. LaTeX build: pass
+  (34 pages, 0 errors, 0 undefined references, same 37 hyperref warnings). verify_construction.py:
+  pass. sphere_products.py: pass.
+- **Open points:** none.
