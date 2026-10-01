@@ -1,0 +1,89 @@
+#!/bin/bash
+#PBS -N nijsup
+#PBS -q par16
+#PBS -l nodes=1:ppn=16
+#PBS -l walltime=72:00:00
+#PBS -j oe
+
+# SUPERVISED REPRODUCTION OF THE HOPF STRUCTURES in the ambient (overlap-free) framework —
+# continuation on the cluster of the local study logged in docs/ambient_supervised_hopf_log.md.
+#
+#   phase 1  supervised Sobolev fit, J = e^{B2}e^{B1} J_base e^{-B1}e^{-B2} (campaign CS network class),
+#            target = closed-form ambient Hopf structure (src/geometry/hopf_ambient.py, = main's
+#            hopf_complex_structure_fixed), base = certified ladder ACS (orientation auto-matched)
+#   phase 2  unsupervised continuation (Nijenhuis-only loss) from each phase-1 endpoint. Locally on
+#            S3xS1 (2026-09-29): J leaves main's Hopf structure within 250 steps but stays integrable and
+#            ends near the round-orthogonal Hopf structures (lambda = e^{2 pi}), |N| 8e-4; to be checked on S5xS1.
+#
+# BEFORE SUBMITTING (to continue EXACTLY the local study):
+#   rsync -a outputs/ambient_supervised/bases/  <cluster>:<repo>/outputs/ambient_supervised/bases/
+#   # optional: resume the unfinished local 80k S5xS1 run from its last checkpoint (same optimiser
+#   # and cosine schedule). Any outputs/ambient_supervised/runs/<tag>/state.pt found in the repo is
+#   # copied into the unit's scratch dir before it starts, and the script resumes from it:
+#   rsync -a outputs/ambient_supervised/runs/s5xs1_sob_b7/state.pt \
+#         <cluster>:<repo>/outputs/ambient_supervised/runs/s5xs1_sob_b7/
+# A base missing under $BASES is certified first with the campaign ACS unit (same settings as locally).
+#
+# Unit lines:
+#   jobs_ambient_supervised.txt         CASE SEED BASE_SEED STEPS HIDDEN LOSS
+#   jobs_ambient_supervised_phaseB.txt  CASE SEED BASE_SEED STEPS HIDDEN FROM_RUN LR
+# Submit:  qsub pbs/ambient_supervised.pbs      (override: qsub -v NPAR=4,THREADS=4 ...)
+# Results: each run dir has progress.jsonl, final.pt, result.json (incl. main's exact protocol).
+
+CODE_ROOT="$PBS_O_WORKDIR"
+cd "$CODE_ROOT"
+module load python/3.8.11-intel-2021.3.0
+source nijenhuis/bin/activate
+NPAR=${NPAR:-4}
+THREADS=${THREADS:-4}
+export OMP_NUM_THREADS=$THREADS MKL_NUM_THREADS=$THREADS PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
+
+JOB_ID=${PBS_JOBID%%.*}
+SCRATCH="${SCRATCH_ROOT:-/work/$USER}/${PBS_JOBNAME:-nijsup}_${JOB_ID}"
+OUT_ROOT="$SCRATCH/results"; LOG_ROOT="$SCRATCH/logs"
+BASES="${BASES:-$CODE_ROOT/outputs/ambient_supervised/bases}"
+mkdir -p "$OUT_ROOT" "$LOG_ROOT" "$BASES" "$SCRATCH/tmp"; export TMPDIR="$SCRATCH/tmp"
+export CODE_ROOT OUT_ROOT LOG_ROOT BASES
+
+FINAL_DIR="$CODE_ROOT/results_from_HPC/$JOB_ID"
+sync_back () { mkdir -p "$FINAL_DIR"; rsync -a --exclude 'state.pt' "$OUT_ROOT/" "$FINAL_DIR/" 2>> "$LOG_ROOT/rsync_err.txt"; }
+trap sync_back EXIT
+( while sleep 21600; do sync_back; done ) & SYNC_PID=$!
+
+ensure_base () {   # $1 = case, $2 = seed, $3 = hidden
+  local dir="$BASES/${1}_acs_s${2}"
+  if [ ! -f "$dir/final.pt" ]; then
+    echo "certifying base $dir"; mkdir -p "$dir"
+    python "$CODE_ROOT/extra/campaign_unit.py" --case "$1" --task acs --seed "$2" --formulation ambient \
+        --steps 10000 --hidden "$3" --poly-steps 3000 --out "$dir" >> "$LOG_ROOT/${1}_acs_s${2}.txt" 2>&1
+  fi
+}
+export -f ensure_base
+
+echo "== nijsup phase 1: supervised Sobolev fits ($(wc -l < jobs_ambient_supervised.txt) units) =="; date
+xargs -P "$NPAR" -L 1 -a jobs_ambient_supervised.txt bash -c '
+  set -- $0 "$@"; case=$1; seed=$2; bseed=$3; steps=$4; hidden=$5; loss=$6
+  ensure_base "$case" "$bseed" "$hidden"
+  tag="${case}_$( [ "$loss" = sobolev ] && echo sob || echo "$loss" )_b${bseed}"
+  [ "$steps" != 80000 ] && [ "$steps" != 40000 ] && tag="${tag}_${steps}"
+  src="$CODE_ROOT/outputs/ambient_supervised/runs/$tag/state.pt"
+  if [ -f "$src" ] && [ ! -f "$OUT_ROOT/$tag/state.pt" ]; then
+    mkdir -p "$OUT_ROOT/$tag"; cp "$src" "$OUT_ROOT/$tag/"; echo "$tag: resuming from $src"
+  fi
+  python "$CODE_ROOT/extra/ambient_supervised_hopf.py" --case "$case" --seed "$seed" --loss "$loss" \
+      --base-from "$BASES/${case}_acs_s${bseed}" --steps "$steps" --hidden "$hidden" \
+      --out "$OUT_ROOT/$tag" >> "$LOG_ROOT/$tag.txt" 2>&1
+'
+sync_back
+echo "== nijsup phase 2: unsupervised (Nijenhuis-only) continuation ($(wc -l < jobs_ambient_supervised_phaseB.txt) units) =="; date
+xargs -P "$NPAR" -L 1 -a jobs_ambient_supervised_phaseB.txt bash -c '
+  set -- $0 "$@"; case=$1; seed=$2; bseed=$3; steps=$4; hidden=$5; from=$6; lr=$7
+  [ -f "$OUT_ROOT/$from/final.pt" ] || { echo "skip: $from has no final.pt"; exit 0; }
+  tag="${from}_phaseB_lr${lr}"
+  python "$CODE_ROOT/extra/ambient_supervised_hopf.py" --case "$case" --seed "$seed" --loss nij \
+      --init-from "$OUT_ROOT/$from/final.pt" --base-from "$BASES/${case}_acs_s${bseed}" \
+      --steps "$steps" --hidden "$hidden" --lr "$lr" --eval-every 250 \
+      --out "$OUT_ROOT/$tag" >> "$LOG_ROOT/$tag.txt" 2>&1
+'
+date; kill "$SYNC_PID" 2>/dev/null; sync_back
+echo "== done; results in $FINAL_DIR (scratch kept at $SCRATCH) =="
