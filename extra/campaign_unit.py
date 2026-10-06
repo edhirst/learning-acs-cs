@@ -9,10 +9,16 @@ global-frame Nijenhuis remains available for the parallelizable cases
 
 Tasks (unsupervised PINN, identical across formulations):
   acs  free endomorphism field K (frame: K = net(x); ambient: K = P·net(x)·P),
-       loss = mean ‖K² + Id_T‖²_F. From scratch, no base point. Certified a
-       posteriori by the polar correction J* = K(−K²_T)^{−1/2} when
-       sup ‖K²+Id_T‖ < 1.
-  cs   exact-ACS parametrization J = e^{B_s}⋯e^{B_1} J_base e^{−B_1}⋯e^{−B_s}
+       loss = mean ‖K² + Id_T‖²_F. From scratch, no base point. Harmonic ladder
+       of polynomial classes, each tried plain → annealed Dirichlet → orientation
+       penalty (--attempts). Certified a posteriori by the polar correction
+       J* = K(−K²_T)^{−1/2} when sup ‖K²+Id_T‖ < 1.
+  cs   --cs-mode poly (recommended): free polynomial field K = P·M_W(p)·P from
+       the unit's own certified ACS, loss E‖N_K‖² + w E‖K²+P‖², degree ladder,
+       Levenberg–Marquardt finisher (extra/poly_cs.py); certified and
+       polar-corrected like an ACS unit.
+  cs   --cs-mode conj (original): exact-ACS parametrization
+       J = g_s⋯g_1 J_base g_1⁻¹⋯g_s⁻¹, g_k = e^{B_k} (or --conj cayley / affine)
        (B_k tangential net outputs, initialised at O(1) ⇒ a generic
        NON-integrable start), loss = mean ‖N(J)‖² only. J_base is normally the
        certified ACS learned by an earlier unit (--base-from), with canonical
@@ -26,9 +32,13 @@ scores (frame fields are bridged to ambient fields, then to ball charts), in
 result.json.
 
 Usage:
+  python extra/campaign_unit.py --case s3xs3 --task acs --seed 7 --out ACS_DIR
+  python extra/campaign_unit.py --case s3xs3 --task cs --seed 7 --cs-mode poly \
+      --base-from ACS_DIR --out DIR [--poly-degrees 2,3]
   python extra/campaign_unit.py --case s3xs3 --task cs --seed 7 --out DIR \
-      [--steps 40000] [--hidden 256,256,256,256] [--stages 2] [--rar] \
-      [--wall-minutes 4200] [--eval-every 2000] [--ckpt-every 1000]
+      [--steps 40000] [--hidden 256,256,256,256] [--stages 2] [--rar] [--tail] \
+      [--conj exp] [--fast-cs] [--wall-minutes 4200] [--eval-every 2000] [--ckpt-every 1000]
+  bash extra/local_campaign.sh [SEED]      # every case, ACS then poly-mode CS, then the table
 """
 from __future__ import annotations    # PEP 563 — for Python 3.8 HPC compatibility
 
@@ -177,6 +187,19 @@ class PolyNet(nn.Module):
             self.bil = None
         if feat in ('bilin', 'lin+bilin') and self.bil is None:
             raise ValueError(f"feature class {feat!r} requires at least two ambient factor blocks")
+        # Three-factor products x_A,a x_B,b x_C,c (one coordinate from each of three
+        # distinct factors): the multidegree-(1,1,1) harmonics of a product with
+        # >= 3 factors. Same convention as the s4t2 branch ('trilin', 'all2+trilin').
+        triples = []
+        if blocks is not None and len(blocks) >= 3:
+            for factors in itertools.combinations(range(len(blocks)), 3):
+                grids = torch.meshgrid(*[torch.arange(offsets[a], offsets[a + 1]) for a in factors],
+                                       indexing='ij')
+                triples.append(torch.stack([g.reshape(-1) for g in grids]))
+        self.register_buffer('tri', torch.cat(triples, dim=1) if triples else
+                             torch.empty(3, 0, dtype=torch.long), persistent=False)
+        if feat in ('trilin', 'all2+trilin') and not triples:
+            raise ValueError(f"feature class {feat!r} requires at least three ambient factor blocks")
         n_feat = self.features(torch.zeros(1, n_in)).shape[1]
         self.lin = nn.Linear(n_feat, n_mat * n_mat, bias=False)
         with torch.no_grad():
@@ -188,6 +211,9 @@ class PolyNet(nn.Module):
         quad = x[:, self.iu[0]] * x[:, self.iu[1]]
         if self.feat == 'all2':
             return torch.cat([one, x, quad], dim=1)
+        if self.feat in ('trilin', 'all2+trilin'):
+            tri = x[:, self.tri[0]] * x[:, self.tri[1]] * x[:, self.tri[2]]
+            return tri if self.feat == 'trilin' else torch.cat([one, x, quad, tri], dim=1)
         if self.feat == 'c':
             return one
         if self.feat == 'lin':
@@ -224,18 +250,49 @@ class CurriculumNet(nn.Module):
         return self.poly(x) + self.mlp(x)
 
 
+def conjugator(B, conj='exp'):
+    """(g, g⁻¹) from a generator field B (B, n, n). 'exp': matrix exponential
+    (the original parametrization). 'cayley': g = (I − B/2)⁻¹(I + B/2),
+    g⁻¹ = (I + B/2)⁻¹(I − B/2). Both commute with anything B commutes with
+    (in particular with P), so the conjugated field stays an exact ACS. The
+    Cayley map is a rational function: forward-mode AD through it is ~25x
+    cheaper than through matrix_exp (a batched solve instead of the
+    Padé/scaling-squaring graph), which is what makes the CS step affordable."""
+    if conj == 'exp':
+        return torch.matrix_exp(B), torch.matrix_exp(-B)
+    # NOTE: torch.linalg.inv, not torch.linalg.solve — under vmap + forward AD
+    # (torch 2.14) solve returns wrong derivatives for batch elements > 0.
+    I = torch.eye(B.shape[-1], dtype=B.dtype, device=B.device).expand_as(B)
+    if conj == 'affine':
+        # g = I + B: the WHOLE group GL⁺ (g − I is unrestricted), no Lie-algebra
+        # chart at all; det g = 0 is a barrier of the loss (‖N‖² ~ ‖g⁻¹‖²), so
+        # the flow stays in the identity component. Needs a small init.
+        g = I + B
+        return g, torch.linalg.inv(g)
+    A, C = I - 0.5 * B, I + 0.5 * B
+    Ai = torch.linalg.inv(A)
+    return Ai @ C, torch.linalg.inv(C) @ A
+
+
 # Harmonic ladder: lowest spherical-harmonic content first. A low class has no
 # room for defect cores, so the residual flow settles on a global structure
 # (or, on S⁴, stays loudly non-zero). Product-only classes are skipped on
 # single spheres. Acceptance = adversarial sup ‖K²+Id_T‖ < 1 (certifiable).
-LADDER = ['c', 'lin', 'bilin', 'quad_h', 'lin+c', 'lin+bilin', 'all2']
+LADDER = ['c', 'lin', 'bilin', 'quad_h', 'lin+c', 'lin+bilin', 'all2', 'all2+trilin']
 
 
-def make_field(geo, task, model, base_fn=None):
+def ladder_classes(n_factors):
+    """Ladder rungs that exist for a product of `n_factors` spheres."""
+    return [f for f in LADDER
+            if ('bilin' not in f or n_factors >= 2) and ('trilin' not in f or n_factors >= 3)]
+
+
+def make_field(geo, task, model, base_fn=None, conj='exp'):
     """Returns (J_fn, meta). J_fn maps ambient points → matrix field:
     frame cases: (B, d, d) in frame components; ambient cases: (B, N, N).
     `base_fn` (CS task): the base ACS field, e.g. the PINN's own certified
-    ACS from the acs unit; default = canonical J₀ / classical explicit ACS."""
+    ACS from the acs unit; default = canonical J₀ / classical explicit ACS.
+    `conj`: 'exp' or 'cayley' conjugation (see `conjugator`)."""
     case = geo.case
     if geo.kind == 'frame':
         d = geo.d
@@ -247,8 +304,8 @@ def make_field(geo, task, model, base_fn=None):
             raw = model(x)
             J = base_fn(x) if base_fn is not None else J0.unsqueeze(0).expand(len(x), d, d)
             for s in range(model.stages):
-                Bs = raw[:, s]
-                J = torch.matrix_exp(Bs) @ J @ torch.matrix_exp(-Bs)
+                g, gi = conjugator(raw[:, s], conj)
+                J = g @ J @ gi
             return J
         return J_fn, {'exact_acs': True}
 
@@ -264,10 +321,46 @@ def make_field(geo, task, model, base_fn=None):
         raw = model(x)
         J = base_fn(x) if base_fn is not None else base_acs(case, x, proj)
         for s in range(model.stages):
-            Bs = P @ raw[:, s] @ P
-            J = torch.matrix_exp(Bs) @ J @ torch.matrix_exp(-Bs)
+            g, gi = conjugator(P @ raw[:, s] @ P, conj)
+            J = g @ J @ gi
         return J
     return J_fn, {'exact_acs': True}
+
+
+def make_conjugation(geo, model, conj='exp'):
+    """Total conjugator field g(x) = g_S ⋯ g_1 (ambient CS task), so that
+    J = g J_base g⁻¹. Used by the fast CS loss."""
+    proj = geo.manifold.projector
+
+    def g_fn(x):
+        P = proj(x)
+        raw = model(x)
+        g = None
+        for s in range(model.stages):
+            gs, _ = conjugator(P @ raw[:, s] @ P, conj)
+            g = gs if g is None else gs @ g
+        return g
+    return g_fn
+
+
+def cs_nij_norm_fast(geo, g_fn, base_fn, x):
+    """Per-sample ‖N_J‖ for J = g J_b g⁻¹ with the derivative decomposed:
+    DJ = Dg J_b g⁻¹ + g DJ_b g⁻¹ − g J_b g⁻¹ Dg g⁻¹. The frozen base (which
+    contains the Newton–Schulz polar correction) is differentiated once
+    WITHOUT an autograd graph; forward-mode AD only runs through the
+    (cheap) conjugator net. Identical to `nij_norm` up to round-off, but
+    only valid for parameter gradients (no x-gradient through J_b), so it is
+    used for the training loss only."""
+    with torch.no_grad():
+        Jb, DJb = compute_J_and_DJ(base_fn, x)
+        P, DP = compute_P_and_DP(geo.manifold, x)
+    g, Dg = compute_J_and_DJ(g_fn, x)
+    gi = torch.linalg.inv(g)
+    J = g @ Jb @ gi
+    DJ = torch.einsum('bikc,bkl,blj->bijc', Dg, Jb, gi) \
+        + torch.einsum('bik,bklc,blj->bijc', g, DJb, gi) \
+        - torch.einsum('bik,bklc,blj->bijc', J, Dg, gi)
+    return ambient_nij_norm(J, DJ, P, DP)
 
 
 def load_acs_field(geo, run_dir):
@@ -346,10 +439,60 @@ def dirichlet_energy(geo, K_fn, x):
     return (DKa ** 2).sum(dim=(1, 2, 3)).mean()
 
 
-def unit_loss(geo, task, J_fn, x, w_c=10.0):
+def oriented_tangent_frame(geo, x):
+    """(B, N, d) orthonormal frame of T_pM, positively oriented for the fixed
+    global orientation in which (n_1, ..., n_k, E) is a positive basis of R^N
+    (n_A = unit outward normal of factor A). Ambient formulation only."""
+    P = geo.manifold.projector(x)
+    _, evecs = torch.linalg.eigh(P)
+    E = evecs[:, :, -geo.d:]
+    normals, off = [], 0
+    for n in _blocks(geo):
+        v = torch.zeros_like(x)
+        v[:, off:off + n] = x[:, off:off + n] / x[:, off:off + n].norm(dim=1, keepdim=True)
+        normals.append(v.unsqueeze(2))
+        off += n
+    sgn = torch.sign(torch.linalg.det(torch.cat(normals + [E], dim=2)))
+    return torch.cat([E[:, :, :1] * sgn.view(-1, 1, 1), E[:, :, 1:]], dim=2)
+
+
+def pfaffian(A):
+    """Batched Pfaffian of antisymmetric (..., 2n, 2n) matrices (expansion along
+    the first row; 15 terms for 2n = 6)."""
+    d = A.shape[-1]
+    if d == 0:
+        return torch.ones(A.shape[:-2], dtype=A.dtype)
+    if d == 2:
+        return A[..., 0, 1]
+    out = torch.zeros(A.shape[:-2], dtype=A.dtype)
+    for j in range(1, d):
+        keep = [k for k in range(1, d) if k != j]
+        sub = A[..., keep, :][..., :, keep]
+        out = out + (-1) ** (j + 1) * A[..., 0, j] * pfaffian(sub)
+    return out
+
+
+def orientation_index(geo, K_fn, x):
+    """o(p) = Pf(E^T (K^T - K) E) / 2^{d/2}. For an exact ACS A, omega = A^T - A
+    = h A with h = I + A^T A positive and A-invariant, so omega is nondegenerate,
+    |o| = sqrt(det(I + A^T A)) / 2^{d/2} >= 1 (singular values of A pair as s, 1/s)
+    and sign(o) is the complex orientation of A. At an orientation wall K ~ 0 and
+    o ~ 0."""
+    E = oriented_tangent_frame(geo, x)
+    K = K_fn(x)
+    om = torch.einsum('bpa,bpq,bqc->bac', E, K.transpose(1, 2) - K, E)
+    return pfaffian(om) / 2.0 ** (geo.d // 2)
+
+
+def unit_loss(geo, task, J_fn, x, w_c=10.0, fast=None):
+    """`fast`: optional (g_fn, base_fn) pair — CS training loss through the
+    decomposed derivative (cs_nij_norm_fast) instead of AD through the base."""
     if task == 'acs':
         r = acs_residual(geo, J_fn, x)
         return (r ** 2).mean(), {'acs': (r ** 2).mean().item()}
+    if fast is not None:
+        nij = (cs_nij_norm_fast(geo, fast[0], fast[1], x) ** 2).mean()
+        return nij, {'nij': nij.item()}
     nij = (nij_norm(geo, J_fn, x) ** 2).mean()
     if geo.case == 's4':                    # no ACS exists: two-term control
         r = acs_residual(geo, J_fn, x)
@@ -661,6 +804,43 @@ def full_report(geo, task, J_fn, meta, n_dense, n_chart, adv_starts=256, adv_ste
 # Main
 # ---------------------------------------------------------------------------
 
+def run_poly_unit(args, geo, base_fn, base_info, tag, table_before):
+    """CS unit in polynomial free-field mode (see extra/poly_cs.py)."""
+    from extra.poly_cs import run_poly_cs, run_polar_ladder, run_conjpoly_ladder
+    progress = open(os.path.join(args.out, 'progress.jsonl'), 'a')
+    t0 = time.time()
+    elapsed = lambda: time.time() - t0
+
+    def log_fn(rec):
+        progress.write(json.dumps(rec) + '\n'); progress.flush()
+    runner = {'polar': run_polar_ladder, 'conjpoly': run_conjpoly_ladder}.get(args.cs_mode, run_poly_cs)
+    field, K_fn, ladder = runner(args, geo, base_fn, base_info, tag, log_fn, elapsed)
+    torch.save({'model': field.state_dict(), 'degree': field.degree, 'trilin': field.trilin, 'blocks': [m + 1 for m in geo.dims], 'case': args.case, 'task': 'cs',
+                'seed': args.seed, 'kind': geo.kind, 'model_type': 'poly_field', 'base_from': args.base_from},
+               os.path.join(args.out, 'final.pt'))
+    meta = {'exact_acs': args.cs_mode == 'conjpoly'}      # conjpoly returns J itself
+    rep = full_report(geo, 'cs', K_fn, meta, args.n_dense, args.n_chart, args.adv_starts, args.adv_steps)
+    result = {'case': args.case, 'task': 'cs', 'seed': args.seed, 'formulation': geo.kind,
+              'cs_mode': args.cs_mode, 'degree': field.label, 'n_params': field.W.numel(),
+              'model_type': 'poly_field', 'feat': f'poly{field.label}', 'ladder': ladder,
+              'base': base_info, 'steps_done': len(ladder),
+              'steps_planned': len(str(args.poly_degrees).split(',')), 'stopped_by_wall': False,
+              'elapsed_min': elapsed() / 60.0, 'exact_acs_by_construction': meta['exact_acs'],
+              'table_before': table_before, **rep}
+    with open(os.path.join(args.out, 'result.json'), 'w') as f:
+        json.dump(result, f, indent=2)
+    corr = rep.get('corrected', {})
+    if meta['exact_acs']:
+        corr = rep['dense']
+        rep['certified_exact_acs'] = True                     # exact by construction
+    print(f"[{tag}] RESULT ({args.cs_mode} {field.label}): "
+          f"{'exact ACS by construction' if meta['exact_acs'] else ('ACS CERTIFIED' if rep.get('certified_exact_acs') else 'ACS NOT certified')} | "
+          f"CS {'YES' if rep['adv_nij_sup'] < args.poly_adv_tol else 'no'} (adv sup |N| vs {args.poly_adv_tol:g}) | adv |K^2+P| "
+          f"{rep.get('adv_acs_sup', float('nan')):.2e} | corrected N mean {corr.get('nij_mean', float('nan')):.3e} "
+          f"max {corr.get('nij_sup', float('nan')):.3e} | adv N sup {rep['adv_nij_sup']:.3e} | "
+          f"chart cs {rep['chart_cs']:.3e} (table before {table_before})", flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--case', required=True, choices=ALL_CASES)
@@ -703,8 +883,72 @@ def main():
     ap.add_argument('--lam-retry', type=float, default=3.0,
                     help='acs phase 1: initial Dirichlet weight of the retry attempt after a rejected plain attempt (0 = no retry)')
     ap.add_argument('--lam1', type=float, default=1e-3, help='acs phase 1: final Dirichlet weight of the anneal')
+    ap.add_argument('--attempts', default='plain,dirichlet,orient',
+                    help="acs phase 1: attempt kinds per ladder class, in order (plain, dirichlet, orient)")
+    ap.add_argument('--mu-orient', type=float, default=1.0,
+                    help="acs phase 1: weight of the orientation penalty in 'orient' attempts")
     ap.add_argument('--adv-starts', type=int, default=256)
     ap.add_argument('--adv-steps', type=int, default=150)
+    ap.add_argument('--conj', default='exp', choices=['exp', 'cayley', 'affine'],
+                    help="cs: conjugation map g(B): matrix exponential (original), Cayley transform or "
+                         "affine g = I + B (rational maps: ~25x cheaper forward-mode derivative)")
+    ap.add_argument('--cs-scale', type=float, default=None,
+                    help='cs: output scale of the generator nets at init; default 0.5 for exp (O(1) generic '
+                         'start), 0.05 for cayley/affine (their g is singular for O(1) generators)')
+    ap.add_argument('--fast-cs', action='store_true',
+                    help='cs (ambient, with a base): training loss via the decomposed derivative '
+                         '(the frozen base is differentiated without an autograd graph)')
+    ap.add_argument('--cs-mode', default='conj', choices=['conj', 'poly', 'polar', 'conjpoly', 'atlas'],
+                    help="cs: 'conj' = J = g J_base g^-1 with MLP generators (original); 'poly' = free "
+                         "polynomial field K = P M(p) P from the base ACS, loss E|N|^2 + w E|K^2+P|^2, degree "
+                         "ladder, Levenberg-Marquardt finisher (extra/poly_cs.py)")
+    ap.add_argument('--dense-limit', type=int, default=16000,
+                    help='cs polar: above this many coefficients use matrix-free CG-LM instead of dense LM')
+    ap.add_argument('--cg-iters', type=int, default=200, help='cs polar: CG iterations per LM step')
+    ap.add_argument('--polar-lm-iters', type=int, default=3, help='cs polar: LM iterations per round')
+    ap.add_argument('--patience', type=int, default=5,
+                    help='cs polar/conjpoly: stop a degree after this many rounds without a 10% held-out gain')
+    ap.add_argument('--polar-barrier', type=float, default=1e4,
+                    help='cs polar: weight of the admissibility barrier relu(|K^2+P| - r0)^2')
+    ap.add_argument('--polar-r0', type=float, default=0.5, help='cs polar: barrier threshold (< 1)')
+    ap.add_argument('--atlas-charts', type=int, default=40, help='cs atlas: number of charts (farthest points)')
+    ap.add_argument('--atlas-overlap', type=float, default=1.3,
+                    help='cs atlas: chart radius = this x covering radius (> 1 for overlaps)')
+    ap.add_argument('--atlas-pool', type=int, default=40000, help='cs atlas: sample pool per round')
+    ap.add_argument('--atlas-pts', type=int, default=40, help='cs atlas: points per overlap per round')
+    ap.add_argument('--atlas-barrier', type=float, default=10.0, help='cs atlas: invertibility barrier weight')
+    ap.add_argument('--atlas-reg', type=float, default=1e-4,
+                    help='cs atlas: Tikhonov weight on nonlinear chart coefficients (raised on rollback)')
+    ap.add_argument('--lp-max', type=float, default=2.0,
+                    help='cs conjpoly: L^p objective by IRLS, p ramped from 2 to this (2 = mean square)')
+    ap.add_argument('--lp-ramp', type=int, default=10, help='cs conjpoly: rounds over which p ramps up')
+    ap.add_argument('--init-poly-from', default=None,
+                    help='cs conjpoly: warm start the first degree from a finished conjpoly unit')
+    ap.add_argument('--conj-reg', type=float, default=0.0,
+                    help='cs conjpoly: Tikhonov weight on the generator B (keeps e^B well conditioned)')
+    ap.add_argument('--polar-lm-points', type=int, default=384, help='cs polar: minimum LM collocation points')
+    ap.add_argument('--polar-gauge', type=float, default=0.3,
+                    help="cs polar: weight of the gauge term E|K^2+P|^2 (J* = polar(K) is exact regardless)")
+    ap.add_argument('--poly-adv-tol', type=float, default=1e-6,
+                    help='cs poly/polar: a class is a CS only if the adversarial sup of |N(J*)| is below this')
+    ap.add_argument('--poly-degrees', default='2,3',
+                    help="cs poly: class ladder, e.g. '2,3' or '2t,3' (t = + three-factor products)")
+    ap.add_argument('--poly-adam', type=int, default=2000, help='cs poly: Adam warm-up steps per degree')
+    ap.add_argument('--poly-lr', type=float, default=3e-3)
+    ap.add_argument('--poly-w', type=float, default=10.0, help='cs poly: weight of E|K^2+P|^2')
+    ap.add_argument('--poly-lm-points', type=int, default=128, help='cs poly: minimum LM collocation points')
+    ap.add_argument('--poly-lm-oversample', type=float, default=2.0,
+                    help='cs poly: LM points >= oversample * n_params / residual rows per point')
+    ap.add_argument('--poly-lm-rounds', type=int, default=30,
+                    help='cs poly: maximum LM rounds per class (fresh points each)')
+    ap.add_argument('--poly-stall', type=float, default=1.5,
+                    help='cs poly: a round must cut the held-out loss by this factor, else the class stalls')
+    ap.add_argument('--poly-lm-iters', type=int, default=8, help='cs poly: LM iterations per round')
+    ap.add_argument('--poly-tol', type=float, default=1e-20,
+                    help='cs poly: stop LM and accept a class once the held-out loss is below this')
+    ap.add_argument('--poly-tol-stall', type=float, default=1e-16,
+                    help='cs poly: a class whose LM stalls below this held-out loss is also accepted '
+                         '(|N| rms ~ 1e-8; LM converges only linearly near degenerate zero sets)')
     args = ap.parse_args()
     table_before = TABLE_BEFORE.get(args.case, {}).get(args.task)
 
@@ -718,7 +962,9 @@ def main():
         ([256, 256, 256, 256] if d >= 6 else [128, 128, 128])
     stages = args.stages or (2 if args.task == 'cs' else 1)
     n_mat = d if geo.kind == 'frame' else N
-    out_scale = 0.3 if args.task == 'acs' else 0.5
+    if args.cs_scale is None:
+        args.cs_scale = 0.5 if args.conj == 'exp' else 0.05
+    out_scale = 0.3 if args.task == 'acs' else args.cs_scale
     tag = f"{args.case}/{args.task}/s{args.seed} [{geo.kind}]"
 
     curriculum = args.task == 'acs' and args.poly_steps > 0
@@ -756,7 +1002,45 @@ def main():
         print(f"[{tag}] base ACS from {args.base_from}: adversarial raw sup {adv:.3f}, "
               f"polar-corrected residual {base_info['base_acs_residual_sup']:.1e}, "
               f"Nij mean {base_info['base_nij_mean']:.3e}", flush=True)
-    J_fn, meta = make_field(geo, args.task, model, base_fn=base_fn)
+    if args.task == 'cs' and args.cs_mode == 'atlas':
+        if base_fn is None or geo.kind != 'ambient':
+            raise ValueError('--cs-mode atlas needs the ambient formulation and --base-from (own certified ACS)')
+        from extra.atlas_cs import run_atlas
+        prog = open(os.path.join(args.out, 'progress.jsonl'), 'a')
+        t0 = time.time()
+        log = lambda rec: (prog.write(json.dumps(rec) + '\n'), prog.flush())
+        atlas, ladder = run_atlas(args, geo, base_fn, tag, log, lambda: time.time() - t0)
+        torch.save({'W': atlas.W.detach(), 'centres': atlas.c, 'rho': atlas.rho, 'degree': atlas.degree,
+                    'case': args.case, 'base_from': args.base_from}, os.path.join(args.out, 'final.pt'))
+        best = min(ladder, key=lambda e: e.get('adv_N_sup', float('inf')))
+        result = {'case': args.case, 'task': 'cs', 'seed': args.seed, 'formulation': geo.kind,
+                  'cs_mode': 'atlas', 'ladder': ladder, 'base': base_info, 'table_before': table_before,
+                  'adv_nij_sup': best.get('adv_N_sup'), 'cs_found': (best.get('adv_N_sup') or 1e9) < args.poly_adv_tol,
+                  'elapsed_min': (time.time() - t0) / 60}
+        with open(os.path.join(args.out, 'result.json'), 'w') as f:
+            json.dump(result, f, indent=2)
+        print(f"[{tag}] RESULT (atlas): best adversarial sup |N(J*)| {best.get('adv_N_sup')} | "
+              f"CS {'YES' if result['cs_found'] else 'no'}", flush=True)
+        return
+    if args.task == 'cs' and args.cs_mode in ('poly', 'polar', 'conjpoly'):
+        if base_fn is None or geo.kind != 'ambient':
+            raise ValueError('--cs-mode poly needs the ambient formulation and --base-from (own certified ACS)')
+        run_poly_unit(args, geo, base_fn, base_info, tag, table_before)
+        return
+    J_fn, meta = make_field(geo, args.task, model, base_fn=base_fn, conj=args.conj)
+    fast = None
+    if args.fast_cs:
+        if args.task != 'cs' or geo.kind != 'ambient' or base_fn is None:
+            raise ValueError('--fast-cs needs an ambient cs unit with --base-from')
+        fast = (make_conjugation(geo, model, args.conj), base_fn)
+        xq = geo.sample(64)
+        with torch.no_grad():
+            n_ref = nij_norm(geo, J_fn, xq)
+        n_fast = cs_nij_norm_fast(geo, fast[0], fast[1], xq).detach()
+        dev = ((n_fast - n_ref).abs() / (n_ref.abs() + 1e-12)).max().item()
+        if dev > 1e-6:
+            raise RuntimeError(f'fast CS loss disagrees with the reference ({dev:.2e})')
+        print(f"[{tag}] fast CS loss verified (max rel. dev. {dev:.1e})", flush=True)
 
     init_from_info = None
     state_path = os.path.join(args.out, 'state.pt')
@@ -790,7 +1074,7 @@ def main():
         if curriculum and st.get('feat'):
             feat_used = st['feat']
             model.poly = PolyNet(N, n_mat, out_scale, feat=feat_used, blocks=blocks).to(DTYPE)
-            J_fn, meta = make_field(geo, args.task, model, base_fn=base_fn)
+            J_fn, meta = make_field(geo, args.task, model, base_fn=base_fn, conj=args.conj)
             opt = torch.optim.Adam(model.parameters(), lr=args.lr)
             sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=steps, eta_min=1e-5)
         model.load_state_dict(st['model']); opt.load_state_dict(st['opt'])
@@ -827,42 +1111,60 @@ def main():
     # Phase 1 (ACS): polynomial field only (MLP frozen), climbing the harmonic
     # ladder; optional annealed intrinsic Dirichlet term λ(t): λ0 → λ1.
     if curriculum and not poly_done and start_step == 0:
-        classes = [args.feat] if args.feat != 'auto' else \
-            [f for f in LADDER if ('bilin' not in f or len(geo.dims) >= 2)]
+        classes = [args.feat] if args.feat != 'auto' else ladder_classes(len(geo.dims))
         best = None
         # Per class: attempt 1 = plain residual flow; attempt 2 (only if
         # rejected) = the same flow with the annealed intrinsic-Dirichlet
         # homotopy λ: lam_retry → lam1 (removes orientation walls where the
         # structure is parallel/Kähler-type, e.g. S¹×S¹, S², S²×S²).
-        attempts = [0.0] + ([args.lam_retry] if args.lam_retry > 0 else [])
+        # Attempt kinds per class: 'plain' residual flow; 'dirichlet' = annealed
+        # intrinsic-Dirichlet homotopy (lam_retry -> lam1); 'orient' = the residual
+        # flow plus the consistent orientation penalty mu*relu(1 - s*o)^2 (s = the
+        # majority orientation of the initial field), which vanishes on every ACS
+        # of that orientation and penalises the K ~ 0 cores of orientation walls.
+        kinds = [k.strip() for k in args.attempts.split(',') if k.strip()]
+        attempts = [(k, {'plain': 0.0, 'dirichlet': args.lam_retry, 'orient': args.mu_orient}[k])
+                    for k in kinds]
+        attempts = [(k, v) for k, v in attempts if k == 'plain' or v > 0]
         if args.lam0 > 0:
-            attempts = [args.lam0]
+            attempts = [('dirichlet', args.lam0)]
         accepted = False
         for feat in classes:
-            for lam0 in attempts:
+            for kind, lam0 in attempts:
                 model.poly = PolyNet(N, n_mat, out_scale, feat=feat, blocks=blocks).to(DTYPE)
                 opt_p = torch.optim.Adam(model.poly.parameters(), lr=5e-3)
                 sched_p = torch.optim.lr_scheduler.CosineAnnealingLR(opt_p, T_max=args.poly_steps, eta_min=2e-4)
+                orient_sign = None
+                if kind == 'orient':
+                    with torch.no_grad():
+                        o0 = orientation_index(geo, J_fn, geo.sample(2000))
+                    orient_sign = 1.0 if o0.mean().item() >= 0 else -1.0
                 for ps in range(args.poly_steps):
                     x = geo.sample(BATCH)
                     loss, info = unit_loss(geo, args.task, J_fn, x)
-                    if lam0 > 0:
+                    if kind == 'dirichlet':
                         lam = lam0 * (args.lam1 / lam0) ** (ps / max(1, args.poly_steps - 1))
                         dir_e = dirichlet_energy(geo, J_fn, x)
                         info['dirichlet'], info['lam'] = dir_e.item(), lam
                         loss = loss + lam * dir_e
+                    elif kind == 'orient':
+                        o = orientation_index(geo, J_fn, x)
+                        pen = torch.relu(1.0 - orient_sign * o).pow(2).mean()
+                        info['orient_pen'] = pen.item()
+                        loss = loss + lam0 * pen
                     if not bool(torch.isfinite(loss)):
                         continue
                     opt_p.zero_grad(); loss.backward(); opt_p.step(); sched_p.step()
                 ev = dense_eval(geo, args.task, J_fn, 1000)
                 adv, _ = adversarial_sup(geo, lambda x: acs_residual(geo, J_fn, x),
                                          max(32, args.adv_starts // 4), max(30, args.adv_steps // 3))
-                entry = {'phase': 'poly', 'feat': feat, 'lam0': lam0,
+                entry = {'phase': 'poly', 'feat': feat, 'attempt': kind, 'lam0': lam0,
+                         'orient_sign': orient_sign,
                          'n_params': sum(p.numel() for p in model.poly.parameters()),
                          'elapsed_min': elapsed() / 60.0, 'adv_acs_sup': adv, **ev}
                 ladder_log.append(entry)
                 progress.write(json.dumps(entry) + '\n'); progress.flush()
-                print(f"[{tag}] ladder {feat:10s} λ0={lam0:<4g} ({entry['n_params']} params) | held-out {ev} "
+                print(f"[{tag}] ladder {feat:10s} {kind:9s} λ0={lam0:<4g} ({entry['n_params']} params) | held-out {ev} "
                       f"| adversarial sup {adv:.3f} -> {'ACCEPT' if adv < 1 else 'reject'}", flush=True)
                 if best is None or adv < best[0]:
                     best = (adv, feat, {k: v.clone() for k, v in model.poly.state_dict().items()})
@@ -875,7 +1177,7 @@ def main():
             model.poly = PolyNet(N, n_mat, out_scale, feat=best[1], blocks=blocks).to(DTYPE)
             model.poly.load_state_dict(best[2])
         feat_used = model.poly.feat
-        J_fn, meta = make_field(geo, args.task, model, base_fn=base_fn)
+        J_fn, meta = make_field(geo, args.task, model, base_fn=base_fn, conj=args.conj)
         opt = torch.optim.Adam(model.parameters(), lr=args.lr)
         sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=steps, eta_min=1e-5)
         poly_done = True
@@ -886,6 +1188,10 @@ def main():
     # unfinished cases, so the mean loss alone does not press on the tail.
     hard_set = None
     cs_residual = (lambda x: nij_norm(geo, J_fn, x))
+    # candidate-pool scoring needs no x-gradient: use the decomposed residual
+    # when available (~4x cheaper than AD through the Newton-Schulz base)
+    pool_score = (lambda x: cs_nij_norm_fast(geo, fast[0], fast[1], x).detach()) if fast is not None \
+        else (lambda x: nij_norm(geo, J_fn, x).detach())
 
     def refresh_hard_set():
         pts = []
@@ -904,17 +1210,17 @@ def main():
             n_hard = len(hard_set)
             n_pool = BATCH // 2 - n_hard
             xc = geo.sample(4 * n_pool)
-            r = cs_residual(xc).detach()
+            r = pool_score(xc)
             idx = torch.topk(r, n_pool).indices
             x = torch.cat([geo.sample(BATCH - BATCH // 2), xc[idx], hard_set], dim=0)
         elif args.rar and args.task == 'cs':
             xc = geo.sample(2 * BATCH)
-            r = nij_norm(geo, J_fn, xc).detach()
+            r = pool_score(xc)
             idx = torch.topk(r, BATCH // 2).indices
             x = torch.cat([xc[idx], geo.sample(BATCH - BATCH // 2)], dim=0)
         else:
             x = geo.sample(BATCH)
-        loss, info = unit_loss(geo, args.task, J_fn, x)
+        loss, info = unit_loss(geo, args.task, J_fn, x, fast=fast)
         if not bool(torch.isfinite(loss)):
             nonfinite += 1
             if nonfinite >= 200:
@@ -940,8 +1246,10 @@ def main():
     if elapsed() < 0.92 * wall_s and args.lbfgs > 0:
         done = 0
         x_val = geo.sample(1500)
-        best_val = (nij_norm(geo, J_fn, x_val).detach() ** 2).mean().item() if args.task == 'cs' \
-            else (acs_residual(geo, J_fn, x_val) ** 2).mean().item()
+        def val_loss():
+            return (nij_norm(geo, J_fn, x_val).detach() ** 2).mean().item() if args.task == 'cs' \
+                else (acs_residual(geo, J_fn, x_val) ** 2).mean().item()
+        best_val = val_loss()
         while done < args.lbfgs and elapsed() < 0.95 * wall_s:
             n_it = min(args.lbfgs_chunk, args.lbfgs - done)
             xf = geo.sample(args.lbfgs_batch)
@@ -953,7 +1261,7 @@ def main():
 
             def closure():
                 lb.zero_grad()
-                l, _ = unit_loss(geo, args.task, J_fn, xf)
+                l, _ = unit_loss(geo, args.task, J_fn, xf, fast=fast)
                 l.backward()
                 return l
             try:
@@ -962,8 +1270,7 @@ def main():
                 print(f"[{tag}] LBFGS chunk failed ({type(e).__name__}); reverting", flush=True)
                 model.load_state_dict(snapshot)
                 break
-            val = (nij_norm(geo, J_fn, x_val).detach() ** 2).mean().item() if args.task == 'cs' \
-                else (acs_residual(geo, J_fn, x_val) ** 2).mean().item()
+            val = val_loss()
             reverted = val > best_val
             if reverted:
                 model.load_state_dict(snapshot)
@@ -978,9 +1285,10 @@ def main():
                   f"{' REVERTED' if reverted else ''}", flush=True)
         save_state(steps)
 
+    model_type = 'curriculum' if curriculum else 'mlp'
     torch.save({'model': model.state_dict(), 'case': args.case, 'task': args.task,
                 'seed': args.seed, 'hidden': hidden, 'stages': stages, 'kind': geo.kind,
-                'model_type': 'curriculum' if curriculum else 'mlp', 'feat': feat_used,
+                'model_type': model_type, 'feat': feat_used, 'conj': args.conj,
                 'base_from': args.base_from},
                os.path.join(args.out, 'final.pt'))
 
@@ -988,7 +1296,8 @@ def main():
                       args.adv_starts, args.adv_steps)
     result = {'case': args.case, 'task': args.task, 'seed': args.seed,
               'formulation': geo.kind, 'hidden': hidden, 'stages': stages,
-              'model_type': 'curriculum' if curriculum else 'mlp', 'feat': feat_used,
+              'model_type': model_type, 'feat': feat_used, 'conj': args.conj,
+              'cs_scale': args.cs_scale, 'fast_cs': bool(args.fast_cs),
               'ladder': ladder_log, 'base': base_info, 'init_from': init_from_info,
               'tail': bool(args.tail), 'lr': args.lr, 'lbfgs': lbfgs_log,
               'steps_done': min(step + 1, steps), 'steps_planned': steps,

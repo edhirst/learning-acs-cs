@@ -31,8 +31,13 @@ def main():
             r['dense'] = {'acs_mean': float('nan'), 'acs_sup': float('nan'),
                           'nij_mean': float('nan'), 'nij_sup': float('nan')}
         else:
-            r['_score'] = r['dense']['nij_mean'] if r['task'] == 'cs' else \
-                (r.get('adv_acs_sup') if r.get('adv_acs_sup') is not None else r['dense']['acs_sup'])
+            if r['task'] == 'cs' and r.get('corrected') is not None:
+                r['_score'] = r['corrected']['nij_mean']       # free-field CS (poly mode): polar-corrected J*
+            elif r['task'] == 'cs' and not r.get('exact_acs_by_construction', True):
+                r['_score'] = float('inf')                     # free field that did not certify
+            else:
+                r['_score'] = r['dense']['nij_mean'] if r['task'] == 'cs' else \
+                    (r.get('adv_acs_sup') if r.get('adv_acs_sup') is not None else r['dense']['acs_sup'])
         runs.append(r)
     if not runs:
         print("no result.json found under", root)
@@ -65,10 +70,16 @@ def main():
                 chart = r.get('chart_acs', float('nan'))
                 intr, sup = d['acs_mean'], d['acs_sup']
             else:
-                verdict = 'exact ACS by constr.' if r.get('exact_acs_by_construction') else 'free field'
                 adv = r.get('adv_nij_sup', float('nan'))
                 chart = r.get('chart_cs', float('nan'))
                 intr, sup = d['nij_mean'], d['nij_sup']
+                if r.get('exact_acs_by_construction'):
+                    verdict = 'exact ACS by constr.'
+                elif r.get('corrected') is not None:
+                    verdict = 'certified, polar-corrected'
+                    intr, sup = r['corrected']['nij_mean'], r['corrected']['nij_sup']
+                else:
+                    verdict = 'free field, NOT certified'
             print(f"| {NAMES[case]} | {task.upper()} | {r['formulation']} | {before_text} | "
                   f"{chart:.2e} | {intr:.2e} / {sup:.2e} | **{adv:.2e}** | {verdict} | "
                   f"{r.get('feat') or '—'} | {r['steps_done']} | {r['seed']} |")
