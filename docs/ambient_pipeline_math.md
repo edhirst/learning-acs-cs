@@ -197,7 +197,12 @@ walls, i.e. $K\approx 0$ there).
 The remedy is a curriculum in the *function class*, not in the loss: train the
 polynomial field in the lowest harmonic class first and climb
 
-$$\texttt{c}\ \to\ \texttt{lin}\ \to\ \texttt{bilin}\ \to\ \texttt{quad\_h}\ \to\ \texttt{lin+c}\ \to\ \texttt{lin+bilin}\ \to\ \texttt{all2},$$
+$$\texttt{c}\ \to\ \texttt{lin}\ \to\ \texttt{bilin}\ \to\ \texttt{quad\_h}\ \to\ \texttt{lin+c}\ \to\ \texttt{lin+bilin}\ \to\ \texttt{all2}\ \to\ \texttt{all2+trilin},$$
+
+(the last rung, degree $\le 2$ plus the three-factor products
+$x_{A,a}x_{B,b}x_{C,c}$, exists only for products of $\ge 3$ factors; it is the
+multidegree-$(1,1,1)$ harmonic content and carries the frame ACS of
+$S^4\times S^1\times S^1$, see `extra/test_poly_cs.py`)
 
 accepting the first class whose trained field passes certification (§4.5). A
 field of low harmonic degree cannot contain a small defect core, so the flow in
@@ -293,6 +298,36 @@ rejected ($\hat r_{\rm adv}\approx\sqrt 2$ – $2$), which is the topological
 obstruction showing up as a loud, resolution-independent failure of the sup,
 even though the *mean* residual can be made small by concentrating the defect.
 
+### 4.6 Orientation control (third attempt)
+
+If a class is rejected by the plain and the Dirichlet attempts, it is retried
+with a **consistent orientation penalty**. Let $E(p)$ be an orthonormal frame of
+$T_pM$, positively oriented for the global orientation in which
+$(n_1,\dots,n_k,E)$ is a positive basis of $\mathbb R^N$ ($n_A$ the outward
+normal of factor $A$), and
+
+$$o(p) = \frac{\operatorname{Pf}\big(E^{\top}(K^{\top}-K)E\big)}{2^{d/2}} .$$
+
+**Lemma.** If $A$ is an ACS on $\mathbb R^d$ then $\omega = A^{\top} - A$ is
+nondegenerate, $|\operatorname{Pf}\omega| \ge 2^{d/2}$, and
+$\operatorname{sign}\operatorname{Pf}\omega$ is the complex orientation of $A$.
+*Proof.* $h = I + A^{\top}A$ is positive and $A$-invariant
+($h(Au,Av) = h(u,v)$ because $A^2 = -I$), and $\omega(u,v) = h(Au, v)$, so
+$\omega$ is an $A$-compatible symplectic form ($\omega(u,Au) = h(Au,Au) > 0$) and
+$\det\omega = \det h = \prod(1+\sigma_i^2)$; the singular values of $A$ come in
+pairs $\sigma, \sigma^{-1}$ ($A^{-1} = -A$), so $\det h \ge 4^{d/2}$. $\square$
+
+The penalty $\mu\,\mathbb E\,\mathrm{relu}(1 - s\,o)^2$, with $s$ the sign of
+$\mathbb E\,o$ at initialisation (the majority orientation), therefore vanishes
+on *every* ACS of that orientation and is $\approx\mu$ on the $K\approx 0$ cores of
+orientation walls (§4.2): it removes the wall minima without selecting a
+particular structure. Fixing the orientation loses nothing on these manifolds
+(every product of spheres has an orientation-reversing isometry). Validated:
+$|o| \ge 1$ with one sign everywhere on every certified ACS, and on
+$S^4\times S^1\times S^1$ it is what certifies (plain and Dirichlet attempts stay
+at the wall value $\hat r_{\rm adv}\approx 1.42$; the orientation attempt gives
+$\hat r_{\rm adv} = 0.12$).
+
 ---
 
 ## 5. The CS stage
@@ -339,6 +374,79 @@ non-existence).
 In real dimension two $N_J\equiv 0$ for every $J$, so the CS stage on $S^2$ and
 $S^1\times S^1$ is trivially exact.
 
+### 5.3 Polynomial free-field search with a Levenberg–Marquardt finisher (`--cs-mode poly`)
+
+The conjugation parametrization of §5.1 has to express an integrable structure
+as $gJ_{\rm base}g^{-1}$ with $J_{\rm base}$ an MLP-refined learned field, so $g$
+is complicated even when the integrable structure is simple. The poly mode
+searches directly in a small class instead:
+
+$$K = P\,M_W(p)\,P,\qquad M_W(p) = \sum_f \phi_f(p)\,W_f,$$
+
+with $\phi$ all monomials of total degree $\le k$ (optionally plus the
+three-factor products, class `2t`), the same "lowest harmonics first" idea as
+the ACS ladder. $K$ is linear in $W$, so $N_K$ is a *quadratic* map of $W$ and
+the problem in a fixed class is a small nonlinear least-squares problem,
+
+$$\min_W\ \mathbb E\,\|N_K\|^2 + w\,\mathbb E\,\|K^2+P\|^2\qquad (w = 10),$$
+
+zero exactly at an integrable ACS of the class. Initialisation is the
+least-squares projection of the unit's own certified $J^*$ into the class (it
+must itself be admissible); the result is certified and polar-corrected by §4.5,
+and $N$ is reported for the corrected exact ACS $J^*$. **Offline check (not an
+input):** the Hopf structures on $S^3\times S^1$, $S^5\times S^1$
+($J\partial_t = \xi$, $J\xi = -\partial_t$, $J|_H = i$) and the Calabi–Eckmann
+structure on $S^3\times S^3$ ($J\xi_1 = \xi_2$, $J|_{H_1\oplus H_2} = i$) are
+exactly $P M P$ with $M$ of degree 2 (fit residual $10^{-15}$, $N = 0$), and the
+product structure on $S^2\times S^2$ is linear. So on these cases the class
+contains an exact solution, and failure would be an optimisation failure.
+
+*Residual layout.* With $E$ an orthonormal tangent frame, $N$ is
+tangent-valued and antisymmetric, so
+$\sum_{i,j}|N(Pe_i,Pe_j)|^2 = 2\sum_{a<b}|E^{\top}N(E_a,E_b)|^2$ and
+$K^2 + P = E(E^{\top}K^2E + I_d)E^{\top}$: $d\binom d2 + d^2$ rows per point
+(126 for $d=6$) instead of $N^3+N^2$, with the same norm. $K$, $DK$ are explicit
+($DK_c = \partial_cP\,MP + P\,\partial_cM\,P + PM\,\partial_cP$), no AD through $p$.
+
+*Factorised Jacobian.* $r$ depends on $W$ only through $(K, DK)$, which are
+linear in $W$:
+$\partial K_{ij}/\partial W_{(ar)f} = \phi_f P_{ia}P_{rj}$ and
+$\partial DK_{ijc}/\partial W_{(ar)f} = \phi_f(\partial_cP_{ia}P_{rj} + P_{ia}\partial_cP_{rj}) + \partial_c\phi_f P_{ia}P_{rj}$.
+So $\partial r/\partial W = G\cdot\partial(K,DK)/\partial W$ with
+$G = \partial r/\partial(K,DK)$ from $N^2+N^3$ forward-mode tangents per point,
+independent of the number of features: 5–16× cheaper than forward AD over $W$.
+
+*Optimiser.* Adam warm-up on the first class only (2000 steps), then rounds of
+dense Levenberg–Marquardt (Marquardt scaling, $\lambda\div 3$ on success,
+$\times 4$ on failure, 8 iterations per round) on freshly resampled collocation
+sets ($\ge 128$ points, $\ge 2\times$ as many residual rows as unknowns), with a
+held-out estimate after every round. A class is accepted when the held-out
+loss is $<10^{-20}$, or when LM stalls below $10^{-16}$; otherwise the ladder
+climbs, warm-starting by copying coefficients monomial by monomial (never
+re-running Adam on a warm start: its noise floor, $\sim 10^{-4}$, destroys an
+LM optimum). Near these solutions LM converges only linearly (factor 2–10 per
+round), consistent with degenerate zero sets (families of complex structures
+and the diffeomorphism orbit), so the round budget matters more than the
+iteration count.
+
+### 5.4 Why a small *mean* Nijenhuis residual is not evidence on $S^6$, $S^4\times S^2$, $S^4\times S^1\times S^1$
+
+$S^6\setminus\{pt\}\cong\mathbb C^3$, $S^2\times(S^4\setminus\{pt\})\cong\mathbb{CP}^1\times\mathbb C^2$
+and $(S^4\setminus\{pt\})\times T^2\cong\mathbb C^2\times T^2$ are complex, and the
+pulled-back structure extends as an ACS across a tube of radius $\varepsilon$
+around the removed set (the obstructions lie in $\pi_3(\mathbb{CP}^3) =
+\pi_5(\mathbb{CP}^3) = 0$). Inside the tube $|N|\sim 1/\varepsilon$ on a set of
+measure $\sim\varepsilon^{c}$ ($c = 6$, resp. 4), so
+$\mathbb E|N|^2\sim\varepsilon^{c-2}\to 0$ while $\sup|N|\to\infty$ —
+whether or not a complex structure exists. A mean-square PINN is therefore
+attracted to concentrated defects on exactly these cases (observed: the
+conjugation run on $S^4\times S^2$ reached mean $|N| = 0.16$ with an adversarial
+sup of $5\cdot10^{15}$, an affine conjugator gone singular at isolated points;
+on $S^6$ 58 % of $\mathbb E|N|^2$ sits in 5 % of the points). Only a small and
+resolution-stable **adversarial sup** of $|N|$ would be numerical evidence of a
+CS there; §5.2's remark that a small residual is evidence of existence holds
+for the sup, not for the mean.
+
 ---
 
 ## 6. Evaluation
@@ -379,8 +487,8 @@ Liang–Liu–Zhang structure: no topological obstruction remains on that row.
 ```
 for each case M, seed:
   # ---- ACS unit -------------------------------------------------------
-  for class in [c, lin, bilin, quad_h, lin+c, lin+bilin, all2]:
-      for attempt in [plain, plain + annealed Dirichlet (only if plain rejected)]:
+  for class in [c, lin, bilin, quad_h, lin+c, lin+bilin, all2, (all2+trilin if >= 3 factors)]:
+      for attempt in [plain, + annealed Dirichlet, + orientation penalty]   (next only if rejected):
           K = P poly_class(p) P ; minimise E||K^2 + P||^2  (3000 Adam steps)
           if adversarial_sup(||K^2+P||) < 1: accept; break
   K = P (poly + mlp)(p) P ; minimise E||K^2 + P||^2  (10k Adam + L-BFGS)
@@ -389,8 +497,15 @@ for each case M, seed:
   else: NOT certified (S^4)
   # ---- CS unit ----------------------------------------------------------
   if no certified ACS: refuse
-  J = e^{B2} e^{B1} J* e^{-B1} e^{-B2},  B_s = P mlp_s(p) P, O(1) init
-  minimise E ||N_J||^2  (Adam + L-BFGS) ; report dense + adversarial residuals
+  cs-mode poly (default for new runs):
+      for class in [deg 2, deg 3] (or [2t] with >= 3 factors):
+          K = P M_W(p) P,  W = lsq(J*) on the first class, else copied from the previous class
+          minimise E||N_K||^2 + 10 E||K^2+P||^2 : Adam (first class) + LM rounds (fresh points)
+          accept if held-out loss < 1e-20 (or LM stalls below 1e-16)
+      certify K, J = polar(K); report N of J (dense + adversarial)
+  cs-mode conj (original):
+      J = g2 g1 J* g1^-1 g2^-1,  g_s = exp(B_s) (or Cayley / I + B_s), B_s = P mlp_s(p) P
+      minimise E ||N_J||^2  (Adam [+ tail sampling] + L-BFGS)
   # ---- scoring ---------------------------------------------------------
   chart-protocol numbers (for the table), c1 check offline
 ```
@@ -408,8 +523,159 @@ for each case M, seed:
 | wall configuration $\langle x,n\rangle J_{\rm oct}$ on $S^6$: $\mathcal E_D$ | $60/7\approx 8.6$ (why the homotopy fails there) |
 | $c_1[S^2]$ of the $S^4\times S^2$ base ACS | $0$ |
 | residual at a degenerate point | $\ge 1$; at $K = 0$: $\|P\|_F = \sqrt d$ |
+| orientation index $|o|$ of any exact ACS (§4.6) | $\ge 1$ (observed $1.000$–$1.012$ on every certified field) |
+| degree of the Hopf ($S^3\times S^1$, $S^5\times S^1$) and Calabi–Eckmann ($S^3\times S^3$) structures as ambient fields $PMP$ | 2 (fit residual $10^{-15}$) |
+| degree-2 floor of $\mathbb E\|N\|^2 + 10\,\mathbb E\|K^2+P\|^2$ on $S^6$, $S^4\times S^2$, $S^4\times S^1\times S^1$ (poly mode) | $\approx 4$–$11$ held out; the free field loses admissibility |
 
 ---
+
+## 8b. Local campaign, 2026-09-30 (CPU, float64)
+
+ACS units: seeds 7 and 8 on all ten cases. CS units: poly mode
+(§5.3) from the unit's own certified ACS; on the three cases without a
+near-integrable polynomial field, the conjugation mode (§5.1) with the
+exponential map and tail-aware sampling as the sup-oriented best effort.
+$N$ is always evaluated on an **exact** ACS (by construction, or the
+polar-corrected certified field); $10^{-10}$ is the floor of the norm
+evaluation ($\sqrt{\cdot + 10^{-20}}$).
+
+| case | ACS: adversarial $\hat r$ (verdict) | CS: mode | mean $\|N\|$ | adversarial sup $\|N\|$ | chart CS: paper → now |
+|---|---|---|---:|---:|---:|
+| $S^2$ | $6\cdot10^{-6}$, $1\cdot10^{-5}$ (✓✓) | trivial ($d=2$) | $10^{-10}$ | $10^{-10}$ | $5.3\cdot10^{-4}\to10^{-10}$ |
+| $S^1\times S^1$ | $1\cdot10^{-5}$, $6\cdot10^{-5}$ (✓✓) | trivial ($d=2$) | $10^{-10}$ | $10^{-10}$ | $1.9\cdot10^{-4}\to10^{-10}$ |
+| $S^2\times S^2$ | $2.5\cdot10^{-4}$, $4.0\cdot10^{-4}$ (✓✓) | poly deg 2 (both seeds) | $1.0\cdot10^{-10}$ | $1.0\cdot10^{-10}$ | $4.0\cdot10^{-2}\to1.0\cdot10^{-10}$ |
+| $S^3\times S^1$ | $1.1\cdot10^{-3}$, $8.4\cdot10^{-4}$ (✓✓) | poly deg 2 (both seeds) | $2.8$–$3.4\cdot10^{-10}$ | $0.7$–$1.2\cdot10^{-9}$ | $0.20\to8.4\cdot10^{-10}$ |
+| $S^3\times S^3$ | $6.4\cdot10^{-4}$, $5.5\cdot10^{-4}$ (✓✓) | poly deg 2 (both seeds) | $1.0\cdot10^{-10}$ | $1.1\cdot10^{-10}$ | $7.63\to1.1\cdot10^{-10}$ |
+| $S^5\times S^1$ | $3.1\cdot10^{-4}$, $5.9\cdot10^{-4}$ (✓✓) | poly deg 2 (both seeds) | $1.3$–$1.4\cdot10^{-10}$ | $2.0\cdot10^{-10}$ | $6.42\to2.7\cdot10^{-10}$ |
+| $S^4$ | $2.00$, $2.00$ (✗✗: no ACS) | refused (no certified base) | — | — | $8.50\to$ — |
+| $S^6$ | $4.4\cdot10^{-4}$, $4.1\cdot10^{-4}$ (✓✓) | conj exp + tail, 2500 steps (mean-square conj, 4000 steps) | $1.04$ ($0.38$) | $3.2$ ($6.9$) | $9.87\to2.8$ ($1.0$) |
+| $S^4\times S^2$ | $2.7\cdot10^{-4}$, $3.1\cdot10^{-4}$ (✓✓) | conj exp + tail, 1000 of 2500 steps (affine conj, 4000) | $2.7$ ($0.16$) | $15$ ($5\cdot10^{15}$, singular $g$) | $6.28\to$ — |
+| $S^4\times S^1\times S^1$ | $0.12$ (orientation attempt), $4.0\cdot10^{-3}$ (plain) (✓✓, both in `all2+trilin`) | conj exp + tail, 1000 of 2500 steps; poly `2t` not admissible | $1.5$ | $55$ | — |
+
+On the four cases with a classical complex structure the search reaches the
+floating-point floor in minutes, from a base ACS with $\|N\| = 1$–$17$. The
+found structures are *not* round-orthogonal ($|J^{\top}J - P|\approx 0.07$–$0.19$,
+singular values of $J$ in $[0.93, 1.07]$; on $S^3\times S^1$ and $S^3\times S^3$ the
+defect is the same at every point), i.e. other members of the Hopf /
+Calabi–Eckmann families than the specific structures of the offline check.
+On $S^6$, $S^4\times S^2$ and $S^4\times S^1\times S^1$ no run comes near
+integrability. Degree-2/3 polynomial classes hold no near-integrable field
+(the free field loses admissibility), and the conjugation runs show the
+trade-off of §5.4: the mean-square run on $S^6$ reaches mean $0.38$ with an
+adversarial sup of $6.9$, the tail-aware run halves the sup ($3.2$) at mean
+$1.04$. The two $S^4\times S^2$, $S^4\times S^1\times S^1$ tail runs were stopped at
+1000 of 2500 steps because the machine was shared with another workload; the
+collaborator branch `s4t2` reports RMS $0.29$ / max $0.78$ on
+$S^4\times S^1\times S^1$ from a much longer HPC campaign. The complex
+structures known on $S^6$ (Alpöge–Claude) and $S^2\times S^4$
+(Liang–Liu–Zhang; arXiv:2609.05504) are built by algebro-geometric surgery
+(Mumford degeneration of a modular family of 2-tori; blow-up, $\mu_2$-quotient,
+Atiyah flop), so nothing suggests they are close to low-degree fields in the
+round ambient picture; for $S^4\times T^2$ no existence result is known to us.
+
+The conjugation mode, for comparison, stopped at $1.8\cdot10^{-4}$ ($S^2\times S^2$),
+$1.3\cdot10^{-3}$ ($S^3\times S^1$), $4.6\cdot10^{-2}$ ($S^3\times S^3$) mean $\|N\|$ with the
+same local budget.
+
+## 8c. Degree-ladder measurement on exact ACS (2026-10-01)
+
+Two exact-ACS measurement modes were added (`--cs-mode polar`, `--cs-mode conjpoly`),
+both with an orthonormalised polynomial basis (SVD of the monomials over samples,
+which removes the $|x_A| = 1$ redundancy; on $S^6$ the degree-$\le k$ basis has the
+dimension of the harmonics of degree $\le k$) and the factorised exact Jacobian.
+
+**Polar mode** ($J^* = \mathrm{polar}(K)$, $K = PM_WP$). The minimum of
+$\mathbb E|N(J^*)|^2$ over the admissible part of a class is attained on its
+boundary: on $S^6$ at degree 2, every LM step that lowers the Nijenhuis norm
+does so by driving $K$ towards degeneracy between collocation points, and once
+Newton–Schulz leaves its convergence region it returns a non-ACS whose
+"Nijenhuis tensor" is artificially small. With exactness rows
+$\sqrt\mu(J^{*2} + P)$, an admissibility barrier $\sqrt\mu\,\mathrm{relu}(|K^2+P| - 0.5)$,
+tail points and dense rollback, the constrained floor stays at the starting
+value ($|N|^2 \approx 384$): degree-2 free fields hold no admissible
+improvement on $S^6$. Same pattern on $S^4\times S^2$.
+
+**Polynomial-generator conjugation** ($J = e^{B}J_b e^{-B}$, $B = PM_WP$, $J_b$ the
+unit's own certified ACS, $e^B$ by scaling and squaring). Exact ACS by construction,
+$e^B$ always invertible, LM on resampled collocation sets ($\ge 25$ rows per
+unknown) plus the 64 worst-$|N|$ points per round.
+
+| $S^6$, degree of $B$ | coefficients | $\mathbb E|N|^2$ | mean $|N|$ | adversarial sup $|N|$ |
+|---:|---:|---:|---:|---:|
+| own ACS ($B = 0$) | — | 385 | 19.6 | 19.7 |
+| 1 | 392 | 39 | 5.6 | 21 |
+| 2 | 1715 | 4.4 | 1.9 | 12.6 |
+| 3 | 5488 | 2.4 | 1.4 | 13.4 |
+
+The mean decays (×9, then ×1.8) but the adversarial sup stops decreasing after
+degree 2: additional degree buys mean at the cost of concentration (§5.4), not
+an approach to a complex structure. For comparison, the collaborators' MLP
+conjugation (≈200k parameters, first order, ≈160k steps on HPC) reports mean
+0.067 and adversarial sup 1.5; no run, polynomial or MLP, has a sup that
+decreases towards 0, which is the only signature that would count as evidence.
+
+## 8d. Numerical reconstruction of the complex structures on $S^6$ and $S^2\times S^4$
+
+**Status of the unbiased search.** No unsupervised, unbiased run on the round
+ambient model reaches a complex structure on $S^6$ or $S^4\times S^2$ (§8b, §8c):
+every ansatz has an adversarial Nijenhuis sup of order 1–10. What follows is a
+*reconstruction*: the manifold is presented as the fibration of
+[AC26]/[Engel] ($S^6$) and [GFL26] ($S^2\times S^4$), the function class and the
+defining equations are taken from those papers, and a physics-informed solver
+recovers the period map from residuals alone (no values of the period map or
+of $J$ are given). The paper should present it as such.
+
+**Model.** $X\supset (\mathfrak h_Z^\circ\times\mathbb R^4/\Lambda)/\Delta$ with
+$\Delta = \Delta(3,4,\infty)$ acting by $(Z,x)\mapsto(g_jZ, A_jx)$,
+$A_j = (T_j^{-1})^{t}$ [AC26, Rem. 3.20], and $J$ the x-invariant structure with
+$(1,0)$-forms $dZ$ and $\Pi(Z)\,dx$, $\Pi = \begin{pmatrix}6\mu&\tau&1&0\\ \beta&\mu&0&1\end{pmatrix}$.
+$S^2\times S^4$: the same period map on the index-two superlattice
+$\Lambda^+ = \Lambda + \mathbb Z\hat\delta/2$ ($x = \mathrm{diag}(1,1,1,\tfrac12)x^+$, integral
+monodromy $A_j^+$, equal to [GFL26, (3.2)]). Multiple fibres: log transforms on discs around
+the fixed points $Z_1, Z_2$ (twisted translations leave the x-invariant $J$ unchanged).
+Cusp: the toric quotient $Y_\epsilon/\Lambda$ of [AC26, §4] built from the same functions.
+
+**Period-map PINN** (`extra/period_map.py`). In the coordinate $Z$ with the
+distinguished cusp at $\infty$ and $g_0(Z) = Z-1$, the functions $\tau - Z$, $\mu$,
+$\beta + Z$ are $g_0$-invariant and holomorphic on $\mathfrak h_Z$, hence power
+series in $q = e^{2\pi i Z}$ on $|q|<1$; on the Ford domain $|q|\le 0.156$, so 21
+coefficients suffice. Being exact q-series, they make $J$ integrable
+identically; the loss is the residual of the six functional equations
+(§3 of [AC26]) on discs around the fixed points **and on the gluing pairs of the
+Ford domain** (collocating on the discs alone fits them and lets the high
+coefficients blow up along the edges). $\tau$: Levenberg–Marquardt from
+$\tau = Z + \text{const}$; $\mu$: linear least squares given $\tau$; $\beta$: linear
+least squares given $\tau,\mu$, up to its free constant $c_0$ (the family
+parameter; $c_0 = -3i$, so that $D<0$). Three seconds on a laptop.
+
+**Certificate** (`extra/reconstruct_s6.py`, fresh points; coordinate norms in $(\mathrm{Re}Z, \mathrm{Im}Z, x)$):
+
+| quantity | $S^6$ | $S^2\times S^4$ |
+|---|---:|---:|
+| $\tau(Z_1)-e^{i\pi/3}$, $\tau(Z_2)-i$, $\mu(Z_1)-\frac1{1+\rho}$, $\mu(Z_2)-\frac{1-i}2$ (not imposed) | $\le 5\cdot10^{-15}$ | same |
+| functional-equation residual on the gluing pairs | $1.2\cdot10^{-13}$ | $9.9\cdot10^{-14}$ |
+| $\|J^2+I\|$ | $2.5\cdot10^{-15}$ | $4.6\cdot10^{-15}$ |
+| $\|N\|$ on the domain, adversarial sup | $1.1\cdot10^{-14}$ | $1.6\cdot10^{-14}$ |
+| $\|N\|$ on the multiple-fibre discs | $\le 1.7\cdot10^{-14}$ | $\le 2.6\cdot10^{-14}$ |
+| deck consistency $\|J(gZ) - D\Phi\,J(Z)\,D\Phi^{-1}\|$ | $\le 3.3\cdot10^{-12}$ | $\le 4.3\cdot10^{-12}$ |
+| $\|N\|$ of the blended global field across the edges, adversarial | $\le 2.3\cdot10^{-12}$ | $\le 2.9\cdot10^{-12}$ |
+| $\max D$ on the domain (every fibre a complex torus) | $-4.14$ | $-4.14$ |
+| cusp: $C(q)$ single-valued; [AC26, Thm 4.5] $\epsilon_0 = \min(r/2, e^{-2\|R\|_\infty})$ | $1.8\cdot10^{-15}$; $1.8\cdot10^{-21} > 0$ | same |
+
+so $\sup|N| \le 4.3\cdot10^{-12}$, six orders below the $10^{-6}$ target. Deep in
+the cusp collar ($|q|$ down to $10^{-33}$) $|N|\le 2\cdot10^{-15}$. The other three
+transport conventions for the deck action fail at $O(1)$–$O(100)$, so the lattice
+action is pinned down numerically.
+
+**What is and is not shown.** Shown: a complex structure, certified to
+$4\cdot10^{-12}$, on the fibration model of $X$ (generic part, multiple-fibre
+discs, gluing across all identifications), with the hypotheses of the toric
+cusp filling verified for the learned period map (where the structure is the
+standard toric one). Taken from the papers: that $X$ is diffeomorphic to $S^6$
+(resp. $S^2\times S^4$), the topological twisting data of the fillings, and the
+toric construction itself. Not shown: an explicit diffeomorphism to the round
+$S^6$ — the reconstructed $J$ lives on the fibration model, which is why it is
+invisible to the round-ambient search.
 
 ## 9. Files
 
@@ -419,7 +685,15 @@ for each case M, seed:
 | `src/loss/ambient_loss.py` | ambient brackets, $N_{ij}$, $\|N\|$, $DJ$/$DP$ by forward AD |
 | `src/geometry/explicit_acs.py` | case registry; classical ACS (offline checks / optional bases) |
 | `extra/campaign_unit.py` | the unit: ladder, Dirichlet retry, MLP refinement, adversarial sup, Newton–Schulz polar, CS stage, chart protocol |
-| `extra/campaign_summary.py` | before/after table with verdicts |
+| `extra/campaign_summary.py` | before/after table with verdicts (poly-mode CS rows report the polar-corrected field) |
+| `src/models/poly_field.py` | polynomial field $K = PMP$, explicit $DK$, intrinsic residual, factorised Jacobian |
+| `src/optim/lm.py` | dense Levenberg–Marquardt |
+| `extra/poly_cs.py` | the poly-mode CS stage (§5.3) |
+| `extra/test_poly_cs.py` | tests: derivatives, Jacobian, LM, orientation lemma, three-factor class, conjugators |
+| `extra/period_map.py` | period-map PINN for $\tau,\mu,\beta$ (q-series, functional-equation residuals, LM) |
+| `extra/s6_reconstruction.py`, `extra/reconstruct_s6.py` | $J$ on the fibration model of $S^6$, $S^2\times S^4$ and its certificate |
+| `extra/test_reconstruction.py` | tests of the reconstruction |
+| `extra/fibration_cs.py`, `extra/atlas_cs.py` | exploratory: topology-only period search (plateau $2\cdot10^{-3}$), integrable atlas (not converged) |
 | `scratch/submit_S4xS1xS1_{ACS,CS}.sh` | separate Lovelace submissions for the three-factor case |
 | `extra/chern_class_ambient.py` | $c_1$ on the $S^2$ cycle |
 | `extra/acs_homotopy_probe.py` | the experiments behind §4.2–4.4 |
@@ -434,3 +708,5 @@ tori over the projective line, and the six-sphere* (2026); Liang–Liu–Zhang,
 *Remarks on the complex structures on $\mathbb P^3$ and $S^2\times S^4$*
 (arXiv:2608.29651); Higham, *Functions of Matrices* (2008) for Newton–Schulz;
 Wall (1966) for the classification used by Liang–Liu–Zhang.
+
+[AC26] Claude and L. Alpöge, *The (3,4,∞) modular family of 2-tori, completed at its three special points, is a complex structure on S⁶*, https://alpo.ge/s6.pdf (2026). [Engel] P. Engel, *Complex structures on S⁶*, https://philip-engel.github.io/S6.pdf (2026). [GFL26] S. Guo, E. X. Fang, J. Lu, *A complex structure on S²×S⁴*, arXiv:2609.05504 (2026).
