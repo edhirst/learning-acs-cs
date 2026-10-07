@@ -19,6 +19,9 @@ venv/
 .ipynb_checkpoints/
 .pytest_cache/
 
+# Campaign scratch outputs (never commit)
+extra/s4t2_explicit/scratch/
+
 # Local files of the code branches of this repository (never part of this branch)
 outputs/**
 results_from_HPC/

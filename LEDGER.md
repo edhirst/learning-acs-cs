@@ -230,3 +230,25 @@ in `AGENTS.md` §5.
      Per `AGENTS.md` §3.2 they were not changed.
   5. The open points of TSG-1 (the unused `\hflogo`; `amsmath` and `multirow` loaded twice)
      remain open.
+
+### 2026-10-07-TSG-1 — Extend the workflow to the symbolic campaign
+- **Date:** 2026-10-07
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Claude Code (Claude Fable 5.1)
+- **Type:** infra
+- **Based on:** `7235e94`
+- **Where:** `AGENTS.md` (§1.1 scope; new §8 "The symbolic campaign"), `README.md` (table rows for the campaign
+  files, a paragraph in the introduction, a section "The symbolic campaign", one line in "Rules in brief"),
+  `.gitignore` (campaign scratch directory).
+- **Change:** by TSG's explicit request, the branch becomes the shared workspace of the *symbolic campaign* (a
+  rigorous, constructive, symbolic-elementary proof that the round S⁴ × T² carries the paper's complex structure,
+  through an explicit diffeomorphism and its inverse). §8 of `AGENTS.md` extends the agents' scope to the campaign
+  files and states the campaign's rules: no claim without a check (four claim types (a)–(d), each labelled); the
+  numerical safety net stays green; margins recorded; the pitfalls are binding; ledger entry per commit;
+  reviewability first. The manuscript rules (§0–§7) are unchanged; manuscript tasks and campaign tasks do not
+  touch each other's files.
+- **Why:** TSG asked to migrate the campaign here so that all collaborators and their agents can contribute to the
+  goal; the previous scope rule would have forbidden agents to touch the campaign files.
+- **Verification:** workflow files only; LaTeX build / `verify_construction.py` / `sphere_products.py`: not run
+  (the manuscript and its scripts are untouched by this commit).
+- **Open points:** none.

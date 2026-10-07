@@ -2,7 +2,7 @@
 
 This branch holds only the manuscript *An Explicit Complex Structure on S⁴ × T²* and the
 infrastructure for improving it with AI agents deployed by any of the collaborators.
-It shares no files with the code branches of this repository.
+Since 2026-10-07 it also hosts the **symbolic campaign** (see `SYMBOLIC_CAMPAIGN.md`), a shared workspace for the collaborators and their agents. Apart from the two vendored modules listed below, it shares no files with the code branches of this repository.
 
 | path | contents |
 |---|---|
@@ -11,6 +11,11 @@ It shares no files with the code branches of this repository.
 | `CLAUDE.md` | makes Claude Code load `AGENTS.md` automatically |
 | `LEDGER.md` | append-only record of every change: when, by whom, why, and how it was verified |
 | `.gitignore` | keeps LaTeX build products and local files out of the repository |
+| `SYMBOLIC_CAMPAIGN.md` | **entry point of the symbolic campaign** (since 2026-10-07): the goal (a rigorous, constructive, symbolic-elementary proof that the round S⁴ × T² carries the paper's complex structure, clear and easy to review), the state of the art, the task list, and the rules for contributing |
+| `docs/s4t2_explicit_diffeo.md` | the construction log of the explicit diffeomorphism F: Y → S⁴ × T² (§12 = the verified numerical construction; §13 = the agreed proof scheme) |
+| `docs/s4t2_symbolic_programme.md` | the symbolic programme: block-by-block specification of F and G = F⁻¹, lemma list with status, certificates, open conditions |
+| `extra/s4t2_explicit/` | the code of the construction (numpy reference, torch implementation, numerical checks, fits) and `sym/`, the sympy certificates |
+| `src/geometry/ambient.py`, `src/loss/ambient_loss.py` | two modules vendored verbatim from the code branch `no_overlaps` (commit `dcf2bab`): the ambient Nijenhuis tensor used by the numerical checks. Frozen on this branch |
 
 ## Deploying an agent
 
@@ -73,9 +78,17 @@ run the checks and make the commit. `AGENTS.md` §7 tells the assistant what to 
 - To undo a change, run `git revert <hash>` and add a `revert` entry to the ledger.
   Never rewrite history that has already been pushed.
 
+## The symbolic campaign
+
+`SYMBOLIC_CAMPAIGN.md` is the entry point: read it first, then `docs/s4t2_symbolic_programme.md`.
+Agents working on the campaign obey `AGENTS.md` §8 (which extends the scope to the campaign
+files) and append a ledger entry per commit exactly as for the manuscript. Every mathematical
+claim added to the campaign documents must be backed by a script in `extra/s4t2_explicit/sym/`
+or by an elementary argument with explicit constants written out in full.
+
 ## Rules in brief
 
-- Agents edit only `manuscript_draft/`, and append a ledger entry in the same commit.
+- Agents edit only `manuscript_draft/` (manuscript tasks) or the campaign files listed in `AGENTS.md` §8 (campaign tasks), and append a ledger entry in the same commit.
 - Every change must be verified and must be an improvement. When unsure, an agent
   records a flag in the ledger instead of editing.
 - Mathematical statements are never changed silently, and citations are never invented.

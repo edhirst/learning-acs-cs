@@ -18,8 +18,9 @@ A missed improvement costs nothing. An error that nobody notices can cost the pa
 
 ## 1. Scope
 
-1. You may modify only files inside `manuscript_draft/`. You must also append your
-   entry to the end of `LEDGER.md`.
+1. You may modify only files inside `manuscript_draft/` (manuscript tasks) or the campaign
+   files listed in §8 (campaign tasks). You must also append your entry to the end of
+   `LEDGER.md`.
 2. Do not modify `AGENTS.md`, `CLAUDE.md`, `README.md`, `.gitignore`, or any earlier
    ledger entry. If you think one of them needs to change, tell the collaborator who
    deployed you.
@@ -220,3 +221,44 @@ the commit. Work as follows.
    scripts of §3.3. Leave **Based on** for the collaborator to fill in.
 5. If you are not certain that a change is correct and an improvement, propose a
    `flag` entry instead (§0).
+
+## 8. The symbolic campaign (since 2026-10-07)
+
+The branch also hosts the *symbolic campaign*: a rigorous, constructive, symbolic-elementary
+proof that the round S⁴ × T² carries the paper's complex structure, through an explicit
+diffeomorphism and its inverse. `SYMBOLIC_CAMPAIGN.md` is the entry point and states the
+goal, the state of the art and the task list. §0–§6 of this file apply, with these
+adaptations.
+
+1. **Scope.** Campaign tasks may modify `docs/s4t2_explicit_diffeo.md`,
+   `docs/s4t2_symbolic_programme.md`, `SYMBOLIC_CAMPAIGN.md` (task list and status only), and
+   files under `extra/s4t2_explicit/`. The vendored modules under `src/` are frozen. The
+   manuscript is not touched by campaign tasks, and manuscript tasks do not touch the campaign.
+2. **No claim without a check.** A mathematical statement added to the campaign documents is
+   one of: (a) an identity, verified by a sympy script in `extra/s4t2_explicit/sym/` that
+   prints `ALL PASS`; (b) a *manifest* inequality (a sum of squares, a convex combination of
+   terms of known sign, a one-variable monotonicity with the derivative written out); (c) an
+   *elementary inequality with explicit constants*, written out step by step with every
+   constant stated, as in `docs/s4t2_symbolic_programme.md` §4.2; (d) a numerical observation,
+   labelled as such, with its script and sample size. Never present (d) as (a)–(c). State
+   which of the four every claim is.
+3. **The numerical safety net stays green.** The checks of `docs/s4t2_explicit_diffeo.md`
+   §12.0 (`check_tcore`, `check_tlift`, `check_lift`, `check_degree`, `check_full`,
+   `nijenhuis_round`, `check_inverse`, `check_jround`, and the numpy checks) define the
+   verified numerical construction. Any change to the construction (a redesigned block) must
+   keep them passing, or replace them by checks of at least the same strength in the same
+   commit, with the ledger entry explaining the replacement. Never weaken a tolerance or an
+   `assert` to make a check pass. Any change to `tcore.py` must be followed by `check_tcore.py`.
+4. **Record margins.** A certificate with explicit constants records the measured margin next
+   to the proven bound, so that reviewers see how much room there is.
+5. **Pitfalls are binding knowledge.** `docs/s4t2_explicit_diffeo.md` §11.10 and §12.8 list
+   mistakes already made (AD bugs of `torch.linalg.solve`/`det` in nested forward mode,
+   `abs()**2` at zero, log-ratios at common zeros, the slice coordinate collapsing the central
+   fibre, …). Read them before changing code.
+6. **Ledger.** One entry per commit, as in §5, with `Where` naming the campaign file(s) and
+   `Verification` listing the scripts run and their result (`ALL PASS`, numbers, or
+   `not run`). Use type `addition` for new lemmas, scripts or designs, `edit` for corrections,
+   `statement` when a recorded claim's status changes (e.g. "numerical" → "proven", or a
+   claim withdrawn), `flag` for an issue found but not fixed.
+7. **Reviewability is the goal.** Prefer the shorter argument with the larger margin. A
+   reviewer must be able to check a lemma by reading one page and running one script.
