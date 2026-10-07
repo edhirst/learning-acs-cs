@@ -252,3 +252,33 @@ in `AGENTS.md` §5.
 - **Verification:** workflow files only; LaTeX build / `verify_construction.py` / `sphere_products.py`: not run
   (the manuscript and its scripts are untouched by this commit).
 - **Open points:** none.
+
+### 2026-10-07-TSG-2 — Open the symbolic campaign: migrate the construction and the symbolic programme
+- **Date:** 2026-10-07
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Claude Code (Claude Fable 5.1)
+- **Type:** addition
+- **Based on:** `78999e4`
+- **Where:** new files `SYMBOLIC_CAMPAIGN.md` (entry point: goal, state of the art, file map, how to run, task list
+  T1–T13, contribution rules, pitfalls); `docs/s4t2_explicit_diffeo.md` (construction log, §12 authoritative
+  numerical construction, §13 proof scheme); `docs/s4t2_symbolic_programme.md` (the symbolic programme, §§0–7);
+  `extra/s4t2_explicit/` (numpy reference, torch implementation, numerical checks, fits, sympy certificates in
+  `sym/`, and the package marker `extra/__init__.py`); `src/geometry/ambient.py`, `src/loss/ambient_loss.py` vendored verbatim from the code branch
+  `no_overlaps` @ `dcf2bab` with stub `__init__.py` files (frozen, AGENTS.md §8.1).
+- **Change:** migration of everything produced on the code branch between 2026-10-06 and 2026-10-07 for the
+  explicit diffeomorphism F: Y → S⁴ × T² and the symbolic description of F and G = F⁻¹, unchanged in content.
+  The two notes files and the code are copied byte for byte; the only additions are the campaign entry point and
+  the two stub package files. Mathematical state recorded in `SYMBOLIC_CAMPAIGN.md` §1: the construction is
+  verified numerically (deg 1, det ≠ 0, N ≈ 0, F⁻¹); lemmas A–O with status (B, C, D, G manifest; E certified with
+  explicit constants; F proven; A, H, I, K, M identities; J reduced to a second-derivative bound; L = the global
+  conditions I3–I5 open; N, O to be assembled); the single-compatible-lift architecture as the route to the goal.
+- **Why:** TSG's request: a shared workspace for the collaborators and their agents to reach a rigorous,
+  constructive, symbolic-elementary proof that is clear and easy to review.
+- **Verification (run on this branch, in this worktree, 2026-10-07):** `sym/lemmas_1d.py`, `sym/chart_identities.py`,
+  `sym/node_remainder.py`: ALL PASS; `sym/i2_margins.py`: certificate bounds 4.42 / 2.20 vs measured 5.64 / 2.82;
+  `check_tcore.py`, `check_tlift.py`, `check_full.py`: ALL PASS; `nijenhuis_round.py 60`: max |N|/scale
+  6.3·10⁻¹¹, cross-chart controls 10⁻¹³, non-integrable control detected; `check_inverse.py 3000`: PASS. The
+  vendored modules are identical to the code branch (`diff -q`). LaTeX build / `verify_construction.py` /
+  `sphere_products.py`: not run (manuscript untouched).
+- **Open points:** T1–T13 of `SYMBOLIC_CAMPAIGN.md` §3; in particular `check_inverse.py` with a small sample size
+  (200) hits a torch 2.10 forward-AD internal assertion (pre-existing on the code branch; T13).
