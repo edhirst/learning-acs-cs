@@ -50,6 +50,10 @@ rep("N1b  cusp inf: phi = 2|s|^2 + O(|s|^4)",
                 .subs(sp.Symbol('e'), 1) - 2 * r2) == 0)
 rep("N1c  det R = 1 - |t|^4 (cusp 0), -(1 - |t|^4)... printed above; both nonzero for |t| < 1",
     sp.simplify(det0 - (1 - r2 ** 2)) == 0 or sp.simplify(det0 + (1 - r2 ** 2)) == 0)
+rep("N1d  phi = 2|t|^2/(1-|t|^2), exactly at BOTH cusps",
+    all(sp.cancel(ph - 2 * r2 / (1 - r2)) == 0 for ph in (phi0, phii)))
+rep("N1e  the two signed slice determinants",
+    sp.expand(det0 - (1 - r2 ** 2)) == 0 and sp.expand(deti + (1 - r2 ** 2)) == 0)
 
 # ---------------------------------------------------------------- N2
 Xh, Y, ph = sp.symbols('Xh Y phi', real=True)
@@ -98,6 +102,11 @@ rhs = (1 - cf(rad)) * sp.diff(mu_r, rho) + cf(rad) * sp.diff(m0_r, rho) - 2 * sp
 rep("N3a  a1' = (1-c) mu' + c m0' - 2 c'(rad) m0 (m0 - mu)   [c' = dc/d rad; d rad/d rho = -2 m0]",
     sp.simplify(sp.diff(rad, rho) + 2 * m0_r) == 0 and sp.simplify(lhs - rhs) == 0)
 rep("N3b  m0' = -2 rad", sp.simplify(sp.diff(m0_r, rho) + 2 * rad) == 0)
+j_index = sp.Symbol('j', integer=True)
+rep("N3c  scaling flow differentiates every chart term by -2j, including on the axes",
+    sp.expand(-j_index * (j_index + 1) + j_index * (j_index - 1) + 2 * j_index) == 0
+    and all(sp.simplify(-2 * Xh * sp.diff(Tj, Xh) + 2 * Y * sp.diff(Tj, Y) + 2 * j * Tj) == 0
+            for j, Tj in T.items()))
 
 # ---------------------------------------------------------------- N4 (matrix identity, 3 x 3, generic smooth maps)
 q1, q2, q3 = sp.symbols('q1 q2 q3', real=True)
@@ -109,6 +118,35 @@ Lmod = (1 - cq) * M0 * qv + cq * Lf
 Dmod = Lmod.jacobian(qv)
 expect = (1 - cq) * M0 + cq * Lf.jacobian(qv) + (Lf - M0 * qv) * sp.Matrix([[sp.diff(cq, s) for s in (q1, q2, q3)]])
 rep("N4   D Lambda_mod = (1-c) M0 + c D Lambda + (Lambda - M0 q) (grad c)^T", sp.simplify(Dmod - expect) == sp.zeros(3, 3))
+
+# ---------------------------------------------------------------- I1: exact constants, NOT sampling
+# The infinite-series comparisons are proved in programme section 4.2.
+# This block checks their algebra and all endpoint constants using rationals.
+R = sp.Rational(1, 20)
+d0, d1 = sp.Rational(201, 100), sp.Rational(401, 100)
+e4_upper = sum(sp.Integer(4) ** k / sp.factorial(k) for k in range(17))
+e4_upper += sp.Integer(4) ** 17 / sp.factorial(17) / (1 - sp.Rational(4, 18))
+rep("I1a  exp(4) < 55 (positive Taylor series, geometric bound after k=16)", e4_upper < 55)
+k, ell, q = sp.symbols('k ell q', integer=True, nonnegative=True)
+rep("I1b  (ell+2)^2 >= 4+5ell: remainder ell(ell-1) >= 0 for integer ell >= 0",
+    sp.expand((ell + 2) ** 2 - 4 - 5 * ell - ell * (ell - 1)) == 0)
+tail0 = 2 / (1 - R ** 5)
+tail1 = 2 * (2 - R ** 5) / (1 - R ** 5) ** 2
+rep("I1c  sum (ell+2) q^ell = (2-q)/(1-q)^2 for 0 <= q < 1",
+    sp.cancel(q * sp.diff(1 / (1 - q), q) + 2 / (1 - q) - (2 - q) / (1 - q) ** 2) == 0)
+rep("I1d  R2 <= 2.01 rad^4 and |R1| <= 4.01 rad^4", tail0 < d0 and tail1 < d1)
+rep("I1e  4(Xh+Y)^3/27 - Xh^2 Y = (Xh-2Y)^2(4Xh+Y)/27",
+    sp.expand(4 * (Xh + Y) ** 3 - 27 * Xh ** 2 * Y - (Xh - 2 * Y) ** 2 * (4 * Xh + Y)) == 0)
+B = sp.Rational(16, 27) * 55 / (1 - 55 * R ** 2 / 4)
+C = sp.Rational(27, 10)
+C_estimate = 1 + B * R + d1 * R ** 2 + d0 * R ** 3
+C2_estimate = 1 + d0 * R ** 3 + B * R + (1 + C * R) ** 2
+rep("I1f  2 phi Xh <= B rad^3; numerator of variance bound stays positive", B * R ** 2 < 1)
+rep("I1g  |mu-m0| <= (27/10) rad^2 at both cusps", C_estimate < C)
+rep("I1h  Var >= rad(1-4rad) at both cusps", C2_estimate < 4)
+margin = 1 - 4 * R - 2 * C * R ** 2 / sp.Rational(3, 100)
+rep("I1i  -a1'/(2rad) >= 7/20 > 0 for 0 < rad <= 1/20", margin == sp.Rational(7, 20))
+print(f'PROVEN I1: C={C}, C2=4, margin={margin}; measured margins are printed separately below.')
 
 # ---------------------------------------------------------------- N5 numerical margins (sanity)
 import numpy as np
@@ -145,4 +183,60 @@ for name, a0v, phifun in (('cusp 0', 1.0, sp.lambdify((tr, ti), phi0, 'numpy')),
     print(f'{name}: max |mu - m0|/rad^2 = {C:.4f};  max (1 - Var/rad)/rad = {C2:.3f};  min of -a1\'/(2 rad) = {np.min(-a1p / (2 * radv)):.4f}')
     rep(f"N5   {name}: a1' < 0 on the node ball (sampled, 2e5 points)", np.all(a1p < 0))
 
+# ---------------------------------------------------------------- N6: finite-height replacement, independent of the Gaussian estimate
+rf = sp.Rational(1,20)
+sf = 55*rf**2/4
+Cf = (sp.Rational(16,27)*55/(1-sf)+sp.Rational(1,4))/(1-rf**2/4)
+lowerf = 1-4*sf/(1-sf)
+marginf = lowerf-2*35*rf**3/sp.Rational(3,100)
+rep("N6a finite height: |H-m0|<=35 rad^3", Cf < 35)
+rep("N6b finite height: V/rad>=265/309; corrected slope >14/25",
+    lowerf == sp.Rational(265,309) and marginf > sp.Rational(14,25))
+rep("N6c active reduced chart |H|<.055, so the node integer is unique",
+    rf+35*rf**3 < sp.Rational(11,200))
+Af,Yf,qf,uf,vf,ef = sp.symbols('Af Yf qf uf vf ef',positive=True)
+rep("N6d exact node remainder numerator",
+    sp.cancel((ef*uf-vf)/(1-qf)-(uf-vf)
+              -(-uf*(1-ef)+qf*(uf-vf))/(1-qf)) == 0)
+print('PROVEN finite height: cubic remainder constant 35; corrected slope >14/25.')
+for label,a0f in (('0',1.),('inf',math.exp(-4))):
+    rngf = np.random.default_rng(918)
+    nr = 200000
+    rr = rngf.uniform(.0005,.05,nr)
+    uu = rr*rngf.uniform(0,1,nr)
+    vv = rr-uu
+    ss = uu*vv/a0f
+    ee = np.exp(-4*ss/(1-ss))
+    qq = ee*uu*vv
+    hf = (ee*uu-vv)/(1-qq)
+    vfib = (ee*uu+vv)/(1-qq)
+    mm = uu-vv
+    ccarg = np.clip((rr-.02)/.03,1e-10,1-1e-10)
+    with np.errstate(over='ignore',under='ignore'):
+        aa,bb = np.exp(-1/ccarg),np.exp(-1/(1-ccarg))
+    st = aa/(aa+bb)
+    dst = st*(1-st)*(1/ccarg**2+1/(1-ccarg)**2)
+    slope = ((st*vfib+(1-st)*rr)-dst*mm*(mm-hf)/.03)/rr
+    rem = np.abs(hf-mm)/rr**3
+    print(f'finite cusp {label}, {nr} samples: remainder/rad^3 max {rem.max():.6f}; slope min {slope.min():.6f}')
+    rep(f"N6e finite cusp {label}: measured remainder and slope within proven bounds",
+        rem.max()<35 and slope.min()>14/25)
+    # Independent atan-periodization evaluator for the elliptic height. In this
+    # node ball q<1/1600, so the eight-term omitted tail is <2e-27.
+    aa,bb = ee*uu,vv
+    Lell,Vell = np.zeros(nr),np.zeros(nr)
+    for _ in range(8):
+        Lell += np.arctan(aa)-np.arctan(bb)
+        Vell += aa/(1+aa*aa)+bb/(1+bb*bb)
+        aa,bb = qq*aa,qq*bb
+    Hell = np.arctan((math.pi/2)*np.tan(2*Lell))/math.pi
+    dell = 1/(np.cos(2*Lell)**2+(math.pi/2)**2*np.sin(2*Lell)**2)
+    vell = dell*Vell
+    eslope = ((st*vell+(1-st)*rr)-dst*mm*(mm-Hell)/.03)/rr
+    erem = np.abs(Hell-mm)/rr**3
+    print(f'elliptic cusp {label}, {nr} samples: remainder/rad^3 max {erem.max():.6f}; slope min {eslope.min():.6f}')
+    rep(f"N7 elliptic cusp {label}: remainder<38 and corrected slope>13/25",
+        erem.max()<38 and eslope.min()>13/25)
+
 print('ALL PASS' if ok else 'FAILURES')
+assert ok, 'A symbolic identity, constant bound, or numerical check failed'

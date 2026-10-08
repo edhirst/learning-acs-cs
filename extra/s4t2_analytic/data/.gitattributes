@@ -1,0 +1,3 @@
+# Reference outputs are stored byte for byte as the scripts print them; the products-of-spheres
+# report has trailing spaces after empty lists ("no ACS (0): "), so skip the whitespace check here.
+*.txt -whitespace

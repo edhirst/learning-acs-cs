@@ -25,6 +25,183 @@ from torch.func import jvp
 EYE6 = torch.eye(6)
 
 
+def transport_shell_inverse(v, infinity=False, steps=96,*,algebraic_profile=False):
+    """Contraction inverse for the extended local base map (programme 8.1).
+
+    Return p and |p|<=EPS2. A false flag means use the raw global inverse.
+    The exact expression is the limit; its certified contraction ratio is <.68
+    for the original profile and <.7 for the algebraic profile (programme 9.2).
+    This independent function does not alter Finv or its Newton path.
+    """
+    scale = L.SINF if infinity else L.S0
+    M = scale*(L.QINF if infinity else L.Q0).to(v)
+    seed = v@M/scale**2
+    p = seed
+    for _ in range(steps):
+        radius = torch.linalg.vector_norm(p,dim=-1)
+        clipped = p*(L.EPS2/radius.clamp_min(L.EPS2))[...,None]
+        defect = L.transport_base_local(clipped,infinity,algebraic_profile=algebraic_profile)-clipped@M.T
+        p = seed-defect@M/scale**2
+    return p, torch.linalg.vector_norm(p,dim=-1) <= L.EPS2
+
+
+def _transport_axis_radius(a,finite_height=False):
+    """Central-fibre radius, including the node correction, for |a|<=1/2.
+
+    Solve a=sign(a)[c(r)r+(1-c(r))r/(1+r)], c=1 on r<=.02,
+    c=0 on r>=.05. Strict monotonicity is I1; endpoints r=0,1 bracket.
+    """
+    lo,hi = torch.zeros_like(a),torch.ones_like(a)
+    for _ in range(64):
+        r = (lo+hi)/2
+        c = 1-bump_step((r-T.NODE_IN)/(T.NODE_OUT-T.NODE_IN))
+        height = T.finite_height_seed(r) if finite_height else r/(1+r)
+        val = c*r+(1-c)*height
+        lower = val < a.abs()
+        lo,hi = torch.where(lower,r,lo),torch.where(lower,hi,r)
+    return torch.where(a == 0,torch.zeros_like(a),(lo+hi)/2)
+
+
+def P_algebraic_inv(v, X):
+    """Inverse of L.P_algebraic away from the two poles; no root solve."""
+    h = torch.linalg.vector_norm(v,dim=-1)
+    a = X*torch.sqrt(2-X*X)
+    # Rationalize only near the north pole, where 1-a loses precision.
+    gain = torch.where(X>0,(1+a)/(h*h),1/(1-a))
+    return torch.stack([v[...,0],-v[...,2],-v[...,1]],-1)*gain[...,None]
+
+
+def algebraic_cap_slice(Z,X,infinity=False):
+    """Closed slice inverse of section 9.2's radial pole model.
+
+    Caller supplies a point in the appropriate cap |Z_old|^2<=1/100.
+    The expression includes the exact pole and avoids division by |Z|.
+    """
+    h = (Z.real*Z.real+Z.imag*Z.imag).sum(-1)/(1+X.abs()*torch.sqrt(2-X*X))
+    old_Z = Z*torch.sqrt((1+h*h)/2)[...,None]
+    scale = L.SINF if infinity else L.S0
+    second = old_Z[...,1] if infinity else -1j*old_Z[...,1]
+    q1 = (old_Z[...,0]+second)/math.sqrt(2*scale)
+    q2 = (old_Z[...,0]-second)/math.sqrt(2*scale)
+    C = T.CUSPINF if infinity else T.CUSP0
+    return q1.conj()/math.sqrt(C.a0),q2
+
+
+def algebraic_r_from_absT(absT):
+    """Positive quadratic root for |T|=r*algebraic_k(r), no iteration."""
+    A,B = (4*math.pi)**2,math.exp(4)
+    u = absT*absT
+    b = A*(1-u)
+    root = torch.sqrt(b*b+4*B*u)
+    # Choose a noncancelling root form on each side of u=1.
+    denominator = torch.where(u<=1,b+root,torch.ones_like(u))
+    y = torch.where(u<=1,2*u/denominator,(root-b)/(2*B))
+    return torch.sqrt(y)
+
+
+def transport_base_inverse(v, X,*,algebraic_radial=False,algebraic_profile=False,finite_height=False):
+    """Reference W-point over the new, unfitted base inverse (programme 8.1).
+
+    Return {key: (indices,data)}. c0/ci data=(Re x,Im x,Re y,Im y);
+    mid data=(Re t,Im t,x1=0,x4). Charts are local gauges, not a continuous
+    global section. Both central fibres and both fixed points are included.
+    This is a numerical evaluator of certified roots; exact definitions use
+    the infinite height series and the contraction/bisection limits. With
+    algebraic_radial=True the nu inverse is eliminated; algebraic_profile=True
+    also eliminates the k-profile inverse (programme 9.2). finite_height=True
+    eliminates the Gaussian series, but still uses a scalar bisection here.
+    """
+    out = {}
+    assigned = torch.zeros_like(X,dtype=torch.bool)
+    C0,Ci = T.height_cusps(finite_height)
+
+    def put(key,idx,data):
+        if len(idx):
+            out[key] = (torch.cat([out[key][0],idx]),torch.cat([out[key][1],data])) if key in out else (idx,data)
+
+    def xy_data(x,y):
+        return torch.stack([x.real,x.imag,y.real,y.imag],-1)
+
+    for key,C,infinity in (('c0',C0,False),('ci',Ci,True)):
+        idx = ((X>0) if infinity else (X<0)).nonzero().flatten()
+        if not len(idx):
+            continue
+        local_v = v[idx]
+        if algebraic_radial:
+            local_v = local_v/(1+X[idx].abs()*torch.sqrt(2-X[idx]*X[idx]))[:,None]
+        p,inside = transport_shell_inverse(local_v,infinity,algebraic_profile=algebraic_profile)
+        idx,p = idx[inside],p[inside]
+        if not len(idx):
+            continue
+        radius = torch.linalg.vector_norm(p,dim=-1)
+        t = torch.complex(p[:,0],-p[:,1])/(2*math.sqrt(C.a0))
+        use_y = p[:,2] <= 0
+        yr = torch.sqrt(((radius-p[:,2])/2).clamp_min(0))
+        xr = torch.sqrt(((radius+p[:,2])/(2*C.a0)).clamp_min(0))
+        # Choose the nonzero coordinate as positive, and assign the node separately.
+        ys = torch.where(use_y,yr,torch.ones_like(yr)).to(CD)
+        xs = torch.where(~use_y,xr,torch.ones_like(xr)).to(CD)
+        x = torch.where(use_y,t/torch.where(yr>0,ys,torch.ones_like(ys)),xs)
+        y = torch.where(use_y,ys,t/xs)
+        put(key,idx,xy_data(x,y))
+        assigned[idx] = True
+
+    rest = (~assigned).nonzero().flatten()
+    if not len(rest):
+        return out
+    vr,xr = v[rest],X[rest]
+    if algebraic_radial:
+        u = moebius_inv(P_algebraic_inv(vr,xr))
+    else:
+        nv = torch.linalg.vector_norm(vr,dim=-1)
+        # Use X near the equator: -log|v| loses the small X^2 by subtraction.
+        level = torch.where(xr.abs()<0.5,-torch.log1p(-xr*xr),-torch.log(nv))
+        tau = torch.sign(xr)*nu_inv(level)
+        direction = torch.stack([vr[:,0],-vr[:,2],-vr[:,1]],-1)/nv[:,None]
+        u = moebius_inv(torch.exp(tau)[:,None]*direction)
+    zero,infty = u[:,0].abs() == 0,u[:,1].abs() == 0
+    for key,C,mask,a in (
+            ('c0',C0,zero,T.wrap(torch.angle(u[:,1])/T.TWO_PI)),
+            ('ci',Ci,infty,T.wrap(-torch.angle(u[:,0])/T.TWO_PI+0.5))):
+        if mask.any():
+            aa = a[mask]
+            r = _transport_axis_radius(aa,finite_height)
+            x = torch.sqrt(torch.where(aa>0,r/C.a0,torch.zeros_like(r))).to(CD)
+            y = torch.sqrt(torch.where(aa<0,r,torch.zeros_like(r))).to(CD)
+            put(key,rest[mask],xy_data(x,y))
+
+    reg = ~(zero|infty)
+    rest,u = rest[reg],u[reg]
+    if len(rest):
+        r = (algebraic_r_from_absT if algebraic_profile else r_from_absT)(u[:,0].abs()/u[:,1].abs())
+        t = torch.polar(r,torch.angle(u[:,0]/u[:,1]))
+        a1 = T.wrap(torch.angle(u[:,1])/T.TWO_PI)
+        a2p = torch.angle(u[:,0])/T.TWO_PI
+        middle = (r>=0.5)&(r<=2)
+        if middle.any():
+            tt,rr = t[middle],r[middle]
+            a2 = -a2p[middle]+T.lam_inf(rr)*T.delta(tt)+(1-T.lam_inf(rr))/2
+            x4 = torch.where(rr<=1,a1[middle]+T.xi4(tt)+0.5,-a2-0.5)
+            put('mid',rest[middle],torch.stack([tt.real,tt.imag,torch.zeros_like(x4),x4],-1))
+        for key,C,mask in (('c0',C0,r<0.5),('ci',Ci,r>2)):
+            if not mask.any():
+                continue
+            tc = t[mask] if key == 'c0' else 1/t[mask]
+            aa = a1[mask] if key == 'c0' else T.wrap(-a2p[mask]+0.5)
+            pp = C.P(tc)
+            lo,hi = (aa+2.5)*pp,(aa-1.5)*pp
+            for _ in range(64):
+                rho = (lo+hi)/2
+                value = T.cusp_angle(C,torch.exp(rho).to(CD),tc)
+                lower = value > aa
+                lo,hi = torch.where(lower,rho,lo),torch.where(lower,hi,rho)
+            y = torch.exp((lo+hi)/2).to(CD)
+            put(key,rest[mask],xy_data(tc/y,y))
+    if sum(len(idx) for idx,_ in out.values()) != len(X):
+        raise RuntimeError('transport base inverse did not cover all input points')
+    return out
+
+
 def nu_inv(nu):
     """|tau| with nu_fn(|tau|) = nu (nu_fn is increasing in |tau|): sqrt for nu <= 1/4, identity for nu >= 1,
     Newton on [1/2, 1] in between."""
@@ -127,7 +304,9 @@ def _lattice_from_cuspinf(zeta, s):
 
 
 def initial_guess(q):
-    """Point of Y in mid lattice form (t, logt, x1..x4) with F approximately q (exact outside the blend shells)."""
+    """Regular-part guess in mid lattice form (t, logt, x1..x4), exact outside the blend shells.
+    Finv bypasses this polar chain in the fixed-point caps; central-fibre inputs elsewhere remain T14.
+    """
     Z1, Z2 = torch.complex(q[..., 0], q[..., 1]), torch.complex(q[..., 2], q[..., 3])
     X = q[..., 4]
     h = 2 * Z1 * Z2.conj()
@@ -176,15 +355,55 @@ def to_chart(t, logt, x):
 CHART_F = {'mid': Fm.F_mid_real, 'c0': Fm.F_c0_real, 'ci': Fm.F_ci_real}
 
 
+def linear_ball_inverse(q, key):
+    """Closed inverse in a fixed-point ball, including its pole (programme section 3.4, C8).
+
+    First invert the unitary linear lift on the T^2 slice, then recover C from
+    phi=C-H*c_tilde and undo the slice. No logarithm of a vanishing coordinate.
+    """
+    C, scale = (T.CUSP0, L.S0) if key == 'c0' else (T.CUSPINF, L.SINF)
+    Z1, Z2 = torch.complex(q[..., 0], q[..., 1]), torch.complex(q[..., 2], q[..., 3])
+    second = -1j * Z2 if key == 'c0' else Z2
+    q1 = (Z1 + second) / math.sqrt(2 * scale)
+    ys = (Z1 - second) / math.sqrt(2 * scale)
+    xs = q1.conj() / math.sqrt(C.a0)
+    t = xs * ys
+    H = C.mu_chart(xs, ys)
+    c2, c3 = C.c_tilde(t)
+    phi2 = torch.atan2(q[..., 6], q[..., 5]) / T.TWO_PI
+    phi3 = torch.atan2(q[..., 8], q[..., 7]) / T.TWO_PI
+    C2, C3 = phi2 + H * c2, phi3 + H * c3
+    exponent = C2 * C.al2(t) + C3 * C.al3(t)
+    x, y = xs * torch.exp(-exponent), ys * torch.exp(exponent)
+    w = C2 * C.e2(t) + C3 * C.e3(t)
+    return torch.stack([x.real, x.imag, y.real, y.imag, w.real, w.imag], -1)
+
+
 def Finv(q, iters=8):
     """F^-1 for points q of S^4 x T^2 in R^9: returns {chart: (indices, p6, residual |F(p) - q|_inf)}."""
-    t, logt, x = initial_guess(q)
     out = {}
+    z2 = (q[..., :4] ** 2).sum(-1)
+    balls = {'c0': (q[..., 4] < 0) & (z2 <= L.S0 * L.EPS1),
+             'ci': (q[..., 4] > 0) & (z2 <= L.SINF * L.EPS1)}
+    for key, mask in balls.items():
+        if mask.any():
+            idx = mask.nonzero().flatten()
+            p = linear_ball_inverse(q[mask], key)
+            res = (CHART_F[key](p) - q[mask]).abs().max(-1).values
+            out[key] = (idx, p, res)
+    remaining = (~(balls['c0'] | balls['ci'])).nonzero().flatten()
+    if not len(remaining):
+        return out
+    t, logt, x = initial_guess(q[remaining])
     for key, val in to_chart(t, logt, x).items():
         mask, P = val
         if mask.any():
-            p, res = newton_polish(CHART_F[key], P[mask], q[mask], iters)
-            out[key] = (mask.nonzero().flatten(), p, res)
+            idx = remaining[mask]
+            p, res = newton_polish(CHART_F[key], P[mask], q[idx], iters)
+            entry = (idx, p, res)
+            out[key] = tuple(torch.cat([old, new]) for old, new in zip(out[key], entry)) if key in out else entry
+    if sum(len(entry[0]) for entry in out.values()) != len(q):
+        raise RuntimeError('F inverse failed to assign a chart to every input point')
     return out
 
 

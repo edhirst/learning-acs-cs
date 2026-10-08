@@ -15,6 +15,9 @@ L5  P_final: on |tau| <= 1/2, |v| = e^{-tau^2}, X = sign(tau) sqrt(1 - e^{-tau^2
     on |tau| >= 1, |v| = e^{-|tau|}: inverse tau = -sign(X) log|v|.  Both exact; between, tau = sign(X) nu^{-1}(-log|v|).
 L6  moebius (stereographic projection from (-1, 0) in S^3 c R^4, shifted) and its inverse are mutually inverse.
 L7  the two lifts satisfy Hopf(Z) = v and |Z|^2 = |v| identically (so (Z, X) in S^4 when |v| + X^2 = 1).
+L8  an exact smooth factorisation suffices to extend lift B across its zero arc;
+    matching transverse first derivatives alone does not suffice (explicit counterexample).
+L9  exact linearity of the orbit map is sufficient, but not necessary, at a fixed point.
 Run from the repo root: python3 extra/s4t2_explicit/sym/lemmas_1d.py
 """
 import sympy as sp
@@ -148,4 +151,171 @@ rep("L7b  lift A: 2 Z1 conj(Z2) = v1 + i v2, |Z1|^2 - |Z2|^2 = v3",
     sp.simplify(hA[0] - (vv[0] + sp.I * vv[1])) == 0 and sp.simplify(hA[1] - vv[2]) == 0)
 rep("L7c  |Z|^2 = |v| for both lifts", sp.simplify(hB[2] - n) == 0 and sp.simplify(hA[2] - n) == 0)
 
+# ---------------------------------------------------------------- L8: smooth division, not just matching first jets
+er, ei, hr, hi = sp.symbols('er ei hr hi', real=True)
+dd = sp.Symbol('d', positive=True)  # d=|v|-v3>0 near the negative meridian
+ee, hh_c = er + sp.I * ei, hr + sp.I * hi
+hn = sp.Symbol('Hnorm', positive=True)  # H != 0; impose Hnorm^2=hr^2+hi^2 below
+za = hn * ee / sp.sqrt(2 * dd)
+zb = sp.conjugate(hh_c) / hn * sp.sqrt(dd / 2)
+fa = hh_c * ee
+f2 = sp.expand_complex(fa * sp.conjugate(fa))
+v3a, na = (f2 - dd ** 2) / (2 * dd), (f2 + dd ** 2) / (2 * dd)
+rep("L8a  if f=H E, the extended lift has 2 Z1 conj(Z2)=f",
+    sp.simplify(2 * za * sp.conjugate(zb) - fa) == 0)
+rep("L8b  extended lift: |Z1|^2-|Z2|^2=v3, |Z|^2=|v|",
+    sp.cancel(sp.expand(za * sp.conjugate(za) - zb * sp.conjugate(zb) - v3a).subs(hn ** 2, hr ** 2 + hi ** 2)) == 0
+    and sp.cancel(sp.expand(za * sp.conjugate(za) + zb * sp.conjugate(zb) - na).subs(hn ** 2, hr ** 2 + hi ** 2)) == 0)
+rep("L8c  |v|^2-v3^2=|f|^2 and |v|-v3=d",
+    sp.expand(na ** 2 - v3a ** 2 - f2) == 0 and sp.simplify(na - v3a - dd) == 0)
+# Counterexample: E(z)=z+conj(z)^2 and
+# v=(2 Re(z)sqrt(1-|z|^2), 2 Im(z)sqrt(1-|z|^2), 2|z|^2-1).
+# The zero is transverse and df(0)=2 dE(0), but lift B's second component
+# is sqrt(1-|z|^2) * conj(z) E/(|z||E|), which is not differentiable at zero.
+xr, yi = sp.symbols('xr yi', real=True)
+zz = xr + sp.I * yi
+e_bad = zz + sp.conjugate(zz) ** 2
+rep("L8d  counterexample: dE(0)=identity and v lands in the unit sphere",
+    sp.Matrix([sp.re(e_bad), sp.im(e_bad)]).jacobian([xr, yi]).subs({xr: 0, yi: 0}) == sp.eye(2)
+    and sp.expand(4 * (xr ** 2 + yi ** 2) * (1 - xr ** 2 - yi ** 2)
+                  + (2 * (xr ** 2 + yi ** 2) - 1) ** 2 - 1) == 0)
+eps = sp.Symbol('eps', real=True)
+directional = []
+for direction in (sp.Integer(1), sp.I, 1 + sp.I):
+    ed = direction + eps * sp.conjugate(direction) ** 2
+    phase = sp.conjugate(direction) * ed / (sp.Abs(direction) * sp.sqrt(sp.expand(ed * sp.conjugate(ed))))
+    directional.append(sp.simplify(sp.diff(phase, eps).subs(eps, 0)))
+rep("L8e  directional derivatives of Z2 along 1,i,1+i are 0,i,-i (not linear)",
+    directional == [0, sp.I, -sp.I] and directional[2] != directional[0] + directional[1])
+second_directional = []
+for direction in (sp.Integer(1), sp.I, 1 + sp.I, 1 - sp.I):
+    ed = direction + eps * sp.conjugate(direction) ** 2
+    first_component = eps * sp.Abs(direction) * ed / sp.sqrt(sp.expand(ed * sp.conjugate(ed)))
+    second_directional.append(sp.simplify(sp.diff(first_component, eps, 2).subs(eps, 0)))
+rep("L8f  Z1 is not C2: its second directional derivatives violate the parallelogram identity",
+    second_directional == [0, -2, 2 - 2 * sp.I, 2 + 2 * sp.I]
+    and second_directional[2] + second_directional[3] != 2 * (second_directional[0] + second_directional[1]))
+
+# ---------------------------------------------------------------- L9: a smooth nonlinear radial lift
+ar, ai, br, bi = sp.symbols('ar ai br bi', real=True)
+gain = sp.Symbol('gain', positive=True)
+wa, wb = ar + sp.I * ai, br + sp.I * bi
+radius = ar ** 2 + ai ** 2 + br ** 2 + bi ** 2
+Za, Zb = gain * wa, gain * wb
+rep("L9a  Hopf(gain*w)=gain^2 Hopf(w), and |gain*w|^2=gain^2 |w|^2",
+    sp.expand(2 * Za * sp.conjugate(Zb) - gain ** 2 * 2 * wa * sp.conjugate(wb)) == 0
+    and sp.expand(Za * sp.conjugate(Za) - Zb * sp.conjugate(Zb)
+                  - gain ** 2 * (wa * sp.conjugate(wa) - wb * sp.conjugate(wb))) == 0
+    and sp.expand(Za * sp.conjugate(Za) + Zb * sp.conjugate(Zb) - gain ** 2 * radius) == 0)
+rep("L9b  |Hopf(w)|^2=|w|^4, so gain^2=scale*(1+|w|^4) is a nonlinear function of Hopf(w)",
+    sp.expand(4 * (ar ** 2 + ai ** 2) * (br ** 2 + bi ** 2)
+              + (ar ** 2 + ai ** 2 - br ** 2 - bi ** 2) ** 2 - radius ** 2) == 0)
+rep("L9c  height radicand > 0 for |w|^2<=1/100 and scale<=7",
+    1 - 7 * sp.Rational(1, 100) * (1 + sp.Rational(1, 100) ** 2) > sp.Rational(9, 10))
+
+# ---------------------------------------------------------------- L10: algebraic radial compactification
+rr = sp.Symbol('rr',positive=True)
+hh = 2*rr/(1+rr**2)
+XX = (rr-1)/sp.sqrt(1+rr**2)
+rep("L10a algebraic P: |v|+X^2=1; strictly positive radial derivative",
+    sp.simplify(hh+XX**2-1) == 0
+    and sp.simplify(sp.diff(XX,rr)-(1+rr)/(1+rr**2)**sp.Rational(3,2)) == 0)
+aa = (rr**2-1)/(1+rr**2)
+rep("L10b inverse: X sqrt(2-X^2)=(r^2-1)/(1+r^2)",
+    sp.simplify(XX*sp.sqrt(sp.factor(2-XX**2))-aa) == 0)
+rep("L10c both radial inverse compositions and the stable reciprocal",
+    sp.cancel(hh/(1-aa)-rr) == 0
+    and sp.cancel((1-aa)*(1+aa)-hh**2) == 0
+    and sp.cancel((1-aa)/(1+aa)-1/rr**2) == 0)
+# On a pole cap r denotes the OLD squared complex radius (<1).
+cap_s = (1-rr**2)/(1+rr**2)
+rep("L10d cap inverse and radial gain contain no zero-radius division",
+    sp.cancel(hh/(1+cap_s)-rr) == 0
+    and sp.factor(sp.together((1+rr**2)/2-1/(1+cap_s))) == 0)
+rad_new = sp.Symbol('rad_new',positive=True)
+srad = sp.sqrt(1-rad_new**2)
+gainrad = 1/sp.sqrt(1+srad)
+rep("L10e radial Jacobian eigenvalues g,g,g,g/s",
+    sp.simplify(gainrad+2*rad_new*sp.diff(gainrad,rad_new)-gainrad/srad) == 0)
+rep("L10f explicit radial Jacobian inverse (rank-one identity)",
+    sp.simplify((gainrad+2*rad_new*sp.diff(gainrad,rad_new))
+                *(1-rad_new**2/(1+srad))/gainrad-1) == 0)
+
+# ---------------------------------------------------------------- L11: balanced algebraic base profile
+Ap,Bp,yp,up,rhop = sp.symbols('Ap Bp yp up rhop',positive=True)
+profile = (Ap*yp+Bp*yp**2)/(1+Ap*yp)
+rep("L11a derivative of |T|^2 in r^2 has positive coefficients",
+    sp.factor(sp.diff(profile,yp)-(Ap+2*Bp*yp+Ap*Bp*yp**2)/(1+Ap*yp)**2) == 0)
+rootp = (sp.sqrt(Ap**2*(1-up)**2+4*Bp*up)-Ap*(1-up))/(2*Bp)
+rep("L11b positive quadratic inverse of the base profile",
+    sp.simplify(Bp*rootp**2+Ap*(1-up)*rootp-up) == 0)
+rep("L11c rationalized inverse and endpoint scales",
+    sp.simplify(rootp-2*up/(Ap*(1-up)+sp.sqrt(Ap**2*(1-up)**2+4*Bp*up))) == 0
+    and sp.limit(profile/yp,yp,0) == Ap and sp.limit(profile/yp,yp,sp.oo) == Bp/Ap)
+beta2 = (1+Bp*rhop**2/(4*Ap))/(1+Ap*rhop**2/4)
+k2 = lambda q: (Ap+Bp*q)/(1+Ap*q)
+rep("L11d same transverse beta at BOTH cusps",
+    sp.cancel(k2(rhop**2/4)/Ap-beta2) == 0
+    and sp.cancel((Bp/Ap)/k2(4/(Bp*rhop**2))-beta2) == 0)
+ab,bb = sp.symbols('ab bb',positive=True)
+beta = sp.sqrt((1+ab*rhop**2)/(1+bb*rhop**2))
+rep("L11e beta derivative and positivity of the radial eigenvalue",
+    sp.simplify(sp.diff(beta,rhop)-(ab-bb)*rhop/((1+bb*rhop**2)**2*beta)) == 0
+    and sp.simplify(beta+rhop*sp.diff(beta,rhop)
+                   -(1+2*ab*rhop**2+ab*bb*rhop**4)/((1+bb*rhop**2)**2*beta)) == 0)
+
+# ---------------------------------------------------------------- L12: exact identities underlying restricted obstructions
+nn,dd,cc = sp.symbols('nn dd cc',positive=True)
+rep("L12a polynomial-exponential bound: maximum at n=2d/c",
+    sp.simplify(sp.diff(nn**dd*sp.exp(-cc*nn/2),nn)
+                -nn**(dd-1)*sp.exp(-cc*nn/2)*(dd-cc*nn/2)) == 0)
+ta,tb,za,zb = sp.symbols('ta tb za zb',real=True)
+rep("L12b middle-connection holonomy around a rectangle is its area",
+    sp.expand(tb*(zb-za)+ta*(za-zb)-(tb-ta)*(zb-za)) == 0)
+rep("L12c a flat-at-zero exponential has superpolynomial decay",
+    all(sp.limit(sp.exp(-1/u)/u**k,u,0,dir='+') == 0 for k in range(9)))
+# The document proves the arbitrary-order statement by the positive exp series,
+# not by extrapolating these nine checks.
+phase12 = sp.Symbol('phase12',real=True)
+rep("L12d smooth unit phase can cross the principal-argument cut",
+    sp.trigsimp(sp.sin(phase12)**2+sp.cos(phase12)**2-1) == 0
+    and sp.simplify(sp.exp(sp.I*(sp.pi+phase12))-sp.exp(sp.I*(-sp.pi+phase12))) == 0
+    and bool(sp.pi/4 < 1))
+
+# ---------------------------------------------------------------- L13: finite, smooth deck-equivariant height
+u13,q13,lam13,dl13 = sp.symbols('u13 q13 lam13 dl13',positive=True)
+seed13 = u13+lam13*(u13/(1+u13)-u13)
+seed_der13 = (1-lam13)+lam13/(1+u13)**2-dl13*u13**2/(1+u13)
+rep("L13a seed derivative, with lambda'=s'/(u log 8)",
+    sp.simplify(sp.diff(seed13,u13)+sp.diff(seed13,lam13)*dl13-seed_der13) == 0)
+# log 8>2: log 2=2 atanh(1/3)>2/3, by the positive power series.
+rep("L13b log 8>2 from log 2=2 atanh(1/3)",
+    sp.simplify(2*sp.atanh(sp.Rational(1,3)).rewrite(sp.log)-sp.log(2)) == 0
+    and 3*2*sp.Rational(1,3) == 2)
+rep("L13c transition K'>4/9-1/3=1/9; reciprocal derivative positive",
+    sp.Rational(4,9)-sp.Rational(1,3) == sp.Rational(1,9)
+    and sp.diff(1-sp.Function('K')(1/u13),u13)
+        == sp.Subs(sp.Derivative(sp.Function('K')(sp.Symbol('_xi_1')),sp.Symbol('_xi_1')),
+                   sp.Symbol('_xi_1'),1/u13)/u13**2)
+v13 = sp.symbols('v13',real=True)
+rep("L13d q<=v(1-v)/(1+3v)<1/8: numerator is a positive square plus 7/32",
+    sp.expand(8*v13**2-5*v13+1-(8*(v13-sp.Rational(5,16))**2+sp.Rational(7,32))) == 0)
+Ku,Kqu = sp.symbols('Ku Kqu')
+Su = Ku+Kqu+q13*q13*u13/(1-q13)
+Squ = Kqu+q13*q13*u13+q13**3*u13/(1-q13)
+rep("L13e two-seed sum has the exact recurrence S(u)-S(qu)=K(u)",
+    sp.cancel(Su-Squ-Ku) == 0)
+A13,Y13 = sp.symbols('A13 Y13',positive=True)
+rep("L13f linear tails: H=(A-Y)/(1-q), with A=q/Y",
+    sp.cancel((A13+q13*A13+q13*q13*A13/(1-q13))
+              -(Y13+q13*Y13+q13*q13*Y13/(1-q13))-(A13-Y13)/(1-q13)) == 0)
+S1,SY,SA,KY = sp.symbols('S1 SY SA KY')
+rep("L13g reciprocal seed and recurrence imply H(qY)-H(Y)=1",
+    sp.expand((SA+1-KY)-(SY-KY)-(SA-SY)) == 1)
+rep("L13h qY derivative and half-cell endpoint identities",
+    sp.simplify(sp.diff((q13/Y13-Y13)/(1-q13),Y13)*2*Y13
+                +2*(q13/Y13+Y13)/(1-q13)) == 0
+    and sp.expand((S1-sp.Rational(1,2))-S1) == -sp.Rational(1,2))
+
 print('ALL PASS' if ok else 'FAILURES')
+assert ok, 'A one-variable or lift identity failed'

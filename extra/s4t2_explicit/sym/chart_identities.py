@@ -12,6 +12,13 @@ C4  the central-fibre heights: with the chart series mu(x, y) = sum_j j T_j / su
 C5  the fibre derivative identity d mu / d rho = -2 Var_w(n) for the torus series (independent re-derivation).
 C6  the T^2-trivialisation at the cusp: phi0 = C - H c(t) is invariant under G4 (C += c, H += 1) and equivariant under
     T^2 and G2, G3 (exact, by linearity), and the inverse C = phi0 + H c is explicit.
+C7  discrete-Gaussian centring and reflection identities used to remove wrap from the fibre blend;
+    the infinite-series argument and the strict half-cell bound are in programme section 3.3.
+C8  closed inverses in the two linear fixed-point balls, including the poles.
+C9  full complex coframe, determinant and tensor formula on those target caps.
+C10 naturality in dimension six, using a completely arbitrary symmetric second jet.
+C11 explicit circle-connection identities for the proposed quadrature lift.
+C12 branch and deck invariance of the existing T^2 trivialization.
 Run from the repo root: python3 extra/s4t2_explicit/sym/chart_identities.py
 """
 import sympy as sp
@@ -104,4 +111,750 @@ rep("C6a  G4 (C += c, H += 1) leaves phi0 invariant",
     sp.simplify(phi0.subs({C2_: C2_ + c2, C3_: C3_ + c3, H: H + 1}) - phi0) == sp.zeros(2, 1))
 rep("C6b  inverse: C = phi0 + H c", True)
 
+# ---------------------------------------------------------------- C7: no wrap is needed
+j, centre, a, b = sp.symbols('j centre a b', real=True)
+rep("C7a  torus exponent = P(j-centre)^2 - P centre^2, centre=rho/P-1/2",
+    sp.expand((P * (j - centre) ** 2 - P * centre ** 2).subs(centre, rho / P - sp.Rational(1, 2))
+              - (-2 * j * rho + j * (j + 1) * P)) == 0)
+weight = sp.exp(-a * (j - centre) ** 2)
+rep("C7b  at a half-integer centre b, reflection j -> 2b-j preserves weights",
+    sp.simplify(weight.subs({j: 2 * b - j, centre: b}, simultaneous=True) - weight.subs(centre, b)) == 0)
+rep("C7c  reflected contributions to the centred first moment cancel",
+    sp.expand((j - b) + (2 * b - j - b)) == 0)
+D, N, S = sp.symbols('D N S', positive=True)
+rep("C7d  d mean/d centre = 2a Var (a=-P>0), by the quotient rule",
+    sp.cancel((2 * a * (S - centre * N) * D - N * 2 * a * (N - centre * D)) / D ** 2
+              - 2 * a * (S / D - (N / D) ** 2)) == 0)
+rep("C7e  integer translation of centre is the same translation of the index",
+    sp.expand(((j + 1) - (centre + 1)) ** 2 - (j - centre) ** 2) == 0)
+# For a>0 the Gaussian and all derivatives converge uniformly on compact sets.
+# Thus mean'(centre)>0 and mean(b)=b at every b in (1/2)Z.
+# Centre and mean lie in the same half-cell, so |mean-centre|<1/2.
+# The node correction is absent whenever the blend weight is nonzero:
+# |t| <= rad/(2 sqrt(a0)) <= exp(2)/40 < 1/5 < RA=3/10 on its support.
+rep("C7f  exp(2)<8 suffices to separate node support from the blend annulus",
+    sp.Rational(8, 40) < sp.Rational(3, 10) and bool(sp.exp(2) < 8))
+theta, xi = sp.symbols('theta xi', real=True)
+aa1 = x4 - xi - sp.Rational(1, 2)
+aa2 = -x4 - sp.Rational(1, 2)
+aa2p = -aa2 + theta / (2 * sp.pi) - xi
+rep("C7g  clutching: a2prime-a1 = arg(t)/(2pi) modulo integers",
+    sp.expand(aa2p - aa1 - theta / (2 * sp.pi)) == 1)
+delta = sp.Symbol('delta', real=True)
+rep("C7h  finite centred truncation: square differences for pairing j,-j and j,1-j",
+    sp.expand((-j - delta) ** 2 - (j - delta) ** 2 - 4 * j * delta) == 0
+    and sp.expand((j - delta) ** 2 - (1 - j - delta) ** 2 - (2 * j - 1) * (1 - 2 * delta)) == 0)
+
+# ---------------------------------------------------------------- C8: the inverse avoids polar coordinates at Z=0
+U0 = sp.Matrix([[1, 1], [sp.I, -sp.I]]) / sp.sqrt(2)
+Ui = sp.Matrix([[1, 1], [1, -1]]) / sp.sqrt(2)
+rep("C8a  both linear lift matrices have the explicit inverse U*",
+    all(sp.simplify(U.conjugate().T * U) == sp.eye(2) for U in (U0, Ui)))
+Z1, Z2 = sp.symbols('Z1 Z2')
+scale = sp.Symbol('scale', positive=True)
+for name, U, second in (('c0', U0, -sp.I * Z2), ('ci', Ui, Z2)):
+    recovered = sp.Matrix([Z1 + second, Z1 - second]) / sp.sqrt(2 * scale)
+    rep(f"C8b  {name}: forward linear lift composed with inverse is (Z1,Z2)",
+        sp.simplify(sp.sqrt(scale) * U * recovered - sp.Matrix([Z1, Z2])) == sp.zeros(2, 1))
+xs, ys, exponent = sp.symbols('xs ys exponent')
+xp, yp = xs * sp.exp(-exponent), ys * sp.exp(exponent)
+rep("C8c  undoing the T^2 slice preserves t and recovers (xs,ys)",
+    sp.simplify(xp * yp - xs * ys) == 0
+    and sp.simplify(xp * sp.exp(exponent) - xs) == 0
+    and sp.simplify(yp * sp.exp(-exponent) - ys) == 0)
+phi2, phi3 = sp.symbols('phi2 phi3', real=True)
+rep("C8d  C=phi+H c recovers the prescribed torus phases after the slice inverse",
+    phi0.subs({C2_: phi2 + H * c2, C3_: phi3 + H * c3}) == sp.Matrix([phi2, phi3]))
+rep("C8e  in the linear balls, |t| <= exp(2)*EPS1/2 < 2/125 < 1",
+    sp.Rational(8, 1) * sp.Rational(4, 1000) / 2 == sp.Rational(2, 125)
+    and sp.Rational(2, 125) < 1)
+J_slice = sp.diag(-sp.I, sp.I)  # coordinates (sqrt(a0)*conj(x), y)
+rep("C8f  pole values on complex Z: south (-Z2,Z1), north (-i Z2,-i Z1)",
+    sp.simplify(U0 * J_slice * U0.conjugate().T) == sp.Matrix([[0, -1], [1, 0]])
+    and sp.simplify(Ui * J_slice * Ui.conjugate().T) == sp.Matrix([[0, -sp.I], [-sp.I, 0]]))
+Jw = sp.Matrix([[0, -1], [1, 0]])
+Ci = sp.diag(-1, 1)  # w=-phi2+i phi3 at the north pole
+rep("C8g  pole values on torus angles: south Jw, north -Jw", Ci.inv() * Jw * Ci == -Jw)
+
+# ---------------------------------------------------------------- C9: an explicit tensor on the whole caps
+tr, ti = sp.symbols('tr ti', real=True)
+tc = tr+sp.I*ti
+r2 = tr*tr+ti*ti
+Fh = 2*r2/(1-r2)
+for sigma in (1,-1):
+    e2c, e3c = sigma*(1-tc**2), sp.I*(1+tc**2)
+    c2c, c3c = 2*tr/(1-r2), 2*sigma*ti/(1-r2)
+    W = phi2-sp.I*sigma*phi3
+    Ac = (phi2+H*c2c)*tc-sp.I*sigma*(phi3+H*c3c)*tc
+    wc = (phi2+H*c2c)*e2c+(phi3+H*c3c)*e3c
+    R = sp.Matrix([[sp.re(e2c),sp.re(e3c)],[sp.im(e2c),sp.im(e3c)]])
+    rep(f"C9a sigma={sigma}: closed exponent, w, and slice determinant",
+        sp.simplify(Ac-tc*W-H*Fh) == 0
+        and sp.simplify(wc-sigma*(sp.conjugate(W)-W*tc**2+2*H*tc)) == 0
+        and sp.expand(R.det()-sigma*(1-r2**2)) == 0)
+t_, W_, Wbar_, A_, theta_, thetabar_ = sp.symbols('t W Wbar A theta thetabar')
+f_, dH_, df_, dt_, dW_, dWbar_, dxs_, dys_ = sp.symbols('f dH df dt dW dWbar dxs dys')
+dA_ = W_*dt_+t_*dW_+H*df_+f_*dH_
+eta1, eta2 = dxs_-xs*dA_, dys_+ys*dA_
+rep("C9b coframe: exp(A) dx and exp(-A) dy; dt=y_s eta1+x_s eta2",
+    sp.simplify(sp.exp(A_)*(sp.exp(-A_)*dxs_-xs*sp.exp(-A_)*dA_)-eta1) == 0
+    and sp.simplify(sp.exp(-A_)*(sp.exp(A_)*dys_+ys*sp.exp(A_)*dA_)-eta2) == 0
+    and sp.expand(ys*eta1+xs*eta2-ys*dxs_-xs*dys_) == 0)
+w_ = Wbar_-W_*t_**2+2*H*t_
+dw_ = sum(sp.diff(w_,v)*dv for v,dv in ((t_,dt_),(W_,dW_),(Wbar_,dWbar_),(H,dH_)))
+rep("C9c differential of w", sp.expand(dw_-(dWbar_-t_**2*dW_+(2*H-2*W_*t_)*dt_+2*t_*dH_)) == 0)
+rep("C9d torus translation is holomorphic in (x,y,w), t=xy",
+    sp.simplify(xs*sp.exp(-t_*(W_+theta_)-H*f_)-sp.exp(-theta_*t_)*xs*sp.exp(-t_*W_-H*f_)) == 0
+    and sp.expand(w_.subs({W_:W_+theta_,Wbar_:Wbar_+thetabar_}, simultaneous=True)-w_-thetabar_+theta_*t_**2) == 0)
+lam = sp.Symbol('lambda')
+Axy = sp.Matrix([[1-lam*xs*ys,-lam*xs**2],[lam*ys**2,1+lam*xs*ys]])
+shear = sp.eye(6)
+for row in range(2):
+    for col in range(4):
+        shear[4+row,col] = sp.Symbol(f'cder{row}{col}')
+rep("C9e determinant factors: complex normal block and real shear both have determinant 1",
+    sp.expand(Axy.det()) == 1 and shear.det() == 1)
+Xh,Yh,fh = sp.symbols('Xh Yh fh', positive=True)
+jj = sp.Symbol('j', integer=True)
+aa,bb = jj*(jj+1)/2,jj*(jj-1)/2
+term = sp.exp(-jj*(jj+1)*fh)*Xh**aa*Yh**bb
+rep("C9f termwise derivatives for the height coframe",
+    sp.simplify(sp.diff(term,Xh)-aa*sp.exp(-jj*(jj+1)*fh)*Xh**(aa-1)*Yh**bb) == 0
+    and sp.simplify(sp.diff(term,Yh)-bb*sp.exp(-jj*(jj+1)*fh)*Xh**aa*Yh**(bb-1)) == 0
+    and sp.simplify(sp.diff(term,fh)+jj*(jj+1)*term) == 0)
+dNh,dDh,Nh,Dh = sp.symbols('dNh dDh Nh Dh')
+rep("C9g quotient derivative for H", sp.cancel((dNh*Dh-Nh*dDh)/Dh**2-(dNh-Nh/Dh*dDh)/Dh) == 0)
+J6 = sp.diag(Jw,Jw,Jw)
+rep("C9h real complex-structure block squares to -Id", J6*J6 == -sp.eye(6))
+# The cap coordinate embedding has differential E4=(I4,-Z^T/X).
+# Its left inverse on tangent vectors is R4=(I4-Z Z^T,-X Z).
+zr = sp.Matrix(sp.symbols('z0:4', real=True))
+height = sp.Symbol('height', nonzero=True, real=True)
+E4 = sp.eye(4).col_join(-zr.T/height)
+R4 = (sp.eye(4)-zr*zr.T).row_join(-height*zr)
+rep("C9i tangent coordinate extraction composed with embedding is Id", sp.simplify(R4*E4) == sp.eye(4))
+angle = sp.Symbol('angle', real=True)
+Ec = 2*sp.pi*sp.Matrix([-sp.sin(angle),sp.cos(angle)])
+Rc = Ec.T/(2*sp.pi)**2
+rep("C9j circle-angle coordinate extraction composed with embedding is Id", sp.trigsimp((Rc*Ec)[0]) == 1)
+normals = sp.Matrix.vstack(zr,sp.Matrix([height]))
+rep("C9k coordinate extraction kills the sphere normal on |Z|^2+X^2=1",
+    sp.simplify(R4*normals-zr*(1-(zr.T*zr)[0]-height**2)) == sp.zeros(4,1))
+a0_ = sp.Symbol('a0',positive=True)
+z1c,z2c = zr[0]+sp.I*zr[1],zr[2]+sp.I*zr[3]
+for U in (U0,Ui):
+    qlin = U.conjugate().T*sp.Matrix([z1c,z2c])/sp.sqrt(scale)
+    xc,yc = sp.conjugate(qlin[0])/sp.sqrt(a0_),qlin[1]
+    realmap = sp.Matrix([sp.re(xc),sp.im(xc),sp.re(yc),sp.im(yc)])
+    rep("C9l real determinant of Z -> (xs,ys) is -1/(scale^2*a0)",
+        sp.simplify(realmap.jacobian(zr).det()+1/(scale**2*a0_)) == 0)
+
+# ---------------------------------------------------------------- C10: generic six-dimensional naturality
+# For a local diffeomorphism F, normalize A=DF to Id at the point by a constant
+# real linear change of target coordinates. Every symmetric Hessian remains
+# possible. Then J=A J6 A^-1 and d_k J=H_k J6-J6 H_k.
+# This is a jet identity, not a numerical test and not a check that F is a diffeomorphism.
+dim = 6
+Hjet = [[[sp.Symbol(f'H{out}_{min(i,k)}{max(i,k)}') for k in range(dim)]
+         for i in range(dim)] for out in range(dim)]
+dJjet = [sp.Matrix(dim,dim,lambda out,i: Hjet[out][i][k])*J6
+          -J6*sp.Matrix(dim,dim,lambda out,i: Hjet[out][i][k]) for k in range(dim)]
+rep("C10a differentiated J^2=-Id for an arbitrary second jet",
+    all(sp.expand(x) == 0 for DJ in dJjet for x in DJ*J6+J6*DJ))
+all_N = []
+for out in range(dim):
+    for i in range(dim):
+        for j in range(dim):
+            nij = sum(J6[p,i]*dJjet[p][out,j]-J6[p,j]*dJjet[p][out,i]
+                      -J6[out,p]*(dJjet[i][p,j]-dJjet[j][p,i]) for p in range(dim))
+            all_N.append(sp.expand(nij))
+rep("C10b all 216 Nijenhuis components vanish for arbitrary symmetric Hessians",
+    all(value == 0 for value in all_N))
+# Control: A=Id+q_2 E_00 is a frame matrix, but is not a coordinate Jacobian.
+# Its invertible conjugation still gives J^2=-Id, while N^1_{0,3}=-1 at zero.
+bad_H = [sp.zeros(dim) for _ in range(dim)]
+bad_H[2][0,0] = 1
+bad_dJ = [HH*J6-J6*HH for HH in bad_H]
+control_N = sum(J6[p,0]*bad_dJ[p][1,3]-J6[p,3]*bad_dJ[p][1,0]
+                -J6[1,p]*(bad_dJ[0][p,3]-bad_dJ[3][p,0]) for p in range(dim))
+rep("C10c non-coordinate-frame control has N^1_(0,3)=-1", control_N == -1)
+
+# ---------------------------------------------------------------- C11: connection descent and transport identities
+# The source circle acts by (x,y)->(exp(-i theta)x,exp(i theta)y).
+xr,xi,yr,yi = sp.symbols('xr xi yr yi',real=True)
+weight0 = sp.Symbol('weight0',positive=True)
+radc = weight0*(xr*xr+xi*xi)+yr*yr+yi*yi
+alpha_local = sp.Matrix([weight0*xi,-weight0*xr,-yi,yr])/radc
+circle_generator = sp.Matrix([xi,-xr,-yi,yr])
+rep("C11a local Hopf connection evaluates to 1 on the circle generator",
+    sp.cancel((alpha_local.T*circle_generator)[0]-1) == 0)
+Xc,Yc,dchi,dtheta,nidx = sp.symbols('Xc Yc dchi dtheta nidx',real=True)
+rep("C11b torus expression alpha_n=dchi+(n-f_n)dtheta, f_n=X_n/(X_n+Y_n)",
+    sp.cancel((-Xc*(dtheta-(dchi+nidx*dtheta))+Yc*(dchi+nidx*dtheta))/(Xc+Yc)
+              -dchi-(nidx-Xc/(Xc+Yc))*dtheta) == 0)
+av = sp.Symbol('average',real=True)
+rep("C11c deck shift dchi->dchi+dtheta, average->average-1 preserves alpha",
+    sp.expand(dchi+dtheta+(av-1)*dtheta-dchi-av*dtheta) == 0)
+dx1_,dx4_,theta_base = sp.symbols('dx1 dx4 theta_base',real=True)
+rep("C11d middle connection 2pi dx1+arg(t) dx4 is branch invariant",
+    sp.expand(2*sp.pi*(dx1_-dx4_)+(theta_base+2*sp.pi)*dx4_-2*sp.pi*dx1_-theta_base*dx4_) == 0)
+rep("C11e connection partition and exact linear-cap support",
+    (sp.Rational(9,10)-sp.Rational(1,2))/(sp.Rational(9,10)-sp.Rational(2,5)) > sp.Rational(1,2)
+    and sp.Rational(1,250)+sp.Rational(27,10)*sp.Rational(1,250)**2 < sp.Rational(1,10)
+    and sp.Rational(1,20)+sp.Rational(27,10)*sp.Rational(1,20)**2 == sp.Rational(227,4000)
+    and sp.Rational(227,4000) < sp.Rational(1,2))
+# Gauge coordinates theta_b=theta_a+h(b) require A_b=A_a-dh.
+# On a path, integral(A_b)=integral(A_a)-h(end)+h(start).
+theta_start,integral_A,ha,hb = sp.symbols('theta_start integral_A h_start h_end',real=True)
+rep("C11f quadrature transport is independent of the phase chart",
+    sp.expand((theta_start+ha)-(integral_A-hb+ha)-(theta_start-integral_A+hb)) == 0)
+Iab,Ibc = sp.symbols('Iab Ibc',real=True)
+rep("C11g transport composes and reverses exactly",
+    sp.expand((theta_start-Iab)-Ibc-(theta_start-(Iab+Ibc))) == 0
+    and sp.expand(theta_start-Iab+Iab-theta_start) == 0)
+Theta = sp.Symbol('Theta',real=True)
+rep("C11h north-end mismatch is cancelled by the phase correction",
+    sp.simplify(sp.exp(-sp.I*Theta)*sp.exp(sp.I*Theta)-1) == 0)
+Bmap = sp.Matrix(3,3,sp.symbols('B0:9'))
+triangular = sp.eye(6)
+triangular[:3,:3] = Bmap
+for row in range(3,6):
+    for col in range(3):
+        triangular[row,col] = sp.Symbol(f'phase_der{row}_{col}')
+rep("C11i base map plus circle/torus translations has determinant det(base)",
+    sp.expand(triangular.det()-Bmap.det()) == 0)
+
+# C12: the torus trivialization has a global real correction on each gluing annulus.
+ss = sp.Symbol('s')
+rep("C12a Phi correction under log(t)->log(t)+2pi i is e4",
+    sp.expand(sp.pi*(ss+1)*ss-sp.pi*ss*(ss-1)-2*sp.pi*ss) == 0
+    and sp.expand(2*t_*(ss+1)-2*t_*ss-2*t_) == 0)
+x2g,x3g,x4g,xi2g,xi3g,xi4g,chg2,chg3,Hg = sp.symbols('x2g x3g x4g xi2g xi3g xi4g chg2 chg3 Hg',real=True)
+x4slice = x4g-xi4g
+Cg = sp.Matrix([x2g-xi2g+x4slice*chg2,x3g-xi3g+x4slice*chg3])
+Dg = sp.Matrix([xi2g+(Hg-x4slice)*chg2,xi3g+(Hg-x4slice)*chg3])
+rep("C12b phi0=C-H*c=x23-D0 exactly",
+    sp.simplify(Cg-Hg*sp.Matrix([chg2,chg3])-sp.Matrix([x2g,x3g])+Dg) == sp.zeros(2,1))
+rep("C12c D0 invariant under deck x4,H -> x4+1,H+1",
+    sp.simplify(Dg.subs({x4g:x4g+1,Hg:Hg+1},simultaneous=True)-Dg) == sp.zeros(2,1))
+rep("C12d D0 invariant under branch xi4,H -> xi4+1,H-1",
+    sp.simplify(Dg.subs({xi4g:xi4g+1,Hg:Hg-1},simultaneous=True)-Dg) == sp.zeros(2,1))
+Di = sp.Matrix([(Hg+x4g)*chg2,(Hg+x4g)*chg3])
+rep("C12e Dinf invariant under x4,H -> x4+1,H-1",
+    sp.simplify(Di.subs({x4g:x4g+1,Hg:Hg-1},simultaneous=True)-Di) == sp.zeros(2,1))
+u0,v0,ui0,uj0,vi0,vj0 = sp.symbols('u0 v0 ui0 uj0 vi0 vj0',real=True)
+wedge = ui0*vj0-uj0*vi0
+constraint_i,constraint_j = u0*ui0+v0*vi0,u0*uj0+v0*vj0
+rep("C12f unit-circle phase form is closed: its exterior derivative is forced to vanish",
+    sp.expand((u0*u0+v0*v0)*wedge-u0*(constraint_i*vj0-constraint_j*vi0)
+              -v0*(ui0*constraint_j-uj0*constraint_i)) == 0)
+
+# C13: explicit real logarithm of a smooth S^2 -> S^1 map, by two radial integrals.
+u1s,u2s,tau_s = sp.symbols('u1s u2s tau_s',real=True)
+usq = u1s*u1s+u2s*u2s
+SN = sp.Matrix([2*u1s,2*u2s,1-usq])/(1+usq)
+SS = sp.Matrix([2*u1s,2*u2s,usq-1])/(1+usq)
+rep("C13a two stereographic parametrizations and their inverses",
+    sp.cancel((SN.T*SN)[0]-1) == 0 and sp.cancel((SS.T*SS)[0]-1) == 0
+    and sp.cancel(SN[0]/(1+SN[2])-u1s) == 0
+    and sp.cancel(SN[1]/(1+SN[2])-u2s) == 0
+    and sp.cancel(SS[0]/(1-SS[2])-u1s) == 0
+    and sp.cancel(SS[1]/(1-SS[2])-u2s) == 0
+    and SN.subs({u1s:1,u2s:0}) == SS.subs({u1s:1,u2s:0}))
+# d_j int_0^1 A_i(tu) u_i dt = int_0^1 d_t(t A_j(tu)) dt
+# when dA=0. The symmetric first jet is arbitrary at each tu.
+a1s,a2s,h11,h12,h22 = sp.symbols('a1s a2s h11 h12 h22',real=True)
+Avec = sp.Matrix([a1s,a2s])
+Hclosed = sp.Matrix([[h11,h12],[h12,h22]])
+uv = sp.Matrix([u1s,u2s])
+rep("C13b radial primitive derivative identity for an arbitrary closed one-form",
+    Avec+tau_s*Hclosed.T*uv == Avec+tau_s*Hclosed*uv)
+gr,gi,dr,di = sp.symbols('gr gi dr di',real=True)
+eta = gr*di-gi*dr
+constraint = gr*dr+gi*di
+rep("C13c d(exp(-i Theta)g)=0 when dTheta=Im(conj(g)dg) and |g|=1",
+    sp.expand((dr+sp.I*di)-sp.I*(gr+sp.I*gi)*eta
+              -(gr+sp.I*gi)*constraint-(1-gr*gr-gi*gi)*(dr+sp.I*di)) == 0)
+
+# C14: inverse compositions and the two Hopf local reference sections.
+nr1,nr2,nr3 = sp.symbols('nr1 nr2 nr3',real=True)
+section_y = sp.Matrix([(nr1+sp.I*nr2)/sp.sqrt(2*(1-nr3)),sp.sqrt((1-nr3)/2)])
+section_x = sp.Matrix([sp.sqrt((1+nr3)/2),(nr1-sp.I*nr2)/sp.sqrt(2*(1+nr3))])
+# Algebra is performed with real squared amplitudes, avoiding unnecessary sqrt branches.
+ny = (1-nr3)/2
+nx = (1+nr3)/2
+rep("C14a Hopf sections have unit norm on n1^2+n2^2+n3^2=1",
+    sp.cancel((nr1**2+nr2**2)/(4*ny)+ny-1-(nr1**2+nr2**2+nr3**2-1)/(2*(1-nr3))) == 0
+    and sp.cancel(nx+(nr1**2+nr2**2)/(4*nx)-1-(nr1**2+nr2**2+nr3**2-1)/(2*(1+nr3))) == 0)
+chi_s,theta_s,bphase,flowphase = sp.symbols('chi_s theta_s bphase flowphase',real=True)
+forwardphase = bphase-flowphase-chi_s*theta_s
+rep("C14b forward and inverse transport phases compose to the identity",
+    sp.expand(forwardphase+chi_s*theta_s+flowphase-bphase) == 0)
+radius_s,epsilon_s = sp.symbols('radius_s epsilon_s',positive=True)
+rep("C14c endpoint radial rescalings compose to the identity",
+    sp.simplify(sp.sqrt(epsilon_s/radius_s)*sp.sqrt(radius_s/epsilon_s)-1) == 0)
+
+# The projection to a closed Euclidean ball is nonexpanding. For p=ru,q=sv,
+# u.v=z<=1, the squared-distance difference is a sum of nonnegative terms.
+rproj,sproj,Rproj,zproj = sp.symbols('rproj sproj Rproj zproj',real=True)
+rep("C14d radial projection: one point outside the ball",
+    sp.expand(rproj*rproj+sproj*sproj-2*rproj*sproj*zproj
+              -(Rproj*Rproj+sproj*sproj-2*Rproj*sproj*zproj)
+              -(rproj-Rproj)*(rproj+Rproj-2*sproj*zproj)) == 0)
+rep("C14e radial projection: both points outside the ball",
+    sp.expand(rproj*rproj+sproj*sproj-2*rproj*sproj*zproj
+              -2*Rproj*Rproj*(1-zproj)
+              -(rproj-sproj)**2-2*(rproj*sproj-Rproj*Rproj)*(1-zproj)) == 0)
+
+# C15: orbit-chart and same-Hopf-fibre identities used by the global construction.
+rk,xx4,xxi4,tht = sp.symbols('rk xx4 xxi4 tht',real=True)
+rep("C15a h_B normalization and the middle clutching phase",
+    sp.cancel((1+rk*rk)/(1+rk*rk)-1) == 0
+    and sp.expand(-(-xx4-sp.Rational(1,2))+tht/(2*sp.pi)-xxi4
+                  -(xx4-xxi4-sp.Rational(1,2))-tht/(2*sp.pi)) == 1)
+za,zb,zc,zd = sp.symbols('za zb zc zd',real=True)
+Zc = sp.Matrix([za+sp.I*zb,zc+sp.I*zd])
+radz = za*za+zb*zb+zc*zc+zd*zd
+hz = 2*Zc[0]*sp.conjugate(Zc[1])
+vz = za*za+zb*zb-zc*zc-zd*zd
+projector_z = sp.Matrix([[radz+vz,hz],[sp.conjugate(hz),radz-vz]])/2
+rep("C15b Hopf data determine the complex rank-one projector",
+    sp.simplify(Zc*Zc.conjugate().T-projector_z) == sp.zeros(2))
+rep("C15c Hopf norm equals the squared complex norm",
+    sp.expand(sp.re(hz)**2+sp.im(hz)**2+vz**2-radz**2) == 0)
+
+# The slice-radius equalities used by both the base clutching and the T^2 correction.
+logabs,phasearg,ff,lnu,xone,xfour,xi_one,xi_four = sp.symbols(
+    'logabs phasearg ff lnu xone xfour xi_one xi_four',real=True)
+logcomplex = logabs+sp.I*phasearg
+zslice0 = 2*sp.pi*(xone-xi_one)-sp.I*(xfour-xi_four)*(logcomplex-ff)
+zslicei = 2*sp.pi*xone+sp.I*xfour*(logcomplex+lnu-ff)
+rep("C15d cusp slice radii: rho0=(x4-xi4)P0 and rhoi=-x4 Pi",
+    sp.expand(-sp.im(zslice0)-(xfour-xi_four)*(logabs-ff)) == 0
+    and sp.expand(-sp.im(zslicei)+xfour*(logabs+lnu-ff)) == 0)
+tc_sym,lc_sym = sp.symbols('tc_sym lc_sym',nonzero=True)
+ez_mid = [-sp.I*tc_sym,-tc_sym,-sp.I*lc_sym]
+ew_mid = [1-tc_sym**2,sp.I*(1+tc_sym**2),2*tc_sym]
+ezi = [-sp.I/tc_sym,1/tc_sym,sp.I*(lc_sym+2)]
+ewi = [1/tc_sym**2-1,sp.I*(1+1/tc_sym**2),-2/tc_sym]
+rep("C15e Theta sends the middle e2,e3 to cusp e2,e3 and e4 to minus cusp e4",
+    all(sp.simplify(ez_mid[j]-sp.I*ew_mid[j]/tc_sym-(1 if j<2 else -1)*ezi[j]) == 0
+        and sp.simplify(ew_mid[j]/tc_sym**2-(1 if j<2 else -1)*ewi[j]) == 0 for j in range(3)))
+rep("C15f explicit height root bracket and central endpoint",
+    sp.Rational(1,2)+sp.Rational(27,10)*sp.Rational(1,20)**2 == sp.Rational(2027,4000)
+    and sp.Rational(2027,4000) < 1 and sp.Rational(1,1)/(1+sp.Rational(1,1)) == sp.Rational(1,2))
+
+# C16: the height is a standard theta logarithmic derivative, not a new
+# finite elementary function. DLMF 20.2.3 uses exp(2 i n z), q^(n^2).
+rho16,P16 = sp.symbols('rho16 P16',real=True)
+n16 = sp.Symbol('n16',integer=True)
+z16 = sp.I*(rho16-P16/2)
+exponent16 = P16*n16**2+2*sp.I*n16*z16
+rep("C16a theta summand exponent equals the original Gaussian exponent",
+    sp.expand(exponent16-(-2*n16*rho16+n16*(n16+1)*P16)) == 0)
+rep("C16b theta z-derivative divided by 2i gives the height numerator",
+    sp.simplify(sp.diff(sp.exp(P16*n16**2+2*sp.I*n16*ss),ss)/(2*sp.I)
+                -n16*sp.exp(P16*n16**2+2*sp.I*n16*ss)) == 0)
+rep("C16c deck reindexing: w_n(rho+P)=exp(-2rho) w_(n-1)(rho)",
+    sp.expand(exponent16.subs(rho16,rho16+P16)
+              -exponent16.subs(n16,n16-1)+2*rho16) == 0)
+import mpmath as mp
+with mp.workdps(60):
+    theta_error = mp.mpf(0)
+    for pp in ('-.1','-.5','-1','-3','-12'):
+        pp = mp.mpf(pp)
+        for centre in ('-2.3','-.49','0','.37','2.4'):
+            rr = (mp.mpf(centre)+mp.mpf('.5'))*pp
+            z = 1j*(rr-pp/2)
+            height_theta = mp.jtheta(3,z,mp.exp(pp),1)/(2j*mp.jtheta(3,z,mp.exp(pp)))
+            weights = [(n,mp.exp(-2*n*rr+n*(n+1)*pp)) for n in range(-160,161)]
+            height_sum = mp.fsum(n*w for n,w in weights)/mp.fsum(w for n,w in weights)
+            theta_error = max(theta_error,abs(height_theta-height_sum))
+    rep(f"C16d numerical 60-digit theta/series comparison: 25 points, error {float(theta_error):.1e}",theta_error < mp.mpf('1e-50'))
+
+# C17: remove the height from the cap torus trivialization exactly.
+phie,H17,n17,eta17,c17 = sp.symbols('phie H17 n17 eta17 c17',real=True)
+correction17 = eta17*(H17-n17)*c17
+rep("C17a torus correction is deck invariant on a uniquely reduced node slab",
+    sp.expand(correction17.subs({H17:H17+1,n17:n17+1},simultaneous=True)-correction17) == 0)
+Cold = phie-correction17+H17*c17
+rep("C17b in the cap eta=1,n=0 the new coordinate is C=phi_E",
+    sp.expand(Cold.subs({eta17:1,n17:0})-phie) == 0)
+sx,sy,st,sW,sWb = sp.symbols('sx sy st sW sWb')
+dx,dy,dt,dW,dWb = sp.symbols('dx dy dt dW dWb')
+sA = st*sW
+rep("C17c elementary cap coframe is the scaled differential of its explicit G",
+    sp.simplify(sp.exp(sA)*(sp.diff(sx*sp.exp(-sA),sx)*dx
+        +sp.diff(sx*sp.exp(-sA),st)*dt+sp.diff(sx*sp.exp(-sA),sW)*dW)
+        -(dx-sx*(sW*dt+st*dW))) == 0
+    and sp.expand(sum(sp.diff(sWb-sW*st**2,v)*dv for v,dv in ((sWb,dWb),(sW,dW),(st,dt)))
+                  -(dWb-st**2*dW-2*sW*st*dt)) == 0)
+for sigma17 in (1,-1):
+    t17 = tr+sp.I*ti
+    e217,e317 = sigma17*(1-t17**2),sp.I*(1+t17**2)
+    M17 = sp.eye(6)
+    for ii17 in range(4):
+        M17[ii17,4],M17[ii17,5] = sp.symbols(f'b{ii17}_0 b{ii17}_1')
+    M17[4:,4:] = sp.Matrix([[sp.re(e217),sp.re(e317)],[sp.im(e217),sp.im(e317)]])
+    rep(f"C17d sigma={sigma17}: slice coframe determinant = sigma(1-|t|^4)",
+        sp.expand(M17.det()-sigma17*(1-(tr*tr+ti*ti)**2)) == 0)
+rep("C17e elementary-cap denominator and torus correction support margins",
+    sp.Rational(1,100)**2*55/(4*(sp.Rational(157,50))**2) < sp.Rational(1,1000)
+    and sp.Rational(1,125)+sp.Rational(27,10)*sp.Rational(1,125)**2 < sp.Rational(1,100)
+    and sp.Rational(1,100) < sp.Rational(157,50)/250)
+
+# ---------------------------------------------------------------- C18: fully specified algebraic Matsumoto--Fukaya target
+a18,b18,c18,d18,h18 = sp.symbols('a18 b18 c18 d18 h18',real=True)
+root18 = sp.sqrt(2)
+v18 = sp.Matrix([a18,b18,c18,d18])
+k18 = sp.Matrix([(root18*a18+1)/(root18+a18),b18/(root18+a18),
+                 c18/(root18+a18),d18/(root18+a18)])
+ki18 = sp.Matrix([(root18*k18[0]-1)/(root18-k18[0]),
+                  k18[1]/(root18-k18[0]),k18[2]/(root18-k18[0]),k18[3]/(root18-k18[0])])
+rep("C18a algebraic S3 boost and its closed inverse",
+    all(sp.cancel(v)==0 for v in ki18-v18)
+    and sp.cancel((k18.dot(k18)-1)*(root18+a18)**2-(v18.dot(v18)-1))==0)
+zz18 = sp.Matrix([2*(a18*c18+b18*d18),2*(b18*c18-a18*d18),
+                  a18*a18+b18*b18-c18*c18-d18*d18])
+rad18 = a18*a18+b18*b18+c18*c18+d18*d18
+rep("C18b Hopf norm identity and suspension sphere identity",
+    sp.expand(zz18.dot(zz18)-rad18**2)==0
+    and sp.expand((1-h18*h18)**2+h18*h18*(2-h18*h18)-1)==0)
+rep("C18c suspension meridian singular value squared = 4(1-X^2)/(2-X^2)",
+    sp.cancel(4*h18*h18*(1-h18*h18)+4*(1-h18*h18)**3/(2-h18*h18)
+              -4*(1-h18*h18)/(2-h18*h18))==0)
+# For a tangent vector w to S3, |Dk w|^2=|w|^2/(sqrt(2)+a)^2.
+w18 = sp.Matrix(sp.symbols('w18_0:4',real=True))
+dk18 = k18.jacobian(v18)*w18
+res18 = sp.factor((dk18.dot(dk18)-w18.dot(w18)/(root18+a18)**2)*(root18+a18)**4)
+rep("C18d conformal factor follows from the sphere and tangency equations",
+    sp.expand(res18-(w18[0]**2*(v18.dot(v18)-1)
+                   -2*w18[0]*(root18+a18)*(v18.dot(w18))))==0)
+def hopf18(v):
+    a,b,c,d = v
+    return sp.Matrix([2*(a*c+b*d),2*(b*c-a*d),a*a+b*b-c*c-d*d])
+rep("C18e the two poles have distinct values (0,-epsilon,0)",
+    all(hopf18(k18.subs({a18:0,b18:0,c18:0,d18:sign}))==sp.Matrix([0,-sign,0])
+        for sign in (-1,1)))
+# At a pole the two tangent target coordinates have quadratic forms
+# c+epsilon*b and sqrt(2)*a, where (a,b,c)=Hopf(z).
+for sign in (-1,1):
+    Q18 = sp.Matrix([zz18[2]+sign*zz18[1],root18*zz18[0]])
+    l18,m18 = sp.symbols('l18 m18',real=True)
+    Hess18 = sp.hessian(l18*Q18[0]+m18*Q18[1],(a18,b18,c18,d18))
+    rep(f"C18f pole {sign}: every nonzero real quadratic pencil is nondegenerate",
+        sp.factor(Hess18.det()-64*(l18*l18+m18*m18)**2)==0)
+    eps18 = sp.symbols('eps18',real=True)
+    pole18 = hopf18(k18.subs({a18:eps18**2*zz18[0],b18:eps18**2*zz18[1],
+                             c18:eps18**2*zz18[2],d18:sign},simultaneous=True))
+    rep(f"C18g pole {sign}: actual tangent-coordinate quadratic part",
+        all(sp.simplify(sp.diff(pole18[j],eps18,2).subs(eps18,0)/2-Q18[i])==0
+            for i,j in enumerate((0,2))))
+
+# ---------------------------------------------------------------- C19: invertible elliptic height, with explicit branch bookkeeping
+rho19,L19,omega19 = sp.symbols('rho19 L19 omega19',real=True)
+Q19 = sp.symbols('Q19',positive=True)
+rep("C19a arctangent derivative is the sech kernel",
+    sp.simplify(sp.diff(sp.atan(sp.exp(2*rho19)),rho19)
+                -sp.sech(2*rho19)).rewrite(sp.exp).simplify()==0)
+rep("C19b beta/reflection Fourier transform denominator and Fourier coefficient",
+    sp.simplify(sp.sin(sp.pi*(sp.Rational(1,2)-sp.I*omega19/4))
+                -sp.cosh(sp.pi*omega19/4))==0
+    and sp.simplify(2*Q19/(1+Q19**2)-sp.sech(-sp.log(Q19))).rewrite(sp.exp).simplify()==0)
+u19 = sp.symbols('u19',real=True)
+T19 = sp.atan(sp.pi*sp.tan(2*u19)/2)/sp.pi
+rep("C19c normalized amplitude derivative and cubic Taylor term",
+    sp.trigsimp(sp.diff(T19,u19)
+                 -1/(sp.cos(2*u19)**2+sp.pi**2*sp.sin(2*u19)**2/4))==0
+    and sp.simplify(sp.series(T19,u19,0,4).removeO()
+                   -u19-(4-sp.pi**2)*u19**3/3)==0)
+R19 = sp.Rational(1,20)
+qn19 = R19**2/4
+extra19 = 1/(3*(1-qn19**3))+2/(1-qn19)**3
+vd19 = sp.Rational(265,309)/(1+R19**2)*(1-6*(R19/(1-qn19))**2)
+rep("C19d normalized elliptic node: remainder constant 38, corrected slope >13/25",
+    35+extra19<38 and vd19-2*38*R19**3/sp.Rational(3,100)>sp.Rational(13,25))
+
+# Special-function identities are proved in the document by comparing Fourier
+# coefficients with DLMF 22.11.3, using the beta integral. These high-precision
+# evaluations are independent numerical evidence, not a substitute for that proof.
+import mpmath as mp
+import os,sys
+sys.path.insert(0,os.path.abspath(os.path.join(os.path.dirname(__file__),'..','..','..')))
+from extra.s4t2_explicit.cusp import (elliptic_height,elliptic_height_inverse,elliptic_height_chart,
+    elliptic_height_reparam,elliptic_axis_radius,elliptic_cusp_angle,elliptic_cusp_logradius)
+with mp.workdps(80):
+    worst19 = mp.mpf(0)
+    cases19 = 0
+    for ps in ('-1.1','-2','-5','-20','-60','-100'):
+        P19 = mp.mpf(ps)
+        q19 = mp.exp(2*P19)
+        for ss in ('-2','-1.50001','-1','-.00000001','0','.1','.5','.9','1','2.7'):
+            rho = P19*mp.mpf(ss)
+            # Independent arctangent periodization, reduced to bounded arguments.
+            n19 = mp.floor(rho/P19)
+            Y19 = mp.exp(2*(rho-n19*P19))
+            A19 = q19/Y19
+            raw19 = n19+2/mp.pi*mp.fsum(mp.atan(A19*q19**j)-mp.atan(Y19*q19**j) for j in range(160))
+            for norm19 in (False,True):
+                h19 = elliptic_height(rho,P19,norm19,dps=80)
+                expected19 = elliptic_height_reparam(raw19) if norm19 else raw19
+                back19 = elliptic_height_inverse(h19,P19,norm19,dps=80)
+                err19 = max(abs(h19-expected19),abs(back19-rho)/(1+abs(rho)))
+                worst19 = max(worst19,err19)
+                cases19 += 1
+    rep(f"C19e {cases19} amplitude/independent-sum/inverse tests, 80 digits, error {float(worst19):.1e}",
+        worst19<mp.mpf('1e-65'))
+    axis19 = mp.mpf(0)
+    for nu19 in (mp.mpf(1),mp.exp(-2)):
+        for rr19 in (mp.mpf('.001'),mp.mpf('.05'),mp.mpf('.5'),mp.mpf(1),mp.mpf(3)):
+            for axis in (0,1):
+                x,y = (mp.sqrt(rr19)/nu19,mp.mpf(0)) if axis==0 else (mp.mpf(0),mp.sqrt(rr19))
+                target19 = elliptic_height_reparam((1 if axis==0 else -1)*2/mp.pi*mp.atan(rr19))
+                axis19 = max(axis19,abs(elliptic_height_chart(x,y,nu19,dps=80)-target19))
+                axis19 = max(axis19,abs(elliptic_axis_radius(target19)-rr19))
+    rep("C19f both exact axes (20 cases), plus the exact node",
+        axis19<mp.mpf('1e-70') and elliptic_height_chart(0,0,dps=80)==0)
+    collar19 = mp.mpf(0)
+    for nu19 in (mp.mpf(1),mp.exp(-2)):
+        for rr19 in map(mp.mpf,('.29','.3','.32','.4','.48','.5')):
+            tc19 = rr19*mp.exp(mp.j*mp.mpf('.7'))
+            for a19 in map(mp.mpf,('-2.5','-.4','0','.4','.5','1.3')):
+                rh19 = elliptic_cusp_logradius(a19,tc19,nu19,dps=80)
+                back19 = elliptic_cusp_angle(rh19,tc19,nu19,dps=80)
+                collar19 = max(collar19,abs(back19-a19))
+                if rr19 == mp.mpf('.5'):
+                    PP = mp.log(nu19)+mp.log(rr19)-2*rr19**2/(1-rr19**2)
+                    collar19 = max(collar19,abs(rh19-PP*(a19+mp.mpf('.5'))))
+    rep(f"C19g 72 complete collar inverses and exact middle match, error {float(collar19):.1e}",
+        collar19<mp.mpf('1e-65'))
+    jets19 = mp.mpf(0)
+    count_jets19 = 0
+    for PP in (mp.mpf(-2),mp.mpf(-20)):
+        qq = mp.exp(2*PP)
+        def independent_height19(rho,normalized):
+            AA,YY = qq*mp.exp(-2*rho),mp.exp(2*rho)
+            h = 2/mp.pi*mp.fsum(mp.atan(AA*qq**j)-mp.atan(YY*qq**j)
+                                for j in range(160))
+            return elliptic_height_reparam(h) if normalized else h
+        for cell19 in (-2,0,2):
+            for normalized19 in (False,True):
+                for order19 in (1,2,3):
+                    lhs19 = mp.diff(lambda rr: elliptic_height(rr,PP,normalized19,dps=80),
+                                    cell19*PP,order19)
+                    rhs19 = mp.diff(lambda rr: independent_height19(rr,normalized19),
+                                    cell19*PP,order19)
+                    jets19 = max(jets19,abs(lhs19-rhs19))
+                    count_jets19 += 1
+    rep(f"C19h {count_jets19} seam jets through order three versus independent sum, error {float(jets19):.1e}",
+        jets19<mp.mpf('1e-65'))
+
+# ---------------------------------------------------------------- C20: finite phase logarithm and finite projection transport
+a20,b20 = sp.symbols('a20 b20',real=True)
+stereo20 = sp.Matrix([2*a20,2*b20,1-a20*a20-b20*b20])/(1+a20*a20+b20*b20)
+ds20 = stereo20.jacobian([a20,b20])
+rep("C20a stereographic metric: ||DS||=2/(1+|a|^2)<=2",
+    (ds20.T*ds20-4*sp.eye(2)/(1+a20*a20+b20*b20)**2).applyfunc(sp.factor)==sp.zeros(2))
+u20,v20,x20,y20 = sp.symbols('u20 v20 x20 y20',real=True)
+rep("C20b unit phases: Re(z*conj(w))=1-|z-w|^2/2",
+    sp.expand(2*(u20*x20+v20*y20)+(u20-x20)**2+(v20-y20)**2
+              -(u20*u20+v20*v20+x20*x20+y20*y20))==0)
+z20 = sp.symbols('z20_0:5',nonzero=True)
+rep("C20c finite phase ratios telescope exactly",
+    sp.cancel(sp.prod(z20[j]/z20[j-1] for j in range(1,5))-z20[4]/z20[0])==0)
+rep("C20d reverse rank-one normalized projection cancels its phase",
+    sp.cancel((x20+sp.I*y20)*(x20-sp.I*y20)/(x20*x20+y20*y20)-1)==0)
+
+# ---------------------------------------------------------------- C21: the concrete ten-component embedding
+h21 = sp.symbols('h21',real=True)
+reduced21 = sp.symbols('reduced21',real=True)
+j21 = sp.symbols('j21',integer=True)
+m21,z21 = sp.symbols('m21 z21',nonzero=True)
+rep('C21a height representative reindexing under the deck action',
+    sp.simplify((sp.floor(sp.Rational(1,2)-(h21+1))-
+                (sp.floor(sp.Rational(1,2)-h21)-1)).subs(h21,sp.Rational(1,2)-reduced21))==0
+    and sp.powsimp(m21**(j21-1)*m21*z21-m21**j21*z21)==0)
+b21 = sp.symbols('b21',real=True)
+rep('C21b norm lower bound is a positive square',
+    sp.expand(b21*b21+(1-b21)**2-sp.Rational(1,2)-2*(b21-sp.Rational(1,2))**2)==0)
+th21,x21,y21 = sp.symbols('th21 x21 y21',real=True)
+phase21 = 2*sp.pi*x21-2*sp.pi*j21*y21
+rep('C21c middle lattice/branch phases are integer multiples of 2pi',
+    sp.simplify(sp.exp(sp.I*(phase21.subs(y21,y21+1)-phase21)))==1
+    and sp.expand((2*sp.pi*(x21-y21)-(2*sp.pi*j21-2*sp.pi)*y21)-phase21)==0)
+
+# C22: rational inverse stereographic chart at the north pole, and the
+# normalized Hopf projection identities used by the inverse-first cap.
+a22,b22,c22 = sp.symbols('a22 b22 c22',real=True)
+r22 = a22*a22+b22*b22+c22*c22
+D22 = 1+2*b22+2*r22
+ui22 = sp.Matrix([(-1-2*b22)/D22,2*a22/D22,2*(b22+r22)/D22,2*c22/D22])
+rep('C22a stable north inverse lies in S3 and recovers the inverted stereographic vector',
+    sp.factor(ui22.dot(ui22)-1)==0
+    and all(sp.factor(v)==0 for v in (ui22[1]/(1+ui22[0])-a22/r22,
+                    ui22[2]/(1+ui22[0])-1-b22/r22,ui22[3]/(1+ui22[0])-c22/r22)))
+s22 = sp.symbols('s22',positive=True)
+P22 = sp.Matrix([[s22+c22,a22+sp.I*b22],[a22-sp.I*b22,s22-c22]])/(2*s22)
+rep('C22b rank-one projector identity, modulo |p|^2=s^2',
+    (P22*P22-P22-sp.eye(2)*(r22-s22*s22)/(4*s22*s22)).applyfunc(sp.factor)==sp.zeros(2))
+za22,zb22,zc22,zd22 = sp.symbols('za22 zb22 zc22 zd22',real=True)
+zz22 = sp.Matrix([za22+sp.I*zb22,zc22+sp.I*zd22])
+norm22 = za22*za22+zb22*zb22+zc22*zc22+zd22*zd22
+hp22 = sp.Matrix([2*(za22*zc22+zb22*zd22),2*(zb22*zc22-za22*zd22),
+                  za22*za22+zb22*zb22-zc22*zc22-zd22*zd22])
+rep('C22c projected squared length equals the Hopf dot-product expression',
+    sp.expand((zz22.conjugate().T*P22*zz22)[0]-(norm22+hp22.dot(sp.Matrix([a22,b22,c22]))/s22)/2)==0)
+Dh22 = hp22.jacobian([za22,zb22,zc22,zd22])
+rep('C22d Hopf horizontal right inverse has norm 1/(2 sqrt(r))',
+    (Dh22*Dh22.T-4*norm22*sp.eye(3)).applyfunc(sp.expand)==sp.zeros(3))
+stereo22 = sp.Matrix([1-r22,2*a22,2*b22,2*c22])/(1+r22)
+Ds22 = stereo22.jacobian([a22,b22,c22])
+rep('C22e inverse stereographic S3 derivative norm is 2/(1+|w|^2)',
+    (Ds22.T*Ds22-4*sp.eye(3)/(1+r22)**2).applyfunc(sp.factor)==sp.zeros(3))
+
+# C23: elementary inverse-first height, exact seams, and independent pole chain.
+from extra.s4t2_explicit.cusp import (inverse_height_moment,elementary_cusp_logradius,
+    elementary_cusp_reference,elliptic_pole_raw_inverse,elliptic_pole_patch,scalar_flat_step)
+E23,Y23,q23,f23 = sp.symbols('E23 Y23 q23 f23',positive=True)
+rep('C23a quadratic inverse: E-q/E=f gives Y=q/E and the endpoint jets',
+    sp.factor((Y23**2+f23*Y23-q23).subs({Y23:q23/E23,f23:E23-q23/E23}))==0)
+rep('C23a2 open positive-axis inverse, modulo R^2=f^2+4q',
+    sp.factor((E23+f23)/2-2*q23/(E23+f23)-f23-(E23**2-f23**2-4*q23)/(2*(E23+f23)))==0)
+rep('C23a3 half-centred argument chart has .4<a<.6',sp.cos(sp.pi/5)<sp.Rational(85,100))
+rep('C23b transition positivity derivative is a sum of squares',
+    sp.factor(2*E23+1/(4*E23)-1-(2*(E23-sp.Rational(1,4))**2+sp.Rational(1,8))/E23)==0)
+rep('C23c normalized-projection connection phase propagates with coefficient one',
+    sp.cancel((q23+f23*Y23)/Y23-f23-q23/Y23)==0)
+ct23,st23 = sp.symbols('ct23 st23',real=True)
+aa23,bb23,er23,ei23,fr23,fi23 = sp.symbols('aa23 bb23 er23 ei23 fr23 fi23',real=True)
+uu23,vv23 = sp.Matrix([1,0]),sp.Matrix([ct23,st23])
+du23 = sp.Matrix([sp.I*aa23,er23+sp.I*ei23])
+dv23 = sp.I*bb23*vv23+(fr23+sp.I*fi23)*sp.Matrix([-st23,ct23])
+PP23,QQ23 = uu23*uu23.conjugate().T,vv23*vv23.conjugate().T
+dPP23 = du23*uu23.conjugate().T+uu23*du23.conjugate().T
+dQQ23 = dv23*vv23.conjugate().T+vv23*dv23.conjugate().T
+dc23 = (dv23.conjugate().T*uu23+vv23.conjugate().T*du23)[0]
+actual23 = bb23+sp.im(dc23)/ct23
+claimed23 = aa23+sp.im((uu23.conjugate().T*QQ23*(dQQ23+dPP23)*uu23)[0])/ct23**2
+rep('C23c2 full two-line normalized-projection phase derivative, all tangent jets',
+    sp.factor(actual23-claimed23).subs(st23**2,1-ct23**2).simplify()==0)
+with mp.workdps(85):
+    height_error23 = mp.mpf(0)
+    slope_min23,slope_max23 = mp.inf,mp.mpf(0)
+    height_cases23 = 0
+    for nu23 in (mp.mpf(1),mp.exp(-2)):
+        for r23 in map(mp.mpf,('1e-12','.03','.3','.4','.499','.5')):
+            tc23 = r23 if r23==mp.mpf('.5') else r23*mp.exp(mp.j*mp.mpf('.7'))
+            P23 = mp.log(nu23*r23)-2*r23*r23/(1-r23*r23)
+            qv23 = mp.exp(2*P23)
+            lam23 = scalar_flat_step((r23-mp.mpf('.3'))/mp.mpf('.2'))
+            for a23 in map(mp.mpf,('-.5','-.499','-.3','-.2','-.1','0','.1','.2','.3','.499','.5')):
+                rho23 = elementary_cusp_logradius(a23,tc23,nu23,dps=65)
+                height_error23 = max(height_error23,abs(elementary_cusp_logradius(a23+1,tc23,nu23,dps=65)-rho23-P23))
+                derivative23 = mp.diff(lambda aa:elementary_cusp_logradius(aa,tc23,nu23,dps=65),a23)
+                assert derivative23<0
+                if abs(a23)<mp.mpf('.5'):
+                    slope23 = mp.diff(lambda aa:inverse_height_moment(aa,qv23),a23)
+                    slope_min23,slope_max23 = min(slope_min23,slope23),max(slope_max23,slope23)
+                if r23==mp.mpf('.5'):
+                    height_error23 = max(height_error23,abs(rho23-P23*(a23+mp.mpf('.5'))))
+                height_cases23 += 1
+            for seam23 in (mp.mpf('-.5'),mp.mpf('.5'),mp.mpf('1.5')):
+                for order23 in (1,2,3):
+                    derivative23 = mp.diff(lambda aa:elementary_cusp_logradius(aa,tc23,nu23,dps=65),seam23,order23)
+                    expected23 = -(1-lam23)+lam23*P23 if order23==1 else 0
+                    height_error23 = max(height_error23,abs(derivative23-expected23))
+    rep(f'C23d {height_cases23} elementary height/deck/collar cases and 108 seam jets: {float(height_error23):.1e}',
+        height_error23<mp.mpf('1e-50') and slope_min23>=mp.mpf(8)/9 and slope_max23<=14)
+    print(f'     sampled f_a range [{float(slope_min23):.6f},{float(slope_max23):.6f}], proved [8/9,14]')
+    axis_reference_error23 = mp.mpf(0)
+    for nu23 in (mp.mpf(1),mp.exp(-2)):
+        for a23 in map(mp.mpf,('-.55','-.5','-.49','.49','.5','.55')):
+            tc23 = mp.mpc('.1','.03')
+            xx23,yy23 = elementary_cusp_reference(tc23,a23,nu23)
+            axis_reference_error23 = max(axis_reference_error23,
+                abs(xx23*yy23-tc23),abs(mp.log(abs(yy23))-elementary_cusp_logradius(a23,tc23,nu23,dps=85)))
+        for a23 in (mp.mpf('-.5'),mp.mpf('.5')):
+            for order23 in (1,2,3):
+                coord23 = 0 if a23>0 else 1
+                derivative23 = mp.diff(lambda aa:elementary_cusp_reference(0,aa,nu23)[coord23],a23,order23)
+                expected23 = 1/nu23 if a23>0 else (-1)**order23
+                axis_reference_error23 = max(axis_reference_error23,abs(derivative23-expected23))
+    rep(f'C23d2 open central-axis references: 12 inverse comparisons and 12 seam jets, {float(axis_reference_error23):.1e}',
+        axis_reference_error23<mp.mpf('1e-70'))
+    pole_error23,value_ratio23,derivative_ratio23,patch_defect23 = [mp.mpf(0)]*4
+    pole_cases23 = 0
+    def forward_local23(pair,inf):
+        nu = mp.exp(-2) if inf else mp.mpf(1)
+        x,y = mp.conj(pair[0])/nu,pair[1]
+        tc = x*y
+        u,v = abs(pair[0])**2,abs(pair[1])**2
+        e = mp.exp(-4*abs(tc)**2/(1-abs(tc)**2))
+        height = e*u-v
+        A,B = (4*mp.pi)**2,mp.exp(4)
+        if inf:
+            ratio = tc*mp.sqrt((abs(tc)**2+A)/(A*abs(tc)**2+B))
+            u1 = mp.exp(2*mp.j*mp.pi*(-height+mp.mpf('.5')))/mp.sqrt(1+abs(ratio)**2)
+            u2 = u1*ratio
+        else:
+            ratio = tc*mp.sqrt((A+B*abs(tc)**2)/(1+A*abs(tc)**2))
+            u2 = mp.exp(2*mp.j*mp.pi*height)/mp.sqrt(1+abs(ratio)**2)
+            u1 = ratio*u2
+        w = (u1.imag/(1+u1.real),u2.real/(1+u1.real)-1,u2.imag/(1+u1.real))
+        if inf:
+            norm2 = sum(a*a for a in w)
+            w = tuple(a/norm2 for a in w)
+        return mp.matrix([w[0],-w[2],-w[1]])
+    for inf23 in (False,True):
+        # Stay strictly inside the closed certified domain: rounding a unit
+        # vector exactly on its outer boundary can put its mpf norm outside it.
+        for r23 in map(mp.mpf,('1e-12','1e-8','1.25e-8','1.5e-8','1.75e-8','2e-8','1e-6','9.99e-5')):
+            for direction23 in ((1,0,0,0),(0,0,1,0),(1,2,3,-1),(-2,1,0,3)):
+                zz23 = mp.matrix(direction23)*mp.sqrt(r23/sum(a*a for a in direction23))
+                pair23 = (mp.mpc(zz23[0],zz23[1]),mp.mpc(zz23[2],zz23[3]))
+                raw23 = elliptic_pole_raw_inverse(pair23,inf23,dps=65,elementary=True)
+                pc23 = 2*pair23[0]*mp.conj(pair23[1])
+                p23 = (pc23.real,pc23.imag,abs(pair23[0])**2-abs(pair23[1])**2)
+                target23 = mp.matrix((p23[2],-p23[1],p23[0]) if inf23 else (-p23[1],-p23[2],p23[0]))*(mp.pi if inf23 else 2*mp.pi)
+                pole_error23 = max(pole_error23,mp.norm(forward_local23(raw23,inf23)-target23)/r23)
+                value_ratio23 = max(value_ratio23,mp.norm(mp.matrix(raw23)-mp.matrix(pair23))/r23**mp.mpf('1.5'))
+                if r23<mp.mpf('1e-4'):
+                    def real_lift23(v,patch=False):
+                        fn = elliptic_pole_patch if patch else elliptic_pole_raw_inverse
+                        a,b = fn((mp.mpc(v[0],v[1]),mp.mpc(v[2],v[3])),inf23,dps=65,elementary=True)
+                        return mp.matrix([a.real,a.imag,b.real,b.imag])
+                    jac23 = mp.matrix(4)
+                    patchjac23 = mp.matrix(4)
+                    for k23 in range(4):
+                        basis23 = mp.eye(4)[:,k23]
+                        jac23[:,k23] = mp.diff(lambda h:real_lift23(zz23+h*basis23),0)
+                        patchjac23[:,k23] = mp.diff(lambda h:real_lift23(zz23+h*basis23,True),0)
+                    derivative_ratio23 = max(derivative_ratio23,mp.norm(jac23-mp.eye(4))/r23)
+                    if r23<=mp.mpf('2e-8'):
+                        patch_defect23 = max(patch_defect23,mp.norm(patchjac23-mp.eye(4)))
+                pole_cases23 += 1
+    rep(f'C23e {pole_cases23} independent inverse-first pole compositions: {float(pole_error23):.1e}',pole_error23<mp.mpf('1e-45'))
+    rep(f'C23f pole value/derivative constants {float(value_ratio23):.3f}/{float(derivative_ratio23):.3f} vs 200/5000; blend {float(patch_defect23):.1e} vs .001',
+        value_ratio23<200 and derivative_ratio23<5000 and patch_defect23<mp.mpf('.001'))
+
+# C24: finite first-jet arithmetic eliminates the formal derivatives in (11.19).
+v24,a24 = sp.symbols('v24 a24',positive=True)
+w24,b24,t24 = sp.symbols('w24 b24 t24',real=True)
+rules24 = [(1/v24,-1/v24**2),(sp.sqrt(v24),1/(2*sp.sqrt(v24))),
+           (sp.exp(v24),sp.exp(v24)),(sp.log(v24),1/v24),
+           (sp.sin(v24),sp.cos(v24)),(sp.cos(v24),-sp.sin(v24)),
+           (sp.atan(v24),1/(1+v24**2))]
+rep('C24a elementary unary first-jet rules',all(sp.simplify(sp.diff(f,v24)-df)==0 for f,df in rules24))
+rep('C24b addition and multiplication first-jet rules',
+    sp.diff((v24+t24*w24)+(a24+t24*b24),t24).subs(t24,0)==w24+b24
+    and sp.expand(sp.diff((v24+t24*w24)*(a24+t24*b24),t24).subs(t24,0)-a24*w24-v24*b24)==0)
+rep('C24c local argument first jet',
+    sp.factor(sp.diff(sp.atan((a24+t24*b24)/(v24+t24*w24)),t24).subs(t24,0)
+              -(v24*b24-a24*w24)/(v24*v24+a24*a24))==0)
+arg24 = 2*sp.atan(a24/(sp.sqrt(v24*v24+a24*a24)+v24))
+rep('C24d half-angle argument chart has the same first jet',
+    sp.simplify(sp.diff(arg24,v24)*w24+sp.diff(arg24,a24)*b24
+                -(v24*b24-a24*w24)/(v24*v24+a24*a24))==0)
+
 print('ALL PASS' if ok else 'FAILURES')
+assert ok, 'A chart identity failed'

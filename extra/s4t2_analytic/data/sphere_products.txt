@@ -1,0 +1,111 @@
+
+=== dimension 2: 2 products ===
+  no ACS (0): 
+  complex structure known (2):
+    S^2                              [classical] CP^1
+    S^1 x S^1                        [classical] CE(S^1xS^1)
+  OPEN: ACS exists, no known complex structure (0): none
+
+=== dimension 4: 5 products ===
+  no ACS (1): S^4
+  complex structure known (4):
+    S^3 x S^1                        [classical] CE(S^1xS^3)
+    S^2 x S^2                        [classical] CP^1 . CP^1
+    S^2 x S^1 x S^1                  [classical] CP^1 . CE(S^1xS^1)
+    S^1 x S^1 x S^1 x S^1            [classical] CE(S^1xS^1) . CE(S^1xS^1)
+  OPEN: ACS exists, no known complex structure (0): none
+
+=== dimension 6: 11 products ===
+  no ACS (0): 
+  complex structure known (11):
+    S^6                              [S6] S^6
+    S^5 x S^1                        [classical] CE(S^1xS^5)
+    S^4 x S^2                        [S2xS4] S^2xS^4
+    S^4 x S^1 x S^1                  [S4xT2] S^4xT^2
+    S^3 x S^3                        [classical] CE(S^3xS^3)
+    S^3 x S^2 x S^1                  [classical] CE(S^1xS^3) . CP^1
+    S^3 x S^1 x S^1 x S^1            [classical] CE(S^1xS^3) . CE(S^1xS^1)
+    S^2 x S^2 x S^2                  [classical] CP^1 . CP^1 . CP^1
+    S^2 x S^2 x S^1 x S^1            [classical] CP^1 . CP^1 . CE(S^1xS^1)
+    S^2 x S^1 x S^1 x S^1 x S^1      [classical] CP^1 . CE(S^1xS^1) . CE(S^1xS^1)
+    S^1 x S^1 x S^1 x S^1 x S^1 x S^1 [classical] CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+  OPEN: ACS exists, no known complex structure (0): none
+
+=== dimension 8: 22 products ===
+  no ACS (2): S^8, S^4 x S^4
+  complex structure known (20):
+    S^7 x S^1                        [classical] CE(S^1xS^7)
+    S^6 x S^2                        [S6] S^6 . CP^1
+    S^6 x S^1 x S^1                  [S6] S^6 . CE(S^1xS^1)
+    S^5 x S^3                        [classical] CE(S^3xS^5)
+    S^5 x S^2 x S^1                  [classical] CE(S^1xS^5) . CP^1
+    S^5 x S^1 x S^1 x S^1            [classical] CE(S^1xS^5) . CE(S^1xS^1)
+    S^4 x S^3 x S^1                  [LLZ+S2xS4+S6] S^4xS^3xS^1
+    S^4 x S^2 x S^2                  [S2xS4] S^2xS^4 . CP^1
+    S^4 x S^2 x S^1 x S^1            [S2xS4] S^2xS^4 . CE(S^1xS^1); [S4xT2] S^4xT^2 . CP^1
+    S^4 x S^1 x S^1 x S^1 x S^1      [S4xT2] S^4xT^2 . CE(S^1xS^1)
+    S^3 x S^3 x S^2                  [classical] CE(S^3xS^3) . CP^1
+    S^3 x S^3 x S^1 x S^1            [classical] CE(S^1xS^3) . CE(S^1xS^3)
+    S^3 x S^2 x S^2 x S^1            [classical] CE(S^1xS^3) . CP^1 . CP^1
+    S^3 x S^2 x S^1 x S^1 x S^1      [classical] CE(S^1xS^3) . CP^1 . CE(S^1xS^1)
+    S^3 x S^1 x S^1 x S^1 x S^1 x S^1 [classical] CE(S^1xS^3) . CE(S^1xS^1) . CE(S^1xS^1)
+    S^2 x S^2 x S^2 x S^2            [classical] CP^1 . CP^1 . CP^1 . CP^1
+    S^2 x S^2 x S^2 x S^1 x S^1      [classical] CP^1 . CP^1 . CP^1 . CE(S^1xS^1)
+    S^2 x S^2 x S^1 x S^1 x S^1 x S^1 [classical] CP^1 . CP^1 . CE(S^1xS^1) . CE(S^1xS^1)
+    S^2 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 [classical] CP^1 . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+    S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 [classical] CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+  OPEN: ACS exists, no known complex structure (0): none
+
+=== dimension 10: 42 products ===
+  no ACS (4): S^10, S^8 x S^2, S^6 x S^4, S^4 x S^4 x S^2
+  complex structure known (35); the 11 needing a 2026 input:
+    S^6 x S^3 x S^1                  [S6] S^6 . CE(S^1xS^3)
+    S^6 x S^2 x S^2                  [S6] S^6 . CP^1 . CP^1
+    S^6 x S^2 x S^1 x S^1            [S6] S^6 . CP^1 . CE(S^1xS^1)
+    S^6 x S^1 x S^1 x S^1 x S^1      [S6] S^6 . CE(S^1xS^1) . CE(S^1xS^1)
+    S^4 x S^3 x S^3                  [LLZ+S2xS4+S6] S^4xS^3xS^3
+    S^4 x S^3 x S^2 x S^1            [S2xS4] S^2xS^4 . CE(S^1xS^3)
+    S^4 x S^3 x S^1 x S^1 x S^1      [S4xT2] S^4xT^2 . CE(S^1xS^3); [LLZ+S2xS4+S6] S^4xS^3xS^1 . CE(S^1xS^1)
+    S^4 x S^2 x S^2 x S^2            [S2xS4] S^2xS^4 . CP^1 . CP^1
+    S^4 x S^2 x S^2 x S^1 x S^1      [S2xS4] S^2xS^4 . CP^1 . CE(S^1xS^1); [S4xT2] S^4xT^2 . CP^1 . CP^1
+    S^4 x S^2 x S^1 x S^1 x S^1 x S^1 [S2xS4] S^2xS^4 . CE(S^1xS^1) . CE(S^1xS^1); [S4xT2] S^4xT^2 . CP^1 . CE(S^1xS^1)
+    S^4 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 [S4xT2] S^4xT^2 . CE(S^1xS^1) . CE(S^1xS^1)
+  OPEN: ACS exists, no known complex structure (3): S^8 x S^1 x S^1, S^5 x S^4 x S^1, S^4 x S^4 x S^1 x S^1
+
+=== dimension 12: 77 products ===
+  no ACS (5): S^12, S^10 x S^2, S^8 x S^4, S^8 x S^2 x S^2, S^4 x S^4 x S^4
+  complex structure known (66); the 27 needing a 2026 input:
+    S^6 x S^6                        [S6] S^6 . S^6
+    S^6 x S^5 x S^1                  [S6] S^6 . CE(S^1xS^5)
+    S^6 x S^4 x S^2                  [S2xS4+S6] S^6 . S^2xS^4
+    S^6 x S^4 x S^1 x S^1            [S4xT2+S6] S^6 . S^4xT^2
+    S^6 x S^3 x S^3                  [S6] S^6 . CE(S^3xS^3)
+    S^6 x S^3 x S^2 x S^1            [S6] S^6 . CE(S^1xS^3) . CP^1
+    S^6 x S^3 x S^1 x S^1 x S^1      [S6] S^6 . CE(S^1xS^3) . CE(S^1xS^1)
+    S^6 x S^2 x S^2 x S^2            [S6] S^6 . CP^1 . CP^1 . CP^1
+    S^6 x S^2 x S^2 x S^1 x S^1      [S6] S^6 . CP^1 . CP^1 . CE(S^1xS^1)
+    S^6 x S^2 x S^1 x S^1 x S^1 x S^1 [S6] S^6 . CP^1 . CE(S^1xS^1) . CE(S^1xS^1)
+    S^6 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 [S6] S^6 . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+    S^5 x S^4 x S^3                  [LLZ+S2xS4+S6] S^4xS^3xS^5
+    S^5 x S^4 x S^2 x S^1            [S2xS4] CE(S^1xS^5) . S^2xS^4
+    S^5 x S^4 x S^1 x S^1 x S^1      [S4xT2] CE(S^1xS^5) . S^4xT^2
+    S^4 x S^4 x S^2 x S^2            [S2xS4] S^2xS^4 . S^2xS^4
+    S^4 x S^4 x S^2 x S^1 x S^1      [S2xS4+S4xT2] S^2xS^4 . S^4xT^2
+    S^4 x S^4 x S^1 x S^1 x S^1 x S^1 [S4xT2] S^4xT^2 . S^4xT^2
+    S^4 x S^3 x S^3 x S^2            [S2xS4] S^2xS^4 . CE(S^3xS^3)
+    S^4 x S^3 x S^3 x S^1 x S^1      [S4xT2] S^4xT^2 . CE(S^3xS^3); [LLZ+S2xS4+S6] S^4xS^3xS^1 . CE(S^1xS^3)
+    S^4 x S^3 x S^2 x S^2 x S^1      [S2xS4] S^2xS^4 . CE(S^1xS^3) . CP^1
+    S^4 x S^3 x S^2 x S^1 x S^1 x S^1 [S2xS4] S^2xS^4 . CE(S^1xS^3) . CE(S^1xS^1); [S4xT2] S^4xT^2 . CE(S^1xS^3) . CP^1
+    S^4 x S^3 x S^1 x S^1 x S^1 x S^1 x S^1 [S4xT2] S^4xT^2 . CE(S^1xS^3) . CE(S^1xS^1); [LLZ+S2xS4+S6] S^4xS^3xS^1 . CE(S^1xS^1) . CE(S^1xS^1)
+    S^4 x S^2 x S^2 x S^2 x S^2      [S2xS4] S^2xS^4 . CP^1 . CP^1 . CP^1
+    S^4 x S^2 x S^2 x S^2 x S^1 x S^1 [S2xS4] S^2xS^4 . CP^1 . CP^1 . CE(S^1xS^1); [S4xT2] S^4xT^2 . CP^1 . CP^1 . CP^1
+    S^4 x S^2 x S^2 x S^1 x S^1 x S^1 x S^1 [S2xS4] S^2xS^4 . CP^1 . CE(S^1xS^1) . CE(S^1xS^1); [S4xT2] S^4xT^2 . CP^1 . CP^1 . CE(S^1xS^1)
+    S^4 x S^2 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 [S2xS4] S^2xS^4 . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1); [S4xT2] S^4xT^2 . CP^1 . CE(S^1xS^1) . CE(S^1xS^1)
+    S^4 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 [S4xT2] S^4xT^2 . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+  OPEN: ACS exists, no known complex structure (6): S^10 x S^1 x S^1, S^8 x S^3 x S^1, S^8 x S^2 x S^1 x S^1, S^8 x S^1 x S^1 x S^1 x S^1, S^7 x S^4 x S^1, S^4 x S^4 x S^3 x S^1
+
+Dimension 8 check passed: every product except S^8 and S^4xS^4 is complex,
+given the inputs [S6], [S2xS4], [LLZ], [S4xT2].
+  products needing a 2026 input: S^6 x S^2, S^6 x S^1 x S^1, S^4 x S^3 x S^1, S^4 x S^2 x S^2, S^4 x S^2 x S^1 x S^1, S^4 x S^1 x S^1 x S^1 x S^1
+  S^4 x S^3 x S^1: only minimal input set is [LLZ] (which implies [S6], [S2xS4]);
+  S^4 x T^4: only minimal input set is [S4xT2].

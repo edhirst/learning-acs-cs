@@ -21,6 +21,462 @@ from extra.s4t2_explicit.tcore import CD, RD, _scatter, bump_step, where_safe
 R0, RP, R1 = 0.6, 0.7, 0.8      # cusp formulas below R0 (above 1/R0); plateau radius RP; linear blend on [R1, 1/R1]
 
 
+def finite_phase_log(g, n, derivative_bound, chart=None):
+    """Finite real logarithm of g:S2->S1 with a CERTIFIED ||Dg||<=L.
+
+    n has shape (batch,3); g accepts arbitrary leading batch dimensions.
+    The proof and fixed count floor(8L)+1 are in programme 10.6. No sampled
+    estimate is a certificate for L. This helper does not construct the
+    campaign's missing finite circle lift or a bound for its mismatch.
+    Optional north/south selection is for overlap checks (stereographic |a|<=2).
+    """
+    if not math.isfinite(derivative_bound) or derivative_bound < 0:
+        raise ValueError('a finite nonnegative certified derivative bound is required')
+    if chart not in (None,'north','south'):
+        raise ValueError('chart must be north, south, or None')
+    count = math.floor(8*derivative_bound)+1
+    times = torch.arange(count+1,dtype=n.dtype,device=n.device)/count
+    def primitive(a, north):
+        if (a.square().sum(-1)>4).any():
+            raise ValueError('the certified stereographic domain is |a|<=2')
+        p = a[...,None,:]*times[:,None]
+        r2 = p.square().sum(-1,keepdim=True)
+        third = (1-r2) if north else (r2-1)
+        sphere = torch.cat([2*p,third],-1)/(1+r2)
+        values = g(sphere)
+        increments = values[...,1:]*values[...,:-1].conj()
+        if (increments.real<=0).any():
+            raise ValueError('phase increments violate the certified branch domain')
+        return torch.atan2(increments.imag,increments.real).sum(-1)
+    pole = n.new_tensor([[0.,0.,1.]])
+    theta0 = torch.angle(g(pole))[0]
+    equator = n.new_tensor([[1.,0.]])
+    offset = primitive(equator,True)[0]-primitive(equator,False)[0]
+    north = n[:,2]>=0 if chart is None else torch.full_like(n[:,2],chart=='north',dtype=torch.bool)
+    out = torch.zeros_like(n[:,0])
+    for mask,sign in ((north,1),(~north,-1)):
+        if mask.any():
+            a = n[mask,:2]/(1+sign*n[mask,2:3])
+            value = theta0+primitive(a,sign==1)
+            if sign==-1:
+                value = value+offset
+            out = _scatter(out,mask,value)
+    return out
+
+
+def finite_projection_lift(projectors, z):
+    """Exact circle isomorphism from a finite chain of nearby rank-one projectors.
+
+    projectors has shape (...,steps+1,d,d), z shape (...,d), with unit z in
+    im P0. A proof that ||Pj-Pj-1||<1 is required at every step; the function
+    checks only nonvanishing of the actual evaluations. Reverse the chain to
+    invert. This is not an approximation to parallel transport.
+    """
+    for j in range(1,projectors.shape[-3]):
+        z = (projectors[...,j,:,:]@z[...,None])[...,0]
+        norm = z.norm(dim=-1,keepdim=True)
+        if (norm==0).any():
+            raise ValueError('a projection step vanished')
+        z = z/norm
+    return z
+
+
+def _bundle_height_weight(h):
+    """One on |h|<=1/4, zero on |h|>=2/5, with flat endpoints."""
+    return 1-bump_step((h.abs()-.25)/.15)
+
+
+def _bundle_cusp_torus(C,zeta,t):
+    """Four complex components on a punctured cusp; deck invariant."""
+    height = C.mu_torus(zeta,t)
+    pairs = []
+    for centre in (0.,.5):
+        shift = torch.floor(centre+.5-height).detach()
+        weight = _bundle_height_weight(height+shift-centre)
+        active = weight>0
+        pair = torch.zeros(zeta.shape+(2,),dtype=CD,device=zeta.device)
+        if active.any():
+            yy = zeta[active]*torch.exp(shift[active]*torch.log(C.multiplier(t[active])))
+            xx = t[active]/yy
+            rad = C.a0*T.abs2(xx)+T.abs2(yy)
+            frame = torch.stack([math.sqrt(C.a0)*xx.conj(),yy],-1)/torch.sqrt(rad)[...,None]
+            pair = _scatter(pair,active,weight[active,None]*frame)
+        pairs.append(pair)
+    return torch.cat(pairs,-1)
+
+
+def _bundle_cusp_chart(C,x,y):
+    """Central-fibre-safe version on |H|<=.6, excluding the fixed point."""
+    height = C.mu_chart(x,y)
+    rad = C.a0*T.abs2(x)+T.abs2(y)
+    if (rad<=0).any() or (height.abs()>.6).any():
+        raise ValueError('bundle chart requires rad>0 and |H|<=.6')
+    frame = torch.stack([math.sqrt(C.a0)*x.conj(),y],-1)/torch.sqrt(rad)[...,None]
+    first = _bundle_height_weight(height)[...,None]*frame
+    shifted = torch.where(height<0,height+.5,height-.5)
+    weight = _bundle_height_weight(shifted)
+    second = weight[...,None]*frame
+    negative = (height<0)&(weight>0)
+    if negative.any():
+        xx,yy = x[negative],y[negative]
+        m = C.m(xx*yy)
+        xn,yn = 1/(m*yy),m*xx*yy**2
+        rn = C.a0*T.abs2(xn)+T.abs2(yn)
+        fn = torch.stack([math.sqrt(C.a0)*xn.conj(),yn],-1)/torch.sqrt(rn)[...,None]
+        second = _scatter(second,negative,weight[negative,None]*fn)
+    return torch.cat([first,second],-1)
+
+
+def _bundle_normalize(v,with_norm):
+    norm2 = T.abs2(v).sum(-1)
+    e = v/torch.sqrt(norm2)[...,None]
+    return (e,norm2) if with_norm else e
+
+
+def bundle_embedding_middle(t,x1,x4,logt,*,finite_height=False,with_norm=False):
+    """Explicit equivariant embedding of W minus its nodes into S19.
+
+    Programme 11.1 proves 1/2<=unnormalized norm^2<=2, deck/branch
+    independence and central extension. This is a concrete bundle embedding,
+    not yet a complete meridian lift. Gaussian height is the legacy default;
+    finite_height=True makes this forward block finite elementary.
+    """
+    r = t.abs()
+    b0 = 1-bump_step((r-.3)/.2)
+    bi = 1-bump_step((1/r-.3)/.2)
+    bm = 1-b0-bi
+    v = torch.zeros(t.shape+(10,),dtype=CD,device=t.device)
+    C0,Ci = T.height_cusps(finite_height)
+    for C,convert,beta,start in ((C0,T.to_cusp0,b0,0),(Ci,T.to_cuspinf,bi,4)):
+        active = beta>0
+        if active.any():
+            z,tc = convert(t[active],x1[active],x4[active],logt[active])
+            block = _bundle_cusp_torus(C,z,tc)*beta[active,None]
+            pad = torch.zeros(block.shape[:-1]+(10,),dtype=CD,device=t.device)
+            pad[...,start:start+4] = block
+            v = _scatter(v,active,v[active]+pad)
+    active = bm>0
+    if active.any():
+        tt,one,four,lt = t[active],x1[active],x4[active],logt[active]
+        components = []
+        for centre in (0.,math.pi):
+            angle = torch.angle(tt if centre==0 else -tt)
+            weight = 1-bump_step((angle.abs()-math.pi/2)/(math.pi/4))
+            branch = angle+centre
+            phase = torch.exp(1j*(2*math.pi*one-(branch-lt.imag)*four))
+            components.append(weight*phase)
+        block = bm[active,None]*torch.stack(components,-1)
+        pad = torch.zeros(block.shape[:-1]+(10,),dtype=CD,device=t.device)
+        pad[...,8:10] = block
+        v = _scatter(v,active,v[active]+pad)
+    return _bundle_normalize(v,with_norm)
+
+
+def bundle_embedding_chart(C,x,y,*,with_norm=False):
+    """Same embedding on a pure cusp |xy|<=.3, |H|<=.6, off the node.
+
+    Includes either central axis. On rad<=.004 the only nonzero components
+    are exactly (sqrt(a0)*conj(x),y)/sqrt(rad), in the corresponding cusp block.
+    """
+    if ((x*y).abs()>.3).any():
+        raise ValueError('bundle_embedding_chart requires |xy|<=.3')
+    block = _bundle_cusp_chart(C,x,y)
+    start = 4 if C.name=='inf' else 0
+    v = torch.zeros(x.shape+(10,),dtype=CD,device=x.device)
+    v[...,start:start+4] = block
+    return _bundle_normalize(v,with_norm)
+
+
+def connection_torus(C, zeta, t, dzeta, dt):
+    """Explicit cusp circle connection applied to a tangent vector, t*zeta != 0.
+
+    This independent connection supports the quadrature-lift design; it does not
+    change the existing Psi functions. Pass T.FINITE_CUSP0/INF to use the
+    finite height. The locally finite chi-average has denominator >= 1/2.
+    """
+    mu = C.mu_torus(zeta,t)
+    n = -torch.round(mu).detach()[...,None]+torch.arange(-1,2,dtype=RD,device=t.device)
+    weights = T.chi(mu[...,None]+n)
+    rho = torch.log(zeta.abs())[...,None]+n*C.P(t)[...,None]
+    f = torch.sigmoid(math.log(C.a0)+torch.log(T.abs2(t))[...,None]-4*rho)
+    mean = (weights*(n-f)).sum(-1)/weights.sum(-1)
+    return (dzeta/zeta).imag+mean*(dt/t).imag
+
+
+def connection_chart(C, x, y, dx, dy):
+    """The same connection in U_0, including either axis, away from the node.
+
+    This three-term chart expression is used on |mu|<=0.6. Each noncentral
+    coordinate divided by below is nonzero on its coefficient's support.
+    """
+    mu = C.mu_chart(x,y)
+    if (mu.abs() > 0.6).any():
+        raise ValueError('connection_chart requires |mu| <= 0.6')
+    def local(xx,yy,dxx,dyy):
+        rad = C.a0*T.abs2(xx)+T.abs2(yy)
+        if (rad == 0).any():
+            raise ValueError('the circle connection is undefined at a fixed point')
+        return (-C.a0*xx.conj()*dxx+yy.conj()*dyy).imag/rad
+    w0,wp,wm = T.chi(mu),T.chi(mu+1),T.chi(mu-1)
+    out = w0*local(x,y,dx,dy)
+    t,dt = x*y,dx*y+x*dy
+    tt = T.abs2(t)
+    m = C.nu*torch.exp(-2*tt/(1-tt))
+    dm = -m*4*(t.conj()*dt).real/(1-tt)**2
+    plus = wp > 0
+    if plus.any():
+        xx,yy,dxx,dyy,mm,dmm = (v[plus] for v in (x,y,dx,dy,m,dm))
+        xn,yn = 1/(mm*yy),mm*xx*yy**2
+        dxn = -xn*(dmm/mm+dyy/yy)
+        dyn = dmm*xx*yy**2+mm*dxx*yy**2+2*mm*xx*yy*dyy
+        out = _scatter(out,plus,out[plus]+wp[plus]*local(xn,yn,dxn,dyn))
+    minus = wm > 0
+    if minus.any():
+        xx,yy,dxx,dyy,mm,dmm = (v[minus] for v in (x,y,dx,dy,m,dm))
+        xn,yn = mm*xx**2*yy,1/(mm*xx)
+        dxn = dmm*xx**2*yy+2*mm*xx*yy*dxx+mm*xx**2*dyy
+        dyn = -yn*(dmm/mm+dxx/xx)
+        out = _scatter(out,minus,out[minus]+wm[minus]*local(xn,yn,dxn,dyn))
+    return out/(w0+wp+wm)
+
+
+def connection_middle(t, x1, x4, logt, dt, dx1, dx4,*,finite_height=False):
+    """Global connection on the regular part, including the two cusp collars.
+
+    Branch changes act on both x1 and dx1. The weighted connection extends
+    through the central fibres by connection_chart; no fitted phase is used.
+    """
+    from torch.func import jvp
+    r = t.abs()
+    b0 = 1-bump_step((r-0.3)/0.2)
+    bi = 1-bump_step((1/r-0.3)/0.2)
+    out = (1-b0-bi)*(2*math.pi*dx1+logt.imag*dx4)
+    C0,Ci = T.height_cusps(finite_height)
+    for C, fun, weight in ((C0,T.to_cusp0,b0),(Ci,T.to_cuspinf,bi)):
+        mask = weight > 0
+        if mask.any():
+            vals = (t[mask],x1[mask],x4[mask],logt[mask])
+            tans = (dt[mask],dx1[mask],dx4[mask],dt[mask]/t[mask])
+            (z,tc),(dz,dc) = jvp(fun,vals,tans)
+            out = _scatter(out,mask,out[mask]+weight[mask]*connection_torus(C,z,tc,dz,dc))
+    return out
+
+
+def algebraic_k(r):
+    """Balanced algebraic base profile, programme 9.2 (both endpoint scales)."""
+    A = (4*math.pi)**2
+    return torch.sqrt((A+math.exp(4)*r*r)/(1+A*r*r))
+
+
+def suspended_hopf(q):
+    """Algebraic Hopf suspension S4->S3; q=(Re z1,Im z1,Re z2,Im z2,X).
+
+    This literature-inspired target model is independent of the maps from W.
+    It is not an identification of the repo's W with the standard S4.
+    """
+    a,b,c,d,h = q.unbind(-1)
+    return torch.stack([2*(a*c+b*d),2*(b*c-a*d),a*a+b*b-c*c-d*d,
+                        h*torch.sqrt(2-h*h)],-1)
+
+
+def sphere3_boost(p,inverse=False):
+    """Explicit conformal diffeomorphism of S3, denominator >=sqrt(2)-1."""
+    sign = -1 if inverse else 1
+    den = math.sqrt(2)+sign*p[...,0]
+    return torch.cat([((math.sqrt(2)*p[...,0]+sign)/den)[...,None],
+                      p[...,1:]/den[...,None]],-1)
+
+
+def algebraic_torus_fibration(q):
+    """h o k o Sigma(h): algebraic S4->S2 with critical values (0,+/-1,0).
+
+    A target for the alternative fibration strategy of programme 10.4, not a
+    complex structure and not yet matched to the given complex threefold.
+    """
+    a,b,c,d = sphere3_boost(suspended_hopf(q)).unbind(-1)
+    return torch.stack([2*(a*c+b*d),2*(b*c-a*d),a*a+b*b-c*c-d*d],-1)
+
+
+def algebraic_hopf_cusp(tc,a,infinity=False):
+    """h_B with the algebraic k profile, including the central fibre."""
+    r2 = tc.real**2+tc.imag**2
+    A = (4*math.pi)**2
+    if infinity:
+        ratio = tc*torch.sqrt((r2+A)/(A*r2+math.exp(4)))
+        u1 = torch.exp(2j*math.pi*(-a+.5))/torch.sqrt(1+T.abs2(ratio))
+        return torch.stack([u1,u1*ratio],-1)
+    # Use the polynomial |tc|^2: abs(tc)**2 has incorrect higher AD jets at 0.
+    ratio = tc*torch.sqrt((A+math.exp(4)*r2)/(1+A*r2))
+    u2 = torch.exp(2j*math.pi*a)/torch.sqrt(1+T.abs2(ratio))
+    return torch.stack([ratio*u2,u2],-1)
+
+
+def transport_base_local(p, infinity=False, modified=True,*,algebraic_profile=False):
+    """Certified local base map of programme section 8, |p|<=0.008.
+
+    R is identity for this new construction. The raw formula is I2a--d;
+    optional blending makes it exactly linear for |p|<=0.004.
+    """
+    xx = 2*math.pi*p
+    if algebraic_profile:
+        rho2 = p[...,0]**2+p[...,1]**2
+        A = (4*math.pi)**2
+        beta = torch.sqrt((1+math.exp(4)*rho2/(4*A))/(1+A*rho2/4))
+        xx = xx*torch.stack([beta,-beta if infinity else beta,torch.ones_like(beta)],-1)
+    elif infinity:
+        rho2 = p[...,0]**2+p[...,1]**2
+        outer = rho2 > (2*math.exp(-6))**2
+        rho = torch.sqrt(torch.where(outer,rho2,torch.ones_like(rho2)))
+        beta = torch.where(outer,T.KINF/T.k_of(2*math.exp(-2)/rho),torch.ones_like(rho))
+        xx = xx*torch.stack([beta,-beta,torch.ones_like(beta)],-1)
+    a,b,c = xx.unbind(-1)
+    den = torch.sqrt(1+a*a+b*b)+a*torch.cos(c)+b*torch.sin(c)
+    raw = torch.stack([a*torch.sin(c)-b*torch.cos(c),-torch.sin(c),den-torch.cos(c)],-1)/den[...,None]
+    if infinity:
+        raw = torch.stack([-raw[...,1],-raw[...,0],raw[...,2]],-1)/2
+    if not modified:
+        return raw
+    linear = p@((SINF if infinity else S0)*(QINF if infinity else Q0).to(p)).T
+    # The cutoff is constant on the inner ball. Avoid differentiating |p| at
+    # zero even in an inactive expression: nested AD must see a smooth graph.
+    radius = torch.sqrt((p*p).sum(-1).clamp_min(EPS1**2))
+    cutoff = bump_step((radius-EPS1)/(EPS2-EPS1))
+    return linear+cutoff[...,None]*(raw-linear)
+
+
+def P_algebraic(w):
+    """Algebraic replacement for P_final, on 0<|w|<infinity (programme 9.2).
+
+    The fixed points use transport_base_chart's polynomial-radius formulas.
+    This block and its inverse contain no profile root or cutoff.
+    """
+    r2 = (w*w).sum(-1)
+    r = torch.sqrt(r2)
+    direction = torch.stack([w[...,0],-w[...,2],-w[...,1]],-1)
+    return 2*direction/(1+r2)[...,None], (r-1)/torch.sqrt(1+r2)
+
+
+def transport_base_chart(C,x,y,*,algebraic_radial=False,algebraic_profile=False):
+    """Unfitted base in a reduced cusp chart; optional algebraic radial profile.
+
+    False retains section 8 verbatim. True is section 9.2's conjugate base;
+    the local shell and all height choices are unchanged.
+    """
+    # Own the storage before complex real/imag views in nested forward AD.
+    x = x.clone(memory_format=torch.contiguous_format)
+    y = y.clone(memory_format=torch.contiguous_format)
+    xr,xi,yr,yi = x.real,x.imag,y.real,y.imag
+    nx,ny = xr*xr+xi*xi,yr*yr+yi*yi
+    # Real polynomial form also avoids a nested-AD layout bug after scaled conj.
+    p = torch.stack([2*math.sqrt(C.a0)*(xr*yr-xi*yi),
+                     -2*math.sqrt(C.a0)*(xr*yi+xi*yr),C.a0*nx-ny],-1)
+    rad_up = C.a0*nx+ny
+    small = rad_up <= EPS2
+    v = torch.zeros(x.shape+(3,),dtype=RD,device=x.device)
+    X = torch.zeros(x.shape,dtype=RD,device=x.device)
+    infinity = C.name == 'inf'
+    if small.any():
+        vv = transport_base_local(p[small],infinity,algebraic_profile=algebraic_profile)
+        rad = rad_up[small]
+        inner = rad <= EPS1
+        nv = torch.linalg.vector_norm(torch.where(inner[...,None],torch.ones_like(vv),vv),dim=-1)
+        nv = torch.where(inner,(SINF if infinity else S0)*rad,nv)
+        if algebraic_radial:
+            vv = 2*vv/(1+nv*nv)[...,None]
+            hh = (1 if infinity else -1)*(1-nv)/torch.sqrt(1+nv*nv)
+        else:
+            hh = (1 if infinity else -1)*torch.sqrt(1-nv)
+        v,X = _scatter(v,small,vv),_scatter(X,small,hh)
+    if (~small).any():
+        xx,yy = x[~small],y[~small]
+        tc = xx*yy
+        # The chart form also covers the central axes. Away from the cusp core,
+        # use the original height/log-radius blend, which equals it at r=.3.
+        inner = tc.abs() <= 0.3
+        aa = T.mu_new_chart(C,xx,yy)
+        if (~inner).any():
+            aa = _scatter(aa,~inner,T.cusp_angle(C,yy[~inner],tc[~inner]))
+        if algebraic_profile:
+            u = algebraic_hopf_cusp(tc,aa,infinity)
+        else:
+            u = T.hopf_from_a2_s(tc,aa) if infinity else T.hopf_from_a1(tc,aa)
+        vv,hh = (P_algebraic if algebraic_radial else T.P_final)(transport_stereographic(u))
+        v,X = _scatter(v,~small,vv),_scatter(X,~small,hh)
+    return v,X
+
+
+def transport_base_middle(t,x1,x4,logt,*,algebraic_radial=False,algebraic_profile=False,finite_height=False):
+    """The same new base map in a middle chart, with R=Id."""
+    r = t.abs()
+    cusp0,cuspi = r<0.5,r>2
+    mid = ~(cusp0|cuspi)
+    v = torch.zeros(t.shape+(3,),dtype=RD,device=t.device)
+    X = torch.zeros(t.shape,dtype=RD,device=t.device)
+    if mid.any():
+        tt,aa = t[mid],x4[mid]
+        if algebraic_profile:
+            lo = tt.abs()<=1
+            ratio = tt*algebraic_k(tt.abs())
+            a1 = T.a1_mid(tt,aa)
+            lam = T.lam_inf(tt.abs())
+            a2p = -T.a2_mid(tt,aa)+lam*T.delta(tt)+(1-lam)*.5
+            u2 = torch.exp(2j*math.pi*a1)/torch.sqrt(1+T.abs2(ratio))
+            u1 = torch.exp(2j*math.pi*a2p)/torch.sqrt(1+1/T.abs2(ratio))
+            u = torch.where(lo[:,None],torch.stack([ratio*u2,u2],-1),torch.stack([u1,u1/ratio],-1))
+        else:
+            u = T.h_B_mid(tt,aa)
+        vv,hh = (P_algebraic if algebraic_radial else T.P_final)(transport_stereographic(u))
+        v,X = _scatter(v,mid,vv),_scatter(X,mid,hh)
+    C0,Ci = T.height_cusps(finite_height)
+    for C,mask,convert in ((C0,cusp0,T.to_cusp0),(Ci,cuspi,T.to_cuspinf)):
+        if mask.any():
+            z,tc = convert(t[mask],x1[mask],x4[mask],logt[mask])
+            _,xx,yy = C.reduce(z,tc)
+            vv,hh = transport_base_chart(C,xx,yy,algebraic_radial=algebraic_radial,algebraic_profile=algebraic_profile)
+            v,X = _scatter(v,mask,vv),_scatter(X,mask,hh)
+    return v,X
+
+
+def transport_stereographic(u):
+    """Direct stereographic formula, regular also at u=(1,0).
+
+    The opposite point u=(-1,0) is the infinity node and uses the local base
+    formula. This avoids the removable 0/0 of the legacy rationalization at +1.
+    """
+    vec = torch.stack([u[...,0].imag,u[...,1].real,u[...,1].imag],-1)
+    return vec/(1+u[...,0].real)[...,None]-u.real.new_tensor([0.,1.,0.])
+
+
+def elementary_torus_shift_chart(C,x,y):
+    """phi_E-phi in a REDUCED cusp chart (programme 9.3).
+
+    The correction is supported in rad<.008; near its support |H|<.01,
+    so the representative is unique. Outside this chart use the middle form.
+    """
+    radius = C.a0*T.abs2(x)+T.abs2(y)
+    active = radius<EPS2
+    out = torch.zeros(x.shape+(2,),dtype=RD,device=x.device)
+    if active.any():
+        xx,yy = x[active],y[active]
+        H = C.mu_chart(xx,yy)
+        c2,c3 = C.c_tilde(xx*yy)
+        cutoff = 1-bump_step((radius[active]-EPS1)/(EPS2-EPS1))
+        out = _scatter(out,active,(cutoff*H)[...,None]*torch.stack([c2,c3],-1))
+    return out
+
+
+def elementary_torus_shift_middle(t,x1,x4,logt,*,finite_height=False):
+    """Global real torus correction on the regular part, invariant under deck/branch."""
+    out = torch.zeros(t.shape+(2,),dtype=RD,device=t.device)
+    C0,Ci = T.height_cusps(finite_height)
+    for C,mask,convert in ((C0,t.abs()<.01,T.to_cusp0),(Ci,t.abs()>25,T.to_cuspinf)):
+        if mask.any():
+            z,tc = convert(t[mask],x1[mask],x4[mask],logt[mask])
+            _,x,y = C.reduce(z,tc)
+            out = _scatter(out,mask,elementary_torus_shift_chart(C,x,y))
+    return out
+
+
 def h0(r):
     return r + (RP - r) * bump_step((r - R0) / (R1 - R0))
 

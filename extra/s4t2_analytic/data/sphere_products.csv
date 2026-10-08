@@ -1,0 +1,160 @@
+dim,product,almost_complex,status,minimal_inputs,witness
+2,S^2,True,classical,,CP^1
+2,S^1 x S^1,True,classical,,CE(S^1xS^1)
+4,S^4,False,no_acs,,
+4,S^3 x S^1,True,classical,,CE(S^1xS^3)
+4,S^2 x S^2,True,classical,,CP^1 . CP^1
+4,S^2 x S^1 x S^1,True,classical,,CP^1 . CE(S^1xS^1)
+4,S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^1) . CE(S^1xS^1)
+6,S^6,True,needs_input,S6,S^6
+6,S^5 x S^1,True,classical,,CE(S^1xS^5)
+6,S^4 x S^2,True,needs_input,S2xS4,S^2xS^4
+6,S^4 x S^1 x S^1,True,needs_input,S4xT2,S^4xT^2
+6,S^3 x S^3,True,classical,,CE(S^3xS^3)
+6,S^3 x S^2 x S^1,True,classical,,CE(S^1xS^3) . CP^1
+6,S^3 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CE(S^1xS^1)
+6,S^2 x S^2 x S^2,True,classical,,CP^1 . CP^1 . CP^1
+6,S^2 x S^2 x S^1 x S^1,True,classical,,CP^1 . CP^1 . CE(S^1xS^1)
+6,S^2 x S^1 x S^1 x S^1 x S^1,True,classical,,CP^1 . CE(S^1xS^1) . CE(S^1xS^1)
+6,S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+8,S^8,False,no_acs,,
+8,S^7 x S^1,True,classical,,CE(S^1xS^7)
+8,S^6 x S^2,True,needs_input,S6,S^6 . CP^1
+8,S^6 x S^1 x S^1,True,needs_input,S6,S^6 . CE(S^1xS^1)
+8,S^5 x S^3,True,classical,,CE(S^3xS^5)
+8,S^5 x S^2 x S^1,True,classical,,CE(S^1xS^5) . CP^1
+8,S^5 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^5) . CE(S^1xS^1)
+8,S^4 x S^4,False,no_acs,,
+8,S^4 x S^3 x S^1,True,needs_input,LLZ+S2xS4+S6,S^4xS^3xS^1
+8,S^4 x S^2 x S^2,True,needs_input,S2xS4,S^2xS^4 . CP^1
+8,S^4 x S^2 x S^1 x S^1,True,needs_input,S2xS4; S4xT2,S^2xS^4 . CE(S^1xS^1); S^4xT^2 . CP^1
+8,S^4 x S^1 x S^1 x S^1 x S^1,True,needs_input,S4xT2,S^4xT^2 . CE(S^1xS^1)
+8,S^3 x S^3 x S^2,True,classical,,CE(S^3xS^3) . CP^1
+8,S^3 x S^3 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CE(S^1xS^3)
+8,S^3 x S^2 x S^2 x S^1,True,classical,,CE(S^1xS^3) . CP^1 . CP^1
+8,S^3 x S^2 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CP^1 . CE(S^1xS^1)
+8,S^3 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CE(S^1xS^1) . CE(S^1xS^1)
+8,S^2 x S^2 x S^2 x S^2,True,classical,,CP^1 . CP^1 . CP^1 . CP^1
+8,S^2 x S^2 x S^2 x S^1 x S^1,True,classical,,CP^1 . CP^1 . CP^1 . CE(S^1xS^1)
+8,S^2 x S^2 x S^1 x S^1 x S^1 x S^1,True,classical,,CP^1 . CP^1 . CE(S^1xS^1) . CE(S^1xS^1)
+8,S^2 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CP^1 . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+8,S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+10,S^10,False,no_acs,,
+10,S^9 x S^1,True,classical,,CE(S^1xS^9)
+10,S^8 x S^2,False,no_acs,,
+10,S^8 x S^1 x S^1,True,open,,
+10,S^7 x S^3,True,classical,,CE(S^3xS^7)
+10,S^7 x S^2 x S^1,True,classical,,CE(S^1xS^7) . CP^1
+10,S^7 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^7) . CE(S^1xS^1)
+10,S^6 x S^4,False,no_acs,,
+10,S^6 x S^3 x S^1,True,needs_input,S6,S^6 . CE(S^1xS^3)
+10,S^6 x S^2 x S^2,True,needs_input,S6,S^6 . CP^1 . CP^1
+10,S^6 x S^2 x S^1 x S^1,True,needs_input,S6,S^6 . CP^1 . CE(S^1xS^1)
+10,S^6 x S^1 x S^1 x S^1 x S^1,True,needs_input,S6,S^6 . CE(S^1xS^1) . CE(S^1xS^1)
+10,S^5 x S^5,True,classical,,CE(S^5xS^5)
+10,S^5 x S^4 x S^1,True,open,,
+10,S^5 x S^3 x S^2,True,classical,,CE(S^3xS^5) . CP^1
+10,S^5 x S^3 x S^1 x S^1,True,classical,,CE(S^1xS^5) . CE(S^1xS^3)
+10,S^5 x S^2 x S^2 x S^1,True,classical,,CE(S^1xS^5) . CP^1 . CP^1
+10,S^5 x S^2 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^5) . CP^1 . CE(S^1xS^1)
+10,S^5 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^5) . CE(S^1xS^1) . CE(S^1xS^1)
+10,S^4 x S^4 x S^2,False,no_acs,,
+10,S^4 x S^4 x S^1 x S^1,True,open,,
+10,S^4 x S^3 x S^3,True,needs_input,LLZ+S2xS4+S6,S^4xS^3xS^3
+10,S^4 x S^3 x S^2 x S^1,True,needs_input,S2xS4,S^2xS^4 . CE(S^1xS^3)
+10,S^4 x S^3 x S^1 x S^1 x S^1,True,needs_input,S4xT2; LLZ+S2xS4+S6,S^4xT^2 . CE(S^1xS^3); S^4xS^3xS^1 . CE(S^1xS^1)
+10,S^4 x S^2 x S^2 x S^2,True,needs_input,S2xS4,S^2xS^4 . CP^1 . CP^1
+10,S^4 x S^2 x S^2 x S^1 x S^1,True,needs_input,S2xS4; S4xT2,S^2xS^4 . CP^1 . CE(S^1xS^1); S^4xT^2 . CP^1 . CP^1
+10,S^4 x S^2 x S^1 x S^1 x S^1 x S^1,True,needs_input,S2xS4; S4xT2,S^2xS^4 . CE(S^1xS^1) . CE(S^1xS^1); S^4xT^2 . CP^1 . CE(S^1xS^1)
+10,S^4 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,needs_input,S4xT2,S^4xT^2 . CE(S^1xS^1) . CE(S^1xS^1)
+10,S^3 x S^3 x S^3 x S^1,True,classical,,CE(S^1xS^3) . CE(S^3xS^3)
+10,S^3 x S^3 x S^2 x S^2,True,classical,,CE(S^3xS^3) . CP^1 . CP^1
+10,S^3 x S^3 x S^2 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CE(S^1xS^3) . CP^1
+10,S^3 x S^3 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CE(S^1xS^3) . CE(S^1xS^1)
+10,S^3 x S^2 x S^2 x S^2 x S^1,True,classical,,CE(S^1xS^3) . CP^1 . CP^1 . CP^1
+10,S^3 x S^2 x S^2 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CP^1 . CP^1 . CE(S^1xS^1)
+10,S^3 x S^2 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CP^1 . CE(S^1xS^1) . CE(S^1xS^1)
+10,S^3 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+10,S^2 x S^2 x S^2 x S^2 x S^2,True,classical,,CP^1 . CP^1 . CP^1 . CP^1 . CP^1
+10,S^2 x S^2 x S^2 x S^2 x S^1 x S^1,True,classical,,CP^1 . CP^1 . CP^1 . CP^1 . CE(S^1xS^1)
+10,S^2 x S^2 x S^2 x S^1 x S^1 x S^1 x S^1,True,classical,,CP^1 . CP^1 . CP^1 . CE(S^1xS^1) . CE(S^1xS^1)
+10,S^2 x S^2 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CP^1 . CP^1 . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+10,S^2 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CP^1 . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+10,S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^12,False,no_acs,,
+12,S^11 x S^1,True,classical,,CE(S^1xS^11)
+12,S^10 x S^2,False,no_acs,,
+12,S^10 x S^1 x S^1,True,open,,
+12,S^9 x S^3,True,classical,,CE(S^3xS^9)
+12,S^9 x S^2 x S^1,True,classical,,CE(S^1xS^9) . CP^1
+12,S^9 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^9) . CE(S^1xS^1)
+12,S^8 x S^4,False,no_acs,,
+12,S^8 x S^3 x S^1,True,open,,
+12,S^8 x S^2 x S^2,False,no_acs,,
+12,S^8 x S^2 x S^1 x S^1,True,open,,
+12,S^8 x S^1 x S^1 x S^1 x S^1,True,open,,
+12,S^7 x S^5,True,classical,,CE(S^5xS^7)
+12,S^7 x S^4 x S^1,True,open,,
+12,S^7 x S^3 x S^2,True,classical,,CE(S^3xS^7) . CP^1
+12,S^7 x S^3 x S^1 x S^1,True,classical,,CE(S^1xS^7) . CE(S^1xS^3)
+12,S^7 x S^2 x S^2 x S^1,True,classical,,CE(S^1xS^7) . CP^1 . CP^1
+12,S^7 x S^2 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^7) . CP^1 . CE(S^1xS^1)
+12,S^7 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^7) . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^6 x S^6,True,needs_input,S6,S^6 . S^6
+12,S^6 x S^5 x S^1,True,needs_input,S6,S^6 . CE(S^1xS^5)
+12,S^6 x S^4 x S^2,True,needs_input,S2xS4+S6,S^6 . S^2xS^4
+12,S^6 x S^4 x S^1 x S^1,True,needs_input,S4xT2+S6,S^6 . S^4xT^2
+12,S^6 x S^3 x S^3,True,needs_input,S6,S^6 . CE(S^3xS^3)
+12,S^6 x S^3 x S^2 x S^1,True,needs_input,S6,S^6 . CE(S^1xS^3) . CP^1
+12,S^6 x S^3 x S^1 x S^1 x S^1,True,needs_input,S6,S^6 . CE(S^1xS^3) . CE(S^1xS^1)
+12,S^6 x S^2 x S^2 x S^2,True,needs_input,S6,S^6 . CP^1 . CP^1 . CP^1
+12,S^6 x S^2 x S^2 x S^1 x S^1,True,needs_input,S6,S^6 . CP^1 . CP^1 . CE(S^1xS^1)
+12,S^6 x S^2 x S^1 x S^1 x S^1 x S^1,True,needs_input,S6,S^6 . CP^1 . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^6 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,needs_input,S6,S^6 . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^5 x S^5 x S^2,True,classical,,CE(S^5xS^5) . CP^1
+12,S^5 x S^5 x S^1 x S^1,True,classical,,CE(S^1xS^5) . CE(S^1xS^5)
+12,S^5 x S^4 x S^3,True,needs_input,LLZ+S2xS4+S6,S^4xS^3xS^5
+12,S^5 x S^4 x S^2 x S^1,True,needs_input,S2xS4,CE(S^1xS^5) . S^2xS^4
+12,S^5 x S^4 x S^1 x S^1 x S^1,True,needs_input,S4xT2,CE(S^1xS^5) . S^4xT^2
+12,S^5 x S^3 x S^3 x S^1,True,classical,,CE(S^1xS^5) . CE(S^3xS^3)
+12,S^5 x S^3 x S^2 x S^2,True,classical,,CE(S^3xS^5) . CP^1 . CP^1
+12,S^5 x S^3 x S^2 x S^1 x S^1,True,classical,,CE(S^1xS^5) . CE(S^1xS^3) . CP^1
+12,S^5 x S^3 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^5) . CE(S^1xS^3) . CE(S^1xS^1)
+12,S^5 x S^2 x S^2 x S^2 x S^1,True,classical,,CE(S^1xS^5) . CP^1 . CP^1 . CP^1
+12,S^5 x S^2 x S^2 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^5) . CP^1 . CP^1 . CE(S^1xS^1)
+12,S^5 x S^2 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^5) . CP^1 . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^5 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^5) . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^4 x S^4 x S^4,False,no_acs,,
+12,S^4 x S^4 x S^3 x S^1,True,open,,
+12,S^4 x S^4 x S^2 x S^2,True,needs_input,S2xS4,S^2xS^4 . S^2xS^4
+12,S^4 x S^4 x S^2 x S^1 x S^1,True,needs_input,S2xS4+S4xT2,S^2xS^4 . S^4xT^2
+12,S^4 x S^4 x S^1 x S^1 x S^1 x S^1,True,needs_input,S4xT2,S^4xT^2 . S^4xT^2
+12,S^4 x S^3 x S^3 x S^2,True,needs_input,S2xS4,S^2xS^4 . CE(S^3xS^3)
+12,S^4 x S^3 x S^3 x S^1 x S^1,True,needs_input,S4xT2; LLZ+S2xS4+S6,S^4xT^2 . CE(S^3xS^3); S^4xS^3xS^1 . CE(S^1xS^3)
+12,S^4 x S^3 x S^2 x S^2 x S^1,True,needs_input,S2xS4,S^2xS^4 . CE(S^1xS^3) . CP^1
+12,S^4 x S^3 x S^2 x S^1 x S^1 x S^1,True,needs_input,S2xS4; S4xT2,S^2xS^4 . CE(S^1xS^3) . CE(S^1xS^1); S^4xT^2 . CE(S^1xS^3) . CP^1
+12,S^4 x S^3 x S^1 x S^1 x S^1 x S^1 x S^1,True,needs_input,S4xT2; LLZ+S2xS4+S6,S^4xT^2 . CE(S^1xS^3) . CE(S^1xS^1); S^4xS^3xS^1 . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^4 x S^2 x S^2 x S^2 x S^2,True,needs_input,S2xS4,S^2xS^4 . CP^1 . CP^1 . CP^1
+12,S^4 x S^2 x S^2 x S^2 x S^1 x S^1,True,needs_input,S2xS4; S4xT2,S^2xS^4 . CP^1 . CP^1 . CE(S^1xS^1); S^4xT^2 . CP^1 . CP^1 . CP^1
+12,S^4 x S^2 x S^2 x S^1 x S^1 x S^1 x S^1,True,needs_input,S2xS4; S4xT2,S^2xS^4 . CP^1 . CE(S^1xS^1) . CE(S^1xS^1); S^4xT^2 . CP^1 . CP^1 . CE(S^1xS^1)
+12,S^4 x S^2 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,needs_input,S2xS4; S4xT2,S^2xS^4 . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1); S^4xT^2 . CP^1 . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^4 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,needs_input,S4xT2,S^4xT^2 . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^3 x S^3 x S^3 x S^3,True,classical,,CE(S^3xS^3) . CE(S^3xS^3)
+12,S^3 x S^3 x S^3 x S^2 x S^1,True,classical,,CE(S^1xS^3) . CE(S^3xS^3) . CP^1
+12,S^3 x S^3 x S^3 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CE(S^1xS^3) . CE(S^1xS^3)
+12,S^3 x S^3 x S^2 x S^2 x S^2,True,classical,,CE(S^3xS^3) . CP^1 . CP^1 . CP^1
+12,S^3 x S^3 x S^2 x S^2 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CE(S^1xS^3) . CP^1 . CP^1
+12,S^3 x S^3 x S^2 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CE(S^1xS^3) . CP^1 . CE(S^1xS^1)
+12,S^3 x S^3 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CE(S^1xS^3) . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^3 x S^2 x S^2 x S^2 x S^2 x S^1,True,classical,,CE(S^1xS^3) . CP^1 . CP^1 . CP^1 . CP^1
+12,S^3 x S^2 x S^2 x S^2 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CP^1 . CP^1 . CP^1 . CE(S^1xS^1)
+12,S^3 x S^2 x S^2 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CP^1 . CP^1 . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^3 x S^2 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CP^1 . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^3 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^3) . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^2 x S^2 x S^2 x S^2 x S^2 x S^2,True,classical,,CP^1 . CP^1 . CP^1 . CP^1 . CP^1 . CP^1
+12,S^2 x S^2 x S^2 x S^2 x S^2 x S^1 x S^1,True,classical,,CP^1 . CP^1 . CP^1 . CP^1 . CP^1 . CE(S^1xS^1)
+12,S^2 x S^2 x S^2 x S^2 x S^1 x S^1 x S^1 x S^1,True,classical,,CP^1 . CP^1 . CP^1 . CP^1 . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^2 x S^2 x S^2 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CP^1 . CP^1 . CP^1 . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^2 x S^2 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CP^1 . CP^1 . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^2 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CP^1 . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)
+12,S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1 x S^1,True,classical,,CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1) . CE(S^1xS^1)

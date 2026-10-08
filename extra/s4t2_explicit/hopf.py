@@ -70,7 +70,8 @@ def a1_c0(zeta, t):
     mn = mu_new(CUSP0, zeta, t)
     x4sl = np.log(np.abs(zeta)) / CUSP0.P(t)
     lam = bump_step((r - RA) / (RB - RA))
-    return mn + lam * wrap(x4sl - 0.5 - mn)
+    # The Gaussian mean and x4sl-1/2 lie in the same half-cell (symbolic programme C7).
+    return mn + lam * (x4sl - 0.5 - mn)
 
 
 def a1_mid(t, x4):
@@ -82,7 +83,7 @@ def a2_ci(zp, s):
     mn = mu_new(CUSPINF, zp, s)
     x4sl = np.log(np.abs(zp)) / CUSPINF.P(s)
     lam = bump_step((r - RA) / (RB - RA))
-    return mn + lam * wrap(x4sl - 0.5 - mn)
+    return mn + lam * (x4sl - 0.5 - mn)
 
 
 def a2_mid(t, x4):

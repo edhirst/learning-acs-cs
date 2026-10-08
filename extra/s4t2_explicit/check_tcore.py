@@ -1,6 +1,6 @@
 """tcore.py (torch) vs the verified numpy modules, on random points: every shared function to round-off."""
 from __future__ import annotations
-import os, sys
+import math, os, sys
 import numpy as np
 import torch
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
@@ -61,5 +61,73 @@ rep('moebius', rel(T.moebius(tt(uc)).numpy(), Cu.moebius(uc)))
 ww = rng.normal(size=(n, 3)) * np.exp(rng.uniform(-3, 3, (n, 1)))
 v1, X1 = T.P_final(tt(ww)); v0, X0 = La.P_final(ww)
 rep('P_final', max(rel(v1.numpy(), v0), rel(X1.numpy(), X0)))
+# Independent finite-height reference: sum 128 positive-tail seed terms in numpy.
+# This is a numerical cross-check, not the geometric-tail proof in L13/N6.
+def seed_numpy(v):
+    reciprocal = v > 2
+    w = np.where(reciprocal,1/np.where(reciprocal,v,1),v)
+    transition = (w>1/16)&(w<.5)
+    weight = bump_step(np.log(16*np.where(transition,w,1/16))/np.log(8))
+    out = np.where(w>=.5,w/(1+w),w+weight*(w/(1+w)-w))
+    return np.where(reciprocal,1-out,out)
+
+from torch.func import jvp
+for C in (T.FINITE_CUSP0,T.FINITE_CUSPINF):
+    rr = np.exp(rng.uniform(-12,np.log(.5),3000))
+    tv = rr*np.exp(1j*rng.uniform(-np.pi,np.pi,3000))
+    qv = C.a0*rr**2*np.exp(-4*rr**2/(1-rr**2))
+    yv = np.exp(.5*np.log(qv)*rng.uniform(-2,3,3000))
+    xv = tv/yv
+    av,y2v = qv/yv**2,yv**2
+    ref = np.zeros(3000)
+    for _ in range(128):
+        ref += seed_numpy(av)-seed_numpy(y2v)
+        av,y2v = qv*av,qv*y2v
+    hc = C.mu_chart(tt(xv),tt(yv).to(torch.complex128))
+    ht = C.mu_torus(tt(yv).to(torch.complex128),tt(tv))
+    rep(f'finite {C.name}: 3000 chart/independent sums',rel(hc,ref))
+    rep(f'finite {C.name}: chart/torus formula',rel(hc,ht))
+    for shift in (-2,-1,1,2):
+        hd = C.mu_torus(tt(yv).to(torch.complex128)*C.multiplier(tt(tv))**shift,tt(tv))
+        rep(f'finite {C.name}: deck shift {shift}',rel(hd,ht+shift))
+    yy = tt(yv).to(torch.complex128)
+    def along(rho):
+        return C.mu_torus(torch.exp(rho).to(torch.complex128),tt(tv))
+    rho = yy.abs().log()
+    deriv = jvp(along,(rho,),(torch.ones_like(rho),))[1]
+    assert (deriv<0).all()
+    # Exact axes, and derivatives through their zero coordinate. The finite
+    # polynomial-in-q reference has the same first three jets, independently
+    # of the implementation's batch-dependent geometric tail count.
+    rad = torch.tensor([0.,.02,.05,1/16,.1,.5,1.,2.,16.,20.])
+    zero = torch.zeros_like(rad).to(torch.complex128)
+    axis = rad.sqrt().to(torch.complex128)
+    rep(f'finite {C.name}: both exact axes',max(
+        rel(C.mu_chart(axis/math.sqrt(C.a0),zero),T.finite_height_seed(rad)),
+        rel(C.mu_chart(zero,axis),-T.finite_height_seed(rad))))
+    def chart(z):
+        xx,yy = torch.complex(z[:,0],z[:,1]),torch.complex(z[:,2],z[:,3])
+        return C.mu_chart(xx,yy)
+    def reference(z):
+        xx,yy = torch.complex(z[:,0],z[:,1]),torch.complex(z[:,2],z[:,3])
+        ts = T.abs2(xx*yy)
+        m2 = C.a0*torch.exp(-4*ts/(1-ts))
+        aa,bb,qq = m2*T.abs2(xx),T.abs2(yy),m2*ts
+        out = torch.zeros_like(ts)
+        for _ in range(8):
+            out = out+T.finite_height_seed(aa)-T.finite_height_seed(bb)
+            aa,bb = qq*aa,qq*bb
+        return out
+    z = torch.zeros(20,4)
+    z[:10,0],z[10:,2] = rad.sqrt()/math.sqrt(C.a0),rad.sqrt()
+    tangents = torch.tensor([[.23,-.17,.31,.11]]).expand_as(z)
+    fa,fb = chart,reference
+    for degree in range(1,4):
+        pa,pb = fa,fb
+        fa = lambda z,pa=pa:jvp(pa,(z,),(tangents,))[1]
+        fb = lambda z,pb=pb:jvp(pb,(z,),(tangents,))[1]
+        rep(f'finite {C.name}: axis/pole jet order {degree}',rel(fa(z),fb(z)))
+
 bad = [nm for nm, e in worst if not e < 1e-12]
 print('ALL PASS' if not bad else f'FAILURES: {bad}')
+assert not bad,bad

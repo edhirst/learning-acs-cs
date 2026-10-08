@@ -54,3 +54,28 @@ for nm, C, f in (('b0  ', CUSP0, lambda z, tt: H.h_B_c0(z, tt)), ('binf', CUSPIN
         res = np.abs(v @ L - loc).max() / np.abs(loc).max()
         print(f'5. {nm} eps = {eps:.0e}: |u - u_fixed| max {np.abs(u - (np.array([0, 1]) if nm == "b0  " else np.array([-1, 0]))).max():.1e}; '
               f'linear fit in v: singular values {np.round(sv, 5)}, det sign {np.sign(np.linalg.det(L)):+.0f}, nonlinear residual {res:.1e}')
+
+# 6. T7: compare the simplified formula with the former wrapped formula.
+# Include translated half-cell boundaries, both blend endpoints, and their neighbours.
+# This tests the finite-series code; the infinite-series proof is C7 in the programme.
+rr = np.concatenate([np.linspace(0.3, 0.6, 61), [0.3 - 1e-9, 0.3 + 1e-9, 0.5 - 1e-9, 0.5 + 1e-9]])
+cc = np.concatenate([np.linspace(-4, 4, 161), [-0.5 - 1e-10, -0.5 + 1e-10, 0.5 - 1e-10, 0.5 + 1e-10]])
+rr, cc = np.meshgrid(rr, cc, indexing='ij')
+tt = rr.flatten() * np.exp(0.7j)
+centre = cc.flatten()
+for name, C, afun in (('c0', CUSP0, H.a1_c0), ('ci', CUSPINF, H.a2_ci)):
+    zz = np.exp((centre + 0.5) * C.P(tt) + 0.2j)
+    mn = H.mu_new(C, zz, tt)
+    diff = np.log(np.abs(zz)) / C.P(tt) - 0.5 - mn
+    lam = H.bump_step((np.abs(tt) - H.RA) / (H.RB - H.RA))
+    former = mn + lam * H.wrap(diff)
+    current = afun(zz, tt)
+    err = d(former, current)
+    active = lam > 0
+    assert np.max(np.abs(diff[active])) < 0.5
+    assert err < 1e-13
+    shifted = afun(zz * C.multiplier(tt), tt)
+    equiv_error = d(shifted, current + 1)
+    assert equiv_error < 1e-12
+    print(f'6. {name}: {len(tt)} points, max active |sigma-mu| {np.max(np.abs(diff[active])):.6f}; '
+          f'old/new error {err:.1e}; shift error {equiv_error:.1e}: PASS')

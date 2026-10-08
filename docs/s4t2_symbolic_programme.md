@@ -1,9 +1,30 @@
 # The symbolic programme: F: Y → S⁴ × T² and its inverse G in symbolic form (started 2026-10-07)
 
 > **Status line (keep current).** Sections 0–6 written on 2026-10-07; all four scripts in `extra/s4t2_explicit/sym/`
-> PASS. Every claim marked *(sympy)* is verified by one of them; numerical facts carry their source script.
+> PASS. Review additions: I1 and I2 rational certificates, C7 (unwrapped blend), C8 (closed pole-cap inverse),
+> C9 (complete tensor on the caps), C10 (six-dimensional naturality), and L8 (smooth division;
+> first-order compatibility is insufficient). Numerical facts carry their source script.
+> **Global expression:** §8 now supplies G_Q, its inverse and J_Q by exact one-dimensional
+> quadratures, with C11–C15 and the shell contraction I2o–p. This is a new parametrization
+> of Y, independent of the fitted lift's I3–I5; it is not a finite elementary closed form.
+> The numerical additions evaluate its base/connection blocks, not the complete global tensor.
+> **Closed-form continuation:** §9 eliminates both scalar profile inverses, certifies the revised
+> shells, and gives a genuinely algebraic tensor on two pole neighbourhoods after a torus gauge
+> change. The global height inverse, shell inverse and transport/phase quadratures remain.
+> There is a proof excluding algebraic equivariant heights, not a proof excluding elementary J.
+> **Literature-led continuation:** §10 supplies a finite elementary forward height, an alternative
+> height/collar with a standard elliptic inverse, an algebraic S⁴→S² target, and finite bundle
+> operations with explicit hypotheses. The elliptic block is not yet assembled into a global
+> base/lift/tensor. The finite bundle operations still need a concrete embedding and derivative bounds.
+> **Finite global tensor (2026-10-08-EH-2):** §11 supplies a different, elementary inverse-first
+> height, smooth open central-fibre charts, a certified closed pole replacement, a concrete C¹⁰
+> bundle embedding and fixed-count projection/phase formulas. Equations (11.18)–(11.19) give
+> G_cl and J_cl with no implicit solve, quadrature or infinite series. The counts are enormous;
+> this is a finite elementary expression, not a practical expanded formula. The global statement
+> requires human review. The stronger finite **inverse pair** is still open: F_cl is not claimed
+> elementary and is not evaluated in J_cl. Legacy I3–I5/T14 remain flags for the old evaluator.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
-> **Resume point: §6.3 (next steps), after reading §6.1–6.2.**
+> **Resume point: §11.8 (verification scope, review, and the remaining inverse-pair question).**
 
 ## 0. What is being built, in one paragraph
 
@@ -47,6 +68,20 @@ residual non-degeneracy conditions are listed in §5 with their exact logical st
   u = ((1−|y|²)/(1+|y|²), 2y/(1+|y|²)) with y = w + (0,1,0), are mutually inverse (sympy, both compositions).
 * **L7 (lifts).** For both lift formulas, Hopf(Z) = v and |Z|² = |v| identically (sympy in the parametrisation
   v = n(sinθcosφ, sinθsinφ, cosθ)). Hence (Z, X) ∈ S⁴ whenever (v, X) ∈ B_S.
+* **L8 (smooth extension across the arc; corrected criterion, type (a)).** Put f = v₁ + iv₂ and
+  d = |v| − v₃ > 0 near the negative meridian, away from the fixed points. A sufficient condition is the
+  **exact factorisation f = H E with H smooth and nonvanishing**, in a local unitary frame. Lift B then equals
+  Z₁ = |H|E/√(2d), Z₂ = (H̄/|H|)√(d/2), including at E = 0. These formulas are smooth, have Hopf image v,
+  and agree with lift B off the arc; the identities are checked in `sym/lemmas_1d.py` L8a–c.
+  Matching transverse linearisations alone does **not** suffice. On |z| < ½ take E = z + z̄² and
+  v = (2 Re(z)√(1−|z|²), 2 Im(z)√(1−|z|²), 2|z|²−1). Here E has only the simple zero 0
+  (|E| ≥ |z|(1−|z|) > 0 off 0, type (b)), and df(0) = 2dE(0). But the second component of lift B is
+  √(1−|z|²)·z̄E/(|z||E|); its directional derivatives at 0 along 1, i, 1+i are 0, i, −i, respectively
+  (L8d–e), so it is not differentiable. Even Z₁ is not C²: its second directional derivatives along
+  1, i, 1+i, 1−i are 0, −2, 2−2i, 2+2i, violating the parallelogram identity for a quadratic form (L8f).
+  Thus T4 must establish smooth division on a neighbourhood of the
+  arc. One way to enforce it is E_new = f/conj(E″) with E″ smooth and nonvanishing there; extending or
+  gluing this choice globally remains open. This corrects the first-derivative criterion in notes §11.8.
 
 ## 3. Symbolic specification of F and G, block by block
 
@@ -66,8 +101,10 @@ implicit function theorem gives smoothness). Every identity marked (sympy) is in
 * **G-direction.** (z, w) = Σ x_j e_j(t), ζ = e^{iz}. Closed.
 * **Group actions in these coordinates** (sympy C2, and the paper): S¹_a: x₁ += θ/2π; T²: (x₂, x₃) += c; g₄:
   x₄ += 1; branch change log t → log t + 2πi: x₁ → x₁ − x₄.
-* **B_mid coordinates:** (t, x₄ mod 1), with x₁ mod 1 the S¹-fibre and (x₂, x₃) mod 1 the T²-fibre. W_mid =
-  ℂ* × T²_{(x₁, x₄)}, B_mid = ℂ* × S¹_{x₄}. Both trivial: the reference point of an orbit is x₁ = x₂ = x₃ = 0.
+* **B_mid coordinates:** (t, x₄ mod 1), with x₁ mod 1 the S¹-fibre and (x₂, x₃) mod 1 the T²-fibre.
+  B_mid = ℂ* × S¹_{x₄}. The coordinates (x₁,x₄) on W_mid are local: changing log t by 2πi
+  changes x₁ by −x₄. Thus x₁ = x₂ = x₃ = 0 is a reference on a chosen log branch, not a
+  global product trivialization of W_mid (C2, C11d).
 
 ### 3.2 Cusp fillings (closed, plus one implicit(1D) block: the height)
 
@@ -81,8 +118,9 @@ implicit function theorem gives smoothness). Every identity marked (sympy) is in
   (x_s, y_s) = (x e^{C·α}, y e^{−C·α}). Inverse: given (x_s, y_s, C), (x, y) = (x_s e^{−C·α}, y_s e^{C·α}), w = C·ē.
 * **Height μ̃ (implicit(1D) along fibres; closed on the central fibre).**
   Torus form: μ̃ = Σ_n n w_n, w_n ∝ e^{−2nρ + n(n+1)P}, ρ = log|ζ|. Chart form in U₀: μ̃ = Σ_j jT_j / Σ_j T_j with
-  T_j = e^{(j²+j)g} X^{j(j+1)/2} Y^{j(j−1)/2}, X = |x|², Y = |y|², g = log|ν| − φ(t); an entire series in (X, Y),
-  super-exponentially convergent. Facts:
+  T_j = e^{(j²+j)g} X^{j(j+1)/2} Y^{j(j−1)/2}, X = |x|², Y = |y|², g = log|ν| − φ(t).
+  This series converges normally on compact subsets of the cusp domain |xy|<1, including
+  its axes, by the explicit tail bound in §8.2; it is not asserted to be entire in (X,Y). Facts:
   * μ̃ ∘ ψ̂ = μ̃ + 1 (index shift n ↦ n+1 under ρ ↦ ρ + P: exact);
   * dμ̃/dρ = −2·Var_w(n) < 0 (sympy C5): strictly decreasing along every torus fibre, range ℝ (the extreme terms
     dominate as ρ → ±∞). **Inverse: certified-implicit.**
@@ -94,11 +132,11 @@ implicit function theorem gives smoothness). Every identity marked (sympy) is in
   H += 1; sympy C6), T²-equivariant. Inverse: C = φ₀ + H·c̃. Gluing to the middle: φ = (x₂, x₃) − (1 − χ(|t|))·D₀
   with D₀ = (H − x₄^slice)·c̃ + (ξ₂, ξ₃)(t), a smooth ℝ²-valued function of the W-point; inverse (x₂, x₃) = φ +
   (1 − χ)D₀, closed given the W-point.
-* **The S¹-phase (closed):** given the W-point's reference p_ref (x₁ = 0 in the middle; y real positive in the
-  chart) and Z ∈ ℂ², e^{iθ} = ⟨Z, Ψ_W(p_ref)⟩/|⟨…⟩|, and the point is e^{iθ}·p_ref (x₁ = θ/2π). The pairing is
-  nonzero because Z and Ψ_W(p_ref) lie on the same S¹-orbit of S⁴ (Hopf(Z) = v = Hopf(Ψ_W(p_ref)), L7).
-  chart) and Z ∈ ℂ², e^{iθ} = ⟨Z, Ψ_W(p_ref)⟩/|⟨…⟩|, and the point is e^{iθ}·p_ref (x₁ = θ/2π). The pairing is
-  nonzero because Z and Ψ_W(p_ref) lie on the same S¹-orbit of S⁴ (Hopf(Z) = v = Hopf(Ψ_W(p_ref)), L7).
+* **The S¹-phase (closed on a regular phase patch):** given the W-point's reference p_ref (x₁ = 0 on a
+  middle log branch; y real positive in a cusp patch with y≠0), put W=Ψ_W(p_ref). For Z≠0 with
+  Hopf(Z)=Hopf(W), set e^{iθ}=(Σ_j Z_j W̄_j)/|Σ_j Z_j W̄_j| and take e^{iθ}·p_ref.
+  This uses the explicit pairing convention and gives x₁=θ/(2π) in the middle. C15b–c show that
+  Z=λW with |λ|=1, hence the numerator is λ|W|²≠0. At the fixed points use §3.4's closed cap inverse.
 
 *Correction to 3.1:* the determinant of the lattice system is det = (|t|² + 1)(log|t|·(|t|² − 1) + 2|t|²)
 (sympy C1d), branch-independent and **manifestly positive on ℂ***: log|t| and |t|² − 1 have the same sign.
@@ -107,14 +145,27 @@ implicit function theorem gives smoothness). Every identity marked (sympy) is in
 
 * **Fibre coordinate on B₀ = {|t| ≤ ½} (implicit(1D) along fibres).**
   a₁ = (1 − λ(|t|))·μ̃_new + λ(|t|)·(x₄^slice − ½), λ = s((|t| − 0.3)/0.2), x₄^slice = ρ/P(t).
-  **Design change (symbolic version): no `wrap`.** Both μ̃_new and x₄^slice − ½ are globally defined functions of
+  **T7: no `wrap` (identities (a) and monotonicity (b), C7).** Both μ̃_new and x₄^slice − ½ are globally defined functions of
   ρ on the fibre, each shifting by exactly +1 under ψ̂, so the convex combination is equivariant without any
-  integer choice. The code's `wrap(x₄^slice − ½ − μ̃_new)` equals the plain difference wherever |…| < ½, which holds
-  numerically on 0.3 ≤ |t| ≤ 0.5 (≤ 0.375, `check_step2`), so the two definitions agree on the current code's range;
-  the wrap-bound lemma of notes §13.3 is **no longer needed**. Then
+  integer choice. In fact the old wrapped formula agrees exactly with this formula for the infinite series.
+  Set σ = ρ/P − ½ and a = −P > 0. Completing the square gives weights proportional to e^{−a(n−σ)²}.
+  Their mean M(σ) satisfies M′ = 2a Var > 0. At every half-integer b, reflection n ↦ 2b−n gives M(b) = b.
+  Thus σ and M(σ) belong to the same interval between consecutive half-integers, giving
+  **|M(σ)−σ| < ½**. The Gaussian and its derivatives converge uniformly on compact subsets of a > 0,
+  justifying differentiation and pairing; C7 checks the square completion, reflection, and derivative identities.
+  The same bound holds for the code's symmetric finite truncation about k = round(σ): put δ = σ−k.
+  For 0 ≤ δ ≤ ½, pairing j with −j shows the centred mean is ≥ 0, since their squared-distance
+  difference is 4jδ ≥ 0. Pairing j with 1−j for j = 1,…,J shows the mean is < ½: the squared-distance
+  difference is (2j−1)(1−2δ) ≥ 0, and the unpaired index −J contributes strictly negatively to the
+  moment centred at ½. Reflect for δ < 0. These identities are C7h; hence wrap removal also agrees
+  for finite centred sums in exact arithmetic. The smooth definition still uses the infinite series.
+  The node correction is absent wherever λ > 0: its support has
+  |t| ≤ rad/(2√a₀) ≤ e²/40 < 1/5 < 0.3 at either cusp (e² < 8 follows from the rational bound e⁴ < 55
+  in §4.2). Hence `wrap(σ−μ̃_new) = σ−μ̃_new` throughout the blend annulus. The finite-series implementations
+  are compared numerically in `check_hopf.py`; this comparison is a floating-point safety check. Then
   da₁/dρ = (1 − λ)·dμ̃_new/dρ + λ/P(t) < 0 manifestly where μ̃_new = μ̃ (P < 0 on |t| ≤ ½: P = log|ν| + log|t| − φ(t) with
   φ = 2|t|²/(1 − |t|²) ≥ 0 exactly (§4.1), so every term is ≤ 0 and log|t| < 0), since λ depends on |t| only. The node correction μ̃_new ≠ μ̃ only for
-  rad = a₀|x₀|² + |y₀|² < 0.05, i.e. |t| ≤ rad/2 < 0.025, where λ = 0; its certificate is in §4 (I1).
+  rad = a₀|x₀|² + |y₀|² < 0.05, hence |t| < 0.025/√a₀ < 0.2 at either cusp, where λ = 0; its certificate is in §4 (I1).
   Inverse: given (t, a₁), ρ by the certified-implicit inversion; then ζ = e^{ρ}·(phase from the S¹-step).
   On the central fibre (t = 0): the closed-form logistic inverses of §3.2 (with the node correction, exactly m₀ =
   a₀X − Y for rad ≤ 0.02: X = m₀/a₀ on D₁, Y = −m₀ on D₀).
@@ -126,7 +177,7 @@ implicit function theorem gives smoothness). Every identity marked (sympy) is in
 * **h_B: (t, a) ↦ u ∈ S³ (closed).** T = t·k(|t|) (L4). |t| ≤ 1: u₂ = e^{2πia₁}/√(1+|T|²), u₁ = T·u₂;
   |t| ≥ 1: u₁ = e^{2πia₂′}/√(1+|T|⁻²), u₂ = u₁/T. Inverse: |T| = |u₁|/|u₂| ⇒ r = |T|⁻¹ (L4, implicit(1D));
   t = (u₁/u₂)/k(r); a₁ = arg u₂/2π, a₂′ = arg u₁/2π (mod 1: the fibre coordinates are circle-valued). The two
-  descriptions agree on |t| = 1 (the clutching identity, `check_hopf` item; symbolic: a₂′ − a₁ = δ there by
+  descriptions agree on |t| = 1 (the clutching identity, `check_hopf` item; symbolic: a₂′ − a₁ = arg t/(2π) mod 1 there by
   the definitions, since λ_∞ = 1).
 * **Straightening R (closed given r).** R(u) = (φ̄₁(r)u₁, φ̄₂(r)u₂), unit phases φ₁, φ₂ depending on r only;
   R preserves |u₁|/|u₂|, so r is read off from R(u) as from u. Inverse: multiply by (φ₁, φ₂). The phases are
@@ -141,6 +192,69 @@ implicit function theorem gives smoothness). Every identity marked (sympy) is in
 
 * **Linear balls (closed).** rad ≤ 0.004: Ψ = √(2π)·U₀(x̄₀, y₀), X = −√(1 − 2π|q|²), U₀ = [[1, 1], [i, −i]]/√2;
   at ∞: Ψ = √π·U_∞(|ν|x̄′, y′), U_∞ = [[1, 1], [1, −1]]/√2. Inverse: q = U₀⁻¹Z/√(2π) (U₀ unitary).
+  **Implemented closed inverse (type (a), C8):** on the target caps X < 0, |Z|² ≤ 2π·0.004 and
+  X > 0, |Z|² ≤ π·0.004 respectively, set (q₁,q₂) = U*Z/√scale,
+  x_s = q̄₁/√a₀, y_s = q₂, t = x_s y_s. Then H = μ̃(x_s,y_s), C = φ+Hc̃(t),
+  x = x_s e^{−C·α}, y = y_s e^{C·α}, w = C₂ē₂+C₃ē₃.
+  The linear lift, slice, and torus-trivialisation compositions are identities (C8); the slice determinant
+  is nonzero since |t| ≤ e²·0.004/2 < 0.016 < 1 (type (c), using §4.2).
+  `tinverse.linear_ball_inverse` evaluates this formula without Newton, including Z = 0.
+  The torus arguments select local representatives; changing a representative by an integer is the T² lattice action.
+  `check_inverse.py` tests both cap boundaries and coverage; `check_jround.py` tests J, DJ and finite
+  differences at the exact poles and nearby axes. These numerical tests supplement the identities.
+  **Pole values of J (type (a), C8f–g).** At Z = 0 the differential splits into the complex Z-plane
+  and the two torus angles (δX = 0). At the south pole,
+  J(δZ₁,δZ₂,δφ₂,δφ₃) = (−δZ₂,δZ₁,−δφ₃,δφ₂);
+  at the north pole it is (−iδZ₂,−iδZ₁,δφ₃,−δφ₂).
+  Indeed the Z-block is U diag(−i,i)U*, while w = φ₂+iφ₃ at 0 and w = −φ₂+iφ₃ at ∞.
+  The slice corrections have zero first derivative at the node: t = x_s y_s is quadratic,
+  α(0) = c̃(0) = 0, H(0) = 0, and ē₂,ē₃ have no linear term in t.
+  **Complete tensor on these caps (identities (a), C9).** The following gives every coefficient of J,
+  without differentiating F or solving for its inverse. It uses the explicit convergent series for H;
+  it is a symbolic series expression, not a finite algebraic expression.
+  Put σ=+1 at 0 and σ=−1 at ∞, and retain x_s,y_s,t and scale from C8. Set
+  f=2|t|²/(1−|t|²), W=φ₂−iσφ₃. The inverse simplifies to
+  A=tW+Hf, x=x_s e^{−A}, y=y_s e^A,
+  **w=σ(W̄−Wt²+2Ht)**, since c̃₂=2 Re(t)/(1−|t|²) and c̃₃=2σ Im(t)/(1−|t|²).
+  Thus the three complex one-forms
+  η₁=dx_s−x_s dA, η₂=dy_s+y_s dA,
+  η₃=σ[dW̄−t²dW+(2H−2Wt)dt+2t dH]
+  equal e^A dx, e^{−A}dy, dw pulled back by G. All their coefficients are explicit:
+  dt=y_s dx_s+x_s dy_s, df=4 Re(t̄ dt)/(1−|t|²)², and
+  dA=Wdt+t dW+Hdf+f dH. For dH, put X̂=a₀|x_s|², Y=|y_s|²,
+  T_j=e^{−j(j+1)f} X̂^{j(j+1)/2}Y^{j(j−1)/2}, D_h=Σ_j T_j, H=Σ_j jT_j/D_h. Then
+  **dH=Σ_j(j−H)dT_j/D_h**, where, with a=j(j+1)/2 and b=j(j−1)/2,
+  dT_j=e^{−j(j+1)f}[aX̂^{a−1}Y^b dX̂+bX̂^aY^{b−1}dY−j(j+1)X̂^aY^b df].
+  Terms with a=0 or b=0 are omitted before evaluating a zero coordinate. Here
+  dX̂=2a₀ Re(x̄_s dx_s), dY=2 Re(ȳ_s dy_s). The series and these derivatives converge uniformly
+  on the caps: T_j≤rad^{j²}, rad≤0.004, and differentiation introduces only polynomial factors in j
+  and lowers the monomial degree by at most one; f and df have bounded denominators there.
+  In particular D_h≥T₀=1, and the formulas include both axes and the poles.
+
+  Let r=(Re Z₁,Im Z₁,Re Z₂,Im Z₂,φ₂,φ₃), and let M be the 6×6 real coefficient matrix of
+  (Re η₁,Im η₁,Re η₂,Im η₂,Re η₃,Im η₃) relative to dr. With J_std=diag(J₂,J₂,J₂),
+  J₂=[[0,−1],[1,0]], the complete answer in these coordinates is
+  **J_cap(r)=adj(M) J_std M / det(M)**, with
+  **det(M)=−σ(1−|t|⁴)/(scale²a₀) ≠ 0**.
+  To verify the determinant, first change φ to C=φ+Hc̃; this is a real shear of determinant 1.
+  At fixed C, the complex normal block has determinant 1. Subtract
+  (C₂ē₂′+C₃ē₃′)(y_sη₁+x_sη₂) from the w-row, leaving ē₂dC₂+ē₃dC₃, whose real determinant
+  is σ(1−|t|⁴). The real determinant of Z↦(x_s,y_s) is −1/(scale²a₀).
+  Multiplying dx,dy by e^A,e^{−A} changes the real determinant by |e^A e^{−A}|²=1. These factors
+  are C9a,b,e,l; the bound |t|<0.016 from C8 proves nonvanishing. Hence J_cap²=−Id, and the
+  coframe identifies its (1,0)-forms with differentials of local holomorphic coordinates: it is integrable.
+
+  The matrix in the r-coordinates is independent of the torus angles. Indeed W↦W+Θ corresponds to
+  (x,y,w)↦(e^{−Θt}x,e^{Θt}y,w+σ(Θ̄−Θt²)), a holomorphic change of chart for constant Θ (C9d).
+  Thus one may set W=0 at evaluation while retaining dW=dφ₂−iσdφ₃. There is no angular branch choice.
+  For the ambient ℝ⁹ tensor, put E=∂(Z,X,cos2πφ₂,sin2πφ₂,cos2πφ₃,sin2πφ₃)/∂r and R=dr∘P,
+  with P the orthogonal tangent projector. Explicitly E has Z-block I₄, X-row −Z_ℝᵀ/X, and circle columns
+  2π(−sin2πφ_j,cos2πφ_j); R has the first four rows of the S⁴ projector and circle rows
+  (−sin2πφ_j,cos2πφ_j)/(2π). Then **J_ambient=E J_cap R**, RE=Id, and J_ambient²=−P.
+  This expression is implemented separately as `jround.J_linear_ball`, with the existing finite height
+  sum j=−8,…,8; no truncation error certificate is asserted here. Its value uses neither automatic
+  differentiation nor Newton. `check_jround.check_symbolic_linear_balls` independently compares the
+  formula with the forward-map evaluator, determinant, axes, boundary points and finite differences.
 * **Lift A / lift B (closed given b and the functions E, G_A at the point):** formulas of L7. Inverse of the
   lift = the S¹-phase step of §3.2.
 * **Shell gluing Ψ = e^{ic(θ_v)·Arg g}·Lift_A**, g = ω_E·ω̄_A·conj(phase(v₁ + iv₂)) (closed given E, G_A).
@@ -189,9 +303,15 @@ large (|Arg g| ≤ 1.62; the arc within 0.056° of M₁; |arg t| ≥ 134° on th
   functions. The twisted periodicity f(s+1, x) = e^{2πix}f(s, x) is what the branch change x₁ ↦ x₁ − x₄ requires.
   (This was the §8 middle; the problem was only the *gluing* to the cusp sums, which was done through a log-ratio
   at a common zero.)
-* **The fixed points force exact linearity of Λ in v_q** (notes §13.3.1). This is re-derived in §4: with
+* **The linear balls are a sufficient fixed-point design** (notes §13.3.1). For the uncorrected chain, with
   Λ = M₀v_q + δ, δ = O(|q|⁴), lift B gives Z₁ = ω_E·√(4π|e|² + (v₃/|v|)δ₃ + …), not smooth across the arc, and
   lift A gives Z₂ = √(2π)(U₀q)₂·√(1 + δ-stuff/|(U₀q)₂|²), only C^{1,1} at p₀. Hence the linear blends.
+  These expressions alone do not exclude smooth nonlinear choices: the divisibility of the remainder matters
+  (L8). For example, with w = Uq and r = |w|², set Z = √scale·√(1+r²)w and
+  X = ±√(1−scale·r(1+r²)). This is smooth near q = 0 and its orbit map is
+  v = (1+|v_q|²)Mv_q, which is nonlinear. The Hopf identities are L9a–b (type (a)); the height radicand
+  is > 9/10 for r ≤ 1/100 and scale ≤ 7 (type (c), L9c), covering both existing scales π and 2π.
+  Thus exact linearity is a convenient sufficient choice, not a necessary smoothness condition.
 
 ### 5.3 A simpler lift that removes the gauge normaliser: the minimal-rotation lift (design, not implemented)
 
@@ -237,33 +357,105 @@ a₁ = μ̃ + c(rad)(m₀ − μ̃), c = 1 − s((rad − 0.02)/0.03). Along a t
 ′ = d/dρ (N3): d(rad)/dρ = −2m₀, m₀′ = −2rad, μ̃′ = −2Var, and
   **a₁′ = (1 − c)μ̃′ + c·m₀′ − 2c′(rad)·m₀·(m₀ − μ̃).**
 The first two terms are manifestly ≤ −2rad·min(Var/rad, 1); the last is the only non-manifest one.
-**Bound chain (rad ≤ R₀ = 0.05; explicit constants).**
-1. |c′| ≤ 2/0.03 (L1), |m₀| ≤ rad. So |2c′m₀(m₀ − μ̃)| ≤ (4/0.03)·rad·|m₀ − μ̃|.
-2. From N2d with D ≥ 1: |μ̃ − m₀| ≤ 2φX̂ + rad² + |R₁| + rad·R₂. Tails: Σ_{|j|≥2}T_j ≤ 2Σ_{k≥2} rad^{k²} ≤
-   2rad⁴/(1 − rad⁵), Σ_{|j|≥2}|j|T_j ≤ 2Σ_{k≥2} k·rad^{k²} ≤ 4rad⁴/(1 − rad⁵)·(1 + …) ≤ 4.01rad⁴.
-   φ ≤ 2|t|²/(1 − |t|²) with |t|² = X̂Y/a₀, and X̂²Y ≤ (4/27)rad³: 2φX̂ ≤ (16/27)(1+ε)rad³/a₀.
-   ⇒ |μ̃ − m₀| ≤ C·rad² with C = 1 + (16/27)(1+ε)R₀/a₀ + 4.01R₀² + 2.01R₀³: **C ≤ 1.04 (cusp 0), C ≤ 2.63 (cusp ∞)**
-   (sampled maxima 0.999 and 1.871, N5).
-3. Var ≥ (e^{−2φ}X̂ + Y)/D − μ̃² ≥ rad(1 − 2φ)/(1 + rad + 2rad⁴) − rad²(1 + C·rad)² ≥ rad(1 − C₂rad) with
-   **C₂ ≤ 2.2 (cusp 0), 2.8 (cusp ∞)** (sampled 2.0, 2.5).
-4. Hence −a₁′ ≥ 2rad(1 − C₂rad) − (4/0.03)·C·rad³ = 2rad[(1 − C₂R₀) − (2/0.03)·C·R₀²] ≥ 2rad·[0.89 − 0.17] (cusp 0)
-   and 2rad·[0.86 − 0.44] (cusp ∞): **a₁′ < 0 on the whole node ball**, by explicit inequalities only.
-   (Sampled minima of −a₁′/(2rad): 0.852 and 0.826, N5.)
+**Corrected bound chain, type (c) (0 < r = rad ≤ R = 1/20, both cusps).** All constants below are rational;
+`sym/node_remainder.py` I1a–i verifies their algebra and endpoint comparisons. The earlier constants 2.63 and
+2.8 were not established by the displayed estimates; the complete bounds below replace them.
+1. Put A = 55. Then 1/a₀ ≤ e⁴ < A: the positive Taylor series through k = 16, plus
+   (4¹⁷/17!)/(1−4/18), is a rational upper bound for e⁴ and is < 55.
+   Consequently |t|² = X̂Y/a₀ ≤ Ar²/4 ≤ 55/1600 < 1.
+2. For k = ℓ+2 ≥ 2, k² ≥ 4+5ℓ, because the difference is ℓ(ℓ−1) ≥ 0.
+   Since T_j ≤ r^{j²}, setting q = r⁵ gives
+   R₂ ≤ 2r⁴/(1−q) ≤ (201/100)r⁴ and
+   |R₁| ≤ 2r⁴(2−q)/(1−q)² ≤ (401/100)r⁴.
+   The two rational functions increase for 0 ≤ q ≤ R⁵ (their positive power series show this), so their
+   endpoint bounds suffice. Write d₀ = 201/100 and d₁ = 401/100.
+3. From 4r³/27−X̂²Y = (X̂−2Y)²(4X̂+Y)/27 ≥ 0 and §4.1,
+   2φX̂ ≤ Br³, where **B = (16A/27)/(1−AR²/4) = 281600/8343**.
+   N2d, D ≥ 1, |m₀| ≤ r, and 0 ≤ 1−e^{−2φ} ≤ 2φ now give
+   |μ̃−m₀| ≤ r²+Br³+d₁r⁴+d₀r⁵ ≤ Cr², with
+   1+BR+d₁R²+d₀R³ < **C = 27/10**.
+4. D ≤ 1+r+d₀r⁴ and e^{−2φ}X̂+Y ≥ r−Br³ > 0. Also |μ̃| ≤ r(1+Cr).
+   Using 1/(1+u) ≥ 1−u for u ≥ 0, and discarding the positive cross term, gives
+   Var/r ≥ (1−Br²)/(1+r+d₀r⁴) − r(1+Cr)²
+   ≥ 1−r−d₀r⁴−Br²−r(1+Cr)² ≥ 1−4r,
+   since **1+d₀R³+BR+(1+CR)² < 4**.
+5. Finally |c′| ≤ 2/(3/100) by L1. Therefore
+   **−a₁′/(2r) ≥ 1−4R−2CR²/(3/100) = 7/20 > 0**.
+   This proves strict monotonicity along the scaling flow (x₀,y₀) ↦ (e^{−s}x₀,e^s y₀) on the punctured node
+   ball, including its axes: N3c gives dT_j/ds = −2jT_j directly, without log coordinates.
+   Where y₀ ≠ 0, s is the increment of ρ. At the node the flow is stationary; the local polynomial model applies.
 
-So **I1 is certified symbolically** (series tail bounds with positive terms; no interval arithmetic), given the
-constants above. What is machine-checked: the identities N2d, N3, the term structure N2e, and the sampled margins;
-the inequality chain 1–4 is elementary and written out here.
+Thus **I1 is certified with explicit constants**. For comparison, N5 (200000 random points per cusp,
+seed 0, numerical evidence) gives max |μ̃−m₀|/r² = 0.9993 / 1.8713 against the common bound 2.7,
+max (1−Var/r)/r = 1.998 / 2.479 against 4, and min −a₁′/(2r) = 0.8521 / 0.8261 against 0.35.
 
 ### 4.3 I2: the linear-blend shell of Λ_mod
 
 Λ_mod = (1 − c(rad))M₀v_q + c(rad)Λ(v_q), c = s((rad − 0.004)/0.004). Identity (N4):
   **DΛ_mod = (1 − c)M₀ + c·DΛ + (Λ − M₀v_q)⊗∇c**, so
   σ_min(DΛ_mod) ≥ scale − c·|DΛ − M₀| − |∇c|·|Λ − M₀v_q|, |∇c| ≤ 2/0.004 = 500 (L1), scale = 2π (resp. π).
-Λ is real-analytic near b₀ with Λ(b₀) = 0 and DΛ(b₀) = M₀ exactly (sympy, `symbolic_identities.py`), so
-|Λ − M₀v_q| ≤ C_Λ|v_q|² and |DΛ − M₀| ≤ C′_Λ|v_q| on the shell, with constants that are explicit second-derivative
-bounds of the closed-form composition h_B → moebius → P_final in the variables (t, a₁) — derivable, not yet
-written out. Required: 500·C_Λ·(0.008)² + C′_Λ·0.008 < scale. Measured constants and margins: see the table
-appended below (`sym/i2_margins.py`).
+The following certificate proves |Λ − Mv_q| ≤ C_Λ|v_q|² and |DΛ − M| ≤ C′_Λ|v_q| on the whole ball
+|v_q| ≤ 0.008. Its constants are **(C_Λ,C′_Λ) = (89,178) at 0 and (89/2,89) at ∞**. These are larger than
+the earlier proposed, unproved targets (60,120) and (30,60), but give strict margins **σ_min > 2 and > 1**.
+The identities and rational comparisons are `sym/i2_margins.py` I2a–n; the argument below is type (c).
+
+1. **Reduce the composition (identities (a)).** Put z = 2πv_q = (a,b,c),
+   d = √(1+a²+b²), p = a cos c+b sin c, D = d+p, and
+   B(z) = (a sin c−b cos c, −sin c, D−cos c)/D.
+   Write Qz = (−b,−c,a), I(a,b,c) = (a,−b,c), O(a,b,c) = (−b,−a,c).
+   On rad = |v_q| ≤ 1/125, the node height is exactly v_{q,3}, and the fitted twist R is the identity:
+   |t| ≤ 0.004 < 0.005 at 0, and |t| ≥ 250e⁻² > 26 at ∞. The local formulas are
+   **Λ₀(v_q) = B(2πv_q)** and **Λ_∞(v_q) = ½ O B(2π I K(v_q))**, where
+   K(v_q) = (βv_{q,1},βv_{q,2},v_{q,3}), ρ = √(v_{q,1}²+v_{q,2}²), and
+   β = K_∞/k(2e⁻²/ρ), extended by 1 on ρ ≤ 2e⁻⁶.
+   For the first formula the S³ coordinates are (p, a sin c−b cos c, cos c, sin c)/d.
+   At ∞ they are (−cos c, sin c, −a cos c+b sin c, a sin c+b cos c)/d after inserting β.
+   Shifted stereographic inversion has the identity
+   w/|w|² = (P₁,P₂−1−P₀,P₃)/(2(1−P₂)) for P ∈ S³.
+   This gives the second formula without a singular denominator at the node. I2a–f check these identities
+   and DB(0) = Q. The radial zones used by P_final are justified in step 2.
+2. **One derivative bound for B.** Put s = |z| ≤ S = 51/1000 and
+   N = (a sin c−b cos c, −sin c, D−cos c), so B = N/D. The elementary bounds
+   |sin c| ≤ |c|, 0 ≤ 1−cos c ≤ c²/2, |c−sin c| ≤ |c|³/6 follow by successive integration;
+   d−1 = (a²+b²)/(d+1) ≤ (a²+b²)/2. Consequently
+   |N−Qz| ≤ s²+s³/6, ‖∂N−Q‖ ≤ 2s+s²/2,
+   |D−1| ≤ s+s²/2, D ≥ 1−s, and |∇D| ≤ 1+s+s²/2.
+   To check the derivative estimate, split N−Qz into the rotated (a,b)-pair minus its value at c=0,
+   the component c−sin c, and the component d−cos c. The first derivative has norm at most
+   √(c²+a²+b²)=s (Cauchy–Schwarz); the latter two have bounds c²/2 and
+   √((a²+b²)/d²+sin²c) ≤ s. I2f verifies the rotation and gradient identities used here.
+   The quotient rule now gives
+   ‖∂B−Q‖/s ≤ (2+s/2)/(1−s) + (1+s/2)/(1−s)
+   + (1+s+s²/6)(1+s+s²/2)/(1−s)² ≤ 4.443503 < **9/2**,
+   where the last comparison is an exact rational evaluation at S (every term is increasing).
+   Also |B| ≤ (s+s²+s³/6)/(1−s) < 1/16 < e⁻¹. Thus at 0 the small-|w| branch of P_final
+   applies; at ∞, |w|⁻¹ = |B|/2 < e⁻¹ gives the large-|w| branch. These inequalities also establish
+   D > 0. The normalization is valid because 2π/125 < S.
+3. **Control the infinity profile.** The rational bounds 157/50 < π < 22/7 follow from
+   π = 16 arctan(1/5)−4 arctan(1/239) and alternating series through degrees 5 and 7 (I2g): the tangent
+   of 4 arctan(1/5)−arctan(1/239) is 1 and that angle lies between 0 and π/2.
+   I2h checks the positive Taylor bounds e < 3, e² < 8, e⁴ < 55, e⁶ < 500,
+   e^{11/2} < 250, e^{224/15} > 3000000, and e^{13/5} > 88/7.
+   On the nonconstant part of k, u = (log(2e⁻²/ρ)+4)/8 ≥ 15/16; put v = 1−u ∈ (0,1/16].
+   With L = log(K₀/K_∞) = 2 log(4π)−2 ∈ (0,16/5), β = exp(−L s(v)), where s is the smooth step.
+   Since s(v) ≤ exp(16/15−1/v) ≤ exp(−224/15) < 1/3000000 and
+   s′(v) ≤ 258 exp(−224/15), we get
+   **|1−β| < 1/500000**, **|dβ/d log ρ| < 1/25000**, hence
+   ‖∂K−Id‖ ≤ δ = 21/500000 and |K(v_q)| ≤ |v_q|.
+   For the derivative estimate, e^{−1/v}/v² is increasing on (0,1/16], with derivative
+   e^{−1/v}(1−2v)/v⁴ > 0, and (1−v)⁻² < 2; multiply by e^{16/15}.
+   Moreover K = Id when rad ≤ 1/250, since e⁶ < 500.
+4. **Scale and blend.** At 0, ‖DΛ₀−M₀‖ ≤ 18π² rad < 178 rad. At ∞ the chain rule gives
+   ‖DΛ_∞−M_∞‖ ≤ 9π² rad(1+δ)+πδ on the profile's support, which has rad > 1/250;
+   therefore ‖DΛ_∞−M_∞‖/rad ≤ 9π²(1+δ)+250πδ < 89. Off that support the same bound holds
+   with δ = 0. Integrating each derivative bound from 0 along a radial segment yields the respective
+   quadratic remainders 89 rad² and (89/2) rad². Finally |∇c| ≤ 500 by L1, so throughout the shells
+   σ_min(DΛ_mod,0) ≥ 2π−178/125−500·89/125² > **2**,
+   σ_min(DΛ_mod,∞) ≥ π−89/125−500·(89/2)/125² > **1**.
+   The same bounds hold on the inner balls, where the map is exactly linear. In fact Λ_mod is injective
+   on each ball: after multiplication by Q₀ᵀ or Q_∞ᵀ, its derivative has symmetric part bounded below
+   by 2Id or Id, respectively; integrate along the segment between two points. This certifies the local
+   nonsingularity and uniqueness needed for I2, without assuming I3–I5 or modifying the construction.
 
 **I2 margins (`sym/i2_margins.py`, 4000 points per shell, rad ∈ [0.004, 0.008]):**
 
@@ -272,14 +464,20 @@ appended below (`sym/i2_margins.py`).
 | 0 | 39.5 | 79.0 | 2π | **4.42** | 5.64 |
 | ∞ | 19.7 | 39.5 | π | **2.20** | 2.82 |
 
-The constants scale exactly as a quadratic remainder (C′_Λ = 2C_Λ). So the certificate for I2 needs only
-C_Λ ≤ 60 and C′_Λ ≤ 120 (cusp 0; half that at ∞), i.e. a bound on the second derivatives of the closed-form chain
-on the ball |v_q| ≤ 0.008, three times the measured values. **I2 is reduced to an explicit second-derivative bound
-of a closed-form map on a small ball**, the same type of statement as I1, with the identity N4 machine-checked.
+These measurements remain numerical evidence; the certificate uses the larger bounds proved above.
+The measured minima 5.6446 / 2.8197 exceed the proven lower bounds 2 / 1. The infinity shell is not
+entirely on the constant-k plateau: at its outer equator |s| = 0.004e² and |t| = 250e⁻² < e⁴,
+because Σ_{k=0}^7 6^k/k! > 250 (type (c), checked in `sym/i2_margins.py`). The same script evaluates
+k/K_∞−1 ≈ 4.87·10⁻⁷ at this one point (numerical evidence). An infinity bound must include this profile
+transition; it cannot be obtained by simply halving the cusp-0 constants. Step 3 includes this term.
+**I2 is certified**, with the Jacobian identity N4 and the new local identities checked symbolically.
 
 ## 6. Status (2026-10-07) and resume checklist
 
 ### 6.1 The lemma list of the proof scheme (notes §13.1), with its status
+
+This table concerns the original fitted-lift architecture of §§3–5. Section 8 gives a
+separate global construction by quadratures, removing its dependence on lemma L.
 
 | # | statement | status |
 |---|---|---|
@@ -287,17 +485,33 @@ of a closed-form map on a small ball**, the same type of statement as I1, with t
 | B | lattice system nonsingular: det = (\|t\|²+1)(log\|t\|(\|t\|²−1) + 2\|t\|²) > 0 | **manifest** (C1d) |
 | C | μ̃ strictly monotone along fibres (dμ̃/dρ = −2Var), range ℝ, equivariant, closed on the central fibre | **manifest** (C4, C5) |
 | D | λ-blend a₁ = (1−λ)μ̃ + λ(x₄^slice − ½) monotone, no wrap needed | **manifest** (§3.3; P < 0 by §4.1) |
-| E | node correction monotone (I1) | **explicit-constant certificate** (§4.2; identities N2d, N3 machine-checked) |
+| E | node correction monotone (I1) | **corrected rational certificate** (§4.2; −a₁′/(2rad) ≥ 7/20 at both cusps) |
 | F | \|T\| strictly increasing (needs s′ ≤ 2) | **proven** (L1, L4) |
 | G | ν strictly increasing (P_final) | **manifest** (L3) |
 | H | R a diffeomorphism (fibre twist, det 1), moebius, P_final zones: closed inverses | symbolic (L5, L6) |
 | I | exact linear models M₀ = 2πQ₀, M_∞ = πQ_∞ | symbolic (`symbolic_identities.py`) |
-| J | linear-blend shells nonsingular (I2) | **reduced to an explicit 2nd-derivative bound** (§4.3; N4 machine-checked; margins 3×) |
+| J | linear-blend shells nonsingular (I2) | **certified** (§4.3, I2a–n): derivative constants 178 / 89, singular-value margins > 2 / > 1, including the infinity profile |
 | K | lifts land in S⁴, cover Λ, equivariant; linear in the balls | symbolic (L7, §3.4) |
-| L | E ≠ 0 off the tube (I3); G_A ≠ 0 on the tube (I4); \|Arg g\| < π on the shell (I5) | **global inequalities, not symbolic** (§5); structural for small \|t\| at the cusps and for the middle theta section; the minimal-rotation lift (§5.3) merges I4 + I5 into one scalar condition and removes ψ |
+| L | E ≠ 0 off the tube (I3); G_A ≠ 0 on the tube (I4); \|Arg g\| < π on the shell (I5) | **open global inequalities** (§5); single-lift alternative additionally requires smooth division (L8), not just agreement of first derivatives |
 | M | φ: Y → T² equivariant, invariant, closed inverse | symbolic (C6, §3.2) |
-| N | F∘G = id on each piece; pieces of G agree on overlaps | follows block by block from A–K once L is certified: every block's inverse is closed or certified-implicit |
-| O | DG invertible ⇒ J = G*J_Y smooth, J² = −1, N = 0 ⇒ Newlander–Nirenberg | one-line arguments (notes §13.1) |
+| N | F∘G = id on each piece; pieces of G agree on overlaps | **C8 verifies the closed linear-ball pieces; C9 gives the full tensor there**; other pieces and overlaps remain to be assembled, subject to L; numerical inversion outside the caps has a central-fibre limitation (T14) |
+| O | DG invertible ⇒ J = G*J_Y smooth, J² = −1, N = 0 ⇒ Newlander–Nirenberg | **C10 verifies the generic six-dimensional N=0 identity**; its local-diffeomorphism hypothesis remains essential |
+
+**Generic integrability certificate (type (a), C10; T9).** Let F be any smooth local diffeomorphism
+between real six-dimensional coordinate domains, A=DF, and J=A J_std A⁻¹. Then J²=−Id by matrix
+multiplication. At any chosen point a constant real linear change of target coordinates makes A=Id;
+this leaves an arbitrary symmetric second jet H^a_{ij}=H^a_{ji}. Differentiating gives
+∂_k J=H_k J_std−J_std H_k, where (H_k)^a_i=H^a_{ik}.
+Substitute into
+N^a_{ij}=Σ_p[J^p_i ∂_p J^a_j−J^p_j ∂_p J^a_i−J^a_p(∂_i J^p_j−∂_j J^p_i)].
+`sym/chart_identities.py` C10 expands all 216 components with 126 independent Hessian entries and
+verifies that every component vanishes identically, as does the derivative of J²+Id. Since N is a
+tensor and the point was arbitrary, this proves the identity for general A. Equivalently, the frame
+F_*∂_i commutes, and J has constant coefficients in that frame. Applying this to F=G⁻¹ proves
+integrability for a smooth local inverse G, including the cap formula of C9. It does not establish
+the smoothness, existence or global injectivity of a proposed F or G; I3–I5 and the remaining
+domain/overlap checks are separate obligations. A control with A=Id+q₂E₀₀ (an invertible frame matrix
+near 0, not a coordinate Jacobian) gives N¹_{0,3}=−1 at 0, although J²=−Id (C10c, zero-based indices).
 
 ### 6.2 What this session established
 
@@ -307,15 +521,15 @@ of a closed-form map on a small ball**, the same type of statement as I1, with t
 * Three lemmas of notes §13.3 are now proven or manifest (F, G, D); one is unnecessary (the wrap bound).
 * New exact facts: φ(t) = 2|t|²/(1−|t|²) at both cusps; the lattice determinant; the node-variable form of the
   theta series with degree j² terms; the two-term truncation accurate to O(rad⁴).
-* I1 and I2 are reduced to explicit Taylor-remainder bounds with large margins (I1 written out; I2's constants
-  measured, bound to be written).
+* I1 and I2 now have explicit rational certificates (§4.2–4.3); I2 uses a common elementary local formula
+  and includes the infinity profile transition. Measured margins remain separately labelled.
 * The honest status of the global conditions: **I3–I5 remain inequalities over a continuum**; a purely symbolic
   proof of the whole theorem is not available with this architecture, and §5 explains why. They are certifiable by
   validated numerics (notes §12.12) or by analytic bounds in the structural regions.
 
 ### 6.3 Not done / next steps
 
-1. Write out the I2 second-derivative bound with explicit constants (same style as §4.2).
+1. I2 is now certified (§4.3); use the reduced local formula when assembling the shell inverse and its domains.
 2. Implement the minimal-rotation lift (§5.3) in torch, rerun `check_lift`/`check_degree`/`check_full`, and measure
    (C2) = min n̂_𝔈·n̂_v; if its margin is large, retire ψ, `psi_fit.json` and the shell.
 3. Decide the treatment of L: analytic bounds for small |t| (the aligned-phase argument with the explicit ratio of
@@ -348,24 +562,1714 @@ correctly implemented" — a reviewable certificate, without Lean and without re
   arithmetic. §4.2 (I1) is the model.
 * With the current architecture (two lifts glued by Arg) this optimum is not reachable: I4 and I5 are intrinsically
   global (a winding-1 transition between two trivialisations, matched by a partition of unity).
-* **Architecture (C), single compatible lift — the candidate for the optimum:** one weight-1 function E with a
-  manifest zero set and linearisation compatible with Λ along the whole arc; then lift B alone is smooth off the
+* **Architecture (C), single compatible lift — an open design:** one weight-1 function E with a
+  manifest zero set and a smooth nonvanishing quotient (v₁+iv₂)/E near the whole arc (L8);
+  matching linearisations alone is insufficient. With that stronger condition, lift B alone is smooth off the
   poles (it is smooth across Γ′ since its only denominator vanishes on Γ_E), the gauge, ψ, the shell, `fit_psi`
   disappear, and `fit_arc` disappears because the arc is explicit. Ingredients: (i) in the middle, E =
   e^{2πix₁}·ϑ with an r-dependent modulus τ(r) ∈ ℍ and explicit zero (one simple zero per cell, classical);
   (ii) at the cusps, the single-term local model y₀ + x̄₀ near the arc (exact for |t| ≤ 0.3) with zero at
   {|x₀| = |y₀|, arg t = π} and the rigid induced structure z_E = log|y₀| + (i/2)arg t (independent of the model's
-  coefficients α(t), β(t)); (iii) gluing cusp ↔ middle by a log-ratio on an annulus where both have the same zero
-  and the same structure (τ(r) matched to z_E there), with the ratio's windings computed from the explicit
+  coefficients α(t), β(t)); (iii) gluing cusp ↔ middle by a log-ratio on an annulus where their quotient is smooth
+  and nonvanishing (matching τ(r) and the zero alone does not establish this), with the ratio's windings computed from the explicit
   local model; (iv) compatibility of Λ with E along the arc by an explicit anti-conformal twist
   (v₁+iv₂) ↦ A(λ)(v₁+iv₂) + B(λ)·conj(v₁+iv₂) in the w-chart (closed-form A, B from derivatives of closed-form
-  maps; a diffeomorphism iff |B| < |A|, a one-variable sign condition along the arc). Residual inequalities:
-  I1, I2 (explicit constants, done/structured), I3-cusp = E ≠ 0 off the arc on |t| ≤ 0.3 (the aligned-phase
+  maps; |B| < |A| certifies the linear normal map, but smooth division still needs a separate argument by L8). Residual inequalities:
+  I1, I2 (explicit constants, certified), I3-cusp = E ≠ 0 off the arc on |t| ≤ 0.3 (the aligned-phase
   argument; reducible to explicit-constant series bounds by narrowing the χ-supports so that the overlaps have
-  |y₀|² manifestly > |t|), and the 1D sign condition of (iv). Everything else identities.
+  |y₀|² manifestly > |t|), and the 1D sign condition of (iv). Smooth division and a global extension of the
+  local twist are additional open requirements; the single-lift construction is not yet certified.
 * Fallback for any residual inequality that resists: validated numerics (notes §12.12), stated as such.
 
 **What the symbolic J would be:** per piece, J(q) = DF(G(q))·J₀·DG(q), with the implicit 1D inverses as symbols
 carrying their defining identities and IFT derivative rules; checks: F∘G = id per piece, DF(G)·DG = 1, overlap
 agreement through the chart transitions, domain covering (manifest unions), the generic naturality lemma, and the
 lemma list of §6.1 with explicit constants.
+
+## 8. Global construction by exact quadratures
+
+This section specifies a different diffeomorphism **G_Q: S⁴×T² → Y**, using the same Y, heights,
+node corrections and T²-trivialization. It replaces the equivariant lift, and takes the optional twist
+R to be the identity. Neither E, G_A, an arc fit, a phase fit nor I3–I5 occurs in its definition.
+The resulting tensor is **J_Q = G_Q*J_Y**; it need not equal the earlier J_round pointwise, since
+the parametrization has changed. They describe the same complex manifold if the earlier map is
+also a diffeomorphism. The formulas here do not assume that unresolved assertion.
+
+**Expression class.** In addition to elementary functions, the specified convergent height series
+and certified scalar inverses, the expression uses ordinary definite integrals of explicitly given
+smooth real functions of one variable, and one contraction limit with ratio <17/25. These are
+exact quadratures, not finite elementary closed forms. The formulas below specify the integrands,
+paths, chart changes, limits and inverse; there is no unspecified ODE solution or arbitrary bundle
+isomorphism. Numerical truncations are separate. All algebraic identities used below are checked
+in C1–C15, L1–L9 and I2a–p; signs use manifest positivity (b) or the explicit bounds (c) in §4.
+The differentiation and gluing arguments are given explicitly. This extension of the expression
+class, and the global conclusion, require collaborator review under AGENTS.md §3.1.2.
+
+### 8.1 The base map and a globally specified inverse
+
+Write ℋ(z₁,z₂)=(2 Re(z₁z̄₂),2 Im(z₁z̄₂),|z₁|²−|z₂|²). Let
+Λ_* = P_final ∘ moebius ∘ h_B, with every block as in §3.3, **R=Id**, and put
+Λ_Q equal to its node-linear modification. The two exact local formulas for the v-component
+of Λ_* are B₀(p)=B(2πp) and B_∞(p)=O B(2π I K(p))/2 from §4.3. Set
+
+  R_b=1/125, r_b=1/250, c_b(r)=s((r−r_b)/(R_b−r_b)),
+  f_j(p)=M_j p+c_b(|p|)[B_j(p)−M_j p],  |p|≤R_b.
+
+Here p=ℋ(√a₀ x̄_s,y_s); X=−√(1−|f₀(p)|) or +√(1−|f_∞(p)|).
+Outside these balls use Λ_*. The local expressions agree to every order at |p|=R_b,
+because the smooth step is identically 1 on the outer side. At p=0 use the linear expression.
+The integer choices in the node correction introduce no seam: on rad≤1/20,
+I1 gives |μ̃|≤1/20+(27/10)(1/20)²=227/4000<1/2. Thus only one nearest-height
+representative can support the correction. Where the nearest integer changes, the
+correction is identically zero on a neighbourhood. The smaller base-blend balls
+satisfy the same condition.
+
+**The raw inverse, including the central fibres.** L3–L6 and §3.3 specify the inverse away
+from u₁u₂=0: recover w, u∈S³, |t|, t and the circle-valued height, then invert the strictly
+monotone fibre coordinate. On u₁=0 set t=0 and a=arg(u₂)/(2π) mod 1 in [−1/2,1/2];
+on u₂=0 use the infinity chart and a=−arg(u₁)/(2π)+1/2 mod 1. Set
+
+  d(r)=c_n(r)r+(1−c_n(r))r/(1+r),
+  c_n(r)=1−s((r−1/50)/(3/100)),   r=d⁻¹(|a|), 0≤r≤1.
+
+For a>0 take x_s=√(r/a₀), y_s=0; for a<0 take x_s=0, y_s=√r; for a=0 take
+the node. The two choices a=±1/2 represent the same orbit by ψ̂, with **d(1)=1/2**.
+Strict monotonicity of d on its blend
+is I1 applied on the axes; elsewhere d′=1 or 1/(1+r)²>0. Thus no polar division is
+needed on a central fibre. The radius is closed outside the blend: r=|a| for |a|≤1/50,
+and r=|a|/(1−|a|) whenever the resulting r≥1/20.
+
+For t≠0 a convenient certified bracket for the height root is
+ρ∈[(a+5/2)P,(a−3/2)P], P<0. C7 gives |μ̃−(ρ/P−1/2)|<1/2, and I1 gives
+|μ̃_new−μ̃|≤(27/10)(1/20)²=27/4000 wherever the correction is active.
+The blended coordinate therefore differs from ρ/P−1/2 by less than 2027/4000<1.
+Its derivative is strictly negative, so the bracket contains exactly one root. Bisection specifies
+the inverse without a Newton initial guess. Local smoothness follows by differentiating this
+nonzero derivative. At a nonnodal central point, (Re t,Im t,height) are local orbit coordinates:
+dt has rank two and the scaling flow fixes t while changing the height strictly (I1/C5).
+At the nodes the coordinates p and the formulas B_j supply the regular description.
+The clutching identity a₂′−a₁=arg(t)/(2π) mod 1 (C15a), together with the positive derivative of |T|,
+proves that h_B is one-to-one and onto S³, including its two coordinate circles. Hence this
+raw inverse has no omitted orbit or duplicate orbit. No degree measurement is used.
+
+**The shell inverse is a contraction (c).** Let Π(p)=p min(1,R_b/|p|), Π(0)=0, and
+Δ_j=f_j−M_j on the ball. The bounds in §4.3 give
+
+  Lip(Δ₀)≤178R_b+500·89R_b²=534/125,
+  Lip(Δ_∞)≤89R_b+500·(89/2)R_b²=267/125.
+
+Projection Π is nonexpanding: C14d–e express the difference of squared distances as
+(r−R_b)(r+R_b−2s z)≥0 when r≥R_b≥s and |z|≤1, or
+(r−s)²+2(rs−R_b²)(1−z)≥0 when r,s≥R_b. Thus for every v∈ℝ³ the iteration
+
+  p₀=M_j⁻¹v,   p_{k+1}=M_j⁻¹[v−Δ_j(Π(p_k))]                         (8.1)
+
+has contraction ratio κ<17/25 at either cusp (I2o, using the rational Machin bounds).
+Indeed successive distances decrease by κ; summing their geometric tail gives convergence
+and |p−p_k|≤(17/25)^k |p₁−p₀|/(1−17/25). Its limit is the unique solution of
+v=M_jp+Δ_j(Πp). If |p|≤R_b, this is the required shell/ball inverse. If |p|>R_b,
+use the raw global inverse above. Choose j=0 for X<0 and j=∞ for X>0; at X=0
+neither ball is possible and use the raw inverse.
+
+**Why this domain test is exact.** Apply the same argument to δ_j=B_j−M_j;
+its Lipschitz bounds are 178R_b and 89R_b, smaller than those just used. The two
+extended maps M_jp+Δ_j(Πp) and M_jp+δ_j(Πp) are bijections of ℝ³ by their
+convergent inverses, and coincide outside the ball, including its boundary. Therefore their
+images of the ball coincide: an exterior inverse for either is also the exterior inverse for
+the other, uniquely. Replacing the raw map on a ball changes neither its image nor its
+boundary. The two ball images are disjoint, one in each sign of X; their |v| is <1/16
+by §4.3 and convexity. Consequently Λ_Q is globally bijective. Its inverse is smooth off
+the two poles by I1, L3–L4 and I2; on each pole ball its v-coordinate is exactly linear.
+This supplies both a global injectivity argument and an explicit inverse-domain test.
+
+`tlift.transport_base_local/chart/middle` and `tinverse.transport_base_inverse` evaluate this
+new base independently. The latter uses 96 contraction steps and 64 bisections for numerical
+checks; (8.1) and the infinite height series define the exact map. The direct stereographic
+formula (P₁,P₂,P₃)/(1+P₀)−(0,1,0) is used away from P₀=−1 (the infinity node).
+It also covers P₀=+1, where the legacy rationalization has a removable 0/0.
+
+### 8.2 A connection with a positive normalization
+
+The circle action is free away from the two nodes: a nonzero deck power changes
+H by a nonzero integer, and on a fixed representative either x_s or y_s is nonzero,
+so (λ⁻¹x_s,λy_s)=(x_s,y_s) forces λ=1. The middle coordinate action has the same
+property (C2–C3). Thus the phase charts below are principal circle charts, with no
+finite stabilizer omitted.
+
+On a cusp slice away from the node, define the real one-form
+
+  α_loc=Im(−a₀ x̄_s dx_s+ȳ_s dy_s)/(a₀|x_s|²+|y_s|²),
+  S(H)=Σ_{n∈ℤ} χ(H+n),
+  α_j=Σ_{n∈ℤ} χ(H+n)(ψ̂ⁿ)*α_loc / S(H),                       (8.2)
+
+where H=μ̃ is the **uncorrected** height and χ(h)=s((9/10−|h|)/(1/2)). The sum is
+locally finite, with at most two positive terms. For an integer n with |H+n|≤1/2,
+χ(H+n)≥s(4/5)>1/2, hence S(H)>1/2 (b; C11e). Every local denominator is a sum
+of squares and is positive off the nodes. The circle generator is K=(−ix_s,iy_s),
+so α_loc(K)=1 (C11a); each summand is circle invariant. Reindexing n under H→H+1
+shows that (8.2) descends through ψ̂. On the slab |H|<3/5 the only possible indices
+are −1,0,1; the n=1 term requires H<−1/10 and therefore y_s≠0, and the n=−1
+term requires H>1/10 and therefore x_s≠0. Indeed on y_s=0 the height is nonnegative,
+and on x_s=0 it is nonpositive (C4). The explicit ψ̂ and ψ̂⁻¹ of C3 therefore have
+no zero denominator on their coefficient's support, including the central axes.
+
+An alternative expression on the torus is especially short. Put ρ=log|ζ|,
+P=log|m(t)t|, ρ_n=ρ+nP, and
+
+  b_n=a₀|t|² e^(−2ρ_n)/(a₀|t|² e^(−2ρ_n)+e^(2ρ_n)),
+  A_j=Σχ(H+n)(n−b_n)/S(H),
+  α_j=d arg ζ+A_j d arg t.                                      (8.3)
+
+Here m(t)=ν exp[−2|t|²/(1−|t|²)] is positive real at both cusps (C9a).
+The argument of ψ̂ⁿζ is arg ζ+n arg t, giving (8.3) from (8.2) (C11b).
+Under ψ̂, A_j→A_j−1 and d arg ζ→d arg ζ+d arg t, so the form is unchanged
+(C11c). Near a pole, rad≤1/250 gives |H|≤rad+(27/10)rad²<1/10 by I1.
+Only n=0 contributes there, with χ(H)=1. Thus α_j=α_loc **exactly** throughout
+both linear balls. Also |t_c|≤e²/500<8/500<3/10, so the global cutoff (8.4)
+equals its cusp value throughout these balls. No estimate of a complex phase is needed.
+
+On the middle part set α_m=2π dx₁+arg(t) dx₄. The branch change
+(arg t,x₁)→(arg t+2π,x₁−x₄) preserves it (C11d), as do x₄→x₄+1 and x₁→x₁+1.
+Define β₀=1−s((|t|−3/10)/(1/5)) and β_∞=1−s((|1/t|−3/10)/(1/5)), and set
+
+  α=β₀α₀+β_∞α_∞+(1−β₀−β_∞)α_m.                              (8.4)
+
+The two cusp supports are disjoint (|t|<1/2 and |t|>2). All weights are nonnegative
+and sum to one. Thus α is a smooth circle-invariant connection with α(K)=1 on
+W minus its two fixed points. It is exactly the Hopf connection on the linear balls:
+unitarity and constant scaling in the linear models preserve Im(Z* dZ)/|Z|².
+Smoothness of the height series follows locally from its explicit terms: on |xy|≤r₀<1
+and |x|²,|y|²≤M, its positive/negative tails are bounded by
+M^k r₀^{k(k−1)}, k≥1, since g≤0. Derivatives on a smaller coordinate neighbourhood
+have the same quadratic exponential decay times a polynomial in k and fixed powers of
+M and r₀⁻¹. This justifies termwise differentiation and includes either axis by the
+nonnegative exponents in the chart series. Cutoffs are constant near their absolute-value
+origins, so those absolute values introduce no nonsmooth point.
+
+### 8.3 Transport is a scalar integral with explicit chart changes
+
+Use these local phase coordinates and references on the free part of W:
+
+| chart | phase θ | reference at the same orbit |
+|---|---|---|
+| middle, a branch of log t and a lift of x₄ | 2πx₁ | x₁=0 |
+| cusp, y_s≠0, on a chosen height slab | arg y_s | y_s>0, x_s=t/y_s |
+| cusp, x_s≠0, on a chosen height slab | −arg x_s | x_s>0, y_s=t/x_s |
+
+The reference's modulus is the root of §8.1. These charts cover: t∈ℂ* uses a middle
+chart; at either central fibre every nonnode has x_s≠0 or y_s≠0; height shifts by
+integers move it into |H|<3/5. In a phase chart a write α=dθ_a+A_a, where
+**A_a=r_a*α**, the pullback along its explicit reference r_a. Its coefficients are
+obtained directly from (8.2)–(8.4), or by differentiating the reference root. For a
+root f(b,r)=0, the rule is dr=−(∂_r f)⁻¹d_b f; its denominator was certified in §8.1.
+
+On an overlap write θ_b=θ_a+h_ba(base), with h defined modulo 2π. All transitions
+are explicit: from the y-phase to the x-phase, h=−arg t; under ψ̂ⁿ in the y-phase,
+h=n arg t; for a log branch change in the middle, h=−2πx₄. For middle-to-cusp
+transitions, use §3.2's Φ⁻¹ or Θ, then take the T²-slice and read arg y_s (or −arg x_s).
+In particular, for a middle reference z=−i x₄ log t, w=2tx₄, set at cusp 0
+z_c=z−πs(s−1), w_c=w−2ts, s=log t/(2πi); at ∞ set z_c=z−iw/t,
+w_c=w/t², t_c=1/t. Solve b₂ē₂+b₃ē₃=−w_c, and put
+ζ_s=exp(i z_c+b₂α₂+b₃α₃). Its argument is the y-phase transition.
+These are closed formulas (C1–C3); no lift E or G_A enters them.
+
+For a base path γ on a segment [a,b] contained in chart a, transport is
+
+  θ_a(b)=θ_a(a)−∫_a^b A_a(γ(s))[γ′(s)] ds.                     (8.5)
+
+Across an endpoint add h_ba and continue. A compact path admits a finite partition
+into such segments; any such partition gives the same point. To check this, equality
+of α gives A_b=A_a−dh_ba, so the two integrals differ by
+−h_ba(γ(b))+h_ba(γ(a)), exactly cancelled by the endpoint changes (C11f).
+Refinement, concatenation and reversal hold by addition and negation of integrals
+(C11g). Thus (8.5) defines an explicit invertible map T_γ of circle fibres, commuting
+with their circle action. Smooth dependence follows locally by choosing one finite
+partition valid in a neighbourhood of a given path and differentiating its smooth
+integrands on compact intervals. There is no branch requirement on the size of an
+integral. Changing a real argument lift by 2π changes only a phase representative.
+
+### 8.4 The north mismatch has an explicit global real logarithm
+
+Fix ε=1/100 and x_−=−√(1−ε), x_+=√(1−ε). I2p gives ε<π/250, so both
+levels are strictly inside their respective linear balls. For n∈S² define the base path
+
+  γ_n(s)=Λ_Q⁻¹((1−s²)n,s),  −1<s<1.
+
+Write L₀ and L_∞ for the **slice** linear maps of §3.4 (omit the T²-coordinate).
+For (Z,X)∈S⁴ with Z≠0 set r=|Z|²=1−X², n=ℋ(Z)/r, Z_−=√(ε/r)Z, and
+
+  G_H(Z,X)=T_{γ_n|[x_−,X]}(L₀⁻¹(Z_−,x_−)).                   (8.6)
+
+When X<x_− the interval is oriented backwards. Formula (8.5) makes (8.6) circle
+equivariant and smooth on the free part. In a linear cap, γ_n is radial in the local
+Hopf coordinates and α_loc vanishes on radial vectors. Thus transport in that cap
+is precisely positive radial scaling, an identity, not an asymptotic assertion.
+
+At X=x_+ define g:S²→S¹ by
+
+  g(n)=Z₀* pr_Z L_∞(G_H(Z₀,x_+))/ε,   ℋ(Z₀)=εn, |Z₀|²=ε.       (8.7)
+
+Both vectors have the same Hopf image and length, hence differ by a unique unit
+phase: C15b writes their rank-one projectors entirely in terms of their Hopf data,
+so their complex lines coincide; equality of lengths gives modulus one. The expression
+is independent of Z₀ because (8.6) is equivariant. Explicit
+references Z₀=√ε z(n) are
+
+  z(n)=(√((1+n₃)/2),(n₁−in₂)/√(2(1+n₃)))       if n₃≥0,
+  z(n)=((n₁+in₂)/√(2(1−n₃)),√((1−n₃)/2))       if n₃≤0.
+
+Their denominators are at least √2 in their stated regions; their Hopf identities
+are L7/C14a. The two definitions of g agree on overlap by equivariance, so g is
+globally smooth. Define η=Im(ḡ dg). Writing g=u+iv gives η=u dv−v du and
+u du+v dv=0. Consequently dη=2du∧dv=0 (C12f), and dg=i g η (C13c).
+
+Here is a real logarithm without an unproved Arg bound. For a∈ℝ² set
+
+  S_N(a)=(2a₁,2a₂,1−|a|²)/(1+|a|²),
+  S_S(a)=(2a₁,2a₂,|a|²−1)/(1+|a|²),
+  P_N(a)=∫₀¹ (S_N*η)_{ta}[a] dt,   P_S(a)=∫₀¹ (S_S*η)_{ta}[a] dt.
+
+Choose θ₀=Arg(g(0,0,1)) once in (−π,π], and e=(1,0). On the two punctured spheres define
+
+  Θ(S_N(a))=θ₀+P_N(a),
+  Θ(S_S(a))=θ₀+P_N(e)−P_S(e)+P_S(a).                           (8.8)
+
+These are mutually compatible real functions. Indeed for a closed one-form A,
+∂_j∫₀¹ A_i(ta)a_i dt=∫₀¹ ∂_t[t A_j(ta)]dt=A_j(a); C13b checks the derivative
+identity for an arbitrary symmetric first jet. Therefore both differentials in (8.8)
+equal η. Their difference is constant on the overlap S² minus its two poles, which
+is connected (latitude and longitude paths connect any two points), and is zero at
+(1,0,0). This proves agreement and smoothness, including both poles using the other
+chart. Finally d(e^(−iΘ)g)=0 and its value at the north pole is 1, so
+
+  **g=e^(iΘ) everywhere on S².**                                (8.9)
+
+No winding computation, small-phase estimate or logarithm of a vanishing section
+is hidden in (8.8). To evaluate it one may use S_N for n₃≥0 and S_S for n₃≤0;
+then |a|≤1, keeping the quadrature domains bounded.
+
+### 8.5 The diffeomorphism, its inverse and every domain
+
+Set χ_X=s((X−x_−)/(x_+−x_−)). On the free part define
+
+  **G_W(Z,X)=e^(−iχ_X Θ(n)) · G_H(Z,X).**                       (8.10)
+
+For X<x_− this is exactly L₀⁻¹, by radial transport and χ_X=0. For X>x_+
+radial transport preserves the mismatch g(n), so (8.9) gives exactly L_∞⁻¹.
+Define G_W at the two poles by these same linear maps. Thus the three open domains
+{X<x_−}, {−1<X<1}, {X>x_+} cover S⁴, and their formulas agree on their overlaps.
+No n or angle is evaluated at Z=0. This proves smoothness at both fixed points.
+
+The inverse on W minus its fixed points is equally explicit. Given w, compute
+(v,X)=Λ_Q([w]), r=1−X² and n=v/r, and set
+
+  w_−=T_{γ_n|[X,x_−]}(e^(iχ_X Θ(n))·w),
+  (Z_−,x_−)=L₀(w_−),
+  **F_W(w)=(√(r/ε)Z_−,X).**                                   (8.11)
+
+Use L₀ or L_∞ directly at the fixed points and in the matching caps. Equivariance,
+transport reversal, cancellation of the two phases and cancellation of the positive
+radial factors give **F_W G_W=id and G_W F_W=id**, including caps (C8, C11g–h,
+C14b–c). Smoothness follows from the same local integral formulas. In local base
+and phase coordinates G_W has the form (b,θ)↦(Λ_Q⁻¹b,θ+f(b)), with Jacobian
+det DΛ_Q⁻¹≠0. There is no fibre monotonicity or phase-size condition left to prove.
+
+Restore the T²-coordinate using the existing φ. Given (w,φ)∈W×T², its unique
+point in Y is specified as follows:
+
+* On a cusp core |t_c|<3/10, choose a representative (x_s,y_s) of w, put
+  H=μ̃(x_s,y_s), C=φ+H c̃(t_c), A=C·α(t_c), and take
+  (x,y,w_c)=(x_s e^(−A),y_s e^A,C·ē(t_c)).
+* In the middle, take a branch representation (t,x₁,x₄) of w and put
+  (x₂,x₃)=φ+β₀D₀+β_∞D_∞, then (z,w_c)=Σx_j e_j(t), ζ=e^(iz), using §3.1.
+
+The middle expression is used wherever t≠0,∞, so these domains cover Y.
+Here D₀=ξ₂₃+(H−x₄+ξ₄)c̃₀ and D_∞=(H+x₄)c̃_∞ on their annuli.
+C12b–e verify the corrections and their invariance under both deck and log-branch
+changes. On the cusp cores the middle formula gives exactly C=φ+Hc̃;
+the source coordinates are related by Φ or Θ (C1–C3). Adding an integer to φ
+is the holomorphic lattice action, so the resulting Y-point is independent of the
+angle representatives. Thus these formulas define the inverse τ⁻¹ of
+τ:Y→W×T², τ(y)=([y],φ(y)). Define
+
+  **G_Q(Z,X,φ)=τ⁻¹(G_W(Z,X),φ),**
+  **F_Q(y)=(F_W([y]),φ(y)).**                                  (8.12)
+
+The two compositions are identities, using (8.11) and C6/C12. Locally on the free
+part, in the bundle coordinates (base, circle phase, φ), the Jacobian is block
+triangular with diagonal blocks DΛ_Q⁻¹,1,I₂; C11i
+checks its determinant. On either cap its nonzero determinant is the one in C9.
+Hence these are smooth mutually inverse maps on the entire stated manifolds.
+
+### 8.6 The symbolic tensor on the round embedded manifold
+
+The following is a full coefficient prescription, including the derivative rules;
+it does not leave the choice of a diffeomorphism to an existence theorem. For
+q=(q₀,…,q₄,e^(2πiφ₂),e^(2πiφ₃)) choose k with |q_k|>1/√6 and a sign for q_k.
+Use coordinates u=(the other four q_j,φ₂,φ₃), so
+q_k=±√(1−Σ_{j≠k}q_j²). Such patches cover S⁴ because max|q_k|≥1/√5>1/√6;
+two ordinary angle charts on each circle complete the cover of S⁴×T².
+Evaluate (8.1)–(8.12) in any source holomorphic chart, and form a complex coframe η:
+
+  middle: η=(dz,dw_c,dt),  dz=Σ e_j^z dx_j+Σ x_j d e_j^z,
+                            dw_c=Σ e_j^w dx_j+Σ x_j d e_j^w;
+  cusp:   η=(dx_s−x_s dA, dy_s+y_s dA, d(C·ē)),
+          dA=Σ α_j dC_j+Σ C_j dα_j,
+          dC=dφ+c̃ dH+H dc̃,  dt_c=y_s dx_s+x_s dy_s.             (8.13)
+
+The cusp coframe is (e^A dx,e^(−A)dy,dw_c), a nonsingular complex multiple of the
+holomorphic coframe, so it gives the same tensor. The explicit dH is the quotient
+derivative of the series in C9f–g, with zero-exponent derivative terms omitted on
+the axes. The elementary lattice derivatives come from §3.1. Derivatives of scalar
+roots use the rule in §8.3; derivatives of the shell root use
+dp=(Df_j(p))⁻¹dv, with I2 certifying its denominator. Derivatives of an integral use
+the endpoint rule and differentiation under its integral sign. Repeating these
+rules specifies all orders; one never differentiates a discontinuous chart selector.
+Where the selector changes, use either overlapping smooth chart formula.
+
+Let M_ab be the coefficient matrix in
+(Re η₁,Im η₁,Re η₂,Im η₂,Re η₃,Im η₃)^T=M du,
+and let J₀=diag([[0,−1],[1,0]],[[0,−1],[1,0]],[[0,−1],[1,0]]). The answer in
+these six real coordinates is
+
+  **J_Q(u)=adj(M(u)) J₀ M(u) / det M(u).**                      (8.14)
+
+All entries of M are specified by (8.13) and the rules above; det M≠0 by (8.12)
+and the nonzero coframe factors. For the ambient 9×9 matrix, let E=D_u q and
+R=du∘P, where P is the orthogonal tangent projector, and use
+
+  **J_Q^ambient(q)=E adj(M) J₀ M R / det M.**                   (8.15)
+
+Explicitly the sphere part of E inserts the four coordinates and has the missing
+row −q_{j≠k}^T/q_k; its circle columns are 2π(−sin2πφ_j,cos2πφ_j).
+R extracts the other four sphere coordinates after I₅−q q^T and has circle rows
+(−sin2πφ_j,cos2πφ_j)/(2π). Therefore RE=I₆ and ER=P (C9i–k, permuting the
+missing sphere coordinate). It follows algebraically that (J_Q^ambient)²=−P,
+J_Q^ambient P=P J_Q^ambient=J_Q^ambient, and J_Q²=−Id on the tangent bundle.
+
+On overlaps, G_Q gives the same Y-point by §§8.3–8.5, and the holomorphic source
+transition has a complex-linear differential commuting with J₀. Thus (8.14)–(8.15)
+are chart independent. They are smooth at poles by exact agreement with C9 on
+|Z|²≤ε, across
+central fibres by the toric charts and (8.2), across shell boundaries by the flat
+cutoff, and across torus/log branches by C2/C12. Pulling back Y's holomorphic charts
+by the proven diffeomorphism G_Q is directly a complex atlas on the whole round
+S⁴×T². Equivalently, C10 checks all 216 Nijenhuis components for an arbitrary
+symmetric second jet of its coordinate map; hence **N_{J_Q}=0 identically**.
+Here C10 is applied to the coordinate Jacobian of G_Q. The coframe matrix M in
+(8.13) may differ by a complex-linear factor, which commutes with J₀ and cancels
+from (8.14); it is not being assumed to be an arbitrary integrable frame.
+The construction is T³-equivariant, and the source actions are holomorphic, so the
+tensor is invariant under the prescribed circle and torus actions.
+In the six angular target coordinates, T²-translations have identity differential.
+Consequently M may be evaluated at φ=0 after retaining its dφ columns, as in C9;
+the ambient matrices E and R still use the actual circle angles.
+
+### 8.7 Verification scope
+
+The global assertion in §§8.1–8.6 is an analytic construction by exact quadratures.
+Its quantitative inputs are precisely I1, I2 and L1–L4, with their recorded margins;
+the new normalization is >1/2 and the new inverse contracts by <17/25. The remaining
+steps are the displayed identities and the elementary calculus/gluing arguments.
+There is no inference from a small sampled Nijenhuis tensor to a global theorem.
+The source input is Y's specified holomorphic atlas and lattice actions, checked in
+the manuscript's `verify_construction.py` and C1–C3. No preprint-dependent sphere
+classification input or nonconstructive diffeomorphism theorem is used in §8.
+
+The implementation additions evaluate the new base, its inverse and the connection;
+they **do not replace `Finv`, `Psi_W` or `J_round` by a complete numerical quadrature
+evaluator**. Thus their old numerical results must not be quoted as tests of J_Q.
+The exact tensor (8.14) is specified by quadratures and derivative rules, while C9
+also supplies a direct numerical evaluator for J_Q on the reduced caps |Z|²≤ε.
+Outside those reduced caps it evaluates the earlier construction's tensor.
+The recorded numerical
+checks for the new blocks, their sample sizes and errors are appended below and in
+the ledger. A finite elementary expression without quadratures remains unestablished.
+
+**New numerical observations (not proofs).** `check_inverse.check_transport_base` uses 2000
+uniform S⁴ targets, 1024 local targets per cusp, and 256 axis targets per cusp (4560 total):
+maximum shell-root error 3.6·10⁻¹⁷; forward/inverse residual 1.1·10⁻¹⁴. `check_tlift`
+uses 4000 torus points and 4000 chart comparisons per cusp: connection deck error
+≤1.4·10⁻¹⁵; chart agreement ≤2.2·10⁻¹⁶. It also checks 128 exact axis tangents per
+cusp, 512 middle/cusp tangent comparisons per cusp, 3000 middle branch/deck comparisons,
+and four smooth paths crossing central axes. For the latter, 96-node Gauss–Legendre
+quadrature gives composition/reversal/gauge residual ≤4.4·10⁻¹⁶. An independent
+test of (8.8) on 256 sphere points with a known phase whose range exceeds 2π has
+unit-phase error ≤9.0·10⁻¹⁵, includes both poles, and checks agreement of the real
+primitives on 64 equator overlaps to 1.2·10⁻¹⁴. These test the new blocks and quadrature identities;
+they are not an evaluation of the complete G_Q or J_Q at global random points.
+The base check also compares all 16 second-derivative directions at each exact pole
+against the real quadratic Hopf model. The numerical base uses the inner polynomial
+radius and an inactive-cutoff guard there; differentiating a norm at zero is avoided.
+
+## 9. Closed-form reductions and the limits of the present result
+
+### 9.1 Expression class and audit
+
+Here a *finite elementary formula* permits arithmetic, algebraic roots, exp, log,
+trigonometric functions and their local inverses, on specified finite chart/piece domains.
+The piecewise smooth step s is permitted. Unevaluated quadratures, infinite sums or iterations,
+and naming the inverse of a newly defined function are excluded. Matrix adjugates and
+determinants are finite polynomial operations. This convention is stronger than §8's exact
+expression class; it does not change the campaign's original goal.
+
+In particular (8.14) is an exact global prescription, **not** a global elementary coefficient
+formula. Even the earlier cap coframe C9 still uses H and dH. Section 9.3 removes those
+dependencies on two complete pole neighbourhoods. No general impossibility theorem for
+elementary complex structures on S⁴×T² is claimed.
+
+### 9.2 Eliminate both scalar profile inverses
+
+These replacements define a new parametrization; they are not identities with the old
+profiles. Their identities are L10–L11 in `sym/lemmas_1d.py`; inequalities below are (b)/(c),
+with arithmetic checked in I2q–s. The old implementation remains the default.
+
+**Radial block.** For w≠0, put R=|w| and O=ρ_O. Replace P_final by
+
+  v=2Ow/(1+R²),  X=(R−1)/√(1+R²).                              (9.1)
+
+Then |v|+X²=1, dX/dR=(R+1)/(1+R²)^(3/2)>0, and −1<X<1. Its inverse is
+
+  a=X√(2−X²),  w=O⁻¹v/(1−a).                                  (9.2)
+
+The denominator is positive: a²=1−(1−X²)²<1. For numerical stability when X>0,
+use 1/(1−a)=(1+a)/|v|². L10 verifies both compositions and the denominator identity.
+Thus ν and ν⁻¹ are removed, including at the equator.
+
+**Base profile.** Write A=(4π)², B_e=e⁴, and replace k by
+
+  k_A(r)=√((A+B_e r²)/(1+A r²)),  |T|²=(A y+B_e y²)/(1+A y), y=r².
+
+The derivative in y is (A+2B_e y+AB_e y²)/(1+Ay)²>0, with range [0,∞). The endpoint
+scales are k_A(0)=4π and k_A(∞)=e²/(4π). For u=|T|² the inverse is
+
+  y=[√(A²(1−u)²+4B_e u)−A(1−u)]/(2B_e),  r=√y.               (9.3)
+
+For u≤1 use the equal expression y=2u/[A(1−u)+√(A²(1−u)²+4B_e u)] to avoid
+subtraction. Both k_A(|t|) near t=0 and 1/k_A(1/|s|) near s=0 are smooth functions
+of the respective squared modulus. The h_B phases and their clutching identity C15a
+are unchanged. Radial monotonicity, I1/C5 and that clutching identity therefore prove
+that the revised raw h_B is still bijective, including its two coordinate circles.
+
+**Recheck the shells.** The old I2 constants are not silently reused. Define
+
+  β(ρ)=√[(1+e⁴ρ²/(64π²))/(1+4π²ρ²)],
+  K_A(p)=(βp₁,βp₂,p₃),  ρ²=p₁²+p₂².
+
+Before the final radial block, the new raw node maps are
+
+  B₀,A(p)=B(2πK_A(p)),  B_∞,A(p)=O_out B(2π I K_A(p))/2.       (9.4)
+
+B, I and O_out are §4.3's maps. L11d proves that the same β occurs at both cusps:
+k_A(ρ/2)/(4π)=K_∞/k_A(2e⁻²/ρ). On these balls the source height is still p₃.
+Together with I2b/d this derives (9.4) from the raw composition, with a regular node limit.
+
+For R_b=1/125, set a=e⁴/(64π²), b=4π². The previous rational bounds on π,e⁴ give
+0<a<b<40. Consequently
+
+  40/41 < β ≤ 1,
+  0 ≤ 1−β=(b−a)ρ²/[(1+bρ²)(1+β)] ≤ 40ρ²,
+  |ρβ′|=(b−a)ρ²/[(1+bρ²)²β] ≤ 41ρ².
+
+The first bound follows from β²≥1/(1+40R_b²)>(40/41)². The transverse eigenvalues
+of DK_A are β and (1+2aρ²+abρ⁴)/[(1+bρ²)²β]=β+ρβ′, both in (0,1]; the third
+is 1. Thus |K_A(p)|≤|p|, ‖DK_A‖=1 and ‖DK_A−1‖≤81|p|². Apply §4.3's bound
+‖DB(z)−Q‖≤(9/2)|z| on |z|≤51/1000 to obtain
+
+  ‖DB₀,A−M₀‖ ≤ 18π²|p|+162π|p|² ≤ 182|p|,
+  ‖DB_∞,A−M_∞‖ ≤ 91|p|.
+
+Integration along the segment from 0 to p gives value defects ≤91|p|² and
+≤(91/2)|p|². Use the same blend f_j,A=M_jp+c_b(|p|)(B_j,A−M_jp). Since
+|c_b′|≤500, the defect Lipschitz bounds are
+
+  L₀=182/125+500·91/125²=546/125=4.368,  L_∞=273/125.
+
+Hence σ_min(Df₀,A)>19/10, σ_min(Df_∞,A)>19/20, and the projected-defect
+iteration (8.1) has ratio **<7/10** at both cusps. I2q–s verify the rational comparisons
+using the same Machin enclosure. Applying the same argument to the smaller raw defect
+proves equality of raw/modified ball images, as in §8.1. This proves global injectivity
+of the shell replacement. Numerical margins (4000 points per cusp, I2 script): minimum
+singular value 5.636589 / 2.815100 versus proved 1.9 / 0.95; maximum defect-derivative/scale
+0.183538 / 0.185246 versus proved <0.7.
+
+**Combine the two replacements.** On each shell put v₀=f_j,A(p), h₀=|v₀|, and
+
+  v=2v₀/(1+h₀²),  X=±(1−h₀)/√(1+h₀²),                       (9.5)
+
+with − at cusp 0 and + at ∞. Outside use the revised raw h_B, stereographic
+projection and (9.1). They agree to all orders on each shell boundary: in the south
+raw v₀=Ow, and in the north raw v₀=Ow/|w|². Both give (9.5). The raw bounds give
+h₀<1/16<1, so this change is invertible there. For a target (v,X) first form
+
+  v₀=v/[1+|X|√(2−X²)].                                       (9.6)
+
+Use its shell contraction and domain test. Outside that image use (9.2), inverse
+stereographic projection, (9.3), and the existing height inverse. The equality of raw
+and modified ball images is preserved by (9.5). Thus the resulting base Λ_A is globally
+bijective, with smooth inverse on the free part. In the inner balls h₀=scale·rad is
+polynomial in the four slice coordinates, and (9.5) has the following smooth lifted model.
+
+**Global assembly.** Keep §8.2's connection and replace Λ_Q by Λ_A in §8.4's paths.
+Put ε=1/100, ε_A=2ε/(1+ε²)=200/10001 and x_±=±99/√10001. Replace L_j by
+
+  Z=√[2/(1+h₀²)] Z₀,  X=±(1−h₀)/√(1+h₀²),
+  Z₀=√scale·U_j(√a₀ x̄_s,y_s),  h₀=|Z₀|².                   (9.7)
+
+In (8.6)–(8.7) replace ε by ε_A and use these cap maps and their inverses. Set
+χ_X=s((X−x_−)/(x_+−x_−)); compute the new mismatch and logarithm using the new paths.
+No old mismatch is assumed to equal the new one. Positive radial scaling preserves
+the Hopf connection, so transport is exactly radial in these caps. The overlap,
+inverse and smoothness proofs of §§8.3–8.6 apply with these substitutions, giving
+global maps G_A,F_A. Both scalar profile inversions have been removed from their
+actual prescription, rather than just from an isolated candidate block.
+
+Implementation: `tlift.transport_base_chart/middle` and `tinverse.transport_base_inverse`
+with **both** `algebraic_radial=True, algebraic_profile=True`; defaults retain §8.
+`transport_base_local` and `transport_shell_inverse` take the latter flag.
+Height inversion and the convergent shell iteration are still required.
+
+### 9.3 An algebraic complex-structure tensor on both pole neighbourhoods
+
+Change the T² trivialization by a global translation cancelling H near the nodes.
+In a cusp let n be the nearest integer to H, reduce by ψ̂⁻ⁿ, and denote the reduced
+point by (x₀,y₀), H₀=H−n and r₀=a₀|x₀|²+|y₀|². Define, with zero extension,
+
+  η(r₀)=1−s((r₀−1/250)/(1/250)),
+  b_j=η(r₀)H₀ c̃_j(t_c),  b=b₀+b_∞,  φ_E=φ+b.                (9.8)
+
+These are real two-vectors before reduction modulo ℤ². The supports are disjoint:
+|t_c|≤e²R_b/2<4/125 there, which cannot hold simultaneously for t and 1/t.
+I1 gives |H₀|≤R_b+(27/10)R_b²<1/100 on the support, so the reduced representative
+is unique on a neighbourhood of it; at an integer-choice seam η is zero nearby.
+A deck change increases H,n together and preserves H₀ and the reduced point (C17a).
+Thus b is globally smooth on W, including its nodes and support boundaries.
+Translation φ↦φ+b(w) has inverse φ=φ_E−b(w) and determinant one. These are identities
+and explicit support bounds (C17a/b/e), with smoothness from the displayed flat cutoff.
+
+Define **G_E(q,φ_E)=G_A(q,φ_E−b(G_{A,W}(q)))**; its inverse has torus component
+φ_E. This is a global change of parametrization of Y. Its tensor J_E=G_E*J_Y has
+the same global pullback/overlap proof as §8, and still uses quadratures off the caps.
+
+On either cap h₀≤ε, r₀=h₀/scale<1/250, so η=1,n=0 and C=φ_E **exactly**.
+The complete elementary cap map, including the pole, is as follows. Put r=|Z|²,
+
+  s=√(1−r²),  g=(1+s)^(-1/2),  Z₀=gZ,
+  (q₁,q₂)=U_j* Z₀/√scale,  x_s=q̄₁/√a₀,  y_s=q₂,  t=x_s y_s,
+  W=φ_E,2−iσφ_E,3,
+  (x,y,w)=(x_s e^(−tW), y_s e^(tW), σ(W̄−Wt²)),              (9.9)
+
+where σ=1 at cusp 0 and −1 at ∞, and U_j,scale,a₀ are as in §3.4.
+The identity h₀=r/(1+s) follows from (9.7); r≤ε_A<1/50. No height, series,
+inverse function, limit or integral occurs here. Integer changes of φ_E act by
+the given holomorphic T²-action, so there is no torus-angle seam (C9d with H=0).
+
+The tensor itself is algebraic in the ambient coordinates and the constants π,e:
+torus invariance permits W=0 when computing its coordinate coefficients, retaining dW.
+Write Z_R for the four real components of Z. First take
+
+  dZ₀=D_g dZ,  D_g=g I₄+2g′ Z_R Z_Rᵀ,  g′=r/[2s(1+s)^(3/2)],
+  D_g⁻¹=g⁻¹[I₄−r Z_R Z_Rᵀ/(1+s)].                            (9.10)
+
+Apply (9.9)'s constant unitary/conjugation map to obtain dx_s,dy_s, and set
+dW=dφ_E,2−iσdφ_E,3. Form the complex coframe
+
+  η₁=dx_s−x_s t dW,  η₂=dy_s+y_s t dW,  η₃=σ(dW̄−t²dW).     (9.11)
+
+Let M_E be its real coefficient matrix in (Re Z₁,Im Z₁,Re Z₂,Im Z₂,φ_E,2,φ_E,3).
+With E,R as in (8.15), the complete formula is
+
+  **J_E^amb=E adj(M_E) J₀ M_E R / det(M_E),**                  (9.12)
+  det(M_E)=−σ(1−|t|⁴)g⁴/(scale²a₀s) ≠ 0.                    (9.13)
+
+L10e/f prove the radial eigenvalues g,g,g,g/s and (9.10). C9l gives the constant
+slice determinant and C17d the triangular coframe determinant σ(1−|t|⁴).
+Also |t|²≤ε²/(4scale²a₀)<1/1000 by e⁴<55 and π>157/50. Thus
+1−|t|⁴>999999/1000000, s>√(1−1/2500)>0 and g⁴≥1/4. These explicit (b)/(c)
+bounds include Z=0. The coframe is a complex-linear rescaling of the differential
+of the actual map (9.9) (C17c), so C10 proves N_J=0. The global inverse and overlap
+arguments above make this the restriction of J_E, not an unrelated local field.
+
+`jround.elementary_cap_map`, `elementary_cap_coframe` and `J_elementary_cap`
+implement (9.9)–(9.12); `tinverse.algebraic_cap_slice` implements the slice inverse.
+`tlift.elementary_torus_shift_chart` requires a reduced cusp chart;
+`elementary_torus_shift_middle` evaluates the global correction on the regular part.
+
+### 9.4 Remaining strategies and restricted impossibility results
+
+**Special-function compression works for the height value only.** On t≠0 set
+P<0, ρ=log|ζ|, q=e^P and z=i(ρ−P/2). Then
+
+  H(ρ,P)=θ₃′(z,q)/(2i θ₃(z,q)),                               (9.14)
+
+in the convention of [NIST DLMF 20.2.3](https://dlmf.nist.gov/20.2.E3).
+C16a/b check equality term by term with the Gaussian sum; normal convergence
+justifies differentiation. On this imaginary argument the denominator is a sum
+of positive real terms. This is a standard special-function expression, not an
+elementary one, and does not evaluate H⁻¹. Naming that inverse would not solve
+the task. At t=0 use the exact axis formulas, not (9.14) with P=−∞.
+
+**No algebraic equivariant height.** Here is a restricted impossibility proof (c),
+with explicit constants. Fix t≠0, set Y=|ζ|² and q=e^(2P)∈(0,1). Equivariance gives
+
+  h(qY)=h(Y)+1,  h(q^nY₀)=h(Y₀)+n.                            (9.15)
+
+Suppose a nonzero polynomial relation Σ_{j=0}^m a_j(h(Y))Y^j=0 holds on Y>0.
+Divide out the least power of Y, so a₀ is a nonzero polynomial. Fix Y₀>0, write
+a_j(h(Y₀)+n)=Σ_l b_jl n^l, and let D be the maximum degree. Substitution yields
+
+  |a₀(h(Y₀)+n)|≤C n^D q^n,  C=Σ_{j=1}^m Σ_l |b_jl|Y₀^j,     (9.16)
+
+for integers n≥1, by the triangle inequality and q^(jn)≤q^n. Put c=−log q>0.
+For D≥1, x^D e^(−cx/2) has maximum K=(2D/(ec))^D at x=2D/c, by its displayed
+derivative in L12a. For D=0 take K=1. The right side of (9.16) is ≤CK e^(−cn/2).
+If d=deg a₀, then b₀d≠0, and for
+n≥max(1,2Σ_{l<d}|b₀l|/|b₀d|) the left side is ≥|b₀d|n^d/2≥|b₀d|/2.
+For C>0 choose also n>(2/c)max(0,log(2CK/|b₀d|)); this is a contradiction.
+For C=0 the contradiction is immediate. **No such algebraic height exists.**
+
+This excludes a fixed finite Gaussian moment sum, which is rational in Y when
+t is fixed. It also excludes an algebraic formula for Y as a function of the
+original height, since that would give the same polynomial relation. It does not
+by itself exclude an elementary inverse for ρ=(log Y)/2. The original H is analytic on Y>0
+by normal convergence on complex annuli; a polynomial relation on any open interval
+would therefore extend to all Y>0 and give the same contradiction. This does not
+exclude elementary heights: log Y/log q solves (9.15). That particular candidate
+has the known central-fibre collapse of notes §13.3 and cannot replace H here.
+
+**An endpoint potential cannot reproduce all transports of this connection.**
+On the middle region α=2πdx₁+θdx₄, θ=arg t, and its curvature is dθ∧dx₄.
+The base-form integral around a rectangle is (θ₁−θ₀)(x₄,1−x₄,0), by the four
+line integrals (L12b). Side lengths 1/10 give 1/100, not 0 modulo 2π. Thus a single
+endpoint potential cannot reproduce this transport for all paths. This does not
+exclude an elementary formula along the particular meridians of §8.4 or a different
+connection/bundle isomorphism.
+
+**Principal Arg is not automatically a smooth global logarithm.** For example,
+g(n)=exp(4in₃) has smooth real lift 4n₃ but crosses the principal cut at n₃=π/4.
+Simple connectedness gives a real lift, not a bound on its range. For the actual
+g_A neither a certified principal-branch bound nor a closed replacement for (8.8)
+has been established.
+
+**Analytic-only smoothing cannot keep an exact cap and change it elsewhere.**
+A real-analytic function on a connected interval that equals a fixed affine function
+on a subinterval equals it throughout, by power series and continuation. This
+restricted observation does not exclude the allowed piecewise elementary smoothing.
+For example, e^(−1/u), extended by 0 for u≤0, is flat at 0: e^v≥v^N/N! for
+arbitrary N gives superpolynomial decay; every derivative is a finite sum of powers
+of 1/u times that exponential. L12c checks low orders; the arbitrary-order proof
+is this positive-series bound, not an extrapolation from those checks.
+
+### 9.5 Completion status and verification
+
+| dependency | outcome |
+|---|---|
+| ν⁻¹ in P_final | eliminated globally by (9.1)–(9.2) |
+| inverse of r k(r) | eliminated globally by (9.3); revised shells certified |
+| H,dH in the pole tensor | eliminated by (9.8); algebraic tensor (9.12) |
+| general height value | standard θ₃ expression (9.14), still not elementary |
+| general height inverse | unresolved; an algebraic inverse for Y excluded by (9.15)–(9.16) |
+| shell inverse | contraction with ratio <0.7; no finite formula obtained |
+| meridian transport and phase logarithm | quadratures remain; unrestricted endpoint-potential/Arg shortcuts fail |
+
+These reductions and restricted negative results do **not** exhaust possible constructions.
+Nor do they exclude cancellations of difficult intermediate functions in the tensor itself.
+A finite height/gauge redesign, closed evaluation of the specified integrals, or another
+global parametrization remains possible. **The full elementary global expression is open;
+its impossibility has not been proved.** The exact quadrature construction is retained.
+
+New numerical checks (d), separate from the proofs: C16 compares θ₃ and the independent
+height sum at 25 points and 60-digit precision, discrepancy ≤9.3·10⁻⁶¹. Each algebraic
+scalar block has 4097 inverse tests over 24 orders of magnitude, relative errors
+≤2.4·10⁻¹⁵ / 5.8·10⁻¹⁶. The revised base has 4560 random/shell/pole/axis inverse tests,
+residual ≤1.3·10⁻¹⁴, and all 32 pole second-jet comparisons. Each new shell has 4000
+independent composition/derivative comparisons, errors ≤8.6·10⁻¹⁵ / 2.4·10⁻¹³.
+The new tensor has 256 tests per cap against the Jacobian of the elementary map at
+nonzero torus coordinates, plus integer torus changes, J²=−P, tangency, the determinant,
+exact poles and axes. Coefficient discrepancy ≤8.9·10⁻¹⁶; independent finite-difference
+Nijenhuis tests on 44 points per cap give residual <1.3·10⁻¹⁰ after division by
+max(1,cancellation scale); eight-point nonintegrable controls have median residual
+0.26 / 0.22 under the same normalization. All 14 central-axis derivatives through
+order three per cusp agree with independent Taylor polynomials to <10⁻¹⁰.
+There are also 1024 torus-correction chart/middle/deck/branch comparisons per cusp,
+exact cancellation on the inner caps, 256 exact pole/axis values per cusp, and
+1024 revised-base chart/middle/deck/branch comparisons per cusp. These cap checks
+are not a complete global numerical evaluation of J_E.
+
+## 10. Literature-led continuation: two height replacements and an algebraic target
+
+This section records further reductions, **not completion of the global closed-form
+tensor**. There are two different height designs: §10.2 is finite elementary in the
+forward direction; §10.5 has a closed inverse in standard elliptic functions. They
+must not be conflated. The latter is an extension of the elementary expression class.
+The original Gaussian construction and all its defaults remain available.
+
+### 10.1 What the checked literature supplies
+
+The following are source-specific conclusions, not additional assumptions about Y.
+
+| primary source inspected | relevant result | consequence for this campaign |
+|---|---|---|
+| Di Scala–Kasuya–Zuddas, [*Non-Kähler complex structures on R⁴*, §2–3](https://msp.org/gt/2017/21-4/gt-v21-n4-p13-p.pdf) | a smooth Hopf suspension, its composition with Hopf, and an analytic nodal-torus model; the final smooth identification uses gluing/isotopy | construct a specified algebraic target (§10.4), but do not claim the paper supplies a coordinate formula for our diffeomorphism |
+| The same authors, [*On embeddings of almost complex manifolds in almost complex Euclidean spaces*, §4](https://arts.units.it/retrieve/e2913fdd-2206-f688-e053-3705fe0a67e0/PHE25.pdf) | separate the two critical values by an orientation-preserving diffeomorphism of S³ | replace that unspecified map by the explicit boost below |
+| Zung, [*A note on focus-focus singularities, II*, §4](https://www.math.univ-toulouse.fr/~tienzung/Maths/Focus2_lmp2002.pdf) | circle reduction and topological gluing; the remark corrects an earlier smooth-classification claim for multiple pinches | topology alone does not certify the required smooth lift |
+| Bolsinov–Izosimov, [*Smooth invariants of focus-focus singularities and obstructions to product decomposition*, Theorem 3.3 and §3.2](https://arxiv.org/pdf/1706.07456) | liftable plane germs are divisible smoothly by z or by its conjugate; gluing carries smooth information | supports checking exact factorization, as in L8; this theorem concerns their focus-focus model and is not automatically a theorem about our Hopf lift |
+| Massamba–Thompson, [*The Universal Connection and Metrics on Moduli Spaces*, §3](https://arxiv.org/pdf/math/0311198) | finite-dimensional bundle embeddings and universal connection matrices | suggests a finite projection construction; the required concrete embedding, nonvanishing estimates and pole compatibility still have to be supplied |
+| [DLMF 22.2](https://dlmf.nist.gov/22.2), [22.11](https://dlmf.nist.gov/22.11), [22.16](https://dlmf.nist.gov/22.16) | theta/modulus relations, the Fourier series of dn, and amplitude/incomplete-integral inversion | closes the redesigned scalar height and its collar inverse in §10.5 |
+
+In particular, neither matching the number/signs of the singularities nor invoking
+an isotopy supplies its finite formula. The multi-pinched smooth invariants in the
+fourth source do not themselves obstruct this example with separate nodal fibres.
+No new dependency on the manuscript's 2026 inputs is introduced.
+
+### 10.2 A finite elementary cusp height
+
+Put c=1/16 and let s be the existing flat smooth step. Define K on u≥0 by
+
+  K(u)=u,                                                     0≤u≤1/16,
+  K(u)=u+s(log(16u)/log 8)(u/(1+u)−u),                         1/16<u<1/2,
+  K(u)=u/(1+u),                                               1/2≤u≤2,
+  K(u)=1−K(1/u),                                             u>2.       (10.1)
+
+The last line uses only the preceding lines and is not an infinite recursion.
+It gives K(u)+K(1/u)=1 for u>0. Flatness of s gives agreement of every derivative at
+1/16,1/2,2,16. On the lower transition, writing λ=s(log(16u)/log 8),
+
+  K′=(1−λ)+λ/(1+u)²−λ′u²/(1+u),  0≤λ′≤2/(u log 8).
+
+Thus K′≥4/9−2/(3 log 8)>1/9. Here log 8>2 follows from
+log 2=2 atanh(1/3)>2/3, using the positive power series. On the reciprocal
+transition K′(u)=K′(1/u)/u²>0; all other pieces have displayed positive derivatives.
+These are identities (a) and manifest estimates (b), checked in L13.
+
+In a cusp chart put X=|x|², Y=|y|², v=XY, a₀=ν², and
+
+  e=exp(−4v/(1−v)),  A=a₀eX,  q=a₀ev=AY.
+
+For |t|≤1/2, 0≤q<1/8. Indeed e≤1/(1+4v/(1−v)) and a₀≤1, so
+q≤v(1−v)/(1+3v); the inequality with 1/8 has numerator
+8v²−5v+1=8(v−5/16)²+7/32>0 (L13d).
+
+For the proof only, set S_q(u)=Σ_{j≥0}K(q^j u). If q^N u≤1/16, then exactly
+
+  S_q(u)=Σ_{j=0}^{N−1}K(q^j u)+q^N u/(1−q).                  (10.2)
+
+Consequently this is a finite evaluation, with an exact geometric tail, not a
+truncated approximation. Define H_f=S_q(A)−S_q(Y). On the regular part let
+P=(log q)/2, ρ=log|y|, n=floor(ρ/P), Y₀=exp(2ρ−2nP), A₀=q/Y₀. Then
+q≤Y₀,A₀≤1, and the entire formula is just
+
+  H_f=n+K(A₀)+K(qA₀)−K(Y₀)−K(qY₀)+q²(A₀−Y₀)/(1−q).         (10.3)
+
+This has four seed evaluations. The floor chooses a representative, as in the
+existing atlas. It does not create a discontinuity: S_q(u)−S_q(qu)=K(u), and
+K(Y)+K(1/Y)=1 give H_f(qY)=H_f(Y)+1 exactly. Formula (10.2), with a locally
+fixed N, proves smoothness across all artificial representative seams and q=0.
+On a compact chart, choose N with (1/8)^N max(A,Y)<1/16; then all terms and the
+rational tail are smooth on a neighbourhood. L13 verifies the recurrence and
+geometric-tail identities, independently of the numerical evaluator.
+
+At fixed nonzero t the derivative is
+
+  ∂ρH_f=−2Σ_{j≥0}[q^j A K′(q^j A)+q^j Y K′(q^j Y)]<0.       (10.4)
+
+The positive tail is geometric when its arguments reach the linear piece; thus
+termwise differentiation is justified directly by (10.2). Equivariance makes the
+range all of R. Reflection A↔Y gives H_f(P−ρ)=−H_f(ρ), and H_f(0)=−1/2.
+On the central fibre H_f(x,0)=K(a₀X), H_f(0,y)=−K(Y); no axis is collapsed.
+
+### 10.3 Certificate and scope of the finite-height substitution
+
+On R=a₀X+Y≤1/20 both A,Y≤1/16, so
+
+  H_f=(A−Y)/(1−q),  −∂ρH_f/2=(A+Y)/(1−q).                   (10.5)
+
+Here is a uniform explicit-constant estimate (c). Write u=a₀X, v=Y just for
+this paragraph, m₀=u−v, r=u+v, and z=uv/a₀. The earlier e⁴<55 gives
+z≤55r²/4≤11/320, q=euv≤r²/4≤1/1600, and 1−e≤4z/(1−z). Hence
+
+  H_f−m₀=[−u(1−e)+q(u−v)]/(1−q),
+  |H_f−m₀|≤[16·55/(27(1−11/320))+1/4]/(1−1/1600) · r³
+           <35r³.                                           (10.6)
+
+We used u²v≤4r³/27 and uv≤r²/4, whose square-factor identities are already
+checked. Also (A+Y)/((1−q)r)≥e≥1−4(11/320)/(1−11/320)=265/309.
+For exactly the existing node cutoff c_n=1−s((r−.02)/.03), the corrected height
+H_f+c_n(m₀−H_f) therefore satisfies
+
+  −∂ρH_f,new/(2r)≥265/309−(2·35/.03)(.05)³>14/25.            (10.7)
+
+Furthermore |H_f|≤r+35r³<.055 throughout the support. Thus the reduced node
+integer is unique, including across nearest-integer seams. N6 checks the constants.
+Measured margins on 200000 samples per cusp are .998628 / .903375; measured
+cubic remainder constants are .528244 / 32.280107, against 14/25 and 35 respectively.
+
+The corrected height is still exactly m₀ on r≤.02. Therefore the local base
+formulas, the I2 certificates and both elementary pole tensors of §9 are unchanged.
+Replace H consistently in the cusp height, the unwrapped collar, the torus
+trivialization and the connection. Equivariance, positivity (10.7), the same
+middle matching, and the unchanged local shells supply the hypotheses of §8's
+assembly proof. This defines a further **quadrature construction**, G_f. Its
+complete tensor is still not a finite closed form.
+
+Implementation: `T.FINITE_CUSP0/INF`, `finite_height_seed`, and `cusp_angle`;
+the independent base/inverse, connection and torus correction accept
+`finite_height=True`. Reduced chart functions instead take the finite cusp object.
+These are separate from the original `Psi_*`, `Finv`, `tfull` and `J_round`.
+In particular, there is no complete numerical API for G_f/J_f. The implemented
+inverse still bisects (10.3) and the scalar collar. The finite seed's transition
+does not have a proved elementary inverse; the scalar problem has not disappeared.
+
+### 10.4 A specified algebraic round-S⁴ target
+
+The literature's suspension can be written, with |z₁|²+|z₂|²+X²=1, as
+
+  Σh=(2 Re(z₁ conj z₂),2 Im(z₁ conj z₂),|z₁|²−|z₂|²,X√(2−X²)) ∈ S³.
+
+For p=(a,b,c,d)∈S³ define
+
+  k(p)=((√2 a+1),b,c,d)/(√2+a),
+  k⁻¹(p)=((√2 a−1),b,c,d)/(√2−a).                            (10.8)
+
+Both denominators are ≥√2−1. Direct substitution gives the sphere and inverse
+identities; Dk has conformal factor 1/(√2+a) on tangent vectors (C18a–d).
+Define f_alg=h∘k∘Σh, using h(a,b,c,d)=(2(ac+bd),2(bc−ad),a²+b²−c²−d²).
+This is a global algebraic map S⁴→S² with f_alg(0,0,0,0,ε)=(0,−ε,0).
+
+It has no other critical points: writing R=√(1−X²), the three nonzero singular
+values of DΣh are 2R,2R,2R/√(2−X²). The Hopf differential has its two nonzero
+singular values equal to 2. Surjectivity of these differentials proves rank two
+off the poles, quantitatively
+
+  σ₂(Df_alg)≥4R/((√2+a)√(2−X²))≥4R/(2+√2)>R.                (10.9)
+
+At each pole all first derivatives vanish. In the two target tangent coordinates
+(first and third components), the quadratic part is
+(p₃+εp₂,√2 p₁), where p=Hopf(z₁,z₂). The determinant of the Hessian of the
+real pencil λQ₁+μQ₂ is 64(λ²+μ²)² (C18f/g). These are identities (a) and
+manifest inequalities (b). This paragraph does not infer an exact local normal
+form or a fibrewise equivalence with W from the Hessian alone.
+
+`suspended_hopf`, `sphere3_boost`, and `algebraic_torus_fibration` implement this
+target. The route still needs an explicit smooth matching of the source fibres,
+its global gluing and its circle lift. Thus f_alg is **not a complex structure on
+S⁴**, nor a completed construction of J on S⁴×T².
+
+### 10.5 A closed height inverse in standard special functions
+
+This alternative really evaluates an inverse, rather than renaming the old one.
+It replaces the Gaussian height, not merely its notation. At t≠0 set
+
+  q=e^(2P), B=θ₃(0,q)², κ=θ₂(0,q)²/B, k=√(1−κ²), K(k)=−PB,
+  h_e(ρ,P)=am(−2Bρ,k)/π−1/2.                                (10.10)
+
+Here am is the continuous real Jacobi amplitude, not principal arcsin(sn) on
+every period. These conventions and K(k)=−PB follow from the complementary
+nome identities in DLMF 22.2.1–2. DLMF 22.16.2 and 22.16.10–11 give
+
+  h_e(ρ+P,P)=h_e(ρ,P)+1,  ∂ρh_e=−2B dn(−2Bρ,k)/π<0,
+  ρ=−F(π(a+1/2),k)/(2B),  when h_e(ρ,P)=a.                  (10.11)
+
+F is the standard real incomplete elliptic integral of the first kind with its
+continuous amplitude convention. Numerically reduce a=n+δ, −1/2≤δ<1/2,
+and use nP−F(π(δ+1/2),k)/(2B), so every branch is explicit.
+
+For the nodal normalization use the degree-one real lift
+
+  R_c(h)=n+atan2(c sin(πδ),cos(πδ))/π,
+  n=floor(h+1/2), δ=h−n, c>0.                               (10.12)
+
+Its inverse is R_(1/c), and R_c′=c/(cos²(πh)+c²sin²(πh))>0.
+Set H_e=R_(π/2)(h_e). In (10.11) replace a by R_(2/π)(a) to invert H_e.
+
+**Central extension and verification of the identity.** With A=ν²e^(−2f)X,
+Y=|y|² and q=AY as above, an equivalent expression is
+
+  h_e=(2/π)Σ_{j≥0}[atan(q^j A)−atan(q^j Y)].                 (10.13)
+
+Here the series proves smoothness; the closed expression and inverse remain
+(10.10)–(10.12). To verify (10.13), differentiate with respect to ρ. Its
+derivative is −(2/π)Σ_{n∈Z}sech(2ρ+n log q). Put L=−P>0.
+The Fourier transform of sech(2x) is π/(2 cosh(πω/4)): substitute u=e^(4x)
+and use the [beta integral](https://dlmf.nist.gov/5.12.E3) and
+[gamma reflection formula](https://dlmf.nist.gov/5.5.E3). Thus the periodized
+derivative has constant coefficient −1/L and cosine coefficients
+−(2/L)sech(π²n/(2L)). The derivative of (10.10) has the same coefficients by
+DLMF 22.11.3, K=LB and K′=πB/2; C19a/b check the coefficient simplifications.
+Both heights equal −1/2 at ρ=0. This proves equality, rather than relying on
+sampled agreement. Exponential decay justifies the Fourier summation.
+
+Near the node, (10.13) converges normally as a holomorphic series in the independent
+variables (A,Y,q): on |A|,|Y|,|q|≤1/8 its tail starting at j=N is bounded by
+(64/63)(|A|+|Y|)|q|^N/(1−|q|), from the arctangent power series. This proves a
+smooth real extension after substitution of the smooth chart variables. At either
+non-nodal axis finitely many initial terms have positive finite arguments; the
+remaining tail has the same local argument. In particular
+
+  H_e(x,0)=R_(π/2)((2/π)atan(a₀X)),
+  H_e(0,y)=−R_(π/2)((2/π)atan(Y)),
+  rad=tan((π/2)R_(2/π)(|a|))                                (10.14)
+
+on the corresponding central axis. Thus its central-axis inverse is elementary.
+No logarithm of zero is evaluated at the node or on an axis.
+
+**A certificate near the node.** Let L_a be the sum of arctangents in (10.13),
+without 2/π, and let H_lin=(A−Y)/(1−q). On r≤.05,
+
+  |L_a−H_lin|≤r³/[3(1−q³)],  |L_a|≤r/(1−q),
+  H_e=T(L_a),  T(s)=atan((π/2)tan(2s))/π,
+  T′(s)=1/[cos²(2s)+(π²/4)sin²(2s)],  |T(s)−s|≤2|s|³.
+
+The last inequality follows from 0≤1−T′≤6s² (π²<10) and integration of
+the polynomial bound. Combining with (10.6) gives |H_e−m₀|<38r³. Its fibre
+slope satisfies
+
+  −∂ρH_e/(2r)≥[265/309]/(1+.05²) · [1−6(.05/(1−1/1600))²].
+
+If one applies the old node correction, the lower bound after subtracting
+(2·38/.03)(.05)³ is >13/25. C19c/d and N7 check these explicit constants.
+The 200000 samples per cusp in N7 give cubic remainder constants
+2.289646 / 32.441924 and corrected slopes ≥.982202 / .899635, respectively,
+against the proved constants 38 and 13/25. These samples evaluate eight terms
+of the independent arctangent sum; on this ball the omitted tail is <2·10⁻²⁷.
+That correction would reintroduce an implicit inverse in its transition; it
+has **not** been silently appended to the closed height block.
+
+**The whole cusp collar can also be inverted.** A convex blend of two invertible
+heights need not retain a closed inverse. Instead put b(r)=1−s((r−.3)/.2),
+k_b=b(r)k, K_b=K(k_b), c_b=1+(π/2−1)b(r), and define
+
+  a_e=R_(c_b)(am(2K_bρ/P,k_b)/π−1/2),
+  ρ=P F(π(R_(1/c_b)(a_e)+1/2),k_b)/(2K_b).                  (10.15)
+
+Use the same period reduction as in (10.11). At r≤.3 this is H_e; at r≥.5,
+k_b=0, K_b=π/2 and c_b=1, so it is exactly ρ/P−1/2 with inverse P(a_e+1/2).
+All jets match at both boundaries because the cutoff is flat. At fixed t,
+strict monotonicity follows from dn>0 and R_c′>0, with no blend-derivative term.
+
+Scalar reference functions in `cusp.py` implement the forward value, inverse,
+normalization, exact axes and complete collar. They use mpmath's standard sn,
+cn, theta and elliptic F; mpmath's argument is the parameter k², not DLMF's
+modulus k. Extra working precision resolves 1−k² when q is tiny. C19 compares
+120 forward/inverse cases with independent arctangent sums at 80-digit precision,
+including P=−100, translated cells, exact seams and near-seams. It also checks
+20 axis values/inverses, the node, 72 complete collar inverses, and 36 seam jets
+through order three against the independent sum. Maximum discrepancies are
+1.5·10⁻⁸⁰, 1.1·10⁻⁸¹ and 1.1·10⁻⁸¹ for the 120 value/inverse, collar and jet
+groups, respectively. The evaluator retains its guard digits in the returned
+mpmath value. Rounding that value before inversion can lose accuracy near a
+nearly flat fibre; the inverse now converts its input inside the guarded context.
+
+**Scope:** (10.15) closes the scalar height/collar block in standard special
+functions. It does not invert the existing node-correction blend or the I2 shell,
+and it has not yet been assembled into a replacement global base/lift/tensor.
+The finite elementary design of §10.2 and this elliptic design are alternatives.
+
+### 10.6 Finite bundle operations and remaining strategies
+
+**A finite real logarithm with an explicit derivative bound.** Suppose a specified
+smooth g:S²→S¹ satisfies ||Dg||≤L in the round metric. This is an input requiring
+a proof, not a sampled bound. Let N=floor(8L)+1. In either stereographic chart
+S_N,S_S of (8.8), on |a|<2 define the finite expression
+
+  P_±(a)=Σ_{j=1}^N Arg(g(S_±(ja/N)) conj(g(S_±((j−1)a/N)))).  (10.16)
+
+Every argument lies in the right half-plane with real part >7/8. Indeed
+DS_±^T DS_±=4I/(1+|a|²)² (C20a), so each path segment has length at most
+2|a|/N<4/N. Its images differ in C by ≤4L/N<1/2, by integrating the stated
+derivative bound along that segment. For unit complex numbers z,w,
+Re(z conj w)=1−|z−w|²/2>7/8 (C20b). Thus each Arg in (10.16) means the single
+smooth elementary expression atan(Im/Re); no winding or branch choice is hidden.
+
+Use the same constants as (8.8): Θ_N=Arg(g(north))+P_N(a) and
+Θ_S=Arg(g(north))+P_N(e)−P_S(e)+P_S(a), e=(1,0). Telescoping the finite phase
+ratios (C20c) proves e^(iΘ_±)=g. Both are smooth real functions. Their difference
+on the connected band −3/5<n₃<3/5 is a continuous multiple of 2π and vanishes
+at (1,0,0), so it vanishes throughout the overlap. This gives a global smooth
+real logarithm. For evaluations choose north when n₃≥0, south when n₃≤0;
+then |a|≤1. The endpoint derivative bounds and identities above are types (c)/(a).
+This removes the phase-logarithm quadrature **provided a finite formula for g
+and a certified L have been supplied**. It does not assert those inputs for the
+campaign's unfinished finite lift. No bound on the total phase range is needed.
+
+**A finite circle-bundle isomorphism.** Let P₀,…,P_M be smooth rank-one Hermitian
+projections with ||P_j−P_(j−1)||<1. If P_(j−1)z=z and ||z||=1, put
+
+  z_j=P_j z_(j−1)/||P_j z_(j−1)||.                            (10.17)
+
+The denominator is ≥1−||P_j−P_(j−1)||>0 by the triangle inequality. This is
+smooth and S¹-equivariant. If u,v are unit frames of two consecutive lines and
+a=v* u≠0, the forward map multiplies the frame by a/|a| and the reverse by
+conj(a)/|a|; their product is 1 (C20d). Hence reversing the finite chain is its
+exact inverse. For a projector path with ||dP/ds||≤C on an interval of length D,
+M=floor(2CD)+1 equal steps ensure consecutive distances <1/2. This bound follows
+by integrating the derivative estimate. The finite operation is a bundle map in
+its own right; it does not approximate or claim equality with connection transport.
+
+`tlift.finite_phase_log` and `finite_projection_lift` implement (10.16)–(10.17).
+The former requires the certified derivative bound as an explicit argument.
+Tests use g(n)=exp(i(12n₁+9n₂n₃+5n₃)), whose derivative is bounded by
+12+9+5=26 since |grad(n₂n₃)|≤1 on S². Its phase takes both −12 and 12, so
+the test covers more than three turns. There are 259 value/exponential tests,
+including both poles, and 65 real-logarithm and tangent-derivative overlap tests.
+The projection tests use 128 independent 64-step chains and check nonvanishing,
+image, norm, equivariance and reversal. These are numerical observations (d),
+separate from the proofs above: phase-value error ≤7.1·10⁻¹⁵, real-overlap error
+≤3.6·10⁻¹⁵, tangent-overlap error ≤3.4·10⁻¹⁴, and projection error ≤1.2·10⁻¹⁵.
+
+The remaining applications are precise:
+
+1. **Build the inverse base first.** With (10.15), the unmodified inverse chain is
+   closed in standard functions. Blend that inverse to the linear pole model in
+   target coordinates, and certify its derivative there. This could remove the
+   shell solve from G and hence from J=G*J_Y, even if F's coordinate expression
+   remains implicit. The new shell certificate and its smooth overlaps still need
+   to be supplied; the old forward-shell certificate does not prove them.
+2. **Apply the finite bundle maps.** Supply an explicit finite bundle embedding,
+   the constants C,D in (10.17) along every meridian, pole agreement, and the
+   resulting mismatch's constant L in (10.16). An existence theorem for embeddings
+   supplies none of those concrete inputs. The two finite operations are complete;
+   their application to W is not. No completed projection lift is claimed.
+3. **Match directly to (10.8).** This avoids treating the target fibration itself
+   as unspecified. It still requires a smooth fibrewise matching and global
+   clutching calculation, including the source torus translation; equal singular
+   data do not constitute that calculation.
+
+The scalar advances do not close the circle lift or the modified-shell inverse.
+The full finite global tensor and the campaign's requested finite inverse pair
+are therefore still unresolved. No general impossibility result follows from
+this investigation, and no new global numerical J evaluator is claimed.
+
+
+## 11. Finite elementary global tensor by an inverse-first construction
+
+This section gives a finite elementary expression for the global tensor. Its new
+global statement is for human review; the precise checks and practical limitations
+are in §11.8. The inverse-first argument avoids evaluating F_cl=G_cl⁻¹, whose
+elementary expression remains outside this result.
+
+### 11.1 A concrete ten-component circle-bundle embedding
+
+Write w(h)=1−s((|h|−1/4)/(3/20)). It is 1 on |h|≤1/4 and 0 on
+|h|≥2/5. For either cusp, let H be its chosen smooth deck-equivariant height.
+For c=0,1/2 choose k_c=floor(c+1/2−H) and (x_c,y_c)=ψ̂^{k_c}(x,y). Define
+
+  V_c=w(H+k_c−c)(√a₀ conj(x_c),y_c)/√(a₀|x_c|²+|y_c|²).
+
+Use zero for the entire pair wherever its weight vanishes. A deck translation
+changes k_c by the opposite integer, so these pairs descend exactly. A
+representative seam is surrounded by an open set on which that pair vanishes.
+Every height class is within 1/4 of 0 or 1/2; consequently one of the two weights
+is exactly 1. On |H|≤.6, the first active pair uses the original chart. The second
+uses that chart for H>0, and ψ̂ once for H<0. The latter's active support has
+H<−.1, so y≠0, including on the central fibre. Thus these are smooth through
+either central axis, away from the node. This is a finite chart argument, not an
+infinite deck sum. C21 checks the reindexing and phase identities.
+
+On the middle use θ₀=Arg(t), θ₁=Arg(−t)+π and
+
+  d_j=1−s((|θ_j−jπ|−π/2)/(π/4)),
+  V_m,j=d_j exp(i[2πx₁−(θ_j−Im log t)x₄]),  j=0,1.
+
+Each component vanishes near its own argument cut. The change log t→log t+2πi,
+x₁→x₁−x₄ cancels in the exponent. Changing x₄ by an integer changes it by
+an integer multiple of 2π. At least one d_j equals 1.
+
+Let β₀,β_∞ be (8.4)'s cutoffs, and β_m=1−β₀−β_∞. Concatenate, rather than
+add, the separate components:
+
+  V=(β₀V₀,0, β₀V₀,1/2, β_∞V_∞,0, β_∞V_∞,1/2, β_mV_m,0, β_mV_m,1),
+  e=V/√(V*V) ∈ S¹⁹⊂C¹⁰,             P=e e*.                 (11.1)
+
+The four cusp entries in this display are pairs. At most two radial weights are
+nonzero. Since each constituent squared norm is between 1 and 2,
+
+  1/2≤β²+(1−β)²≤V*V≤2,   β²+(1−β)²−1/2=2(β−1/2)².        (11.2)
+
+These are manifest inequalities (b), with the square identity in C21. Circle
+rotation multiplies every component by the same phase. Therefore P is a smooth
+rank-one Hermitian projector on the free orbit space, and e identifies each
+source circle with the unit circle in im P. Relative to any reference e_ref,
+the inverse on that circle is multiplication of the source reference by e_ref*e.
+On rad≤.004, the height estimates give |H|<.1, and |t_c|<.3. Thus e is exactly
+(√a₀ conj x,y)/√rad in the first pair of its own cusp block. All other components
+are zero. This gives the required exact homogeneous pole models.
+
+`tlift.bundle_embedding_middle/chart` implement this for both previous heights.
+`cusp.elliptic_bundle_embedding` is the scalar closed-special-function version.
+Its elementary inverse-first option below is evaluated using the known inverse
+height coordinate, so it does not call an implicit forward height. In middle
+data that coordinate refers to the principal-log cusp representative. The scalar
+implementation first replaces log t by its principal representative and replaces
+x₁ by x₁+kx₄, where log t_old=log t_principal+2πik. This preserves (z,w) and
+keeps the supplied height attached to the correct cusp representative.
+
+### 11.2 An elementary inverse height and complete collar
+
+This design differs from both §10 heights. The coordinate map used to pull back
+holomorphic coordinates needs the inverse height; its forward height may be
+implicit in the proof and is never evaluated in the final coefficient recipe.
+For |a|≤1/2 and 0≤q≤1/8 set b=|a|, E=exp(2(b−1/2)), λ=s((b−.1)/.2), and
+
+  f(a,q)=sign(a)[(1−λ)b+λ(E−q/E)].                            (11.3)
+
+On |a|≤.1 this is exactly a. On .3≤a≤.5 it is E−q/E. It is smooth, odd in a,
+and f(1/2,q)=1−q. On the only transition interval .1≤b≤.3,
+E−q/E−b>0. To prove this, replace q by its worst value 1/8; the derivative
+of E−1/(8E)−b is (2(E−1/4)²+1/8)/E>0. At b=.1,
+E>4/9 since e⁴<55<(9/4)⁵, and its value is at least
+4/9−9/32−1/10=91/1440>0. Consequently
+
+  8/9≤f_a≤14,                  |f_q|≤9/4.                   (11.4)
+
+The lower bound follows from convexity, E≥4/9 on the transition and the positive
+λ′ term. For the upper bound use λ′≤10, E≤1, q/E≤9/32, and
+0≤E−q/E−b≤1. Outside the transition the derivatives are displayed elementary
+terms. The derivative in q is −sign(a)λ/E, giving the second bound.
+
+For 0<|t_c|≤.5 put P=log ν+log|t_c|−2|t_c|²/(1−|t_c|²), q=exp(2P), and
+reduce the input height a=n+b, n=floor(a+1/2), −1/2≤b<1/2. Then set
+
+  R=√(f(b,q)²+4q),
+  Y=(R−f(b,q))/2 = 2q/(R+f(b,q)),
+  ρ₀=(log Y)/2,
+  ρ(a,t_c)=nP+(1−λ_r)ρ₀+λ_r P(b+1/2),
+  λ_r=s((|t_c|−.3)/.2).                                      (11.5)
+
+Choose the second expression for Y when f≥0 to avoid subtraction. This is a
+finite elementary formula. It has
+
+  ∂aρ₀=−f_a/(2R)<0,        ρ(a+1,t_c)=ρ(a,t_c)+P.
+
+Near b=1/2, Y=q exp(−2(b−1/2)), hence ρ₀=P−(b−1/2).
+Near b=−1/2, oddness gives ρ₀=−(b+1/2). Thus every derivative agrees at the
+artificial representative seams. The inverse-first collar is a convex combination
+of two strictly decreasing inverse functions; it stays invertible and is exactly
+P(a+1/2) at |t_c|=.5. Its flat endpoints give all-order agreement.
+
+At t_c=0, the source reference is
+
+  a>0: (x,y)=(√f(a,0)/ν,0),
+  a<0: (x,y)=(0,√f(−a,0)).                                  (11.6)
+
+Smoothness across each nonnode axis follows from the quadratic equation
+Y²+f(a,q)Y−q=0: use its rationalized root when a>0 and the other root when a<0;
+its denominator stays positive there. The phase chart uses the nonzero coordinate
+as its positive reference. Explicitly, throughout a core neighbourhood of either
+axis, with e=exp(−4|t_c|²/(1−|t_c|²)), R=√(f²+4q), use
+
+  a>0:  x=√[(R+f)/(2e)]/ν, y=t_c/x;
+  a<0:  y=√[(R−f)/2],      x=t_c/y.                         (11.6a)
+
+These formulas hold on open neighbourhoods, including t_c=0, and have strictly
+positive denominators there. They supply transverse derivatives as well as axis
+values. The neighbouring cells are equally explicit. For .5≤a<.6 set b=a−1,
+F=f(b,q), R_b=√(F²+4q), and use x=√[2/(e(R_b−F))]/ν, y=t_c/x.
+For −.6<a≤−.5 set b=a+1 and use y=√[2/(R_b+F)], x=t_c/y.
+They agree to all orders at the cell seams by (11.5)'s endpoint identities.
+Indeed, on |a−.5|<.2 the first reference is simply
+x=exp(a−.5)/(ν√e), y=t_c/x; on |a+.5|<.2 the second is
+y=exp(−a−.5), x=t_c/y. These are open formulas at the seams themselves.
+`elementary_cusp_reference` implements these open chart formulas.
+For a=0 away from the node either reference is nonsingular. Near the node,
+the forward height is exactly
+
+  a=e u−v,  u=ν²|x|², v=|y|², e=exp(−4uv/(ν²−uv)),           (11.7)
+
+because f=a near zero and q=euv. Thus it is smooth there as well. The forward
+height away from this region is the unique root of (11.3), used only to prove the
+coordinate interpretation. No such root occurs in (11.5) or the pullback map.
+
+### 11.3 Inverse-first pole matching
+
+For the elliptic height, and also for (11.7), write the forward local height as
+H=m+R_H(u,v), m=u−v, r=u+v. On r≤1/250 the explicit estimates are
+
+  |R_H|≤38r³,  |(R_H)_u|,|(R_H)_v|<300r²,
+  |grad_p R_H|≤700r²,  p=Hopf(ν conj x,y).                    (11.8)
+
+Here is the derivative certificate, type (c). With q=euv, 1−e≤221uv,
+|e_u|≤222v, |e_v|≤222u, |A_u|≤1.001, |A_v|<.004 for A=eu,
+and |q_u|≤1.001v, |q_v|≤1.001u. Differentiate
+H_lin−m=[−u(1−e)+q(u−v)]/(1−q). The two derivative bounds, divided by r²,
+are at most 112.001/(1−q)+35.035r²/(1−q)² and
+223.251/(1−q)+35.035r²/(1−q)², respectively; both are <225.
+The arctangent-minus-linear sum contributes <2r² to either derivative, since
+Σq^(3j)=1/(1−q³) and Σj q^(3j−1)=q²/(1−q³)². The normalization contributes
+<14r², using |1−T′|≤7r² and |dL/du|,|dL/dv|<2. Thus 300 is a common bound.
+For (11.7) alone these extra arctangent terms are absent and the derivative bound
+follows directly from −u(1−e). Finally u=(|p|+p₃)/2 and v=(|p|−p₃)/2 have
+Euclidean gradient norms at most 1, giving the last bound. I2t checks every rational
+endpoint comparison.
+
+Let M_j be the previous linear base model and B_j,A its unmodified algebraic
+profile map (9.4). The normalized map
+
+  C_j(p)=M_j⁻¹ B_j,A(p+(0,0,R_H(p)))
+
+satisfies |C_j(p)−p|≤20r² and ||DC_j−I||≤40r on r≤1/250: use §9's
+bounds 15r² and 30r for M_j⁻¹B_j,A−I, |p+(0,0,R_H)|≤1.001r, and (11.8).
+The projected-defect contraction proves existence and uniqueness of C_j⁻¹ on
+|p_L|≤10⁻⁴; its solution satisfies
+
+  |p_S−p_L|≤80r_L²,  ||Dp_S−I||≤100r_L,  r_L=|p_L|.          (11.9)
+
+This is a certificate for the explicit inverse chain: inverse stereographic
+projection, the quadratic profile inverse (9.3), and (11.5) (or §10.5 in the
+elliptic variant). The contraction is used to prove the bounds, not to evaluate
+that inverse. `elliptic_pole_raw_inverse(...,elementary=True)` evaluates this chain.
+C22 checks its stable north stereographic formula and its Hopf projector identities.
+In the elementary cap it simplifies further: f=a, so set R=√(a²+4q),
+u=(R+a)/(2e), Y=(R−a)/2 and p_S=(2ν Re t_c,−2ν Im t_c,u−Y).
+Use the rationalized expression for the small numerator. This is smooth on both
+nonnode axes and avoids dividing |t_c|² by Y. No logarithmic height is evaluated
+by this cap implementation.
+
+For z∈C², p_L=Hopf(z), r_L=|z|², put s=|p_S| and Q=Π(p_S/s), where
+Π(n)=(I+[[n₃,n₁+in₂],[n₁−in₂,−n₃]])/2. The raw local lift is
+
+  g_j(z)=√s Qz/|Qz|.                                        (11.10)
+
+The denominator never vanishes here. In fact (11.9) gives
+|n_S−n_L|≤200r_L, ||Q−Π(n_L)||≤100r_L, and
+h=|Qz|²/r_L=1−|n_S−n_L|²/4≥1−10000r_L². In
+ g_j=c(I+D)z, D=Q−Π(n_L), c=√(s/r_L)/√h,
+the following bounds hold on r_L≤10⁻⁴:
+
+  |c−1|≤42r_L, c≤1.005, ||D_p D||≤300, |D_p c|≤210.
+
+For completeness, differentiating the normalized directions gives
+||D_p(n_S−n_L)||≤(100+400+80)/(1−80r_L)<600;
+|D_p(s/r_L)|≤400 and |D_p h|≤60000r_L. These imply the displayed bounds on c.
+Since ||D_z Hopf||=2√r_L, they give
+
+  |g_j(z)−z|≤200r_L^(3/2),   ||Dg_j−I||≤5000r_L.            (11.11)
+
+The latter estimate has slack: the sum of the three derivative contributions is
+<1500r_L. I2u verifies these constants.
+
+Set ε=10⁻⁸ and replace the raw lift near each pole by the closed map
+
+  ĝ_j(z)=z+s((|z|²−ε)/ε)(g_j(z)−z).                        (11.12)
+
+It is exactly linear for |z|²≤ε and exactly the raw lift for |z|²≥2ε. In its
+transition ||Dĝ_j−I||≤13200ε<1/1000. On the entire ball |z|²≤10⁻⁴ it is
+≤1/2. Extending the defect by radial projection gives a contraction inverse for
+both local maps, proving that the replacement preserves the image of that ball
+(the maps agree on its boundary). This proves a smooth injective pole replacement.
+The forward inverse of (11.12) is not asserted to be elementary; the eventual
+complex-structure coefficient formula uses ĝ_j and its derivative directly.
+
+### 11.4 A fixed global projector bound
+
+Here and below the base height is **(11.3)–(11.7)**; the old Gaussian, finite
+forward and elliptic heights are not used to define this base. Put
+
+  δ=10⁻⁹, α=10⁻⁵, X₋=−1+δ, X₊=1−δ, L=10¹¹⁴.
+
+For n∈S² and X∈[X₋,X₊], evaluate the unmodified inverse base at
+(v,X)=((1−X²)n,X). Apply (11.1) to any reference point over that base and set
+P(n,X)=e_ref e_ref*. The reference cancels in this formula. In detail, first
+
+  w=O⁻¹v/[1−X√(2−X²)], y=w+(0,1,0),
+  u₁=(1−|y|²+2iy₁)/(1+|y|²), u₂=2(y₂+iy₃)/(1+|y|²).
+
+Use (9.3) to invert u₁/u₂=t k_A(|t|), then (11.5) for the cusp radius.
+The height is Arg D/(2π) modulo 1, where D=u₂ at zero and D=−conj u₁ at
+infinity. Use the primary argument on Re D≥−.9|D| and
+a=1/2+Arg(−D)/(2π) otherwise. Their open domains Re D>−.95|D| and
+Re D<−.85|D| overlap; the latter gives .4<a<.6 since cos(π/5)<.85.
+Thus a central-circle cell seam is interior to a smooth argument chart, with the
+neighbouring-cell formulas following (11.6a). On .5≤|t|≤1 use
+x₄=Arg(u₂)/(2π)+ξ₄+1/2. On
+1≤|t|≤2 use x₄=Arg(u₁)/(2π)−λ_∞δ(t)−(1−λ_∞)/2−1/2, with
+λ_∞,δ(t),ξ₄ as in §3. On the central circles use (11.6). In a cusp choose y>0
+when y≠0; across its opposite axis choose x>0. These are local reference gauges,
+not a global section. For central-fibre derivatives use the open formulas (11.6a),
+not a pointwise axis value. The profile inverse is also evaluated without a polar
+division: with T equal to the ratio to the dominant S³ coordinate and z=|T|²,
+the local coordinate is T√[c/(A(1−z)+√(A²(1−z)²+4Bz))],
+where c=2 for t and c=2B for 1/t. This is smooth at T=0.
+In a collar convert (x,y,w_c=0) to the middle with Φ/Θ
+and the real Cramer formulas. All operations here are elementary. The code is
+`elliptic_raw_base_reference(...,elementary=True)` and
+`elliptic_meridian_projector(...,elementary=True)`; the retained function names
+also support the older alternative.
+
+The following is an explicit, deliberately coarse **type (c) derivative
+certificate**:
+
+  ||D_(n,X) P|| < 10⁶⁰δ⁻⁶ = L.                              (11.13)
+
+The norm on the domain is the product of the round metric and dX², and the
+matrix norm is the operator norm. The details are included because a compactness
+argument with an unspecified bound would not give a fixed finite expression.
+
+1. **Target coordinates.** Let d=1−X√(2−X²). Since
+   d(1+X√(2−X²))=(1−X²)², d≥δ²/2. The derivatives of
+   (1−X²)n and X√(2−X²) have norms at most 2. Thus
+   ||Dw||≤12δ⁻⁴ and ||Du||≤24δ⁻⁴<100δ⁻⁴; inverse stereographic
+   projection has derivative norm ≤2. On the zero cusp the dominant |u₂|>1/2,
+   and on the infinity cusp |u₁|>1/2. On .3≤|t|≤10/3 both are >1/4.
+   To check this last bound, use 144<A<160, 1<B<55 and
+   144r²/(1+160r²)≤|t k_A(r)|²≤(160+55r²)/144 for .3≤r≤4.
+   The cusp bounds follow by the same calculation at r≤.5, or its reciprocal.
+   Ratio derivatives cost at most 128||Du||. The radial profile derivative is
+   (A+2By+ABy²)/[(1+Ay)^(3/2)√(A+By)]>10⁻⁶ for 0≤y≤16.
+   The reciprocal profile derivative is
+   (Ay²+2By+AB)/[(Ay+B)^(3/2)√(y+A)]>1/100 for 0≤y≤1/4.
+   Angular inverse derivatives are ≤13. Argument derivatives cost at most
+   4||Du||. Consequently the local coordinates
+   b=(2ν Re t_c,−2ν Im t_c,a) have ||Db||<10¹²δ⁻⁴.
+
+2. **Source coordinates.** For these bounds reduce the representative to |a|≤1/2;
+   this leaves P unchanged by (11.1)'s exact deck invariance. Then (11.5)
+   gives P≤ρ≤0, so q≤Y≤1, eu=q/Y≤1, u<4 and r=u+Y≤5;
+   here 1/8<ν≤1 and e>1/4. In the core, differentiating
+   f(a,q)=eu−Y gives |a_u|,|a_Y|<10⁵. Explicitly
+   |e_u|≤392Y, |e_Y|≤392u, |(eu)_u|<1600,
+   |(eu)_Y|<6300, |q_u|,|q_Y|<10000, and divide the resulting
+   bounds by f_a≥8/9. At fixed t_c, a_m=(eu+Y)/(r f_a)≥1/56.
+   In the collar .3≤|t_c|≤.5, 2/3<|P|<4, |P_r|<7 and
+   1/3025<q<1/8. These constants follow from e⁴<55,
+   log 2>2/3 and −log(.3)<4/3; a positive Taylor sum for e⁴ proves
+   the last comparison. For R=√(f²+4q),
+
+     1/3<−(ρ₀)_a=f_a/(2R)<200,
+     |(ρ₀)_q|=|(1/Y−f_q)/(2R)|<42000.
+
+   Thus |ρ_r|<2·42000+7+40<100000, including the cutoff derivative.
+   Inverting this scalar derivative gives |a_ρ|<3 and |a_r|<300000.
+   In orbit coordinates p=(2ν Re t_c,−2ν Im t_c,m),
+   |D_transverse ρ|≤1/(4Y)<1000 and ||D_transverse t_c||<4.
+   Hence |D_transverse a|<2·10⁶, and a_m≥1/(400r)≥1/2000.
+   The triangular matrix with rows (I₂,0) and (D_transverse a,a_m)
+   has inverse norm <2000(2·10⁶+2)+1<10¹⁶. This also bounds the
+   core inverse. In source coordinates z=(ν conj x,y), the Hopf derivative
+   has norm 2√r; in particular ||D_z a||<10¹²√r.
+
+3. **Embedding derivatives.** The first normalized cusp frame has derivative
+   norm ≤2/√r. An active shifted frame has a<−.1. In the core,
+   Y−eu=|f|≥(8/9)|a|>4/45, so |y|>1/4. In the collar |y|>1/55.
+   Its unnormalized coordinates are
+   (exp(2|t_c|²/(1−|t_c|²))/conj y,
+    exp(−2|t_c|²/(1−|t_c|²))conj z₁ y²).
+   Their norm is ≥1. Since |D_z |t_c|²|<500, differentiating these
+   formulas bounds the normalized derivative by 10⁸. (The largest first
+   coordinate term is <2·55·2000+2·55²<10⁶.) Each height weight has
+   derivative ≤14·10¹²√r. The four-component cusp block therefore has
+   derivative <2·10¹⁴/√r, using r≤5.
+
+   In a collar, |t|∈[.3,10/3], |log t|<6, and a local branch with
+   |Arg y|≤π gives |log y|<8. The explicit Φ/Θ and lattice formulas
+   have |z_m|,|w_m| and all lattice entries ≤20, with derivatives
+   ≤1000√r in source z coordinates; here |D_z t|≤100√r and
+   |D_z log y|≤55. These inequalities follow by differentiating
+   z_m=−i log y+πs(s−1), w_m=2ts, s=log t/(2πi), or
+   z_m=−i log y,w_m=0 at infinity. The lattice determinant is
+   (1+|t|²)[log|t|(|t|²−1)+2|t|²]>.1.
+   A 3×3 determinant has magnitude ≤6·20³<50000 and derivative
+   ≤6·3·20²·1000√r<10⁷√r. Cramer's rule then gives lattice
+   coordinates <5·10⁵ and derivatives <6·10¹³√r; x₁ has derivative
+   <10¹⁵√r. In an active argument chart θ_j−Im log t is locally
+   0 or 2π, so the middle phase derivative is <10¹⁶√r.
+   Radial and angular weights cost <10⁴√r. Concatenation and
+   V*V≥1/2 therefore give the common bound ||D_z e||<10²⁰/√r.
+   Branch changes are exact phase/atlas identities; these estimates use
+   local representatives and do not differentiate a discontinuous selector.
+
+4. **Combine.** The projector kills the vertical circle direction. The
+   horizontal right inverse of the Hopf derivative has norm 1/(2√r),
+   so ||D_b P||≤(2·10²⁰/√r)·(1/(2√r))·10¹⁶=10³⁶/r.
+   If r≤1/250, (11.8)–(11.9)'s forward estimate gives |v|<14r;
+   since |v|=1−X²≥δ, r≥δ/14. Otherwise r>1/250≥δ/1000.
+   Thus always r≥δ/1000 and ||D_(n,X)P||<10⁵¹δ⁻⁵<L.
+   In the pure middle (.5≤|t|≤2), the same Cramer bound applied to
+   ξ₄, together with the independent argument coordinate, gives
+   ||Dx₄||<10¹⁵||Dt||+100δ⁻⁴<10²⁷δ⁻⁴, and hence
+   ||DP||<10³⁰δ⁻⁴<L. The radial cutoffs are flat at the chart boundaries.
+
+I2v checks the stated rational comparisons, including the profile lower bounds
+and the final counts. These are analytic bounds, not numbers inferred from a
+sample. Numerical measurements of the separate blocks are recorded in §11.8.
+
+### 11.5 Fixed finite projection and phase formulas
+
+All counts in this section are **fixed integers**, independent of the evaluation
+point:
+
+  N=4L+1,              L_g=32(N+1)L,              K=8L_g+1.  (11.14)
+
+They have 115, 231 and 232 decimal digits, respectively. Finite products and sums
+below are abbreviations for finite compositions of elementary functions with
+these exact counts. There is no limiting operation or unspecified mesh choice.
+
+For Z≠0 put ξ=Z/√(1−X²), n=Hopf(ξ). Let I₀ξ be U₀*ξ in the first pair of
+C¹⁰ and I_∞ξ be U_∞*ξ in its fifth and sixth entries, all others zero, where
+
+  U₀=2^(-1/2)[[1,1],[i,−i]],    U_∞=2^(-1/2)[[1,1],[1,−1]].
+
+At h_j=X₋+j(X−X₋)/N, let P_j=P(n,h_j). Define
+
+  e₀=P₀ I₀ξ/|P₀ I₀ξ|,
+  e_j=P_j e_(j−1)/|P_j e_(j−1)|, j=1,…,N,   E=e_N.           (11.15)
+
+The initial denominator is positive by the local cap estimate:
+||P₀−I₀Π(n)I₀*||≤100r_L, r_L≤2δ/3. Consecutive projectors differ
+by <2L/N<1/2, so every subsequent denominator is >1/2. Reversal gives the
+exact inverse circle map, as proved in §10.6. The formula is smooth and
+S¹-equivariant on the whole slab.
+
+A useful derivative estimate avoids an exponential loss. In a smooth unit
+reference ξ over either stereographic disk |a|≤2, ||Dξ||≤10. Hence
+||De₀||≤4L. Write, for any unit domain direction,
+D e_j=(D P_j)e_j+i A_j e_j with A_j real. Differentiating the normalized
+projection and taking its imaginary inner product gives
+
+  A_j=A_(j−1)+Im(e_(j−1)*P_j[(D P_j)+(D P_(j−1))]e_(j−1))
+                         /|P_j e_(j−1)|².
+
+Therefore |A_j−A_(j−1)|≤8L and ||DE||≤(5+8N)L.
+This follows from P(DP)P=0, P e=e and D|e|²=0; C23c checks the scalar
+coefficient cancellation and C23c2 checks the full two-line tangent-jet identity.
+Components perpendicular to both lines have zero inner product in this formula.
+The phase direction propagates with coefficient one.
+
+For the south band X∈[−1+δ,−1+α] or the north band
+X∈[1−α,1−δ], put
+
+  d_j=P(n,X) I_jξ/|P(n,X) I_jξ|,       g_j=d_j*E ∈ S¹.
+
+Here r_L≤2α/3<10⁻⁴, so the cap estimate again makes the denominator nonzero.
+The mismatch is independent of the phase of ξ; it is a function of (n,X).
+The preceding derivative estimate gives
+||Dg_j||≤(9+8N)L<L_g. Thus a real logarithm Θ_j(n,X) is given by **finite**
+elementary arguments as follows. Take anchor a₀=−1+α or a_∞=1−α. Start with
+the single constant Arg g_j(north,a_j), add
+
+  Σ_(l=1)^K atan(Im R_l/Re R_l),
+  R_l=g_j(north,a_j+l(X−a_j)/K)
+                       conj(g_j(north,a_j+(l−1)(X−a_j)/K)),
+
+and then add the S² primitive (10.16), using count K at this X. On the south
+stereographic chart add its same equator correction P_N(e)−P_S(e).
+Every variable ratio has real part >7/8 because its endpoint images differ
+by <4L_g/K<1/2. Telescoping proves exp(iΘ_j)=g_j; the connected-overlap
+argument of §10.6 proves exact real agreement of its two sphere charts.
+The anchor argument is a constant, so its branch cannot create a variable seam.
+
+Set χ₀=1−s(((X+1)−α/2)/(α/2)) and
+χ_∞=1−s(((1−X)−α/2)/(α/2)), using each only in its band, and put
+
+  E_c=exp(−i[χ₀Θ₀+χ_∞Θ_∞])E.                               (11.16)
+
+Where a weight is zero the corresponding phase need not be evaluated. On the
+inner half of either band, E_c=d_j exactly. To obtain the W-point, take the
+reference from §11.4 and multiply it by the unit scalar e_ref*E_c: in a cusp,
+(x,y)↦(conj(λ)x,λy); in the middle, x₁↦x₁+Arg λ/(2π).
+Integer changes of the latter are the original circle lattice, so this is an
+exactly specified point of W.
+
+### 11.6 Close the poles and obtain the tensor
+
+On the cap of sign j, define the **elementary** local formula
+
+  z_L=U_j*Z /√[s_j(1+|X|√(2−X²))],
+  z_S=ĝ_j(z_L),  (x_s,y_s)=(conj(z_S,1)/ν_j,z_S,2),         (11.17)
+
+where (s₀,s_∞)=(2π,π), (ν₀,ν_∞)=(1,e⁻²), and ĝ is (11.12)
+with the elementary inverse (11.5). The formula includes the exact pole: there
+it uses its identity piece and never evaluates n or a vanishing Hopf denominator.
+Use (11.17) for 1−|X|<α/2; use (11.15)–(11.16) otherwise.
+
+There is an open overlap: take α/3<1−|X|<α/2. If r_L=|z_L|²,
+then r_L≤2(1−|X|)/3 and 1−|X|≤7r_L. On this overlap
+r_L>α/21>2ε, so ĝ=g. The homogeneous embedding (11.1) and minimal
+Hopf projection (11.10) identify d_j with exactly the same raw g_j lift;
+(11.16) equals d_j there. Thus the two W-formulas agree, including all jets.
+They cover S⁴. The raw base is globally bijective by the positive scalar
+height derivative, the positive radial profile derivative and the clutching
+identity C15a. On the free part (11.15) and (11.16) are circle isomorphisms.
+Before pole smoothing this is a homeomorphism, smooth with invertible derivative
+away from the poles, and equals g_j near them. Replace it on each ball
+r_L≤10⁻⁷ by ĝ_j. The raw and patched maps agree on its boundary; the
+contraction argument in §11.3 gives the same ball image and injectivity. Their
+images are disjoint cusp neighbourhoods. The replacement is smooth with
+invertible differential, including at z_L=0. This proves a diffeomorphism
+G_W:S⁴→W, without a numerical degree or Nijenhuis assumption.
+
+Restore the torus by §8.5's **explicit τ⁻¹**, using **H_f from (10.3)** for
+that trivialization. This is independent of the inverse-first height a used to
+parametrize the orbit space. Both heights are deck-equivariant; τ requires only
+this property and its smooth central extension. On reduced representatives
+A=eν²|x_s|²≤1 and Y=|y_s|²≤1. The additional .5<a<.6 chart has
+A≤exp(2·.1·4)<9/4 and Y≤1, by the endpoint expressions in (11.5)
+and |P|<4 in the collar; in the core the stronger A<exp(.2) holds.
+The small patched cap also has A,Y<1. Thus A,Y<3 everywhere used here.
+Thus the four-seed formula with its exact q² tail applies everywhere it is
+needed, including both axes. On a collar use D₀,D_∞ and Φ/Θ exactly as in
+§8.5. C6/C12 prove the gluing for any such height. The result is
+
+  G_cl(Z,X,φ)=τ_f⁻¹(G_W(Z,X),φ).                             (11.18)
+
+Every value in (11.18) uses finitely many arithmetic operations, positive square
+roots, exp, log, sin, cos and arctan, together with flat-step pieces and atlas
+selectors with verified smooth agreement. No theta/elliptic function, series,
+quadrature, root solve or limiting transport occurs. The only principal Arg
+of a variable outside the right half-plane selects a local chart representative;
+its lattice transitions have already been specified.
+
+For a standard six-coordinate sphere/torus chart u as in §8.6, let
+h=(h₁,h₂,h₃) be the holomorphic coordinates of (11.18). Define the **finite
+coefficient expression**
+
+  M_(2j−1,b)=Re ∂_b h_j,  M_(2j,b)=Im ∂_b h_j,
+  J_cl=adj(M) J₀ M/det M,
+  J_cl^ambient=E adj(M) J₀ M R/det M.                         (11.19)
+
+The derivative notation here abbreviates finite chain rules, not a differential
+equation. Specifically use D(Pe)=(DP)e+PDe,
+D(v/|v|)=(Dv−v Re(v*Dv)/|v|²)/|v|,
+D atan(b/a)=(a Db−b Da)/(a²+b²), D exp f=exp(f) Df,
+D log f=Df/f, D√f=Df/(2√f), the product/quotient rules and
+D sin f=cos f Df, D cos f=−sin f Df. In the open flat-step interval,
+s′=s(1−s)(u⁻²+(1−u)⁻²); its endpoint derivatives are zero.
+For a product use ΣP_N⋯P_(j+1)(DP_j)P_(j−1)⋯P₀; sums have the
+fixed counts (11.14). On an argument chart D Arg z=Im(dz/z). Differentiate
+one smooth local representative; at a selector seam use the overlapping chart.
+Write every squared complex modulus as (Re z)²+(Im z)² before differentiating.
+At a central fibre use (11.6a) and the smooth profile inverse just displayed;
+at a pole use the identity piece of (11.12). No derivative of a polar 0/0 is needed.
+For other phase representatives (including the final λ), use the same two open
+argument charts centred at 0 and π, with the elementary formulas
+2 atan(Im z/(|z|+Re z)) and π+2 atan(−Im z/(|z|−Re z)).
+Their respective denominators are positive on the stated open domains, including
+Re z=0 in the first chart. Their integer differences are holomorphic
+lattice transitions. Thus the derivative rules act on an open source chart at
+every point, including an argument-cut point; they never differentiate the jump
+of a principal-argument selector. The numerical derivative helper is restricted
+to interiors of such source charts.
+These rules eliminate every derivative into the same finite elementary class.
+
+Equivalently, (11.19) can be read **without a differentiation operator**. Replace
+each scalar by a seven-tuple (v,w), where w∈R⁶, seed u_b by (u_b,e_b), and seed
+constants by (c,0). Evaluate the finite expression (11.18) with these rules:
+
+  (v,w)+(a,b)=(v+a,w+b),
+  (v,w)(a,b)=(va,aw+vb),
+  1/(v,w)=(1/v,−w/v²),   √(v,w)=(√v,w/(2√v)),
+  exp(v,w)=(exp v,exp(v)w),  log(v,w)=(log v,w/v),
+  sin(v,w)=(sin v,cos(v)w), cos(v,w)=(cos v,−sin(v)w),
+  atan(v,w)=(atan v,w/(1+v²)).
+
+Use the same rules componentwise for complex numbers, and conjugate both entries
+when taking a conjugate. On an argument chart the rule is
+(z,w)↦(Arg z,Im(conj(z)w)/|z|²). Use the displayed s′ rule for the flat step,
+with coefficient vector zero on its constant pieces. For a nonzero real value,
+the absolute-value rule is (v,w)↦(|v|,sign(v)w). At zero, simplify the surrounding
+constant plateau first; use f=a on |a|≤.1. At a height-cell seam use its open
+endpoint formula above (and its linear collar blend), rather than differentiating
+the floor selector. Choose a local chart using
+the value components; its integers stay constant in that open chart. The six
+coefficient components of the three complex outputs are precisely the rows of M
+in (11.19). C24 verifies these arithmetic rules. Thus this is a finite scalar
+coefficient prescription with explicit constants and finite elementary operations,
+not merely a formula that assumes an unspecified coordinate Jacobian is known.
+
+Since G_cl is a diffeomorphism, det M≠0. Its pulled-back holomorphic charts
+are a complex atlas on the whole standard round S⁴×T². Therefore J_cl is
+smooth, J_cl²=−Id and N_(J_cl)=0. In the ambient convention,
+(J_cl^ambient)²=−P_T and J_cl^ambient P_T=P_T J_cl^ambient=J_cl^ambient.
+C9/C10 check these matrix and naturality identities generically; their essential
+invertibility and gluing hypotheses have been supplied above. No manuscript
+input (I1)–(I3) or 2026 preprint is used. This is a new parametrization of the
+paper's same holomorphic Y, hence defines that complex manifold on S⁴×T²;
+it is not asserted to give identical coefficients to the legacy fitted map.
+
+**Expression-class distinction.** (11.19) is a finite elementary, globally glued
+closed expression for J. It is not a compact or feasible-to-expand expression:
+its fixed sums/products have the enormous counts (11.14). The inverse map
+F_cl=G_cl⁻¹ exists smoothly, but its coordinate expression need not be elementary:
+inverting (11.3) in its transition and (11.12) can still require an implicit
+solve. These inverses do not occur in J_cl. Thus this closes the tensor expression
+by an inverse-first construction; it does not establish the stronger request in
+§0 for an elementary pair F and G. No impossibility of such a pair is claimed.
+
+### 11.7 Implementation and verification status
+
+`cusp.elementary_closed_parameters()` returns all constants and counts as exact
+rational numbers/integers. `elementary_projection_section`, `elementary_phase_family`,
+`elementary_global_slice`, `scalar_finite_height`, `elementary_restore_torus` and
+`elementary_global_coordinates` implement (11.15)–(11.18) independently of the
+legacy numerical evaluator. The defaults are the certified counts. An explicit
+`max_work` guard prevents an accidental astronomical calculation; the parameter
+specification and pole formula can be evaluated immediately. Supplying smaller
+counts defines different finite maps for numerical checks. Such checks do not
+certify those smaller counts globally and are not described as evaluation of the
+full certified expression. The code checks actual nonzero/right-half-plane
+conditions on each evaluated path.
+
+The global claim in this section is a new statement for human review. Verification
+of its new implementations and the numerical safety net is recorded in §11.8;
+neither huge certified product has been numerically evaluated.
+
+### 11.8 Checks, margins and scope of the result
+
+The following new checks pass. Identities and explicit rational inequalities are
+in the symbolic suites; the listed sampled values and derivatives are numerical
+observations, type (d), and do not replace the written certificates.
+
+| Check | Result and margin |
+|---|---|
+| C21–C22 | deck/branch identities, norm square, north stereographic inverse, Hopf projector and horizontal derivative identities: ALL PASS |
+| C23–C24 / I2t–v | quadratic height, projection-phase and finite coefficient rules, all explicit endpoint constants and implemented counts: ALL PASS |
+| Elementary height | 132 value/deck/collar cases and 108 seam jets through order three; error 6.4·10⁻⁸⁶; sampled f_a∈[1,4.536928] versus proved [8/9,14] |
+| Open central-axis charts | 12 comparisons with the closed logarithmic inverse and 12 cell-seam jets, error 2.6·10⁻⁸⁶; 8 exact axis representatives also pass embedding and torus restoration checks |
+| Inverse-first caps | 64 independent forward compositions, relative error 2.1·10⁻⁶³; sampled value/derivative defect constants 2.552/11.348 versus proved 200/5000; sampled blend defect 3.2·10⁻⁷ versus proved 13200ε=1.32·10⁻⁴<1/1000 |
+| Concrete torch embedding | 4096 tests for each earlier height, error ≤4.7·10⁻¹⁴; per height/cusp 1024 chart comparisons, 256 exact-axis tangent comparisons (≤8.6·10⁻¹⁰) and 128 exact homogeneous cap models |
+| Elementary scalar embedding/torus | 70 cusp/collar cases, including branch, deck and circle changes and an independent torch torus check; embedding error 7.4·10⁻⁵⁶ |
+| Raw global base/projector | 96 round trips, error 1.4·10⁻⁴⁷; projector residual 2.0·10⁻⁵⁶; 16 derivative samples give maximum Frobenius norm 32.8697 versus the proved operator bound 10¹¹⁴ |
+| Finite real logarithm with interval parameter | 12 tests with multiple turns of phase and both real chart values, error 2.5·10⁻⁵⁴ |
+| Full pole/slab overlap, **reduced counts N=512,K=32** | errors 3.1·10⁻⁶⁰ and 1.2·10⁻⁵⁴; sampled projection norm ≥.05504, phase increment real part ≥.91584 |
+| New local tensors | six pole/round-axis points and a free point with N=512; nonzero DG, J²=−I, independent sphere-chart change and integer torus changes pass; free-point \|det DG\|=2217.99 |
+| Central-circle tensors | both a=1/2 circles, including transverse derivatives in the open axis charts; \|det DG\|=2.67101 and .0900846; J²=−I passes |
+| Independent new-tensor finite-difference N | two caps and one free N=512 point, h=2·10⁻⁷ and 10⁻⁷; normalized residuals fall by a factor of four, maxima 4.73·10⁻¹⁰ and 1.18·10⁻¹⁰; nonintegrable controls .566/.0255 |
+
+Run the new implementation checks with
+`python3 extra/s4t2_explicit/check_inverse.py --closed` and
+`python3 extra/s4t2_explicit/check_inverse.py --closed-nijenhuis`.
+`elementary_tensor_numeric` is an independent high-precision derivative check of
+(11.19), using `mp.diff` in interiors of source charts. It is not the definition
+of the symbolic derivatives, and it does not imply a global guarantee for a
+smaller projection count. In particular .05504 is **below** the full expression's
+proved per-step bound 1/2: it belongs to a different, reduced-count numerical
+instance. A preliminary N=64 instance actually had a zero projection. Neither
+observation changes (11.14) or its proof; no smaller count is certified here.
+
+The checks caught and fixed a genuine logarithm-branch metadata error in the
+scalar embedding: the supplied height referred to a principal-log cusp, while
+conversion used the unreduced logarithm. The explicit normalization in §11.1
+fixes it, and the branch assertions remain unchanged. The central-fibre review
+also replaced polar value formulas by the smooth open formulas (11.6a), including
+neighbouring height cells. An initially ineffective N-control sheared inside a
+single complex line; the checked control now mixes a sphere and a torus direction.
+No legacy assertion or tolerance was weakened.
+
+The complete legacy safety net was rerun: `check_tcore`, `check_tlift`,
+`check_lift`, `check_full`, `check_inverse.py 3000`, the four numpy checks,
+`check_degree.py 1121 128 128`, `nijenhuis_round.py 2000`, and
+`check_jround.py 300` all pass. The degree is 1.000000 with positive determinant
+at all 18,366,464 nodes; the legacy normalized N maximum is 2.59·10⁻¹⁰.
+All four symbolic suites pass. Both manuscript Python checks pass; LaTeX is
+**not run** because `latexmk` is unavailable, and the manuscript is unchanged.
+These legacy tests protect the existing construction; they are not numerical
+evaluation of the huge new expression.
+
+The finite global tensor statement, with its explicit derivative and gluing
+proof, is new and requires human review under AGENTS.md. Its exact expression
+class is fixed finite elementary compositions on a finite atlas, with the counts
+(11.14) fully specified. No claim of numerical execution of those products, a
+compact expanded matrix, or a finite elementary inverse F_cl is made. The inverse
+pair remains a separate open campaign objective. No general impossibility theorem
+for that stronger objective follows from this work. Legacy I3–I5/T14 also remain
+open for their original fitted evaluator.

@@ -515,11 +515,14 @@ Requirements: φ(c·p) = φ(p) + c, φ invariant under S¹_a, smooth.
 
 ### 11.8 The open issue and the exact fix plan
 
-**Fact.** For a weight-1 function E vanishing transversally on π⁻¹(Γ_E), the lift
-Z₁ = √((|v| + v₃)/2)·E/|E| is smooth along π⁻¹(Γ_E) iff, on every normal slice of Γ_E in B, the linearisation
-of E (taken in a local unitary frame of the S¹-bundle) is complex-proportional, with positive orientation, to
-that of Λ*(v₁ + iv₂). Equivalently, Λ*(v₁ + iv₂) = (smooth nonvanishing)·E·Ē″ for some weight-1 function E″
-that is nonvanishing near Γ_E.
+**Corrected sufficient criterion (2026-10-07; statement change).** Away from the fixed points, put
+f = Λ*(v₁ + iv₂) and d = |v| − v₃ > 0 near π⁻¹(Γ_E). If f = H E with H smooth and nonvanishing
+(in a local unitary frame), lift B extends by Z₁ = |H|E/√(2d), Z₂ = (H̄/|H|)√(d/2).
+These are identities, checked in `sym/lemmas_1d.py` L8. Matching the transverse linearisations of E and f
+alone is insufficient: E = z+z̄² with v = (2 Re(z)√(1−|z|²), 2 Im(z)√(1−|z|²), 2|z|²−1)
+has df(0) = 2dE(0), but lift B is not differentiable at 0 (L8d–e; programme §2).
+The earlier equivalence with first-order compatibility is withdrawn. The exact factorisation
+f = (smooth nonvanishing)·E·Ē″ remains sufficient when E″ is smooth and nonvanishing near Γ_E.
 
 **Current E.**
 * It is compatible exactly at b₀ and b_∞, in the limit.
@@ -544,7 +547,8 @@ that is nonvanishing near Γ_E.
 4. **Glue.** E_final = E_new on a tube around Γ_E, E elsewhere. In the tube shell, away from Γ_E, both are
    nonvanishing; glue by E_new·exp(c·log(E/E_new)). The ratio has winding 0 around Γ_E iff the transverse
    orientations agree; CHECK this first. Inside the linear balls, E and E_new are both compatible, so the ratio
-   is smooth there too.
+   is smooth there too provided the exact smooth-quotient condition above holds; matching linearisations
+   alone does not establish it.
 5. Re-run `check_lam` (with the Γ_E assertion) and add lift checks: Ψ smooth across π⁻¹(Γ_E), by finite
    differences on both sides; the linear models at p₀, p_∞; the 4×4 Jacobian (W → S⁴ in local coordinates)
    with constant sign and bounded away from 0 on random plus adversarial samples; degree 1.
@@ -917,9 +921,17 @@ then `fit_psi.py`, then all checks. Never edit `tcore.py` without `check_tcore.p
 
 ### 12.11 J_round as a black-box field on the round S⁴ × T² (`jround.py`, `check_jround.py`, 2026-10-07)
 
-`J_round(q)` evaluates the complex structure at arbitrary points q of S⁴ × S¹ × S¹ ⊂ ℝ⁹ (unit S⁴, unit circles):
+`J_round(q)` is intended to evaluate the complex structure at points q of S⁴ × S¹ × S¹ ⊂ ℝ⁹ (unit S⁴, unit circles):
 * p = F⁻¹(q), in a holomorphic chart of Y chosen automatically;
 * J = DF·J₀·DF⁺, and DJ from D²F.
+
+**Implementation review (2026-10-07).** The original polar inverse returned no chart entries at either exact
+pole, so `J_round` silently returned J = 0 there. `tinverse.linear_ball_inverse` now implements the closed
+inverse of §12.4 on both linear caps, including the poles (programme C8); `Finv` checks chart coverage.
+The added 96-point inverse and 16-point J/DJ checks include poles, axes and cap boundaries. However, inverse
+evaluation on the central fibres outside the caps is not yet reliable: the polar chain can reach a singular
+Newton input (reproduction in ledger 2026-10-07-EH-4; campaign T14). Thus the sampled results below do not
+establish an evaluator at every point. The forward formulas and their sampled checks are unaffected by this issue.
 
 Cost on the laptop: about 20 ms per point with DJ. `check_jround.py` tests it the way an independent user would
 (300 uniform points, plus 100 points on each chart switch |t| = 0.2 and |t| = 5; all PASS, 14 min):
@@ -1183,8 +1195,10 @@ well defined and respects the global structure, (2) J² = −1, (3) N_J = 0. Is 
 
 ### 13.3 Hard points and design ideas (to be developed)
 
-1. **Fixed points (I1, I2).** With the current architecture (a lift of Λ through phases), smoothness at p₀ needs Λ
-   exactly linear in the Hopf coordinates v_q near b₀. The plain theta height is not even C² there: along the axis
+1. **Fixed points (I1, I2).** The current implementation ensures smoothness at p₀ by making Λ
+   exactly linear in the Hopf coordinates v_q near b₀. Exact linearity is sufficient, not necessary:
+   programme §5.2 and `sym/lemmas_1d.py` L9 give a smooth nonlinear radial example.
+   The plain theta height is not even C² there: along the axis
    μ̃ = v₃ − v₃|v₃| + O(v₃³) (verified 2026-10-07: μ̃ − v₃ = −X² on D₁, +Y² on D₀). Hence the node correction and
    the linear blend. Options:
    * (a) define Ψ near p₀ directly upstairs, through the linear model √(2π)·U₀·(x̄, y), and design the transition
@@ -1244,3 +1258,101 @@ well defined and respects the global structure, (2) J² = −1, (3) N_J = 0. Is 
 * Quality over speed; answers precise and caveated.
 * Commit or push only when asked; never commit HPC material.
 * Flawless records before every compaction.
+
+### 13.6 Global quadrature construction (2026-10-07 continuation)
+
+`s4t2_symbolic_programme.md` §8 now specifies a separate global parametrization G_Q,
+its inverse F_Q and the coefficient formula J_Q=M⁻¹J₀M, with the ambient embedding
+formula (8.15). Its scalar connection integrals and two-chart real phase logarithm
+replace the fitted lift, and its base uses R=Id. The two linear models agree exactly
+with G_Q on the reduced pole caps |Z|²≤1/100. Its quantitative inputs are the earlier
+I1/I2 certificates, a shell contraction ratio <17/25 and a connection denominator >1/2.
+The exact definition allows quadratures; it is not a finite elementary expression.
+
+The new `transport_base_*`, `transport_shell_inverse`, and `connection_*` functions
+evaluate its base/inverse/connection blocks. They do not replace the original Ψ_W,
+Finv or J_round. Programme §8.7 lists their new numerical checks and the remaining
+implementation scope; §12's numerical results concern the original construction.
+The latter's I3–I5 and T14 remain unresolved for that evaluator. The new global
+statement and expanded expression class are recorded for human review in EH-18.
+
+### 13.7 Closed-form continuation
+
+Programme §9 supplies a further parametrization G_E: both scalar profiles have
+algebraic inverses, the new shell bounds are certified, and an explicit torus
+coordinate change removes H,dH from the pole tensor. Formula (9.12) is algebraic
+on both pole neighbourhoods, including their fixed points. It is implemented by
+`jround.J_elementary_cap`; it differs from `J_round` because the parametrization
+has changed. The revised base is selected by both `algebraic_radial=True` and
+`algebraic_profile=True`. Existing defaults retain the previous construction.
+
+The rest of G_E still uses the height inverse, a shell contraction, and the circle
+transport/phase quadratures. Programme §9.4 proves a restricted obstruction to
+algebraic equivariant heights, not impossibility of a global elementary J. It also
+explains why finite theta truncation, a universal endpoint potential, and unrestricted
+principal Arg do not close the remaining gaps. No full global closed-form result
+or complete numerical evaluator of G_E/J_E is claimed.
+
+### 13.8 Literature-led scalar and bundle reductions (2026-10-08)
+
+Programme §10 records the inspected primary literature and three independent designs.
+The finite elementary height H_f has an exact finite forward formula, a cubic node
+remainder constant 35 and corrected slope >14/25. The `finite_height=True` option
+is implemented in the independent base, inverse, connection and torus-correction
+blocks; its inverse still uses scalar solves, and it does not change the legacy defaults.
+
+A different height H_e uses Jacobi amplitude and has an explicit inverse in standard
+incomplete elliptic F, including a redesigned full cusp collar. Its exact axes are
+elementary; programme §10.5 proves the central extension by an independent arctangent
+series. `cusp.py` supplies scalar reference evaluators. The 120 high-precision
+value/inverse checks, 72 collar checks and 36 seam-jet checks pass. This design is
+not elementary, and has not been joined to a globally certified base and circle lift.
+Applying the old node correction would reintroduce a scalar implicit inverse.
+
+The specified algebraic target f_alg:S⁴→S² and its two critical values are also
+implemented; a fibrewise identification with W is not supplied by those formulas.
+Finally, finite phase-logarithm and rank-one projection operations are proved and
+implemented with explicit derivative/nonvanishing hypotheses. Their tests include
+phases spanning more than three turns, both stereographic charts and exact reversal
+of projection chains. A concrete bundle embedding and certified derivative bounds
+for this construction remain necessary before they can replace its transport.
+
+The current result is therefore a set of verified reductions, not a full finite
+global expression for the complex structure or its diffeomorphism/inverse pair.
+Programme §10.6 gives the remaining matching and bundle-lift tasks. No general
+closed-form impossibility theorem has been proved.
+
+### 13.9 Finite elementary global tensor (2026-10-08 continuation)
+
+Programme §11 now gives a different inverse-first parametrization G_cl and the
+finite coefficient formula (11.19) for J_cl on the whole standard S⁴×T².
+The elementary cusp inverse has a closed collar, matching deck jets and smooth
+open central-fibre charts. A closed inverse pole patch has derivative defect
+<1/1000. A concrete ten-component circle-bundle embedding supplies a rank-one
+projector with proved derivative bound L=10¹¹⁴ on the specified slab.
+Fixed finite projection and phase formulas use N=4L+1 and
+K=8·32(N+1)L+1; exact phase matching joins them to both closed pole formulas.
+The previously proved finite forward height restores T². This gives a smooth
+bijection with invertible derivative; pulling back the holomorphic atlas proves
+J²=−Id and N_J=0, with no implicit solve, quadrature or infinite series in J.
+The derivative recipe includes the central fibres and uses local argument charts.
+This new global mathematical statement requires human review.
+
+The finite expression is enormous: its counts have 115 and 232 digits. It has
+not been expanded or numerically executed at those counts. Scalar implementations
+are in `cusp.py`, with an explicit work guard; `elementary_closed_parameters()`
+returns the exact constants. `check_inverse.py --closed` and
+`--closed-nijenhuis` check the new blocks, torus and branch identities, cap/slab
+matching, chart-independent local tensors and finite-difference integrability.
+Their free-region tests use smaller counts and do not certify those counts
+globally. Programme §11.8 records the measured margins alongside the proof bounds.
+The complete legacy safety net, including the 18.4-million-node degree check and
+all 300-point J_round checks, was rerun successfully; all four symbolic suites
+also pass. The manuscript and frozen modules remain untouched.
+
+This closes the **tensor expression** in the finite elementary class. It does not
+supply a finite elementary formula for F_cl=G_cl⁻¹: inverses of the transition
+height and inverse pole patch may remain implicit, and are not evaluated in J_cl.
+The stronger inverse-pair goal, a compact practical formula, and human review
+therefore remain. The earlier designs and their open legacy I3–I5/T14 flags are
+retained. No closed-form impossibility theorem is claimed.

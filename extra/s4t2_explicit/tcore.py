@@ -69,7 +69,10 @@ def e_vectors(t, logt):
     z = torch.zeros_like(t)
     ez = [z + TWO_PI, -1j * t, -t, -1j * logt]
     ew = [z, 1 - t ** 2, 1j * (1 + t ** 2), 2 * t]
-    return ez, ew
+    # Own contiguous storage before real/imag views: forward AD can otherwise
+    # assert on mismatched primal/tangent layouts in small masked batches (T13).
+    return ([v.clone(memory_format=torch.contiguous_format) for v in ez],
+            [v.clone(memory_format=torch.contiguous_format) for v in ew])
 
 
 def _det3(a, b, c, d, e, f, g, h, i):
@@ -196,6 +199,74 @@ CUSPINF = TCusp('inf', lambda s: s, lambda s: 1j * s, lambda s: s ** 2 - 1, lamb
                 lambda s: -2 * s, math.exp(-2.0), math.exp(-2.0))
 
 
+def finite_height_seed(u):
+    """Reciprocal smooth seed K of programme 10.2, on u>=0.
+
+    K(u)=u on [0,1/16], K(u)=u/(1+u) on [1/2,2], and
+    K(u)+K(1/u)=1. K'>0; the transition has K'>1/9.
+    """
+    reciprocal = u > 2
+    v = torch.where(reciprocal, 1/where_safe(reciprocal,u,1.), u)
+    transition = (v > 1/16) & (v < .5)
+    a = torch.log(16*where_safe(transition,v,1/16))/math.log(8)
+    weight = bump_step(a)
+    out = torch.where(v >= .5,v/(1+v),v+weight*(v/(1+v)-v))
+    return torch.where(reciprocal,1-out,out)
+
+
+def _finite_height_sum(u,q):
+    """Exact finite evaluation of sum_{j>=0} K(q^j u), for 0<=q<1/8.
+
+    All omitted terms are exactly linear and are summed geometrically. The
+    detached term count changes only the representation of the SAME function.
+    On u<=1 this uses at most two seeds. Unlike log reduction it also gives
+    correct jets at q=0, including the two central axes.
+    """
+    largest = float(u.detach().max()) if u.numel() else 0.
+    count = max(0,math.ceil(math.log(max(16*largest,1.))/math.log(8)))
+    term,out = u,torch.zeros_like(u)
+    for _ in range(count):
+        out = out+finite_height_seed(term)
+        term = q*term
+    return out+term/(1-q)
+
+
+class TFiniteCusp(TCusp):
+    """Independent finite-height cusp; the Gaussian defaults are unchanged.
+
+    Domain |t|<=1/2. This changes the height, not the holomorphic atlas.
+    No theta sum or truncation parameter is used. See programme 10.2--10.3.
+    """
+    def __init__(self, base):
+        self.__dict__.update(base.__dict__)
+
+    def mu_chart(self,x,y):
+        tt = abs2(x*y)
+        m2 = self.a0*torch.exp(-4*tt/(1-tt))
+        A,Y = m2*abs2(x),abs2(y)
+        q = m2*tt
+        return _finite_height_sum(A,q)-_finite_height_sum(Y,q)
+
+    def mu_torus(self,zeta,t):
+        # Y=q^n Y0, q<=Y0<=1: four seed values and one rational tail.
+        # Work with logs to avoid forming very large deck representatives.
+        logq = 2*self.P(t)
+        logY = 2*torch.log(zeta.abs())
+        n = torch.floor(logY/logq).detach()
+        logY0 = logY-n*logq
+        Y,A = torch.exp(logY0),torch.exp(logq-logY0)
+        q = torch.exp(logq)
+        return n+finite_height_seed(A)+finite_height_seed(q*A) \
+            -finite_height_seed(Y)-finite_height_seed(q*Y)+q*q*(A-Y)/(1-q)
+
+
+FINITE_CUSP0,FINITE_CUSPINF = TFiniteCusp(CUSP0),TFiniteCusp(CUSPINF)
+
+
+def height_cusps(finite_height=False):
+    return (FINITE_CUSP0,FINITE_CUSPINF) if finite_height else (CUSP0,CUSPINF)
+
+
 # ------------------------------------------------------------------ conversions (glue.py)
 def mid_point(t, x1, x4, logt):
     ez, ew = e_vectors(t, logt)
@@ -296,7 +367,8 @@ def a1_c0(zeta, t):
     mn = mu_new_torus(CUSP0, zeta, t)
     x4sl = torch.log(zeta.abs()) / CUSP0.P(t)
     lam = bump_step((r - RA) / (RB - RA))
-    return mn + lam * wrap(x4sl - 0.5 - mn)
+    # C7 proves that wrap is the identity wherever lam is nonzero.
+    return mn + lam * (x4sl - 0.5 - mn)
 
 
 def a1_mid(t, x4):
@@ -308,7 +380,14 @@ def a2_ci(zp, s):
     mn = mu_new_torus(CUSPINF, zp, s)
     x4sl = torch.log(zp.abs()) / CUSPINF.P(s)
     lam = bump_step((r - RA) / (RB - RA))
-    return mn + lam * wrap(x4sl - 0.5 - mn)
+    return mn + lam * (x4sl - 0.5 - mn)
+
+
+def cusp_angle(C,zeta,t):
+    """Unwrapped height/log-radius blend for either height implementation."""
+    height = mu_new_torus(C,zeta,t)
+    weight = bump_step((t.abs()-RA)/(RB-RA))
+    return height+weight*(torch.log(zeta.abs())/C.P(t)-.5-height)
 
 
 def a2_mid(t, x4):
