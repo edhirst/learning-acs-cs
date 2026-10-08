@@ -10,8 +10,8 @@ S³×S¹ at J-fit ~1e-4; see the main-branch notes)?
 All numbers below are fp64. "1e-10" in any residual is the √(·+1e-20) floor
 of the code, i.e. zero to machine precision.
 
-Code version: all runs used `extra/campaign_unit.py` @ 558d158. Upstream 1383f80 (Ed Hirst, s4×s1×s1 support)
-changed `chart_protocol`'s sampler (`sphere_uniform_sample` instead of `SphereProduct.sample_points`) and its
+Code version: all runs used `extra/campaign_unit.py` @ 558d158. Upstream 7b8eb49 (Ed Hirst, s4×s1×s1 support;
+upstream tip 1383f80 only touches .gitignore/scratch) changed `chart_protocol`'s sampler (`sphere_uniform_sample` instead of `SphereProduct.sample_points`) and its
 overlap routine, so re-evaluating the "paper chart protocol" column today gives statistically, not bitwise,
 identical numbers. Main's exact protocol (`main_band_points`, implemented in our script) is unaffected.
 Re-checked after the fast-forward (2026-10-01): all 6 bases load and certify identically, `--verify` is unchanged,
@@ -170,7 +170,7 @@ This quantitatively explains Phase B: at fixed network precision the round-ortho
 smaller ‖N‖, so the Nijenhuis-only flow slides toward it. It also means main's choice λ = e made the supervised
 problem ~8× harder in ‖N‖ than necessary. (10k vs 40k steps for c = 1/(2π): ‖N‖ 0.038 vs 0.007–0.010.)
 
-## Stage 3 RESULT — S⁵×S¹  (PARTIAL: local runs stopped at the 2026-09-29 wrap-up; continue on the cluster)
+## Stage 3 RESULT — S⁵×S¹  (PARTIAL: local runs stopped at the 2026-09-29 wrap-up — FINAL results: section "S⁵×S¹ — final results (2026-10-06)" at the end)
 
 Network 256×4 GELU, 2 stages, 233k parameters; ≈ 0.55 s/step locally (8×8 matrices), hence not converged locally.
 
@@ -278,6 +278,7 @@ value error only ≈ 3%** ⇒ no localised defect ⇒ the quad_h bases are in th
    charts; ‖N‖ ≈ 3·√(∂J-fit), dominated by 𝓜(δ∂J) as on main. Value-only supervision already gives ‖N‖ 0.064.
 3. **S⁵×S¹ (partial):** after 75 min, fully annealed 8k steps: flat ‖N‖ 0.39 on main's protocol (table 6.42; chart
    Sobolev ceiling 1.14), still improving; the 80k schedule is needed → cluster.
+   *(Final, 2026-10-06: flat ‖N‖ 0.064 ± 0.005 over 4 runs of the 80k schedule — see the last section.)*
 4. **Unsupervised continuation (Phase B)** stays integrable (‖N‖ down to 7.9e-4, adversarial sup 2.5e-3) but leaves
    main's Hopf structure (λ = e) for a near-orthogonal Hopf-type structure close to λ = e^{2π}; drift ∝ lr (Adam on
    the gauge-degenerate N = 0 set). A matched comparison shows why: at equal relative accuracy the orthogonal
@@ -305,3 +306,148 @@ Unit naming and syntax dry-run checked locally (GNU `xargs -a` on the cluster, a
 * `docs/ambient_supervised_hopf_log.md` — this log.
 * Outputs (gitignored): `outputs/ambient_supervised/bases/` (6 certified ACS units), `outputs/ambient_supervised/runs/`
   (every run: progress.jsonl, final.pt/state.pt, result.json and/or eval.json, .log).
+
+---
+
+## Status 2026-10-05
+
+* Nothing has run since the 2026-09-29 wrap-up. No cluster results yet: the job above was prepared but not
+  submitted.
+* **Laptop timing for the paused S⁵×S¹ 80k run** (`runs/s5xs1_sob_b7`, `state.pt` at step 22000, lr 8.26e-4),
+  measured on the idle laptop by resuming a scratch copy of the checkpoint for 300 steps:
+  0.503 s/step with 6 threads and 0.507 s/step with 10 threads. Both figures include an evaluation every 100
+  steps; the production run evaluates every 1000, so the true step time is ≈ 0.45–0.50 s. Threads saturate at
+  about 6, because the batch is small.
+
+  | remaining work | estimate |
+  |---|---|
+  | 58k Adam steps (22k → 80k) | 7.3–8.1 h |
+  | L-BFGS finisher (4 × 100 its, 2048 points) | ≈ 0.7–1 h |
+  | final evaluation (adversarial search, chart protocol, main's protocol) | ≈ 0.2–0.3 h |
+  | **total** | **≈ 8.5–9.5 h** |
+
+  A second S⁵×S¹ run in parallel (6 threads each) would cost only ≈ 10% (cf. 0.555 s/step under contention on
+  2026-09-29). Run under `caffeinate -i` so the laptop does not sleep. The command resumes automatically from
+  `state.pt`:
+  `OMP_NUM_THREADS=6 caffeinate -i python extra/ambient_supervised_hopf.py --case s5xs1 --seed 7 --base-from outputs/ambient_supervised/bases/s5xs1_acs_s7 --out outputs/ambient_supervised/runs/s5xs1_sob_b7 --steps 80000`
+
+  *Correction (later on 2026-10-05, from measurements; table above left as written):* the last two rows were
+  guesses and the final-evaluation row was too high. The complete final report at production settings takes
+  ≈ 1 min (measured off-laptop, torch 2.12); on the laptop the short run's report (reduced settings) took 1.2 min. Its L-BFGS
+  (100 its at batch 768) took 3.5 min, i.e. ≈ 0.6 h for 4 × 100 its at batch 2048 by batch scaling. Corrected
+  laptop total ≈ 7.3–8.1 h + 0.6 h + < 0.1 h ≈ **8–9 h**.
+* Code compatibility with upstream `7b8eb49`/`1383f80` (Ed Hirst, s4×s1×s1 support) was re-verified on
+  2026-10-01, before our commit `09cee7d` (see the "Code version" note at the top).
+
+## S⁵×S¹ — final results (2026-10-06)
+
+**Setup.**
+* Schedule: 80k Adam steps (lr 1e-3 → 1e-5 cosine, batch 192), then the chunked L-BFGS finisher (4 × 100
+  iterations at batch 2048, reverted if the held-out loss worsens).
+* Network: 256×4 GELU, 2 stages, 233k parameters; λ_D = 1 unless stated.
+* Hardware: run off-laptop, 8 CPU threads per run, torch 2.12.0+cpu. The code is `09cee7d` plus a patch that
+  only makes checkpoint writes atomic (no effect on numerics). Speed ≈ 0.24 s/step, so 5.2–5.6 h per
+  80k-step run.
+* `s5xs1_sob_b7` is the laptop run resumed from its step-22000 checkpoint; the laptop's copy is preserved as
+  `runs/s5xs1_sob_b7_laptop_step22000`. All other runs are fresh.
+* Reproducibility, checked before the runs: re-evaluating the step-22000 checkpoint off-laptop reproduced the
+  laptop's evaluation in 86 of 87 numbers to ≤ 5·10⁻¹⁴ relative. The exception is the paper chart protocol:
+  since 7b8eb49 it samples through numpy's unseeded global RNG, so it carries ±2% Monte Carlo noise.
+* Kill/resume of a checkpoint and bitwise determinism of identical runs were also verified.
+
+**Main result — main's target (c = 1/(2π)), two bases × two seeds** (main's exact held-out protocol: overlap
+band, seed 99999, mean of the 4 patches):
+
+| S⁵×S¹ | base 7 (resumed) | base 8 | base 7, seed 17 | base 8, seed 18 |
+|---|---|---|---|---|
+| J-fit E‖δJ‖²_F | 1.02e-6 | 7.1e-7 | 8.0e-7 | 7.4e-7 |
+| ∂J-fit E‖δ∂J‖²_F | 4.4e-4 | 2.9e-4 | 3.4e-4 | 3.0e-4 |
+| **flat-chart ‖N‖ mean** | **0.072** | **0.060** | **0.063** | **0.061** |
+| paper chart protocol ‖N‖ | 0.073 | 0.061 | 0.063 | 0.062 |
+| rel. value error RMS / sup / adversarial sup | 1.50e-4 / 3.4e-4 / 4.4e-4 | 1.26e-4 / 2.7e-4 / 3.5e-4 | 1.32e-4 / 2.8e-4 / 4.0e-4 | 1.27e-4 / 2.8e-4 / 4.3e-4 |
+| rel. derivative error RMS | 4.6e-4 | 3.8e-4 | 4.0e-4 | 3.8e-4 |
+| intrinsic ‖N‖ mean / sup / adversarial sup | 0.029 / 0.067 / 0.086 | 0.0245 / 0.053 / 0.073 | 0.025 / 0.055 / 0.068 | 0.024 / 0.054 / 0.078 |
+| orientation fix of the base | none | −J* | none | −J* |
+
+**Flat ‖N‖ = 0.064 ± 0.005** (mean ± sample sd over the 4 runs). The per-patch values agree within 2%, so no
+chart-dependent defect.
+
+How this compares:
+
+| reference | its value | ratio to 0.064 |
+|---|---|---|
+| this framework, short 8k run (2026-09-29) | 0.39 | 6× |
+| old-framework results table, S⁵×S¹ CS | 6.42 | 100× |
+| chart-framework Sobolev "architecture ceiling" | 1.14 | 18× |
+| main's best supervised result on the lower-dimensional S³×S¹ | 0.73 | 11× |
+
+For comparison, S³×S¹ in this framework (40k steps, 43k parameters) gave 0.017–0.026.
+
+Further observations:
+* **Not a floor.** ‖N‖ decreases monotonically through the annealing tail; in every run the mean over the
+  last 5k steps is ≈ 9% below the 5k before. The endpoint is set by the schedule.
+* **Robust.** Two independent certified bases, one of them used with the opposite sign, and two network seeds
+  agree within ±8%.
+* **The S³×S¹ mechanism carries over to d = 6.** rel. der / rel. val = 3.0–3.1 in every Sobolev run (3.4 at
+  c = 1), the same O(1) value→derivative gain as on S³×S¹; flat ‖N‖ ≈ 3.5·√(∂J-fit) (S³×S¹: ≈ 3).
+
+**Variants** (same schedule):
+
+| run | flat ‖N‖ | intrinsic ‖N‖ mean (adv. sup) | rel. value error RMS (adv. sup) |
+|---|---|---|---|
+| round-orthogonal target c = 1, base 7 | 0.0160 | 0.0053 (0.015) | 1.83e-4 (5.4e-4) |
+| round-orthogonal target c = 1, base 8 | 0.0142 | 0.0047 (0.013) | 1.64e-4 (4.6e-4) |
+| λ_D = 3, base 7 | 0.076 | 0.030 (0.095) | 1.57e-4 (5.5e-4) |
+| value-only supervision, base 7 | 1.27 | 0.48 (**905**) | 3.3e-3 (**2.02**) |
+
+* **c = 1 against main's target, at comparable relative accuracy:** 4.3× smaller flat ‖N‖ and ≈ 5× smaller
+  intrinsic ‖N‖ (S³×S¹, matched 10k runs: 8.3×). Main's anisotropic λ = e structure is intrinsically harder:
+  its Dirichlet energy is 166, against 16 for the orthogonal one.
+  (The c = 1 runs' main-protocol J-fit / ∂J-fit, 21.5 / 1.0e3, are measured against main's c = 1/(2π)
+  structure, so they are not errors.)
+* **λ_D = 3 brings no improvement** (0.076, against 0.063–0.072 for base 7): λ_D = 1 is adequate.
+* **Value-only supervision fails in d = 6.**
+  * It is fine on average (relative value error 3.3e-3).
+  * The adversarial search finds a localised defect: relative value error 2.02, i.e. a strongly
+    non-orthogonal conjugation, with ‖N‖ up to 905 there.
+  * The L-BFGS finisher reverted 3 of its 4 chunks.
+  * On S³×S¹ value-only supervision still gave 0.064; in d = 6 the derivative term is essential, not merely
+    helpful.
+
+**Phase B on S⁵×S¹** — Nijenhuis-only continuation (lr 1e-3, 10k steps + L-BFGS) from the base-7 and base-8
+endpoints (`runs/s5xs1_phaseB_b{7,8}_lr1e-3`):
+
+| step | 0 | 250 | 1000 | 4000 | 7000 | final |
+|---|---|---|---|---|---|---|
+| rel. distance to J_hopf (b7 / b8) | 0 / 0 | 0.799 / 0.801 | 0.816 / 0.818 | 0.817 / 0.824 | 0.819 / 0.823 | **0.817 / 0.820** |
+| intrinsic ‖N‖ (b7 / b8) | 0.029 / 0.025 | 0.22 / 0.17 | 0.19 / 0.17 | 0.11 / 0.091 | 0.040 / 0.022 | **0.0114 / 0.0105** |
+
+* Final values:
+  * intrinsic ‖N‖ adversarial sup 0.027 / 0.029;
+  * main-protocol flat ‖N‖ 0.034 / 0.032, with J-fit against J_hopf 22.0 / 22.2.
+* All L-BFGS chunks were reverted.
+* The drift is faster than on S³×S¹ (0.80 after 250 steps, against 0.645 there). ‖N‖ rises transiently to
+  ≈ 0.2 during the jump, then falls 2.5× below its supervised starting value.
+* **Identification** (`extra/ambient_phaseB_identify.py RUN_DIR BASE_DIR --case s5xs1`, generalised from n = 2
+  on 2026-10-06; on the S³×S¹ endpoint it reproduces the numbers above exactly):
+
+  | | b7 / b8 | reference |
+  |---|---|---|
+  | ‖J‖_F | 2.462 / 2.461 | √6 = 2.449, so within 0.5% of orthogonal |
+  | Dirichlet energy | 16.35 / 16.30 | J_{c=1}: 16.00; target: 166 |
+  | closest Hopf member | c′ = 1.06, distance 0.148 / 0.122 | to J_1: 0.147 / 0.125 |
+  | Hopf-frame components | constant to 9.8% / 8.5% | |
+  | average K̄ | ‖K̄²+I‖ 1.6e-3 / 2.2e-3, ‖K̄K̄ᵀ−I‖ 3.9e-3 / 4.9e-3 | an orthogonal complex structure |
+
+  ⇒ **Same picture as on S³×S¹, only cleaner:** the unsupervised flow leaves main's anisotropic Hopf structure
+  (λ = e) for the round-orthogonal Hopf family (λ = e^{2π}). It lands closer to that family than on S³×S¹
+  (0.12–0.15 against 0.23), and stays integrable throughout.
+
+**Conclusion (S⁵×S¹).**
+* The overlap-free ambient framework reproduces main's Hopf structure on S⁵×S¹ to a relative error of
+  ≈ 1.4·10⁻⁴ in value and ≈ 4·10⁻⁴ in derivative.
+* Flat ‖N‖ = 0.064 ± 0.005 over 4 independent runs: 100× below the old framework's table, 18× below the chart
+  framework's Sobolev ceiling, and 11× below main's best supervised result on the lower-dimensional S³×S¹.
+* It is still improving at the end of the schedule.
+* Derivative supervision is essential in d = 6, and the round-orthogonal target is ≈ 4–5× easier.
+* Phase B flows to the round-orthogonal Hopf family, as on S³×S¹.

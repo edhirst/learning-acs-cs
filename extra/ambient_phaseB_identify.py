@@ -1,14 +1,15 @@
-"""Identify the endpoint of an S³×S¹ run of extra/ambient_supervised_hopf.py (used for the Phase B
-analysis in docs/ambient_supervised_hopf_log.md, Stage 4).
+"""Identify the endpoint of an S³×S¹ or S⁵×S¹ run of extra/ambient_supervised_hopf.py (used for the
+Phase B analysis in docs/ambient_supervised_hopf_log.md, Stage 4).
 
 Reports, for the field J of RUN_DIR (final.pt if present, else state.pt):
   * intrinsic ‖N‖, ‖J‖_F (‖J‖²_F ≥ d for any ACS, with equality iff J is orthogonal), Dirichlet energy;
   * the closest member of the Hopf family J_c (src/geometry/hopf_ambient.py), c scanned on both signs,
     and the distances to main's J_{1/(2π)} and to the round-orthogonal J_1;
-  * whether J is CONSTANT in the global Hopf frame F_k = (e_k − q_k q, q_k ∂_θ): every constant linear
-    complex structure K on ℝ⁴ = ℂ² gives, in this frame, an integrable structure (z ∼ e^{2π} z).
+  * whether J is CONSTANT in the global Hopf frame F_k = (e_k − q_k q, q_k ∂_θ) (= the dilation-invariant
+    field r·e_k on ℝ^{2n}∖0): every constant linear complex structure K on ℝ^{2n} gives, in this frame, an
+    integrable structure (z ∼ e^{2π} z).
 
-Usage:  python extra/ambient_phaseB_identify.py RUN_DIR BASE_DIR [--hidden 128,128,128] [--stages 2]
+Usage:  python extra/ambient_phaseB_identify.py RUN_DIR BASE_DIR [--case s3xs1|s5xs1] [--hidden ...] [--stages 2]
 """
 from __future__ import annotations    # PEP 563 — for Python 3.8 HPC compatibility
 
@@ -21,7 +22,7 @@ import torch
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
 from extra.campaign_unit import Geometry, Net, make_field, nij_norm, dirichlet_energy, DTYPE
-from extra.ambient_supervised_hopf import build_base, target_fn, hopf_frame
+from extra.ambient_supervised_hopf import build_base, target_fn, hopf_frame, CASES
 
 
 def rel_rms(A, B):
@@ -32,11 +33,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('run_dir')
     ap.add_argument('base_dir')
-    ap.add_argument('--hidden', default='128,128,128')
+    ap.add_argument('--case', default='s3xs1', choices=list(CASES))
+    ap.add_argument('--hidden', default=None, help='default: 128,128,128 (s3xs1) / 256,256,256,256 (s5xs1)')
     ap.add_argument('--stages', type=int, default=2)
     args = ap.parse_args()
+    if args.hidden is None:
+        args.hidden = '128,128,128' if args.case == 's3xs1' else '256,256,256,256'
 
-    geo, n = Geometry('s3xs1'), 2
+    geo, n = Geometry(args.case), CASES[args.case]
     Jt = target_fn(n, 1.0 / (2.0 * math.pi))
     base_fn, _, _ = build_base(geo, n, args.base_dir, 'auto', Jt, 'identify')
     path = os.path.join(args.run_dir, 'final.pt')
@@ -69,10 +73,10 @@ def main():
         F = hopf_frame(x, n)
         Kf = F @ J @ F.transpose(1, 2)
         Kbar = Kf.mean(0)
-        I4 = torch.eye(4, dtype=DTYPE)
+        I2n = torch.eye(2 * n, dtype=DTYPE)
         print(f"frame components: mean relative deviation from their average "
               f"{((Kf - Kbar).norm(dim=(1, 2)) / Kbar.norm()).mean().item():.3e}")
-        print(f"   average K̄: ‖K̄² + I‖ {(Kbar @ Kbar + I4).abs().max():.2e}, ‖K̄K̄ᵀ − I‖ {(Kbar @ Kbar.T - I4).abs().max():.2e}")
+        print(f"   average K̄: ‖K̄² + I‖ {(Kbar @ Kbar + I2n).abs().max():.2e}, ‖K̄K̄ᵀ − I‖ {(Kbar @ Kbar.T - I2n).abs().max():.2e}")
         print(K_str(Kbar))
 
 

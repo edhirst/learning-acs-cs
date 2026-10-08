@@ -410,8 +410,10 @@ def main():
         print(f"[{tag}] resumed at step {start}", flush=True)
     t0 = time.time()
     elapsed = lambda: elapsed_prev + time.time() - t0
-    save_state = lambda s: torch.save({'model': model.state_dict(), 'opt': opt.state_dict(),
-                                       'sched': sched.state_dict(), 'step': s, 'elapsed': elapsed()}, state_path)
+    def save_state(s):    # atomic: a kill mid-write (timeout, scheduler time limit) never truncates state.pt
+        torch.save({'model': model.state_dict(), 'opt': opt.state_dict(),
+                    'sched': sched.state_dict(), 'step': s, 'elapsed': elapsed()}, state_path + '.tmp')
+        os.replace(state_path + '.tmp', state_path)
     progress = open(os.path.join(args.out, 'progress.jsonl'), 'a')
     if start == 0:
         ev0 = ambient_errors(geo, J_fn, Jt_fn, 1000)
