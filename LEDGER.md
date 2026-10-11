@@ -1295,3 +1295,56 @@ in `AGENTS.md` §5.
 - **Open points:** the inverse of the global height transition in (11.3)
   remains implicit. This commit gives an elementary inverse of the pole
   replacement, not yet a finite elementary global inverse pair.
+
+### 2026-10-11-TSG-6 — Complete the finite elementary inverse pair
+- **Date:** 2026-10-11
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6)
+- **Type:** statement
+- **Based on:** 984e4ba
+- **Where:** docs/s4t2_symbolic_programme.md §11.2, §§11.4–11.8;
+  SYMBOLIC_CAMPAIGN.md status and T15; extra/s4t2_explicit/cusp.py,
+  check_inverse.py, sym/chart_identities.py and sym/i2_margins.py.
+  No manuscript file was changed.
+- **Change:** replaced the inverse-first scalar height by the terminal-cut
+  height (11.3)–(11.5), with finite elementary formulas in both directions,
+  exact central-axis and collar charts, and an explicit source-side reversal
+  F_cl of the existing G_cl. Recomputed the global projector bound as
+  L=10^8000 and the associated fixed finite counts. The campaign statement
+  is promoted to a finite elementary inverse-pair and tensor certificate,
+  subject to human review. Added exact identity checks, implementation of
+  the forward map, two-way sampled checks and exact half-cell seam tests.
+- **Why:** the earlier global height had no elementary forward inverse. The
+  tuned terminal map sends the nonzero inner endpoint to zero, is flat at its
+  outer identity branch, and has an explicit quadratic inverse. A radial
+  conjugation preserves the exact node model while keeping an elementary
+  inverse; at the outer height interval and λ=1 it matches the previous
+  exponential and middle collar exactly. The type-(c) derivative estimates
+  in §11.4 give positive lower bounds and the revised finite projector
+  count. The source cap selector is proved to cover the patched pole image;
+  its complement lies in the free slab. Reversing the finite scalar,
+  projector-phase and torus blocks gives both compositions F_cl G_cl=id and
+  G_cl F_cl=id. The displayed dual-number rules make J_cl a finite
+  elementary coefficient expression. Independent agents audited the scalar
+  inverses, constants, source domains, signs and torus/deck transitions.
+- **Verification:** sym/chart_identities.py (C29a–h exact identities and C29i
+  numerical margin), sym/i2_margins.py (I2v), sym/lemmas_1d.py and
+  sym/node_remainder.py: **ALL PASS**; symbolic_identities.py: pass.
+  check_inverse.py --closed: **ALL PASS**, including 276 two-way height
+  cases (maximum error 1.0e−56) and 38 reduced-count global forward cases,
+  including four exact half-cell seams (maximum error 1.2e−54).
+  check_inverse.py --closed-nijenhuis: **ALL PASS** for its three sampled
+  finite-instance tensor points and nonintegrable controls. The legacy
+  check_tcore.py, check_tlift.py, check_lift.py, check_degree.py
+  1121 128 128, check_full.py, check_inverse.py 3000, four numpy checks,
+  nijenhuis_round.py 2000 and check_jround.py 300 all passed; the fine
+  degree grid had degree 1.000000 and positive determinant at 18,366,464
+  nodes. verify_construction.py: `all checks passed`;
+  sphere_products.py: `Dimension 8 check passed`; git diff --check: pass.
+  LaTeX: **not run** (latexmk unavailable). Git fetch/pull and push were
+  left to the collaborator as requested.
+- **Open points:** this is a mathematical statement change requiring human
+  review. The certified counts N and K have 8001 and 16004 decimal digits;
+  the exact fixed-count products were not numerically executed, and no
+  smaller counts are certified. The old fitted evaluator's I3–I5/T14
+  flags remain open. A shorter practical formula is a further task.

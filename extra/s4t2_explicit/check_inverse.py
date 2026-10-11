@@ -191,10 +191,215 @@ def check_elementary_closed_blocks():
                     count += 1
         assert worst<mp.mpf('1e-40')
         print(f'Closed blocks: {count} cusp/collar embedding, branch, circle and independent torus checks; error {float(worst):.1e}: PASS',flush=True)
+        # The terminal-cut moment has an elementary inverse on every height
+        # cell, including the collar and the two flat transition seams.
+        height_error = mp.mpf(0)
+        height_cases = 0
+        for inf in (False,True):
+            nu = mp.exp(-2) if inf else mp.mpf(1)
+            for radius in map(mp.mpf,('1e-12','.3','.31','.4','.49','.5')):
+                tc = radius if radius==mp.mpf('.5') else radius*mp.exp(mp.j*mp.mpf('.7'))
+                for a in map(mp.mpf,('-.5','-.4','-.2','-.1','0','.1','.2','.4','.5','1.2')):
+                    rho = C.elementary_cusp_logradius(a,tc,nu,dps=55)
+                    recovered = C.elementary_cusp_height(rho,tc,nu,dps=55)
+                    height_error = max(height_error,abs(recovered-a))
+                    assert abs(recovered-a)<mp.mpf('1e-40')
+                    height_cases += 1
+                    if radius<mp.mpf('.5'):
+                        y = mp.exp(rho)
+                        chart_height = C.elementary_cusp_height_chart(tc/y,y,nu,dps=55)
+                        height_error = max(height_error,abs(chart_height-a))
+                        assert abs(chart_height-a)<mp.mpf('1e-40')
+                        height_cases += 1
+            P = mp.log(nu*mp.mpf('.4'))-2*mp.mpf('.4')**2/(1-mp.mpf('.4')**2)
+            q = mp.exp(2*P)
+            lam = C.scalar_flat_step(mp.mpf('.5'))
+            for seam in map(mp.mpf,('.1','.2','.4')):
+                for gap in map(mp.mpf,('1e-6','1e-10','1e-40')):
+                    for sign in (-1,1):
+                        a = seam+sign*gap
+                        value = C.inverse_height_moment(a,q,lam)
+                        recovered = C.elementary_forward_moment(value,q,lam)
+                        height_error = max(height_error,abs(recovered-a))
+                        assert abs(recovered-a)<mp.mpf('1e-40')
+                        height_cases += 1
+            for a in map(mp.mpf,('-.55','-.5','-.49','-.2','.2','.49','.5','.55')):
+                x,y = C.elementary_cusp_reference(0,a,nu)
+                recovered = C.elementary_cusp_height_chart(x,y,nu,dps=55)
+                height_error = max(height_error,abs(recovered-a))
+                assert abs(recovered-a)<mp.mpf('1e-40')
+                height_cases += 1
+            assert C.elementary_cusp_height_chart(0,0,nu,dps=55)==0
+            height_cases += 1
+            assert C.elementary_cusp_height_chart(mp.mpf('.5'),mp.mpf(1),nu,dps=55)==-mp.mpf('.5')
+            height_cases += 1
+        print(f'Elementary two-way height: {height_cases} cell, seam, axis and node '
+              f'compositions; error {float(height_error):.1e}: PASS',flush=True)
+        # Reverse the complete closed map, including tau_f, both pole caps,
+        # active cusp collars, the middle phase, and source chart changes.
+        forward_error = mp.mpf(0)
+        forward_cases = 0
+        phi = (mp.mpf('.17'),mp.mpf('.29'))
+        xi = (mp.sqrt(mp.mpf('.7')),
+              mp.sqrt(mp.mpf('.3'))*mp.exp(mp.j*mp.mpf('.7')))
+        def compare_forward(kind,data,Z,X,angles,steps):
+            nonlocal forward_error,forward_cases
+            recovered,rx,ra = C.elementary_global_forward(
+                kind,data,projection_steps=steps,phase_steps=32,dps=55)
+            error = max(abs(rx-X),*(abs(recovered[j]-Z[j]) for j in range(2)),
+                        *(abs(ra[j]-angles[j]) for j in range(2)))
+            forward_error = max(forward_error,error)
+            forward_cases += 1
+            assert error<mp.mpf('1e-40')
+        for X in map(mp.mpf,('-1','-.8','-.15','0','.15','.8','1')):
+            Z = tuple(mp.sqrt(1-X*X)*v for v in xi)
+            kind,data = C.elementary_global_coordinates(
+                Z,X,phi,projection_steps=64,phase_steps=32,dps=55)
+            compare_forward(kind,data,Z,X,phi,64)
+        for sign in (-1,1):
+            for gap,steps in ((mp.mpf('4e-6'),64),(mp.mpf('6e-6'),512)):
+                X = sign*(1-gap)
+                Z = tuple(mp.sqrt(1-X*X)*v for v in xi)
+                kind,data = C.elementary_global_coordinates(
+                    Z,X,phi,projection_steps=steps,phase_steps=32,dps=55)
+                compare_forward(kind,data,Z,X,phi,steps)
+                if gap==mp.mpf('4e-6'):
+                    # The same cap point also has a middle holomorphic chart.
+                    x,y,w = data
+                    tc = x*y
+                    if kind=='c0':
+                        t = tc
+                        s = mp.log(t)/(2*mp.j*mp.pi)
+                        zm = -mp.j*mp.log(y)+mp.pi*s*(s-1)
+                        wm = w+2*t*s
+                    else:
+                        assert kind=='ci'
+                        t = 1/tc
+                        wm = w*t*t
+                        zm = -mp.j*mp.log(y)+mp.j*wm/t
+                    compare_forward('mid',(zm,wm,t),Z,X,phi,steps)
+        # A cusp W point has deck representatives with H_f shifted by n.
+        for inf in (False,True):
+            nu = mp.exp(-2) if inf else mp.mpf(1)
+            X = mp.mpf('.8') if inf else mp.mpf('-.8')
+            Z = tuple(mp.sqrt(1-X*X)*v for v in xi)
+            kind,reference = C.elementary_global_slice(
+                Z,X,projection_steps=64,phase_steps=32,dps=55)
+            xs,ys = reference[:2]
+            t = xs*ys
+            h = nu*mp.exp(-2*abs(t)**2/(1-abs(t)**2))*t
+            e2,e3,e4,a2,a3 = C._elementary_cusp_basis(t,inf)
+            c = C._elementary_real_coeffs(e4,e2,e3)
+            H0 = C.scalar_finite_height(xs,ys,nu)
+            for deck in (-1,1):
+                xn,yn = xs*h**(-deck),ys*h**deck
+                coeff = tuple(phi[j]+(H0+deck)*c[j] for j in range(2))
+                A = coeff[0]*a2+coeff[1]*a3
+                source = (xn*mp.exp(-A),yn*mp.exp(A),coeff[0]*e2+coeff[1]*e3)
+                compare_forward(kind,source,Z,X,phi,64)
+            # At t=0, one deck move exchanges the two nonnode axes.
+            for a in map(mp.mpf,('-.2','.2')):
+                x0,y0 = C.elementary_cusp_reference(0,a,nu)
+                shifted = (mp.mpc(0),1/(nu*x0),-1) if a>0 else (
+                    1/(nu*y0),mp.mpc(0),1)
+                outputs = []
+                for x,y,deck in ((x0,y0,0),shifted):
+                    e2,e3,e4,a2,a3 = C._elementary_cusp_basis(0,inf)
+                    c = C._elementary_real_coeffs(e4,e2,e3)
+                    H = C.scalar_finite_height(x0,y0,nu)+deck
+                    coeff = tuple(phi[j]+H*c[j] for j in range(2))
+                    A = coeff[0]*a2+coeff[1]*a3
+                    source = (x*mp.exp(-A),y*mp.exp(A),coeff[0]*e2+coeff[1]*e3)
+                    outputs.append(C.elementary_global_forward(
+                        kind,source,projection_steps=64,phase_steps=32,dps=55))
+                error = max(abs(outputs[0][1]-outputs[1][1]),
+                            *(abs(outputs[0][0][j]-outputs[1][0][j]) for j in range(2)),
+                            *(abs(outputs[0][2][j]-outputs[1][2][j]) for j in range(2)))
+                forward_error = max(forward_error,error)
+                forward_cases += 1
+                assert error<mp.mpf('1e-40')
+        for X in map(mp.mpf,('.15','.5')):
+            Z = tuple(mp.sqrt(1-X*X)*v for v in xi)
+            kind,data = C.elementary_global_coordinates(
+                Z,X,phi,projection_steps=64,phase_steps=32,dps=55)
+            assert kind=='mid'
+            z,w,t = data
+            lt = mp.log(t)
+            for dz,dw,dphi in ((2*mp.pi,0,(0,0)),
+                               (-mp.j*t,1-t*t,(1,0)),
+                               (-t,mp.j*(1+t*t),(0,1)),
+                               (-mp.j*lt,2*t,(0,0))):
+                shifted_phi = tuple(phi[j]+dphi[j] for j in range(2))
+                compare_forward('mid',(z+dz,w+dw,t),Z,X,shifted_phi,64)
+        # Independently chosen source points, compared after G(F(y)) in the
+        # common middle chart modulo its four integer lattice directions.
+        def as_middle(source_kind,source):
+            if source_kind=='mid':
+                return source
+            x,y,w = source
+            s = x*y
+            if source_kind=='c0':
+                t = s
+                ell = mp.log(t)/(2*mp.j*mp.pi)
+                return -mp.j*mp.log(y)+mp.pi*ell*(ell-1),w+2*t*ell,t
+            t = 1/s
+            wm = w*t*t
+            return -mp.j*mp.log(y)+mp.j*wm/t,wm,t
+        source_cases = []
+        for inf,tc in ((False,mp.mpc('.02','.01')),
+                       (True,mp.mpc('.08','-.03'))):
+            y = mp.mpc('.4','.1')
+            e2,e3,*_ = C._elementary_cusp_basis(tc,inf)
+            source_cases.append(('ci' if inf else 'c0',
+                                 (tc/y,y,mp.mpf('.13')*e2-mp.mpf('.09')*e3)))
+        for t in (mp.mpc('.4','.15'),mp.mpc('.8','.3'),mp.mpc('2.3','-.4')):
+            lt = mp.log(t)
+            lattice = (mp.mpf('.12'),mp.mpf('.17'),mp.mpf('-.11'),mp.mpf('.34'))
+            ez = (2*mp.pi,-mp.j*t,-t,-mp.j*lt)
+            ew = (0,1-t*t,mp.j*(1+t*t),2*t)
+            source_cases.append(('mid',
+                                 (sum(lattice[j]*ez[j] for j in range(4)),
+                                  sum(lattice[j]*ew[j] for j in range(4)),t)))
+        for source_kind,source in source_cases:
+            Z,X,angles = C.elementary_global_forward(
+                source_kind,source,projection_steps=64,phase_steps=32,dps=55)
+            back_kind,back = C.elementary_global_coordinates(
+                Z,X,angles,projection_steps=64,phase_steps=32,dps=55)
+            z,w,t = as_middle(source_kind,source)
+            zb,wb,tb = as_middle(back_kind,back)
+            lattice = C.scalar_lattice_coords(zb-z,wb-w,t,mp.log(t))
+            error = max(abs(tb-t),*(abs(v-mp.nint(v)) for v in lattice))
+            forward_error = max(forward_error,error)
+            forward_cases += 1
+            assert error<mp.mpf('1e-40')
+        # The exact half-cell seam can return a different e4 deck
+        # representative. Compare Y points in the common middle lattice.
+        tc = mp.mpf('.1')*mp.exp(mp.j*mp.mpf('.7'))
+        for inf in (False,True):
+            nu = mp.exp(-2) if inf else mp.mpf(1)
+            source_kind = 'ci' if inf else 'c0'
+            for a in (mp.mpf('-.5'),mp.mpf('.5')):
+                rho = C.elementary_cusp_logradius(a,tc,nu,dps=55)
+                y = mp.exp(rho)
+                source = (tc/y,y,mp.mpc(0))
+                Z,X,angles = C.elementary_global_forward(
+                    source_kind,source,projection_steps=512,phase_steps=32,dps=55)
+                back_kind,back = C.elementary_global_coordinates(
+                    Z,X,angles,projection_steps=512,phase_steps=32,dps=55)
+                z,w,t = as_middle(source_kind,source)
+                zb,wb,tb = as_middle(back_kind,back)
+                lattice = C.scalar_lattice_coords(zb-z,wb-w,t,mp.log(t))
+                error = max(abs(tb-t),*(abs(v-mp.nint(v)) for v in lattice))
+                forward_error = max(forward_error,error)
+                forward_cases += 1
+                assert error<mp.mpf('1e-40')
+        print(f'Elementary full forward: {forward_cases} reduced-count cap/free, '
+              f'deck/lattice and independent source checks; error {float(forward_error):.1e}: PASS',
+              flush=True)
         for inf in (False,True):
             nu = mp.exp(-2) if inf else mp.mpf(1)
             for a in map(mp.mpf,('-.499','-.2','.2','.499')):
-                rad = C.inverse_height_moment(abs(a),0)
+                rad = C.inverse_height_moment(abs(a),0,0)
                 x,y = (mp.sqrt(rad)/nu,mp.mpf(0)) if a>0 else (mp.mpf(0),mp.sqrt(rad))
                 kind = 'ci' if inf else 'c0'
                 e,norm = C.elliptic_bundle_embedding(kind,(x,y,a),dps=55,with_norm=True,elementary=True)
@@ -273,7 +478,7 @@ def check_elementary_closed_blocks():
         assert raw_error<mp.mpf('1e-30') and projector_error<mp.mpf('1e-40')
         print(f'Closed raw base: 96 round trips/projectors; residual {float(raw_error):.1e}, projector {float(projector_error):.1e}: PASS',flush=True)
         assert projector_derivative<C.elementary_closed_parameters()['projector_bound']
-        print(f'Projector derivative: 16 samples, measured Frobenius bound {float(projector_derivative):.6g}; proved operator bound 1e114: PASS',flush=True)
+        print(f'Projector derivative: 16 samples, measured Frobenius bound {float(projector_derivative):.6g}; proved operator bound 1e8000: PASS',flush=True)
 
         # Family logarithm: two chart expressions agree as REAL numbers,
         # despite many turns of phase and a moving interval endpoint.

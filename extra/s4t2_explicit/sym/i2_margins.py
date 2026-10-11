@@ -356,9 +356,9 @@ assert 7*(10**15+6*10**13)<10**16
 assert 2*(14*10**12*5+3*10**8)<2*10**14
 assert sp.sqrt(2)*(2*10**14+10**18)<10**20
 delta_closed = sp.Rational(1,10**9)
-L_closed = sp.Integer(10)**60*delta_closed**-6
-assert L_closed==sp.Integer(10)**114
-assert 10**51*delta_closed**-5<L_closed
+L_closed = sp.Integer(10)**8000
+assert sp.Integer(10)**48*sp.Integer(10)**5544==sp.Integer(10)**5592
+assert sp.Integer(10)**5592<sp.Integer(10)**6000<L_closed
 N_closed = 4*L_closed+1
 M_closed = 32*(N_closed+1)*L_closed
 K_closed = 8*M_closed+1
@@ -373,6 +373,6 @@ assert parameters_closed['projection_steps']==int(N_closed)
 assert parameters_closed['phase_bound']==int(M_closed)
 assert parameters_closed['phase_steps']==int(K_closed)
 assert parameters_closed['delta']==delta_closed and parameters_closed['epsilon']==epsinv
-print('I2v elementary height and global projector constants: L=10^114, N=4L+1, L_g=32(N+1)L, K=8L_g+1; implementation agrees: PASS')
+print('I2v two-way height and global projector constants: L=10^8000, N=4L+1, L_g=32(N+1)L, K=8L_g+1; implementation agrees: PASS')
 
 print('ALL PASS')

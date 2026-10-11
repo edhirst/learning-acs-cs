@@ -16,17 +16,21 @@
 > height/collar with a standard elliptic inverse, an algebraic S⁴→S² target, and finite bundle
 > operations with explicit hypotheses. The elliptic block is not yet assembled into a global
 > base/lift/tensor. The finite bundle operations still need a concrete embedding and derivative bounds.
-> **Finite global tensor (2026-10-08-EH-2):** §11 supplies a different, elementary inverse-first
+> **Finite global tensor (2026-10-08-EH-2):** §11 supplied a different, elementary inverse-first
 > height, smooth open central-fibre charts, a certified closed pole replacement, a concrete C¹⁰
 > bundle embedding and fixed-count projection/phase formulas. Equations (11.18)–(11.19) give
 > G_cl and J_cl with no implicit solve, quadrature or infinite series. The counts are enormous;
 > this is a finite elementary expression, not a practical expanded formula. The global statement
-> requires human review. Section 11.3 now gives a finite elementary inverse for the pole patch;
-> the stronger finite **inverse pair** is still open because the global height transition (11.3)
-> has no elementary forward inverse supplied here. F_cl is not evaluated in J_cl.
+> requires human review. Section 11.3 gives a finite elementary inverse for the pole patch.
+> **Finite inverse pair (2026-10-11-TSG-6):** §11.2 gives a two-way elementary height,
+> §11.4 its revised derivative certificate, and §11.6 the global reversal F_cl.
+> C29a–h, I2v, independent audits of the type-(c) constants and forward formula,
+> 276 sampled height compositions and 38 reduced-count end-to-end checks pass.
+> The finite elementary inverse-pair certificate is complete, subject to human
+> review. Its enormous fixed products have not been numerically executed.
 > Legacy I3–I5/T14 remain flags for the old evaluator.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
-> **Resume point: §11.8 (verification scope, review, and the remaining inverse-pair question).**
+> **Resume point: simplify the fixed projection and phase counts while preserving §11's certificate.**
 
 ## 0. What is being built, in one paragraph
 
@@ -1643,12 +1647,14 @@ are therefore still unresolved. No general impossibility result follows from
 this investigation, and no new global numerical J evaluator is claimed.
 
 
-## 11. Finite elementary global tensor by an inverse-first construction
+## 11. Finite elementary global tensor and two-way inverse
 
-This section gives a finite elementary expression for the global tensor. Its new
-global statement is for human review; the precise checks and practical limitations
-are in §11.8. The inverse-first argument avoids evaluating F_cl=G_cl⁻¹, whose
-elementary expression remains outside this result.
+The earlier implementation of this section gives a finite elementary expression
+for the global tensor by an inverse-first argument. Its global statement is for
+human review; the checks and practical limits are in §11.8. Sections 11.2,
+11.4 and 11.6 give a two-way replacement, including F_cl. Its exact
+identities and differential bounds have been checked as specified below;
+the two-way global formula and its domains are certified there.
 
 ### 11.1 A concrete ten-component circle-bundle embedding
 
@@ -1699,88 +1705,176 @@ are zero. This gives the required exact homogeneous pole models.
 
 `tlift.bundle_embedding_middle/chart` implement this for both previous heights.
 `cusp.elliptic_bundle_embedding` is the scalar closed-special-function version.
-Its elementary inverse-first option below is evaluated using the known inverse
-height coordinate, so it does not call an implicit forward height. In middle
+Its previously implemented elementary inverse-first option uses the known inverse
+height coordinate; the two-way replacement below supplies its inverse. In middle
 data that coordinate refers to the principal-log cusp representative. The scalar
 implementation first replaces log t by its principal representative and replaces
 x₁ by x₁+kx₄, where log t_old=log t_principal+2πik. This preserves (z,w) and
 keeps the supplied height attached to the correct cusp representative.
 
-### 11.2 An elementary inverse height and complete collar
+### 11.2 A two-way elementary height and complete collar
 
-This design differs from both §10 heights. The coordinate map used to pull back
-holomorphic coordinates needs the inverse height; its forward height may be
-implicit in the proof and is never evaluated in the final coefficient recipe.
-For |a|≤1/2 and 0≤q≤1/8 set b=|a|, E=exp(2(b−1/2)), λ=s((b−.1)/.2), and
+This replacement of the inverse-first height is implemented in the scalar
+evaluator and global forward F_cl evaluator. Its
+elementary inequalities below are type (b)/(c); C29a–e,g check the specified
+algebraic identities, while sampled height compositions and seam jets are
+recorded in §11.8. Put
+δ=1/10, c=1/5, η=1/100. The allowed parameter set is
 
-  f(a,q)=sign(a)[(1−λ)b+λ(E−q/E)].                            (11.3)
+  D = {0≤q≤1/8, λ=0} ∪ {1/2500≤q≤1/8, 0≤λ≤1}.
 
-On |a|≤.1 this is exactly a. On .3≤a≤.5 it is E−q/E. It is smooth, odd in a,
-and f(1/2,q)=1−q. On the only transition interval .1≤b≤.3,
-E−q/E−b>0. To prove this, replace q by its worst value 1/8; the derivative
-of E−1/(8E)−b is (2(E−1/4)²+1/8)/E>0. At b=.1,
-E>4/9 since e⁴<55<(9/4)⁵, and its value is at least
-4/9−9/32−1/10=91/1440>0. Consequently
+On its first piece define κ=2, γ=0 and d=1, without evaluating log q. On the
+second put k=−log q, κ=2+λ(k−2), γ=λk and
+d=(1−λ)+λ·2√q k. Thus κ∈[2,8], 0≤γ≤8, .3<d<1.5 and q≤e^(−κ).
+For a≥0 write
 
-  8/9≤f_a≤14,                  |f_q|≤9/4.                   (11.4)
+  g(a)=exp(κ(a−1/2))−q exp(−κ(a−1/2)),
+  G_*(a)=d sinh(γa)/γ,      G_*(a)=da when γ=0.             (11.3)
 
-The lower bound follows from convexity, E≥4/9 on the transition and the positive
-λ′ term. For the upper bound use λ′≤10, E≤1, q/E≤9/32, and
-0≤E−q/E−b≤1. Outside the transition the derivatives are displayed elementary
-terms. The derivative in q is −sign(a)λ/E, giving the second bound.
+Both functions increase strictly; G_* maps [0,∞) onto [0,∞). Set
+z₀=g(0)≥0, z_c=g(2/5), z₁=g(1/2)=1−q. Here z_c>.4485,
+z_c−z₀>.43 and z_c−g(c)>.26. For example, using q≤e^(−κ), the
+first two lower bounds reduce respectively to the minima on κ∈[2,8] of
+e^(−κ/10)−e^(−9κ/10) and e^(−κ/10)−e^(−κ/2).
+Each derivative has one zero and gives an interior maximum; the smaller
+endpoint values are e^(−4/5)−e^(−36/5)>.4485 and
+e^(−4/5)−e^(−4)>.43. The same argument for
+e^(−κ/10)−e^(−3κ/10) gives z_c−g(c)>.26. These strict margins
+ensure that every denominator used next is positive.
 
-For 0<|t_c|≤.5 put P=log ν+log|t_c|−2|t_c|²/(1−|t_c|²), q=exp(2P), and
-reduce the input height a=n+b, n=floor(a+1/2), −1/2≤b<1/2. Then set
+For z<z_c put E_t(z)=exp(η/(z_c−z)), A₀=E_t(z₀), E₀=E_t(0),
+Λ=exp(A₀−E₀) and
 
-  R=√(f(b,q)²+4q),
-  Y=(R−f(b,q))/2 = 2q/(R+f(b,q)),
-  ρ₀=(log Y)/2,
-  ρ(a,t_c)=nP+(1−λ_r)ρ₀+λ_r P(b+1/2),
-  λ_r=s((|t_c|−.3)/.2).                                      (11.5)
+  μ=d E_t′(0)/(g′(0)E_t′(z₀)),
+  F(u)=(Λu²+μu)/(1+u),
+  M(U)=log(1+F(exp(U)−1)),
+  T(z)=z_c−η/log[E₀+M(E_t(z)−A₀)].
 
-Choose the second expression for Y when f≥0 to avoid subtraction. This is a
-finite elementary formula. It has
+For z≥z_c set T(z)=z. On [z₀,z_c), u=exp(U)−1≥0 and
+F′(u)=Λ+(μ−Λ)/(1+u)²>0. Therefore T increases from 0 to z_c;
+it maps [z₀,z₁] bijectively onto [0,z₁]. Its inverse is elementary:
 
-  ∂aρ₀=−f_a/(2R)<0,        ρ(a+1,t_c)=ρ(a,t_c)+P.
+  F⁻¹(v)=2v/[√((μ−v)²+4Λv)+μ−v],
+  M⁻¹(V)=log(1+F⁻¹(exp(V)−1)),
+  T⁻¹(w)=z_c−η/log[A₀+M⁻¹(E_t(w)−E₀)]               (0≤w<z_c),
 
-Near b=1/2, Y=q exp(−2(b−1/2)), hence ρ₀=P−(b−1/2).
-Near b=−1/2, oddness gives ρ₀=−(b+1/2). Thus every derivative agrees at the
-artificial representative seams. The inverse-first collar is a convex combination
-of two strictly decreasing inverse functions; it stays invertible and is exactly
-P(a+1/2) at |t_c|=.5. Its flat endpoints give all-order agreement.
+with T⁻¹(w)=w for w≥z_c. All square roots are positive and every log
+argument is positive. At z₀, M′(0)=μ gives
+T′(z₀)g′(0)=d=G_*′(0). At λ=1, q>0 and κ=k, one has z₀=0,
+Λ=μ=1 and G_*=g, so T is identically the identity. The correction is
+also flat at z_c: with U=E_t(z)−A₀ and v=exp(−U),
 
-At t_c=0, the source reference is
+  exp(M(U)−U−logΛ)
+    =(1−v)²+(μ/Λ)v(1−v)+v/Λ.                         (11.3a)
 
-  a>0: (x,y)=(√f(a,0)/ν,0),
-  a<0: (x,y)=(0,√f(−a,0)).                                  (11.6)
+The three coefficients multiply nonnegative weights whose sum is one
+(type (b)); C29b checks the exact identity. C29a checks F⁻¹ and F′,
+and C29c checks the tuned endpoint derivative.
+Since U grows like exp(η/(z_c−z)), (11.3a) gives T(z)−z and all its
+mixed parameter derivatives as polynomials in U and (z_c−z)⁻¹ times
+exp(−U); they vanish at the terminal identity branch. The exact flat-tail
+identity is C29b; the vanishing derivatives follow from the displayed
+exponential estimate.
 
-Smoothness across each nonnode axis follows from the quadratic equation
-Y²+f(a,q)Y−q=0: use its rationalized root when a>0 and the other root when a<0;
-its denominator stays positive there. The phase chart uses the nonzero coordinate
-as its positive reference. Explicitly, throughout a core neighbourhood of either
-axis, with e=exp(−4|t_c|²/(1−|t_c|²)), R=√(f²+4q), use
+One flat radial conjugation makes the inner core exact. For x>0 set
+S(x)=log(1+exp(x−1/x)) and S(0)=0. For δ<a<c put
 
-  a>0:  x=√[(R+f)/(2e)]/ν, y=t_c/x;
-  a<0:  y=√[(R−f)/2],      x=t_c/y.                         (11.6a)
+  E_h(a)=exp(c/(c−a)),  φ(a)=E_h(a)−e²,  ψ(a)=E_h(a)−e,
+  R(a)=ψ⁻¹(S(φ(a))),  ψ⁻¹(v)=c−c/log(e+v),
 
-These formulas hold on open neighbourhoods, including t_c=0, and have strictly
-positive denominators there. They supply transverse derivatives as well as axis
-values. The neighbouring cells are equally explicit. For .5≤a<.6 set b=a−1,
-F=f(b,q), R_b=√(F²+4q), and use x=√[2/(e(R_b−F))]/ν, y=t_c/x.
-For −.6<a≤−.5 set b=a+1 and use y=√[2/(R_b+F)], x=t_c/y.
-They agree to all orders at the cell seams by (11.5)'s endpoint identities.
-Indeed, on |a−.5|<.2 the first reference is simply
-x=exp(a−.5)/(ν√e), y=t_c/x; on |a+.5|<.2 the second is
-y=exp(−a−.5), x=t_c/y. These are open formulas at the seams themselves.
-`elementary_cusp_reference` implements these open chart formulas.
-For a=0 away from the node either reference is nonsingular. Near the node,
-the forward height is exactly
+and set R(a)=a for a≥c. It is an increasing bijection
+(δ,∞)→(0,∞), with R(a)<a on (δ,c), R(a)→0 as a↓δ and
+R−id flat at c. Its inverse is the identity above c; below c it is
 
-  a=e u−v,  u=ν²|x|², v=|y|², e=exp(−4uv/(ν²−uv)),           (11.7)
+  R⁻¹(y)=φ⁻¹(S⁻¹(ψ(y))),
+  φ⁻¹(v)=c−c/log(e²+v),
+  S⁻¹(y)=[w+√(w²+4)]/2,  w=log(exp(y)−1).               (11.3b)
 
-because f=a near zero and q=euv. Thus it is smooth there as well. The forward
-height away from this region is the unique root of (11.3), used only to prove the
-coordinate interpretation. No such root occurs in (11.5) or the pullback map.
+The positive square-root branch is forced by x−1/x=w and x>0. C29g
+checks this positive inverse and both logarithmic radial-coordinate
+inverses; C29e checks the b_R′ identity below. At zero
+the inverse R⁻¹(0)=δ is used only as a one-sided limit in the composite.
+Put f₀=T∘g and h=G_*⁻¹∘f₀. The tuning above gives h(0)=0,
+h′(0)=1. Define on 0≤a≤1/2
+
+  f(a,q,λ)=G_*(a)                                      (a≤δ),
+  f(a,q,λ)=G_*∘R⁻¹∘h∘R(a)                            (a>δ),     (11.4)
+
+and extend it oddly. It is strictly increasing. The two-way formula is
+
+  f⁻¹(y)=G_*⁻¹(y)                                    (0≤y≤G_*(δ)),
+  f⁻¹(y)=R⁻¹∘f₀⁻¹∘G_*∘R∘G_*⁻¹(y)                   (y>G_*(δ)),
+  f₀⁻¹=g⁻¹∘T⁻¹,
+  g⁻¹(z)=1/2+κ⁻¹log[(z+√(z²+4q))/2],
+  G_*⁻¹(y)=asinh(γy/d)/γ,  with value y/d at γ=0.
+
+The inverse for negative y is its odd reflection. To verify both
+compositions on the outer branch, apply successively G_*⁻¹, R, G_*,
+f₀⁻¹ and R⁻¹ to (11.4); the adjacent inverse pairs cancel in exactly
+that order. Reversing the order gives the other composition. C29a,d,g
+check the nontrivial scalar inverse identities used here. Its arguments stay in the
+displayed domains: R(a)≤a≤1/2, while R(u)≤u for u=G_*⁻¹(y), so
+G_*(R(u))≤y≤1−q. The γ=0 quotients have smooth Taylor limits;
+asinh(v)=log(v+√(1+v²)) makes the inverse finite elementary.
+For the inner seam write a=δ+s. Then φ(a)=20e²s+O(s²), whence
+R(δ+s)=A(s)exp[−1/(20e²s)] with A smooth and positive. Since
+h(x)=x+x²B(x,q,λ), log[h(R(a))/R(a)] is flat in s. The derivative of
+log R(δ+s) is 1/(20e²s²)+O(1); the mean-value theorem and repeated
+implicit differentiation make R⁻¹hR(a)−a flat with every mixed parameter
+derivative. Thus (11.4) glues to G_* to all orders. At c, R−id and
+R⁻¹−id are flat by the E_h exponential. These are type-(b)/(c) smoothness
+arguments, not numerical seam tests.
+
+The outer height is exactly the exponential on an open interval. Indeed
+G_*(c)≤.3 sinh(1.6)/1.6<.446, whereas z_c>.4485; hence
+h(2/5)>c. For a≥2/5 both R(a)=a and R⁻¹(h(a))=h(a), while
+T(g(a))=g(a). Consequently f(a)=g(a) on [2/5,1/2],
+f(1/2)=1−q. At λ=1, h=id and f=g on the entire cell.
+
+For 0<|t_c|≤1/2 put r=|t_c|,
+P=log ν+log r−2r²/(1−r²), q=exp(2P), λ=s((r−.3)/.2).
+Reduce a=n+b with n=floor(a+1/2), −1/2≤b<1/2, and set
+
+  D=√(f(b,q,λ)²+4q),  Y=(D−f(b,q,λ))/2=2q/(D+f(b,q,λ)),
+  ρ₀=(log Y)/2,       ρ(a,t_c)=nP+ρ₀(b,q,λ).             (11.5)
+
+Use the rationalized Y when f≥0. The old outer convex blend is absent:
+it would again require an implicit forward inversion. Since f_a>0,
+ρ₀,a=−f_a/(2D)<0, and f(±1/2)=±(1−q) gives q≤Y≤1.
+On |b−1/2|<.1, Y=q exp[−κ(b−1/2)]; on |b+1/2|<.1,
+Y=exp[−κ(b+1/2)]. Thus ρ and every derivative agree across height-cell
+seams, and ρ(a+1)=ρ(a)+P. At r=.5, λ=1 and κ=k=−2P, so
+ρ=P(a+1/2) exactly; the flat endpoint of λ gives all mixed collar jets.
+At r≤.3, λ=0 on an open neighbourhood of the central fibre; no log q is
+formed at q=0. Both pieces of the parameter domain agree where they meet.
+
+At t_c=0 the nonnode axis reference is
+
+  a>0: (x,y)=(√f(a,0,0)/ν,0),
+  a<0: (x,y)=(0,√f(−a,0,0)).                           (11.6)
+
+The quadratic equation Y²+fY−q=0 gives smooth open axis charts, with
+e=exp(−4|t_c|²/(1−|t_c|²)) and D as above:
+
+  a>0:  x=√[(D+f)/(2e)]/ν, y=t_c/x;
+  a<0:  y=√[(D−f)/2],      x=t_c/y.                       (11.6a)
+
+For .5≤a<.6 put b=a−1, f_b=f(b,q,λ), D_b=√(f_b²+4q),
+and use x=√[2/(e(D_b−f_b))]/ν, y=t_c/x. For −.6<a≤−.5
+put b=a+1 and use y=√[2/(D_b+f_b)], x=t_c/y. The exact open
+seam formulas, valid on |a−.5|<.1 and |a+.5|<.1 respectively, are
+
+  x=exp[κ(a−.5)/2]/(ν√e), y=t_c/x;
+  y=exp[−κ(a+.5)/2],       x=t_c/y.
+
+They also supply transverse derivatives at t_c=0, where κ=2. Near either
+node λ=0 and f=a on |a|≤δ, so the forward source height is exactly
+
+  a=e u−v,  u=ν²|x|², v=|y|², e=exp(−4uv/(ν²−uv)).        (11.7)
+
+Away from the node the forward formula is the displayed finite f⁻¹ applied
+to eu−v, with q=euv and λ from |t_c|; no quadrature or root solve occurs.
+C29d checks the positive quadratic root and the displayed open seam identity.
 
 ### 11.3 Inverse-first pole matching
 
@@ -2092,14 +2186,19 @@ If \(v\geq c\), the output radius is \(v\); if \(v<c\), it is
 \(S^{-1}(v)<c\). The identity branch satisfies the same estimate, so
 \(|H_j(z)|^2\leq\max(c,r+80r^2)\). This replacement changes the raw base inside its
 small ball, as required by the C25 obstruction; it does not resolve the
-separate inverse of the global height (11.3).
+separate inverse of the old global height transition; the candidate (11.4)
+supplies that inverse in finite elementary form.
 
 ### 11.4 A fixed global projector bound
 
-Here and below the base height is **(11.3)–(11.7)**; the old Gaussian, finite
-forward and elliptic heights are not used to define this base. Put
+Here and below the base height is **(11.3)–(11.7)**. Its
+two-way scalar implementation and type-(c) constants have been checked as
+described below; the end-to-end global inverse is given in §11.6. The old
+Gaussian, finite forward and elliptic heights are not used to define this
+base. The height's inner cutoff is 1/10; δ in this section denotes only
+the target cap thickness. Put
 
-  δ=10⁻⁹, α=10⁻⁵, X₋=−1+δ, X₊=1−δ, L=10¹¹⁴.
+  δ=10⁻⁹, α=10⁻⁵, X₋=−1+δ, X₊=1−δ, L=10⁸⁰⁰⁰.
 
 For n∈S² and X∈[X₋,X₊], evaluate the unmodified inverse base at
 (v,X)=((1−X²)n,X). Apply (11.1) to any reference point over that base and set
@@ -2133,11 +2232,14 @@ also support the older alternative.
 The following is an explicit, deliberately coarse **type (c) derivative
 certificate**:
 
-  ||D_(n,X) P|| < 10⁶⁰δ⁻⁶ = L.                              (11.13)
+  ||D_(n,X) P|| < 10⁶⁰⁰⁰ < L.                               (11.13)
 
 The norm on the domain is the product of the round metric and dX², and the
 matrix norm is the operator norm. The details are included because a compactness
 argument with an unspecified bound would not give a fixed finite expression.
+Sixteen numerical derivative samples reached Frobenius norm 32.8697,
+leaving a measured margin greater than 10⁶⁰⁰⁰−33 to the displayed
+proved bound; this is evidence (d), not part of the certificate.
 
 1. **Target coordinates.** Let d=1−X√(2−X²). Since
    d(1+X√(2−X²))=(1−X²)², d≥δ²/2. The derivatives of
@@ -2156,54 +2258,186 @@ argument with an unspecified bound would not give a fixed finite expression.
    4||Du||. Consequently the local coordinates
    b=(2ν Re t_c,−2ν Im t_c,a) have ||Db||<10¹²δ⁻⁴.
 
-2. **Source coordinates.** For these bounds reduce the representative to |a|≤1/2;
-   this leaves P unchanged by (11.1)'s exact deck invariance. Distinguish the
-   quadratic root Y₀=e^(2ρ₀) in (11.5) from the physical source modulus
-   Y_*=e^(2ρ)=|y|²; they agree in the core but generally differ in the collar.
-   For t_c≠0, both ρ₀ and P(a+1/2) lie in [P,0], so (11.5) gives P≤ρ≤0,
-   q≤Y_*≤1 and eu=q/Y_*≤1. Hence u<4 and r=u+Y_*≤5;
-   here 1/8<ν≤1 and e≥exp(−4/3)>1/4 by exp(4)<55<64.
-   At t_c=0 use the open axis formulas (11.6a),
-   where the quotient q/Y_* can be undefined. In the core, Y_*=Y₀ and
-   differentiating f(a,q)=eu−Y_* gives |a_u|,|a_(Y_*)|<10⁵. Explicitly
-   |e_u|≤392Y_*, |e_(Y_*)|≤392u, |(eu)_u|<1600,
-   |(eu)_(Y_*)|<6300, |q_u|,|q_(Y_*)|<10000, and divide the resulting
-   bounds by f_a≥8/9. At fixed t_c, a_m=(eu+Y_*)/(r f_a)≥1/56.
-   Since |D_transverse u|,|D_transverse Y_*|≤1/2, this gives
-   |D_transverse a|<2·10⁵. The core triangular inverse has norm
-   <1+56(2·10⁵+2)<10¹⁶.
-   In the collar .3≤|t_c|≤.5, 2/3<|P|<4, |P_r|<7 and
-   1/3025<q<1/8. These constants follow from e⁴<55,
-   log 2>2/3 and −log(.3)<4/3; a positive Taylor sum for e⁴ proves
-   the last comparison. For R=√(f²+4q),
+2. **Height and source coordinates.** Reduce the representative to |a|≤1/2;
+   (11.1) is deck invariant. Write p=q or λ for a parameter derivative on the
+   second part of D; on its q=0 part take p=q and λ=0. The following is a
+   type-(c) certificate for (11.4). On the collar,
+   ν²≥e⁻⁴>1/55, |t_c|²≥9/100 and
+   exp[−4|t_c|²/(1−|t_c|²)]≥e^(−4/3)>1/4; hence
+   q>9/22000>1/2500, k<8 and .3<d<1.5. Differentiating (11.3),
+   with |κ_q|≤2500, |κ_λ|<6, |d_q|<300 and |d_λ|<1, gives
+   |g_p|<1800, |g_ap|<20000 and |(z_c)_p|<260.
+   Moreover .14<g′(0)<1.5, E_t′(0)/E_t′(z₀)>.29,
+   so .05<μ<11; 1≤Λ<1.02. The ratio E_t′ follows from
+   E_t′(0)/E_t′(z₀)=[E₀/A₀][(z_c−z₀)/z_c]²,
+   E₀/A₀>e^(−.01/.43) and
+   (z_c−z₀)/z_c≥1−e^(−.4κ)>.55.
 
-     1/3<−(ρ₀)_a=f_a/(2R)<200,
-     |(ρ₀)_q|=|(1/Y₀−f_q)/(2R)|<42000.
+   For u≥0, both F′(u) and F(u)/u lie in [.05,11]; therefore
+   1/220<M′(U)<220. Put A=E_t(g(a)), B=E_t(f₀(a)).
+   By (11.3a), .74<exp(B−A)<4, or −.31<B−A<1.4.
+   To see the lower constant,
+   discard the positive μ-term in (11.3a), use 1/Λ>50/51, and minimize
+   (1−v)²+(50/51)v; its minimum is 1925/2601>.74.
+   The upper bound is 1+10v(1−v)≤3.5<4.
+   Since E_t′(z)=E_t(z)(log E_t(z))²/η,
+   f₀,a=g′(a)M′(U)[A/B][log A/log B]².
+   For A≤2, A,B≥1, log A,log B>.012 and B<3.4, so the bracket
+   lies in (2.8·10⁻⁵,7000). For A≥2, the preceding bounds on B−A
+   put it in (.18,3). With .14<g′(a)<12 this gives
 
-   Thus |ρ_r|<2·42000+7+40<100000, including the cutoff derivative.
-   Inverting this scalar derivative gives |a_ρ|<3 and |a_r|<300000.
+     10⁻⁸<f₀,a<10⁸.                                    (11.13a)
+
+   Here are parameter bounds, including the moving terminal cut. Directly
+   differentiating E_t gives |(A₀)_p|<120, |(E₀)_p|<14,
+   |Λ_p|<140 and |μ_p|<2·10⁶. In the last estimate, divide the
+   logarithmic derivative of μ into those of d, g′(0), E_t′(0),
+   E_t′(z₀); their respective bounds are 1000, 20000/.14,
+   1200 and 10000. At A≤20,
+   |A_p|≤210000A(log A)²<4·10⁷, |M_p|<5·10⁷,
+   |B_p|<9·10⁹, and η/[B(log B)²]<70, hence |f₀,p|<10¹².
+   At A≥20, write B=A+Δ, with
+   Δ=log(1+A₁e⁻ᵁ+A₂e⁻²ᵁ),
+   A₁=(μ+1−2Λ)/Λ and A₂=1−μ/Λ.
+   Here |A_i|<20, |(A_i)_p|<3·10⁶, e⁻ᵁ<3e⁻ᴬ,
+   |Δ|<80e⁻ᵁ and |Δ_p|<e⁻ᵁ(120|A_p|+1.3·10⁷).
+   Since |A_p|≤210000A³ and sup_(A>0)A³e⁻ᴬ=27e⁻³<1.35
+   (use e³>20 from Σ_(j=0)^8 3^j/j!=89641/4480>20),
+   |Δ_p|<1.5·10⁸ and |A_pΔ|<7·10⁷. Differentiate
+   f₀−g=η(1/log A−1/log B), using
+   |[1/(B(log B)²)]′|<.001 and 1/[B(log B)²]<.01;
+   this gives |f₀,p−g_p|<2·10⁴. Thus |f₀,p|<10¹² on the whole
+   cell. On 0≤a≤c, z_c−g(a)>.26 gives E_t′(g)<.16,
+   E_t″(g)<1.3, U<.04 and exp(U)−1<.05. Direct product and
+   quotient differentiation yields
+   |U_a|<2, |U_p|<450, |U_ap|<36000,
+   |M_UU|<5·10⁴, |M_p|<1.1·10⁵, |M_Up|<4·10⁶.
+   Therefore |B_a|<450, |B_p|<2.2·10⁵,
+   |B_ap|<6.2·10⁷. With W(B)=1/[B(log B)²],
+   W<7000 and |W′|<1.5·10⁶, so
+   |f₀,ap|=η|W B_ap+W′B_aB_p|<2·10¹².
+   Since f₀(0,p)=0, |f₀,p(a)|<2·10¹²a on 0≤a≤c.
+
+   The one-soft radial distortion has an independent type-(c) bound.
+   On 1/10<a<c write E=E_h(a), L=log E, x=E−e²,
+   y=S(x), D=S′(x), F=e+y, M=log F. Then
+
+     R′=DE L²/(F M²),
+     b_R=R/R′=cF M(M−1)/(DE L²),
+     b_R′=M²+M−1−[F M(M−1)/(ED)](1+2/L)
+                     −F M(M−1)D′/D².                 (11.13b)
+
+   C29e checks this exact derivative identity.
+
+   The identities S′=σ(1+x⁻²) and
+   S″=σ(1−σ)(1+x⁻²)²−2σx⁻³, σ=(1+e^(−x+1/x))⁻¹,
+   give 0<S(x)<x, S/S′≤2x and |SS″/(S′)²|<6. Indeed
+   exp(−x)≤1/(1+x) and exp(−1/x)≤x/(1+x) give S<x.
+   If x≤1, w=x−1/x≤0, then S≤exp(w), σ≥exp(w)/2,
+   so S/S′≤2x²≤2x. If x≥1, σ≥1/2 and S<x give
+   S/S′≤2x. Finally
+   SS″/(S′)²=S exp(−w)−2(S/σ)/[x³(1+x⁻²)²].
+   Its first term is ≤1: for x≤1 use S≤exp(w), and for
+   x≥1 use S<x and x exp(1−x)≤1. The second is <4 by
+   the preceding S/σ bounds. Thus its absolute value is <5<6.
+   For E≤20, L≥2, M<3, x<13 and
+   F<e+x=E−(e²−e)<16. Since M<3 and
+   e>8/3 by its first four series terms, FM/e<18.
+   Also M−1=log(1+S/e)≤S/e. The three absolute
+   terms of (11.13b) are respectively <11,
+   (FM/e)(S/D)(1+2/L)/E<18·2·2=72<78, and
+   (FM/e)|SD′/D²|<18·6=108. Thus |b_R′|<197.
+   For E≥20, x>.6E≥12, E−6<F<E
+   (use S>x−1/x and e<11/4 from e⁴<55),
+   1≤D≤1+x⁻², |D′|<3/x² and
+   0≤L−M<−log(.7)<.4. With v=F/E, rearrange the first two
+   terms of b_R′ as
+
+     1+(1−v/D)(M²+M−2)+2(v/D)(M−1)(1−M/L).
+
+   Here D≥1 follows from x−1/x≥2log x for x≥1,
+   so exp(−x+1/x)≤x⁻². Their upper bounds are 1, 4 and .8: use
+   1−v/D≤6/E+3/E² and the decreasing function
+   (log²E+log E)/E on E≥20. The remaining term is
+   <(25/3)(log E)²/E<4, also decreasing there. Thus
+   |b_R′|<10 on this outer part and |b_R′|<200 globally;
+   the analytic slack of the inner estimate is 3. C29i samples 1999
+   fixed interior grid points, with maximum |b_R′|=3.301394 at
+   a=.1300000, measured margin 196.698606 to the proved bound 200.
+   This sample is numerical evidence (d), not the proof.
+   Since d log b_R/d log R=b_R′, if x=R(a), H=R⁻¹(h(x)),
+   then |log[b_R(H)/b_R(a)]|≤200|log[h(x)/x]|, including
+   the identity branch above c. Also b_R(1/10)=0 and in fact
+   0<b_R(H)<2 when H<c. For E≤20, M−1≤S/e,
+   F/E<1, M/L²<3/4, S/D≤2x<26 and e>2 give
+   b_R<c·(3/4)·13<2. For E≥20, F/E<1,
+   D≥1 and M≤L give b_R<c. Above c, b_R(H)=H<4.
+
+   The identity G_*′(h)=√[d²+(γ f₀)²] gives
+   .3<G_*′(h)<9. From (11.13a), h_x and h/x both lie in
+   [10⁻⁹,4·10⁸]. Consequently the distortion ratio lies between
+   10⁻¹⁸⁰⁰ and 10¹⁸⁰⁰. Since
+   H_a=h_x(x/h)b_R(H)/b_R(a) and G_*′(H)∈(.3,9),
+
+     10⁻¹⁸¹⁹<f_a<10¹⁸¹⁹.                              (11.13c)
+
+   The C23d derivative samples range from .466903 to 6.682791;
+   their measured lower and upper margins are .466903−10⁻¹⁸¹⁹ and
+   10¹⁸¹⁹−6.682791, respectively. These are evidence (d).
+
+   Differentiating G_* by its integral sinh(γs)/γ shows
+   |G_*,p(s)|/s<10⁷ for s=h or H. Here s<4 and
+   G_*(s)≤1 for both: G_*(h)=f₀≤1−q and
+   G_*(H)=f≤1−q. Thus
+   cosh(γs)=√[1+(γG_*(s)/d)²]<√[1+(8/.3)²]<30.
+   Use |d_p|<300 and |γ_p|≤2500 in that integral derivative.
+   The local |f₀,p(x)|<2·10¹²x and global |f₀,p|<10¹²
+   give |h_p|/h<10²³. Parameter differentiation of the radial
+   composite gives f_p=G_*,p(H)+G_*′(H)b_R(H)h_p/h;
+   hence |f_q|,|f_λ|<10²⁶, also on the direct core branch.
+
+   Distinguish Y₀=e^(2ρ₀) from the physical source modulus
+   Y_*=e^(2ρ)=|y|². On the reduced representative they now agree
+   throughout the cusp. Since q≤Y_*≤1, eu=q/Y_*≤1,
+   u<4 and the source radius r=u+Y_*≤5; also e>1/4.
+   At t_c=0 use (11.6a), avoiding a quotient q/Y_* on an axis.
+   In the core, differentiating f(a,q(u,Y_*))=eu−Y_* with
+   |(eu)_u|<1600, |(eu)_(Y_*)|<6300 and
+   |q_u|,|q_(Y_*)|<10000 gives |a_u|,|a_(Y_*)|<10¹⁸⁵⁰.
+   At fixed t_c, q is fixed and
+   a_m=(eu+Y_*)/(r f_a)>10⁻¹⁸²⁰. Thus the core triangular
+   inverse has norm <10³⁶⁷². In the collar,
+   2/3<|P|<4, |P_r|<7, q>1/2500, |q_r|<2 and |λ_r|≤10.
+   For D=√(f²+4q), .04<D<2 and
+
+     10⁻¹⁸²⁰<−ρ_a=f_a/(2D)<10¹⁸²¹,
+     |ρ_q|=|(1/Y_*−f_q)/(2D)|<10²⁸,
+     |ρ_λ|=|f_λ|/(2D)<10²⁸.
+
+   Hence |ρ_r|<10³⁰, |a_ρ|<10¹⁸²⁰ and |a_r|<10¹⁸⁵⁰.
    In orbit coordinates p=(2ν Re t_c,−2ν Im t_c,m),
-   D_transverse ρ=p_transverse/(4Y_*r) and ρ_m=−1/(2r), so in the collar
-   |D_transverse ρ|≤1/(4Y_*)≤3025/4<1000 and
-   ||D_transverse t_c||<4.
-   Hence |D_transverse a|<2·10⁶, and a_m≥1/(400r)≥1/2000.
-   The triangular matrix with rows (I₂,0) and (D_transverse a,a_m)
-   has inverse norm <2000(2·10⁶+2)+1<10¹⁶. In the core a_m≤9/8;
-   in the collar r≥2ν|t_c|>3/40 gives a_m<20. Thus ||D_p a||<10⁷.
-   In source coordinates z=(ν conj x,y), the Hopf derivative has norm 2√r;
-   in particular ||D_z a||<10¹²√r.
+   D_transverseρ=p_transverse/(4Y_*r), ρ_m=−1/(2r),
+   |D_transverseρ|<1000 and ||D_transverse t_c||<4.
+   Thus |D_transverse a|<10¹⁸⁵¹ and
+   a_m>10⁻¹⁸²²; the collar triangular inverse is <10³⁶⁷⁵.
+   Together the two regions give ||D_p a||<10¹⁸⁵².
+   In source coordinates z=(ν conj x,y), ||D_z Hopf||=2√r,
+   so ||D_z a||<10¹⁸⁵³√r.
 
 3. **Embedding derivatives.** The first normalized cusp frame has derivative
    norm ≤2/√r. An active shifted frame has a<−.1. In the core,
-   Y_*−eu=|f|≥(8/9)|a|>4/45, so |y|>1/4. In the collar |y|>1/55.
+   f(1/10)=1/10 and f is strictly increasing, so on the active shifted
+   support a<−1/10 one has Y_*−eu=|f(a)|>1/10 and
+   |y|>1/√10>1/4.
+   In the collar |y|>1/55.
    Its unnormalized coordinates are
    (exp(2|t_c|²/(1−|t_c|²))/conj y,
     exp(−2|t_c|²/(1−|t_c|²))conj z₁ y²).
    Their norm is ≥1. Since |D_z |t_c|²|<500, differentiating these
    formulas bounds the normalized derivative by 10⁸. (The largest first
    coordinate term is <2·55·2000+2·55²<10⁶.) Each height weight has
-   derivative ≤14·10¹²√r. The four-component cusp block therefore has
-   derivative <2·10¹⁴/√r, using r≤5.
+   derivative <14·10¹⁸⁵³√r by step 2. The four-component cusp block
+   therefore has derivative <10¹⁸⁵⁶/√r, using r≤5.
 
    In a collar, |t|∈[.3,10/3], |log t|<6, and a local branch with
    |Arg y|≤π gives |log y|<8. The explicit Φ/Θ and lattice formulas
@@ -2219,16 +2453,18 @@ argument with an unspecified bound would not give a fixed finite expression.
    <10¹⁵√r. In an active argument chart θ_j−Im log t is locally
    0 or 2π, so the middle phase derivative is <10¹⁶√r.
    Radial and angular weights cost <10⁴√r. Concatenation and
-   V*V≥1/2 therefore give the common bound ||D_z e||<10²⁰/√r.
+   V*V≥1/2 therefore give the common bound ||D_z e||<10¹⁸⁵⁶/√r.
    Branch changes are exact phase/atlas identities; these estimates use
    local representatives and do not differentiate a discontinuous selector.
 
 4. **Combine.** The projector kills the vertical circle direction. The
-   horizontal right inverse of the Hopf derivative has norm 1/(2√r),
-   so ||D_b P||≤(2·10²⁰/√r)·(1/(2√r))·10¹⁶=10³⁶/r.
+   horizontal right inverse of the Hopf derivative has norm 1/(2√r).
+   Combining it with the larger of the two triangular inverse bounds
+   in step 2 gives ||D_b P||<10⁵⁵³²/r.
    If r≤1/250, (11.8)–(11.9)'s forward estimate gives |v|<14r;
    since |v|=1−X²≥δ, r≥δ/14. Otherwise r>1/250≥δ/1000.
-   Thus always r≥δ/1000 and ||D_(n,X)P||<10⁵¹δ⁻⁵<L.
+   Thus always r≥δ/1000. The target-coordinate bound in step 1 is
+   <10¹²δ⁻⁴=10⁴⁸, so ||D_(n,X)P||<10⁵⁵⁹²<10⁶⁰⁰⁰<L.
    In the pure middle (.5≤|t|≤2), T=u₁/u₂=t k_A(|t|): the ratio
    bound and the radial/angular inverse-profile bounds in step 1 give
    ||Dt||<128·100·10⁶δ⁻⁴<2·10¹⁰δ⁻⁴. The same Cramer bound applied to
@@ -2236,9 +2472,11 @@ argument with an unspecified bound would not give a fixed finite expression.
    ||Dx₄||<10¹⁵||Dt||+100δ⁻⁴<10²⁷δ⁻⁴, and hence
    ||DP||<10³⁰δ⁻⁴<L. The radial cutoffs are flat at the chart boundaries.
 
-I2v checks the stated rational comparisons, including the profile lower bounds
-and the final counts. These are analytic bounds, not numbers inferred from a
-sample. Numerical measurements of the separate blocks are recorded in §11.8.
+I2v checks the profile lower bounds from step 1, the final powers of ten,
+the counts (11.14), and agreement with the implementation: ALL PASS.
+C29a–h check the specified exact identities; the intervening differential
+inequalities are the type-(c) certificate above, independently audited
+line by line. None of its bounds is inferred from the samples in §11.8.
 
 ### 11.5 Fixed finite projection and phase formulas
 
@@ -2247,7 +2485,7 @@ point:
 
   N=4L+1,              L_g=32(N+1)L,              K=8L_g+1.  (11.14)
 
-They have 115, 231 and 232 decimal digits, respectively. Finite products and sums
+They have 8001, 16003 and 16004 decimal digits, respectively. Finite products and sums
 below are abbreviations for finite compositions of elementary functions with
 these exact counts. There is no limiting operation or unspecified mesh choice.
 
@@ -2361,22 +2599,98 @@ g_j(B_ρ) contains B_c; D only rearranges B_c. The raw and patched maps
 agree on the boundary and have the same ball image; (11.12h)–(11.12j)
 give an elementary inverse and injectivity. Their
 images are disjoint cusp neighbourhoods. The replacement is smooth with
-invertible differential, including at z_L=0. This proves a diffeomorphism
-G_W:S⁴→W, without a numerical degree or Nijenhuis assumption.
+invertible differential, including at z_L=0. Given the new height
+certificate, this argument establishes a diffeomorphism G_W:S⁴→W,
+without a numerical degree or Nijenhuis assumption.
 
 Restore the torus by §8.5's **explicit τ⁻¹**, using **H_f from (10.3)** for
 that trivialization. This is independent of the inverse-first height a used to
 parametrize the orbit space. Both heights are deck-equivariant; τ requires only
 this property and its smooth central extension. On reduced representatives
 A=eν²|x_s|²≤1 and Y=|y_s|²≤1. The additional .5<a<.6 chart has
-A≤exp(2·.1·4)<9/4 and Y≤1, by the endpoint expressions in (11.5)
-and |P|<4 in the collar; in the core the stronger A<exp(.2) holds.
+A≤exp(κ·.1)≤exp(.8)<exp(1)<3 and Y≤1, by the exact open
+endpoint expressions following (11.6a); in the core κ=2 and the
+stronger A<exp(.2) holds.
+On the adjacent −.6<a<−.5 chart, the same endpoint expressions give
+A≤1 and Y≤exp(κ·.1)≤exp(.8)<exp(1)<3.
 The small patched cap also has A,Y<1. Thus A,Y<3 everywhere used here.
 Thus the four-seed formula with its exact q² tail applies everywhere it is
 needed, including both axes. On a collar use D₀,D_∞ and Φ/Θ exactly as in
-§8.5. C6/C12 prove the gluing for any such height. The result is
+§8.5. C6/C12 prove the gluing for any such height. The inverse-first formula is
 
   G_cl(Z,X,φ)=τ_f⁻¹(G_W(Z,X),φ).                             (11.18)
+
+The finite forward formula reverses these steps. Given a Y-point y,
+first compute its orbit point w=[y] and its torus coordinate φ(y), using
+H_f from (10.3) in τ_f. In a cusp use the **node-adapted** representative
+before testing a cap. For t_c≠0 set ρ=log|y_s|, P<0,
+k_d=floor(ρ/P), h=m(t_c)t_c, and
+
+  (x₀,y₀)=(x_s h^(k_d),y_s h^(−k_d)),
+  m(t_c)=ν exp[−2|t_c|²/(1−|t_c|²)],
+  s=ν²|x₀|²+|y₀|².                                       (11.18a)
+
+The displayed deck reduction puts q≤|y₀|²≤1. On t_c=0 use the
+node-side axis representative: a y-axis point with |y_s|>1 is carried by
+ψ̂ to (1/(ν y_s),0), and an x-axis point with ν|x_s|>1 is carried by
+ψ̂⁻¹ to (0,1/(ν x_s)); otherwise use the given axis coordinates.
+For a point first supplied in a middle chart whose orbit lies in a pole
+cap, use Φ or Θ to obtain this cusp representative before the cap test.
+Compute the torus coordinate from the same reduction. The four-seed
+formula of §10.3 evaluates H_f(x₀,y₀) on its bounded A,Y domain;
+deck equivariance gives H_f(x_s,y_s)=H_f(x₀,y₀)+k_d because
+H_f(ψ̂p)=H_f(p)+1. Thus in a cusp φ=C−H_f(x_s,y_s)c̃,
+with C and c̃ from §8.5. On an axis use the corresponding adjacent
+deck integer in this same formula. In a middle chart, perform the same
+reduction for each active cusp H_f in D₀ or D_∞ before using
+φ=x₂₃−β₀D₀−β_∞D_∞. This keeps every four-seed evaluation in its
+stated bounded domain, even for a deck-shifted source chart.
+This reduction is essential: an arbitrary U₀ spinor does not give the
+source-side cap radius. If s<2·10⁻⁶, let
+z_L=H_j⁻¹(ν_j conj(x₀),y₀) and compute the candidate X,Z by (11.17a).
+Use that cap formula when 1−|X|<α/2. Otherwise use the free formula
+below. Every target point selected by the cap has s<2·10⁻⁶ by the bound
+preceding (11.17a). If the candidate fails the cap test, then
+1−|X|≥α/2. Since z_L∈B_(R_*), one has
+h=s_j|z_L|²<2π·10⁻⁴<1 here, and
+1−(1−h)/√(1+h²)≤2h≤2s_j|z_L|²<16|z_L|²,
+one has |z_L|²>α/32>2ε; hence H_j=g_j and the raw
+orbit formula applies. At a node
+the cap formula uses H_j⁻¹(0)=0 and no argument or Hopf division.
+If s≥2·10⁻⁶, a point with 1−|X|<δ<α/2 would lie in the
+cap image and have s<2·10⁻⁶ by the preceding cap bound. In that
+cap representative u=ν²|x₀|², Y=|y₀|² satisfy q=e uY<Y<1 when
+t_c≠0, so P<log|y₀|<0 and floor(log|y₀|/P)=0; at t_c=0 both
+axis moduli are below one. Thus the source selector uses this same cap
+representative. Moreover, in that core
+|eν²|x₀|²−|y₀|²|≤s<2·10⁻⁶, λ=0 and f=a on
+|a|≤1/10, so the source height has |a|<2·10⁻⁶. The floor
+reduction therefore selects exactly this node chart; at t_c=0 its
+nonzero axis modulus is <1 and the axis rule selects the same chart.
+This contradicts s≥2·10⁻⁶.
+Thus every free branch has X∈[X₋,X₊], where its projector is defined.
+
+For the free formula, compute the raw orbit coordinates (v,X) of w.
+Here the cusp height is obtained by the displayed f⁻¹ in (11.4)
+applied to eν²|x₀|²−|y₀|², followed by the elementary profile and
+radial maps (9.1)–(9.4); in a middle chart use its existing elementary
+coordinates. Put n=v/(1−X²), choose either explicit Hopf reference
+ξ_ref(n) from §8.4, and evaluate E_c(n,X;ξ_ref) by (11.15)–(11.16).
+Then
+
+  λ_W=E_c(n,X;ξ_ref)* e(w) ∈S¹,
+  F_cl(y)=(√(1−X²) λ_W ξ_ref(n),X,φ(y)).                (11.18b)
+
+Changing the Hopf reference multiplies both E_c and ξ_ref by the same
+unit phase, leaving (11.18b) unchanged. On the cap/slab overlap,
+E_c=d_j and H_j=g_j, so (11.17a) and (11.18b) agree. Fibre
+equivariance and reversal of every finite scalar block give the two
+compositions F_cl∘G_cl=id and G_cl∘F_cl=id. The height checks and
+derivative review are recorded in §§11.2, 11.4 and 11.8. C20d checks the reverse
+projector-phase algebra, C28i checks the cap sphere inverse, and
+C29f checks the unit-phase/Hopf forward recovery algebra. The source-side
+piece-selector domains are proved just above; reduced-count end-to-end
+compositions are a separate numerical safety check.
 
 Every value in (11.18) uses finitely many arithmetic operations, positive square
 roots, exp, log, sin, cos and arctan, together with flat-step pieces and atlas
@@ -2405,7 +2719,7 @@ fixed counts (11.14). On an argument chart D Arg z=Im(dz/z). Differentiate
 one smooth local representative; at a selector seam use the overlapping chart.
 Write every squared complex modulus as (Re z)²+(Im z)² before differentiating.
 At a central fibre use (11.6a) and the smooth profile inverse just displayed;
-at a pole use the identity piece of (11.12). No derivative of a polar 0/0 is needed.
+at a pole use the identity piece of (11.12h). No derivative of a polar 0/0 is needed.
 For other phase representatives (including the final λ), use the same two open
 argument charts centred at 0 and π, with the elementary formulas
 2 atan(Im z/(|z|+Re z)) and π+2 atan(−Im z/(|z|−Re z)).
@@ -2434,7 +2748,7 @@ when taking a conjugate. On an argument chart the rule is
 with coefficient vector zero on its constant pieces. For a nonzero real value,
 the absolute-value rule is (v,w)↦(|v|,sign(v)w). At zero, simplify the surrounding
 constant plateau first; use f=a on |a|≤.1. At a height-cell seam use its open
-endpoint formula above (and its linear collar blend), rather than differentiating
+κ-dependent endpoint formula above, rather than differentiating
 the floor selector. Choose a local chart using
 the value components; its integers stay constant in that open chart. The six
 coefficient components of the three complex outputs are precisely the rows of M
@@ -2442,24 +2756,24 @@ in (11.19). C24 verifies these arithmetic rules. Thus this is a finite scalar
 coefficient prescription with explicit constants and finite elementary operations,
 not merely a formula that assumes an unspecified coordinate Jacobian is known.
 
-Since G_cl is a diffeomorphism, det M≠0. Its pulled-back holomorphic charts
+Under the new-height certificate, G_cl is a diffeomorphism, so det M≠0. Its pulled-back holomorphic charts
 are a complex atlas on the whole standard round S⁴×T². Therefore J_cl is
 smooth, J_cl²=−Id and N_(J_cl)=0. In the ambient convention,
 (J_cl^ambient)²=−P_T and J_cl^ambient P_T=P_T J_cl^ambient=J_cl^ambient.
 C9/C10 check these matrix and naturality identities generically; their essential
-invertibility and gluing hypotheses have been supplied above. No manuscript
-input (I1)–(I3) or 2026 preprint is used. This is a new parametrization of the
+invertibility and gluing hypotheses are established for the new height above.
+No manuscript input (I1)–(I3) or 2026 preprint is used. This is a new parametrization of the
 paper's same holomorphic Y, hence defines that complex manifold on S⁴×T²;
 it is not asserted to give identical coefficients to the legacy fitted map.
 
 **Expression-class distinction.** (11.19) is a finite elementary, globally glued
-closed expression for J. It is not a compact or feasible-to-expand expression:
-its fixed sums/products have the enormous counts (11.14). The inverse map
-F_cl=G_cl⁻¹ exists smoothly. Its pole patch now has the elementary inverse
-(11.12h), but inverting the global height (11.3) in its transition can still
-require an implicit solve. That inverse does not occur in J_cl. Thus this closes the tensor expression
-by an inverse-first construction; it does not establish the stronger request in
-§0 for an elementary pair F and G. No impossibility of such a pair is claimed.
+closed expression for J under the new-height certificate above. It is not
+a compact or feasible-to-expand expression: its fixed sums/products have the
+enormous counts (11.14). Formula (11.18b), together with the cap branch,
+gives a finite elementary inverse F_cl in the same expression class. The
+old inverse-first implementation and its tests alone establish neither the new
+height nor this stronger inverse pair; the new identities and type-(c)
+bounds above supply the certificate. The statement requires human review.
 
 ### 11.7 Implementation and verification status
 
@@ -2467,14 +2781,24 @@ by an inverse-first construction; it does not establish the stronger request in
 rational numbers/integers. `elementary_projection_section`, `elementary_phase_family`,
 `elementary_global_slice`, `elementary_pole_patch`, `elementary_pole_forward`,
 `scalar_finite_height`, `elementary_restore_torus` and
-`elementary_global_coordinates` implement (11.12h) and (11.15)–(11.18) independently of the
-legacy numerical evaluator. The defaults are the certified counts. An explicit
+`elementary_global_coordinates` now implement the terminal-cut height
+(11.3)–(11.4), the pole patch (11.12h), and (11.15)–(11.18)
+independently of the legacy numerical evaluator. The new
+`elementary_forward_moment` and `elementary_cusp_height_chart` evaluate the
+finite forward height, and `elementary_global_forward` evaluates (11.18b)
+with the cap selector. The defaults use the revised counts (11.14).
+The 38-case reduced-count two-way implementation check passes, including
+four exact half-cell seams compared modulo the middle lattice.
+An explicit
 `max_work` guard prevents an accidental astronomical calculation; the parameter
 specification and pole formula can be evaluated immediately. Supplying smaller
 counts defines different finite maps for numerical checks. Such checks do not
 certify those smaller counts globally and are not described as evaluation of the
 full certified expression. The code checks actual nonzero/right-half-plane
-conditions on each evaluated path. The `mpmath` pole evaluator has two precision
+conditions on each evaluated path. The scalar `mpmath` evaluator also takes
+guarded identity shortcuts near the flat terminal and radial seams; its
+numerical output is at working precision, while (11.3)–(11.4) define the
+exact symbolic map. The `mpmath` pole evaluator has two precision
 shortcuts, justified by the following type (c) bounds; the exact symbolic
 definition remains (11.12h). Write \(a=10^{-8}\), \(c=3a/2\), and let
 \(d=\texttt{dps}\geq1\). At the inner guard put \(r=|z|^2\),
@@ -2518,35 +2842,43 @@ thus \(|D_0(q)|<22\), \(|\ell|<44q\), and \(c+t\ell>c/2\). Hence
 \(S^{-1}(r)\), apply the same bound at \(r'=S^{-1}(r)>r\):
 \(q_{r'}<q_r\) and \(|r'-r|/r<176q_r\). Each is below working precision.
 
-The global claim in this section is a new statement for human review. Verification
-of its new implementations and the numerical safety net is recorded in §11.8;
-neither huge certified product has been numerically evaluated.
+The global tensor and inverse-pair statement require human review.
+The checks include the new height, individual exact identities, and
+reduced-count end-to-end F_cl compositions. Neither huge
+fixed-count product has been numerically evaluated.
 
 ### 11.8 Checks, margins and scope of the result
 
-The following new checks pass. Identities and explicit rational inequalities are
-in the symbolic suites; the listed sampled values and derivatives are numerical
-observations, type (d), and do not replace the written certificates.
+The following table separates current checks from earlier historical
+measurements. C29a–h pass for the individual new algebraic identities
+specified in §§11.2, 11.4 and 11.6. They do not certify the parameter
+bounds or the complete global F_cl composition. Sampled values and
+derivatives are numerical observations, type (d).
 
 | Check | Result and margin |
 |---|---|
 | C21–C22 | deck/branch identities, norm square, north stereographic inverse, Hopf projector and horizontal derivative identities: ALL PASS |
-| C23–C24 / I2t–v | quadratic height, projection-phase and finite coefficient rules, all explicit endpoint constants and implemented counts: ALL PASS |
+| C23–C24 / I2t–v | quadratic height, projection-phase and finite coefficient rules, specified endpoint arithmetic and implemented counts: ALL PASS |
 | C25a–d | raw-cap forward projection, south raw-base norm expansion and sixth-order divisibility obstruction: ALL PASS; the explicit obstruction coefficient η<−46 |
 | C25e, numerical | 18 independent raw-cap forward compositions on both caps; maximum relative error 6.3·10⁻⁶⁸ |
 | C26a–c, earlier blend | projector anticommutator, Hopf vector of the earlier shell blend, phase projection and blended norm: ALL PASS |
 | C26d, numerical, earlier blend | 30 two-cap earlier-shell endpoint/interior base, norm and phase compositions; maximum relative residual 4.1·10⁻⁶⁷ |
 | C27a–c | south raw-base quadratic jet, normalized-projector cubic jet and nonpolynomial real-plane component: ALL PASS |
 | C28a–d,h–i | elementary radial inverse, seam identities, raw-collar and cap-domain margins, rational north stereographic inversion and forward-cap identity: ALL PASS |
+| C29a–h, new height | quadratic F inverse/derivative, convex tail, tuned endpoint derivative, positive quadratic root/open seam, one-soft b_R′ and its inverse coordinates, unit-phase/Hopf recovery, and cusp torus reversal: ALL PASS |
+| C29i, numerical | 1999 fixed radial-derivative samples; max \|b_R′\|=3.301394, measured margin 196.698606 to the proved bound 200 |
+| New terminal-cut height, C23d | 132 value/deck/collar cases and 108 seam jets through order three: error 6.4·10⁻⁸⁶; sampled f_a∈[.466903,6.682791] versus proved type-(c) bound (11.13c) |
+| New two-way height and forward evaluator, numerical | 276 cell/seam/axis/node compositions, error 1.0·10⁻⁵⁶; 38 reduced-count cap/free, exact half-cell seam, deck/lattice and independent-source compositions, error 1.2·10⁻⁵⁴ |
 | C28e, numerical | 120 two-cap patch/inverse compositions, relative error <2·10⁻⁶⁸; sampled raw-collar residual zero at 85-digit working precision; phase-equivariance error <2·10⁻⁸⁶; sampled source squared radius <1.701·10⁻⁶ versus proved <2·10⁻⁶ |
 | C28f, numerical | 10 two-cap inverse-Jacobian compositions, entrywise residual <2·10⁻²⁴; all sampled determinants positive |
 | C28g, numerical | 120 production versus independent pole-patch/forward comparisons, relative error <2·10⁻⁶⁸ |
-| Elementary height | 132 value/deck/collar cases and 108 seam jets through order three; error 6.4·10⁻⁸⁶; sampled f_a∈[1,4.536928] versus proved [8/9,14] |
+| Earlier elementary height, historical | 132 value/deck/collar cases and 108 seam jets through order three; error 6.4·10⁻⁸⁶; sampled f_a∈[1,4.536928] versus its earlier proved [8/9,14] |
 | Open central-axis charts | 12 comparisons with the closed logarithmic inverse and 12 cell-seam jets, error 2.6·10⁻⁸⁶; 8 exact axis representatives also pass embedding and torus restoration checks |
 | Inverse-first caps, earlier blend | 64 independent forward compositions, relative error 2.1·10⁻⁶³; sampled value/derivative defect constants 2.552/11.348 versus proved 200/5000; sampled earlier-blend defect 3.2·10⁻⁷ versus proved 13200ε=1.32·10⁻⁴<1/1000 |
 | Concrete torch embedding | 4096 tests for each earlier height, error ≤4.7·10⁻¹⁴; per height/cusp 1024 chart comparisons, 256 exact-axis tangent comparisons (≤8.6·10⁻¹⁰) and 128 exact homogeneous cap models |
 | Elementary scalar embedding/torus | 70 cusp/collar cases, including branch, deck and circle changes and an independent torch torus check; embedding error 7.4·10⁻⁵⁶ |
-| Raw global base/projector | 96 round trips, error 1.4·10⁻⁴⁷; projector residual 2.0·10⁻⁵⁶; 16 derivative samples give maximum Frobenius norm 32.8697 versus the proved operator bound 10¹¹⁴ |
+| Earlier raw global base/projector, historical | 96 round trips, error 1.4·10⁻⁴⁷; projector residual 2.0·10⁻⁵⁶; 16 derivative samples give maximum Frobenius norm 32.8697 versus the earlier proved operator bound 10¹¹⁴ |
+| New global projector, numerical | 16 derivative samples give maximum Frobenius norm 32.8697 versus the proved operator bound 10⁸⁰⁰⁰; the analytic certificate is (11.13) |
 | Finite real logarithm with interval parameter | 12 tests with multiple turns of phase and both real chart values, error 2.5·10⁻⁵⁴ |
 | Full pole/slab overlap, **reduced counts N=512,K=32** | errors 3.1·10⁻⁶⁰ and 1.2·10⁻⁵⁴; sampled projection norm ≥.05504, phase increment real part ≥.91584 |
 | Elementary pole shells | 8 production forward/inverse compositions, relative error <2·10⁻⁷⁶; 2 cap tensors inside the new shell, J²=−I and minimum sampled \|det DG\|=.00633258 |
@@ -2585,11 +2917,9 @@ All four symbolic suites pass. Both manuscript Python checks pass; LaTeX is
 These legacy tests protect the existing construction; they are not numerical
 evaluation of the huge new expression.
 
-The finite global tensor statement, with its explicit derivative and gluing
-proof, is new and requires human review under AGENTS.md. Its exact expression
-class is fixed finite elementary compositions on a finite atlas, with the counts
-(11.14) fully specified. No claim of numerical execution of those products, a
-compact expanded matrix, or a finite elementary inverse F_cl is made. The inverse
-pair remains a separate open campaign objective. No general impossibility theorem
-for that stronger objective follows from this work. Legacy I3–I5/T14 also remain
-open for their original fitted evaluator.
+The two-way finite elementary inverse-pair statement requires human review
+under AGENTS.md. The proof is the blockwise identities and type-(c)
+certificates above; the reduced-count forward and tensor checks are numerical
+safety checks. The fixed products (11.14) have not been numerically executed,
+and no smaller counts have been certified. Legacy I3–I5/T14 remain open for
+their original fitted evaluator.

@@ -469,32 +469,195 @@ def scalar_flat_step(u):
     return a/(a+b)
 
 
-def inverse_height_moment(a,q):
-    """Elementary inverse-first moment f(a,q), |a|<=1/2, 0<=q<=1/8.
-
-    f_a>=8/9. It equals a near zero and the prescribed exponential near each
-    cell endpoint. This defines the inverse height, not a new named inverse.
-    """
+def _terminal_height_data(q,lam):
+    """Parameters of the terminal-cut height conjugation."""
     import mpmath as mp
-    a,q = mp.mpf(a),mp.mpf(q)
-    if abs(a)>mp.mpf('.5') or not 0<=q<=mp.mpf('.125'):
-        raise ValueError('inverse moment requires |a|<=1/2 and 0<=q<=1/8')
+    if lam==0:
+        kappa,amp,d = mp.mpf(2),mp.mpf(0),mp.mpf(1)
+    else:
+        if q<=0:
+            raise ValueError('positive collar weight requires q>0')
+        k = -mp.log(q)
+        kappa = 2+lam*(k-2)
+        amp = lam*k
+        d = 1-lam+2*lam*mp.sqrt(q)*k
+    B,C = mp.exp(-kappa/2),q*mp.exp(kappa/2)
+    z0 = B-C
+    zcut = B*mp.exp(mp.mpf('.4')*kappa)-C*mp.exp(-mp.mpf('.4')*kappa)
+    eta = mp.mpf('.01')
+    E0 = mp.exp(eta/zcut)
+    Acut = mp.exp(eta/(zcut-z0))
+    Lambda = mp.exp(Acut-E0)
+    Eprime0 = E0*eta/zcut**2
+    Eprime_z0 = Acut*eta/(zcut-z0)**2
+    mu = d*Eprime0/(kappa*(B+C)*Eprime_z0)
+    return kappa,amp,d,B,C,z0,zcut,eta,E0,Acut,Lambda,mu
+
+
+def _height_G(a,amp,d,inverse=False):
+    import mpmath as mp
+    if amp==0:
+        return a/d if inverse else d*a
+    return mp.asinh(amp*a/d)/amp if inverse else d*mp.sinh(amp*a)/amp
+
+
+def _height_R(value,inverse=False):
+    """Shifted flat map R:(.1,infinity)->(0,infinity), or its inverse."""
+    import mpmath as mp
+    delta,c = mp.mpf('.1'),mp.mpf('.2')
+    if inverse:
+        if value<=0:
+            return delta
+    elif value<=delta:
+        return mp.mpf(0)
+    if value>=c:
+        return value
+    # The outer-seam identity bounds |R(v)-v| and |R^{-1}(v)-v| by
+    # 32c exp(-c/(c-v)); this branch is below the working precision.
+    if c/(c-value)>(mp.mp.dps+10)*mp.log(10):
+        return value
+    if inverse:
+        y = mp.e*mp.expm1(value/(c-value))
+        L = y+mp.log1p(-mp.exp(-y)) if y>1 else mp.log(mp.expm1(y))
+        x = (2/(mp.sqrt(L*L+4)-L) if L<0 else
+             (L+mp.sqrt(L*L+4))/2)
+        ell = mp.log1p(x/mp.exp(2))
+        return delta+c*ell/(2*(2+ell))
+    x = mp.exp(2)*mp.expm1(2*(value-delta)/(c-value))
+    F = x-1/x
+    soft = (mp.log1p(mp.exp(F)) if F<0 else
+            F+mp.log1p(mp.exp(-F)))
+    ell = mp.log1p(soft/mp.e)
+    return c*ell/(1+ell)
+
+
+def _height_terminal_forward(delta_z,data):
+    """T(z0+delta_z), using shifted differences at z0."""
+    import mpmath as mp
+    _,_,_,_,_,z0,zcut,eta,E0,Acut,Lambda,mu = data
+    gap0 = zcut-z0
+    if delta_z<=0:
+        return mp.mpf(0)
+    if delta_z>=gap0:
+        return z0+delta_z
+    gap = gap0-delta_z
+    L = eta/gap
+    Ez = mp.exp(L)
+    C0,C1 = 1+mu-2*Lambda,Lambda-mu
+    K = 1+abs(C0)*mp.exp(E0)+abs(C1)*mp.exp(E0+Acut)
+    if Ez>(mp.mp.dps+20)*mp.log(10)+mp.log(K):
+        # 1+F(expm1(Ez-Acut))=exp(Ez-E0)*(1+D), |D|<K exp(-Ez).
+        # The inverse E changes z by less than the working precision.
+        return z0+delta_z
+    if Ez>50:
+        D = C0*mp.exp(E0-Ez)+C1*mp.exp(E0+Acut-2*Ez)
+        correction = mp.log1p(D)
+        ell = mp.log1p(correction/Ez)
+        z = z0+delta_z
+        return z+eta*ell/(L*(L+ell))
+    x = Acut*mp.expm1(eta*delta_z/(gap*gap0))
+    u = mp.expm1(x)
+    F = (Lambda*u*u+mu*u)/(1+u)
+    M = mp.log1p(F)
+    ell = mp.log1p(M/E0)
+    return zcut*ell/(eta/zcut+ell)
+
+
+def _height_terminal_inverse_delta(y,data):
+    """T^{-1}(y)-z0, including the flat terminal-cut seam."""
+    import mpmath as mp
+    _,_,_,_,_,z0,zcut,eta,E0,Acut,Lambda,mu = data
+    if y<=0:
+        return mp.mpf(0)
+    if y>=zcut:
+        return y-z0
+    L = eta/(zcut-y)
+    Ey = mp.exp(L)
+    C0,C1 = 1+mu-2*Lambda,Lambda-mu
+    K = 1+abs(C0)+2*Lambda*abs(C1)
+    if Ey>E0+(mp.mp.dps+20)*mp.log(10)+mp.log(K):
+        # With tau=exp(E0-Ey), the large quadratic root h below obeys
+        # |h-1|<K*tau, so T^{-1}(y)-y is below working precision.
+        return y-z0
+    if Ey>50:
+        tau = mp.exp(E0-Ey)
+        h = (1-C0*tau+mp.sqrt((1-C0*tau)**2-4*Lambda*C1*tau*tau))/2
+        ell = mp.log1p(mp.log(h)/Ey)
+        z = y+eta*ell/(L*(L+ell))
+        return z-z0
+    V = E0*mp.expm1(eta*y/((zcut-y)*zcut))
+    w = mp.expm1(V)
+    coeff = mu-w
+    disc = mp.sqrt(coeff*coeff+4*Lambda*w)
+    u = (2*w/(disc+coeff) if coeff>=0 else
+         (w-mu+disc)/(2*Lambda))
+    x = mp.log1p(u)
+    ell = mp.log1p(x/Acut)
+    L0 = eta/(zcut-z0)
+    return eta*ell/(L0*(L0+ell))
+
+
+def _height_g_inverse_delta(delta_z,data):
+    """g^{-1}(z0+delta_z), rationalized at the inner endpoint."""
+    import mpmath as mp
+    kappa,_,_,B,C,_,_,_,_,_,_,_ = data
+    if delta_z<=0:
+        return mp.mpf(0)
+    coeff = B+C-delta_z
+    disc = mp.sqrt(coeff*coeff+4*B*delta_z)
+    xi = (2*delta_z/(disc+coeff) if coeff>=0 else
+          (-coeff+disc)/(2*B))
+    return mp.log1p(xi)/kappa
+
+
+def inverse_height_moment(a,q,lam):
+    """Terminal-cut elementary moment f(a,q,lam), |a|<=1/2."""
+    import mpmath as mp
+    a,q,lam = mp.mpf(a),mp.mpf(q),mp.mpf(lam)
+    if (abs(a)>mp.mpf('.5') or not 0<=q<=mp.mpf('.125') or
+            not 0<=lam<=1 or (lam>0 and q<mp.mpf(1)/2500)):
+        raise ValueError('inverse moment is outside the certified (q,lam) domain')
+    data = _terminal_height_data(q,lam)
+    kappa,amp,d,B,C,z0,_,_,_,_,_,_ = data
     aa = abs(a)
-    if aa<=mp.mpf('.1'):
-        return a
-    weight = scalar_flat_step((aa-mp.mpf('.1'))/mp.mpf('.2'))
-    E = mp.exp(2*(aa-mp.mpf('.5')))
-    return mp.sign(a)*((1-weight)*aa+weight*(E-q/E))
+    if lam==1 or aa<=mp.mpf('.1'):
+        return _height_G(a,amp,d)
+    if aa>=mp.mpf('.4'):
+        return mp.sign(a)*(B*mp.exp(kappa*aa)-C*mp.exp(-kappa*aa))
+    u = _height_R(aa)
+    delta_z = B*mp.expm1(kappa*u)-C*mp.expm1(-kappa*u)
+    v = _height_terminal_forward(delta_z,data)
+    return mp.sign(a)*_height_G(_height_R(_height_G(v,amp,d,inverse=True),inverse=True),amp,d)
+
+
+def elementary_forward_moment(value,q,lam):
+    """Finite elementary inverse of inverse_height_moment on its range."""
+    import mpmath as mp
+    value,q,lam = mp.mpf(value),mp.mpf(q),mp.mpf(lam)
+    if (abs(value)>1-q or not 0<=q<=mp.mpf('.125') or
+            not 0<=lam<=1 or (lam>0 and q<mp.mpf(1)/2500)):
+        raise ValueError('forward moment is outside the certified (q,lam) domain')
+    data = _terminal_height_data(q,lam)
+    _,amp,d,_,_,_,_,_,_,_,_,_ = data
+    target = abs(value)
+    if lam==1 or target<=_height_G(mp.mpf('.1'),amp,d):
+        return mp.sign(value)*_height_G(target,amp,d,inverse=True)
+    v = _height_G(target,amp,d,inverse=True)
+    u = _height_R(v)
+    y = _height_G(u,amp,d)
+    delta_z = _height_terminal_inverse_delta(y,data)
+    raw = _height_g_inverse_delta(delta_z,data)
+    return mp.sign(value)*_height_R(raw,inverse=True)
 
 
 def elementary_cusp_logradius(a,t,nu=1,dps=50):
-    """Elementary inverse cusp height including its full collar.
+    """Elementary inverse cusp height with terminal-cut two-way moment.
 
     The output has rho(a+1)=rho(a)+P, with all jets matching at cell seams.
     No special function, implicit solve, series or quadrature is evaluated.
     """
     import mpmath as mp
-    with mp.workdps(max(mp.mp.dps,dps)+20):
+    with mp.workdps(max(mp.mp.dps,dps)+50):
         a,t,nu = mp.mpf(a),mp.mpc(t),mp.mpf(nu)
         r = abs(t)
         if not 0<r<=mp.mpf('.5') or not 0<nu<=1:
@@ -503,12 +666,59 @@ def elementary_cusp_logradius(a,t,nu=1,dps=50):
         q = mp.exp(2*P)
         n = mp.floor(a+mp.mpf('.5'))
         b = a-n
-        f = inverse_height_moment(b,q)
+        lam = scalar_flat_step((r-mp.mpf('.3'))/mp.mpf('.2'))
+        if lam==1:
+            return +(P*(a+mp.mpf('.5')))
+        f = inverse_height_moment(b,q,lam)
         root = mp.sqrt(f*f+4*q)
         Y = 2*q/(root+f) if f>=0 else (root-f)/2
-        rho0 = mp.log(Y)/2
-        lam = scalar_flat_step((r-mp.mpf('.3'))/mp.mpf('.2'))
-        return +(n*P+(1-lam)*rho0+lam*P*(b+mp.mpf('.5')))
+        return +(n*P+mp.log(Y)/2)
+
+
+def elementary_cusp_height(rho,t,nu=1,dps=50):
+    """Finite elementary forward height for t!=0, inverse to logradius."""
+    import mpmath as mp
+    with mp.workdps(max(mp.mp.dps,dps)+50):
+        rho,t,nu = mp.mpf(rho),mp.mpc(t),mp.mpf(nu)
+        radius = abs(t)
+        if not 0<radius<=mp.mpf('.5') or not 0<nu<=1:
+            raise ValueError('elementary cusp height requires 0<|t|<=.5 and 0<nu<=1')
+        P = mp.log(nu)+mp.log(radius)-2*radius*radius/(1-radius*radius)
+        lam = scalar_flat_step((radius-mp.mpf('.3'))/mp.mpf('.2'))
+        if lam==1:
+            return +(rho/P-mp.mpf('.5'))
+        q = mp.exp(2*P)
+        n = mp.floor(rho/P)
+        Y = mp.exp(2*(rho-n*P))
+        value = q/Y-Y
+        return +(n+elementary_forward_moment(value,q,lam))
+
+
+def elementary_cusp_height_chart(x,y,nu=1,dps=50):
+    """Source-coordinate forward height on a chart, including the two axes.
+
+    On an axis this uses the U_0 core domain |a|<.6, or squared nonzero
+    coordinate <exp(.2) in the normalized radial coordinate. At the node,
+    a=0 is the smooth local value of (11.7). The global map uses its
+    pole-cap formula there before any phase or Hopf normalization.
+    """
+    import mpmath as mp
+    with mp.workdps(max(mp.mp.dps,dps)+50):
+        x,y,nu = mp.mpc(x),mp.mpc(y),mp.mpf(nu)
+        if not 0<nu<=1:
+            raise ValueError('elementary cusp height requires 0<nu<=1')
+        if x!=0 and y!=0:
+            return +elementary_cusp_height(mp.log(abs(y)),x*y,nu,dps)
+        if x==0 and y==0:
+            return mp.mpf(0)
+        radius = nu*nu*abs(x)**2 if y==0 else abs(y)**2
+        if radius>=mp.exp(mp.mpf('.2')):
+            raise ValueError('axis height chart requires |a|<.6')
+        if radius>1:
+            aa = mp.mpf('.5')+mp.log(radius)/2
+        else:
+            aa = elementary_forward_moment(radius,mp.mpf(0),mp.mpf(0))
+        return +(aa if y==0 else -aa)
 
 
 def elementary_cusp_reference(t,a,nu=1):
@@ -526,7 +736,7 @@ def elementary_cusp_reference(t,a,nu=1):
     q = e*nu*nu*abs(t)**2
     cell = int(mp.floor(a+mp.mpf('.5')))
     b = a-cell
-    f = inverse_height_moment(b,q)
+    f = inverse_height_moment(b,q,0)
     R = mp.sqrt(f*f+4*q)
     if a>0:
         A = 2/(R-f) if cell==1 else (R+f)/2
@@ -749,13 +959,13 @@ def elliptic_bundle_embedding(kind,data,dps=50,with_norm=False,elementary=False)
 
 
 def elementary_closed_parameters():
-    """Exact integers/rationals in programme 11; no enormous powers evaluated.
+    """Exact integers/rationals in programme 11; no enormous loops evaluated.
 
     These counts specify a finite expression, not a practical numerical method.
     The executable evaluator has an explicit work guard for that reason.
     """
     from fractions import Fraction
-    L = 10**114
+    L = 10**8000
     N = 4*L+1
     M = 32*(N+1)*L
     return dict(delta=Fraction(1,10**9),alpha=Fraction(1,10**5),
@@ -865,6 +1075,35 @@ def elementary_phase_family(g,n,X,anchor,steps,chart=None,diagnostics=None):
     return theta+primitive(a,upper)
 
 
+def _elementary_corrected_section(xi,X,N,K,dps,diagnostics):
+    """The finite E_c in (11.16), retaining its input Hopf phase."""
+    import mpmath as mp
+    alpha = mp.mpf('1e-5')
+    distance = 1-abs(X)
+    pc = 2*xi[0]*mp.conj(xi[1])
+    n = (pc.real,pc.imag,abs(xi[0])**2-abs(xi[1])**2)
+    result = elementary_projection_section(xi,X,N,dps,diagnostics)
+    if distance<alpha:
+        inf = X>0
+        anchor = 1-alpha if inf else -1+alpha
+        def mismatch(nn,h):
+            # Smooth reference on either hemisphere; mismatch is phase invariant.
+            if nn[2]>=0:
+                w = mp.sqrt((1+nn[2])/2)
+                xx = (w,mp.mpc(nn[0],-nn[1])/(2*w))
+            else:
+                w = mp.sqrt((1-nn[2])/2)
+                xx = (mp.mpc(nn[0],nn[1])/(2*w),w)
+            section = elementary_projection_section(xx,h,N,dps,diagnostics)
+            P = elliptic_meridian_projector(nn,h,dps=dps,elementary=True)
+            direct = _elementary_unit(P*mp.matrix(_elementary_pole_inclusion(xx,inf)))
+            return _elementary_inner(direct,section)
+        theta = elementary_phase_family(mismatch,n,X,anchor,K,diagnostics=diagnostics)
+        weight = 1-scalar_flat_step((distance-alpha/2)/(alpha/2))
+        result = tuple(a*mp.exp(-mp.j*weight*theta) for a in result)
+    return result
+
+
 def elementary_global_slice(Z,X,*,projection_steps=None,phase_steps=None,dps=50,
                             max_work=10**6,diagnostics=None,force_slab=False):
     """Finite elementary G_W of programme 11, as a W-chart representative.
@@ -900,27 +1139,9 @@ def elementary_global_slice(Z,X,*,projection_steps=None,phase_steps=None,dps=50,
         if max_work is not None and cost>max_work:
             raise ValueError('certified finite expression exceeds max_work; inspect elementary_closed_parameters()')
         xi = tuple(a/mp.sqrt(1-X*X) for a in Z)
+        result = _elementary_corrected_section(xi,X,N,K,dps,diagnostics)
         pc = 2*xi[0]*mp.conj(xi[1])
         n = (pc.real,pc.imag,abs(xi[0])**2-abs(xi[1])**2)
-        result = elementary_projection_section(xi,X,N,dps,diagnostics)
-        if cap_band:
-            inf = X>0
-            anchor = 1-alpha if inf else -1+alpha
-            def mismatch(nn,h):
-                # Smooth reference on either hemisphere; mismatch is phase invariant.
-                if nn[2]>=0:
-                    w = mp.sqrt((1+nn[2])/2)
-                    xx = (w,mp.mpc(nn[0],-nn[1])/(2*w))
-                else:
-                    w = mp.sqrt((1-nn[2])/2)
-                    xx = (mp.mpc(nn[0],nn[1])/(2*w),w)
-                section = elementary_projection_section(xx,h,N,dps,diagnostics)
-                P = elliptic_meridian_projector(nn,h,dps=dps,elementary=True)
-                direct = _elementary_unit(P*mp.matrix(_elementary_pole_inclusion(xx,inf)))
-                return _elementary_inner(direct,section)
-            theta = elementary_phase_family(mismatch,n,X,anchor,K,diagnostics=diagnostics)
-            weight = 1-scalar_flat_step((distance-alpha/2)/(alpha/2))
-            result = tuple(a*mp.exp(-mp.j*weight*theta) for a in result)
         kind,data = elliptic_raw_base_reference(tuple((1-X*X)*a for a in n),X,dps=dps,elementary=True)
         ref = elliptic_bundle_embedding(kind,data,dps=dps,elementary=True)
         phase = _elementary_inner(ref,result)
@@ -1011,6 +1232,205 @@ def elementary_restore_torus(kind,data,phi):
             D = tuple(xi[j+1]+(H-four+xi[3])*c[j] for j in range(2))
         C = [v+beta*d for v,d in zip(C,D)]
     return 'mid',(z-mp.j*t*C[0]-t*C[1],w+(1-t*t)*C[0]+mp.j*(1+t*t)*C[1],t)
+
+
+def _elementary_real_coeffs(rhs,e2,e3):
+    """The two real coefficients of a complex vector in a real basis."""
+    det = e2.real*e3.imag-e3.real*e2.imag
+    if det==0:
+        raise ValueError('degenerate cusp torus basis')
+    return ((rhs.real*e3.imag-e3.real*rhs.imag)/det,
+            (e2.real*rhs.imag-rhs.real*e2.imag)/det)
+
+
+def _elementary_cusp_basis(t,inf):
+    import mpmath as mp
+    return ((t*t-1,mp.j*(1+t*t),-2*t,t,mp.j*t) if inf else
+            (1-t*t,mp.j*(1+t*t),2*t,t,-mp.j*t))
+
+
+def _elementary_reduce_cusp(x,y,nu):
+    """Node-adapted deck representative and original deck exponent."""
+    import mpmath as mp
+    t = x*y
+    if t!=0:
+        radius2 = abs(t)**2
+        h = nu*mp.exp(-2*radius2/(1-radius2))*t
+        n = int(mp.floor(mp.log(abs(y))/mp.log(abs(h))))
+        factor = h**n
+        return x*factor,y/factor,n
+    if x==0 and y!=0 and abs(y)>1:
+        return 1/(nu*y),mp.mpc(0),-1
+    if y==0 and x!=0 and nu*abs(x)>1:
+        return mp.mpc(0),1/(nu*x),1
+    return x,y,0
+
+
+def _elementary_source_coordinates(kind,data,dps):
+    """Undo tau_f^-1: return a W representative and its real torus angles."""
+    import mpmath as mp
+    if kind in ('c0','ci'):
+        x,y,w = map(mp.mpc,data)
+        inf = kind=='ci'
+        nu = mp.exp(-2) if inf else mp.mpf(1)
+        t = x*y
+        if abs(t)>mp.mpf('.3'):
+            raise ValueError('cusp source chart requires |xy|<=.3')
+        e2,e3,e4,a2,a3 = _elementary_cusp_basis(t,inf)
+        C = _elementary_real_coeffs(w,e2,e3)
+        A = C[0]*a2+C[1]*a3
+        xs,ys = x*mp.exp(A),y*mp.exp(-A)
+        c = _elementary_real_coeffs(e4,e2,e3)
+        x0,y0,deck = _elementary_reduce_cusp(xs,ys,nu)
+        H = scalar_finite_height(x0,y0,nu)+deck
+        phi = tuple(C[j]-H*c[j] for j in range(2))
+        a = elementary_cusp_height_chart(x0,y0,nu,dps=dps)
+        return kind,(x0,y0,a),phi
+    if kind!='mid':
+        raise ValueError('source chart must be c0, ci, or mid')
+    z,w,t = map(mp.mpc,data)
+    if t==0:
+        raise ValueError('middle source chart requires t!=0')
+    lt = mp.log(t)
+    one,two,three,four = scalar_lattice_coords(z,w,t,lt)
+    phi = [two,three]
+    radius = abs(t)
+    b0 = 1-scalar_flat_step((radius-mp.mpf('.3'))/mp.mpf('.2'))
+    bi = 1-scalar_flat_step((1/radius-mp.mpf('.3'))/mp.mpf('.2'))
+    zw,ww = 2*mp.pi*one-mp.j*lt*four,2*t*four
+    height = None
+    cusp_candidate = None
+    for inf,tc,beta in ((False,t,b0),(True,1/t,bi)):
+        if beta==0:
+            continue
+        e2,e3,e4,a2,a3 = _elementary_cusp_basis(tc,inf)
+        c = _elementary_real_coeffs(e4,e2,e3)
+        if inf:
+            zc,wc = zw-mp.j*ww/t,ww/(t*t)
+        else:
+            s = lt/(2*mp.j*mp.pi)
+            zc,wc = zw-mp.pi*s*(s-1),ww-2*t*s
+        cc = _elementary_real_coeffs(-wc,e2,e3)
+        yy = mp.exp(mp.j*(zc-mp.j*(cc[0]*a2+cc[1]*a3)))
+        nu = mp.exp(-2) if inf else mp.mpf(1)
+        x0,y0,deck = _elementary_reduce_cusp(tc/yy,yy,nu)
+        if abs(tc)<=mp.mpf('.3'):
+            cusp_candidate = (inf,x0,y0)
+        H = scalar_finite_height(x0,y0,nu)+deck
+        height = elementary_cusp_height(mp.log(abs(yy)),tc,nu,dps=dps)
+        if inf:
+            D = tuple((H+four)*v for v in c)
+        else:
+            s = lt/(2*mp.j*mp.pi)
+            xi = scalar_lattice_coords(mp.pi*s*(s-1),2*t*s,t,lt)
+            D = tuple(xi[j+1]+(H-four+xi[3])*c[j] for j in range(2))
+        phi = [phi[j]-beta*D[j] for j in range(2)]
+    if cusp_candidate is not None:
+        inf,x0,y0 = cusp_candidate
+        nu = mp.exp(-2) if inf else mp.mpf(1)
+        a = elementary_cusp_height_chart(x0,y0,nu,dps=dps)
+        return ('ci' if inf else 'c0'),(x0,y0,a),tuple(phi)
+    wdata = (t,one,four,lt) if height is None else (t,one,four,lt,height)
+    return kind,wdata,tuple(phi)
+
+
+def _elementary_raw_orbit(kind,data):
+    """Algebraic-profile raw W/S1 -> (v,X), before pole conjugation."""
+    import mpmath as mp
+    inf = kind=='ci'
+    if kind=='mid':
+        t,one,four,lt = data[:4]
+        inf = abs(t)>1
+        tc = 1/t if inf else t
+        if len(data)>4:
+            a = -data[4]+mp.mpf('.5') if inf else data[4]
+        else:
+            s = lt/(2*mp.j*mp.pi)
+            xi4 = scalar_lattice_coords(mp.pi*s*(s-1),2*t*s,t,lt)[3]
+            if inf:
+                lam = 1-scalar_flat_step((abs(t)-mp.mpf('1.2'))/mp.mpf('.4'))
+                delta = mp.arg(t)/(2*mp.pi)-xi4
+                a = four+mp.mpf('.5')+lam*delta+(1-lam)/2
+            else:
+                a = four-xi4-mp.mpf('.5')
+    else:
+        x,y,a = data
+        tc = x*y
+    A,B = (4*mp.pi)**2,mp.exp(4)
+    if inf:
+        ratio = tc*mp.sqrt((abs(tc)**2+A)/(A*abs(tc)**2+B))
+        u1 = mp.exp(2*mp.pi*mp.j*(a if kind=='mid' else -a+mp.mpf('.5')))/mp.sqrt(1+abs(ratio)**2)
+        u2 = ratio*u1
+    else:
+        ratio = tc*mp.sqrt((A+B*abs(tc)**2)/(1+A*abs(tc)**2))
+        u2 = mp.exp(2*mp.pi*mp.j*a)/mp.sqrt(1+abs(ratio)**2)
+        u1 = ratio*u2
+    den = 1+u1.real
+    if den<=0:
+        raise ValueError('raw orbit reached the north stereographic pole')
+    w = (u1.imag/den,u2.real/den-1,u2.imag/den)
+    r2 = sum(v*v for v in w)
+    v = (2*w[0]/(1+r2),-2*w[2]/(1+r2),-2*w[1]/(1+r2))
+    X = (mp.sqrt(r2)-1)/mp.sqrt(1+r2)
+    return v,X
+
+
+def _elementary_hopf_reference(n):
+    import mpmath as mp
+    if n[2]>=0:
+        w = mp.sqrt((1+n[2])/2)
+        return (w,mp.mpc(n[0],-n[1])/(2*w))
+    w = mp.sqrt((1-n[2])/2)
+    return (mp.mpc(n[0],n[1])/(2*w),w)
+
+
+def elementary_global_forward(kind,data,*,projection_steps=None,phase_steps=None,
+                              dps=50,max_work=10**6,diagnostics=None):
+    """Finite F_cl from a bounded holomorphic Y-chart to S4 x T2.
+
+    Default certified counts retain the work guard of elementary_global_slice.
+    Smaller counts are test maps, not a global numerical certificate.
+    """
+    import mpmath as mp
+    with mp.workdps(max(mp.mp.dps,dps)+50):
+        wkind,wdata,phi = _elementary_source_coordinates(kind,data,dps)
+        if wkind in ('c0','ci'):
+            inf = wkind=='ci'
+            nu = mp.exp(-2) if inf else mp.mpf(1)
+            x,y = wdata[:2]
+            source_radius = nu*nu*abs(x)**2+abs(y)**2
+            if source_radius<mp.mpf('2e-6'):
+                spinor = (nu*mp.conj(x),y)
+                zz = elementary_pole_forward(spinor,inf,dps=dps)
+                scale = mp.pi if inf else 2*mp.pi
+                h = scale*sum(abs(v)**2 for v in zz)
+                X = (1 if inf else -1)*(1-h)/mp.sqrt(1+h*h)
+                if 1-abs(X)<mp.mpf('5e-6'):
+                    pair = ((zz[0]+zz[1])/mp.sqrt(2),(zz[0]-zz[1])/mp.sqrt(2)) if inf else (
+                        (zz[0]+zz[1])/mp.sqrt(2),mp.j*(zz[0]-zz[1])/mp.sqrt(2))
+                    Z = tuple(mp.sqrt(2*scale/(1+h*h))*v for v in pair)
+                    return Z,+X,tuple(+v for v in phi)
+        v,X = _elementary_raw_orbit(wkind,wdata)
+        if not -1+mp.mpf('1e-9')<=X<=1-mp.mpf('1e-9'):
+            raise ValueError('the finite slab forward formula excludes the inner pole caps')
+        params = elementary_closed_parameters()
+        N = params['projection_steps'] if projection_steps is None else projection_steps
+        K = params['phase_steps'] if phase_steps is None else phase_steps
+        cap_band = 1-abs(X)<mp.mpf('1e-5')
+        cost = (N+1)*(12*(K+1) if cap_band else 1)
+        if max_work is not None and cost>max_work:
+            raise ValueError('certified finite expression exceeds max_work; inspect elementary_closed_parameters()')
+        radius = 1-X*X
+        n = tuple(a/radius for a in v)
+        xi = _elementary_hopf_reference(n)
+        section = _elementary_corrected_section(xi,X,N,K,dps,diagnostics)
+        embedding = elliptic_bundle_embedding(wkind,wdata,dps=dps,elementary=True)
+        phase = _elementary_inner(section,embedding)
+        if abs(abs(phase)-1)>mp.mpf('1e-25'):
+            raise ValueError('forward embedding is not on the recovered projector line')
+        phase /= abs(phase)
+        Z = tuple(+(mp.sqrt(radius)*phase*a) for a in xi)
+        return Z,+X,tuple(+a for a in phi)
 
 
 def elementary_global_coordinates(Z,X,phi,**kwargs):

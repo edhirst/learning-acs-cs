@@ -76,25 +76,30 @@ proved and implemented, conditional on explicit derivative/nonvanishing bounds.
 Their concrete bundle embedding and bounds, and the elliptic block's pole matching,
 remain unresolved. There is no completed finite global lift or tensor.
 
-**Finite global tensor (2026-10-08-EH-2):** programme §11 gives a separate,
+**Finite global tensor (2026-10-08-EH-2):** programme §11 gave a separate,
 elementary inverse-first construction. It supplies the full cusp inverse/collar,
 open central-fibre charts, a smooth pole patch with a finite elementary inverse
 in both directions (programme (11.12g)–(11.12j)),
-a concrete C¹⁰ bundle projector with proved bound L=10¹¹⁴, and finite projection
+a concrete C¹⁰ bundle projector with its earlier proved bound L=10¹¹⁴, and finite projection
 and phase formulas with fixed counts N=4L+1, K=8·32(N+1)L+1. Together with the
 finite forward height for the torus trivialization, (11.18)–(11.19) specify a
 global elementary G_cl and J_cl, and prove invertibility, gluing, J²=−Id and N_J=0.
-This is a new mathematical statement for human review. The counts have 115 and
+This is a mathematical statement for human review. The earlier counts have 115 and
 232 digits: the full expression has not been numerically expanded or evaluated.
 Block, overlap, central-fibre and reduced-count tensor checks pass; the legacy
-safety net also stays green. **The tensor expression is closed, but §0's stronger
-finite elementary inverse-pair goal remains open:** F_cl exists smoothly, but
-the global height transition (11.3) may still require implicit inversion.
-The pole patch no longer requires one. F_cl is not used to evaluate J_cl. This result
-does not resolve the old evaluator's I3–I5/T14 flags.
+safety net also stays green. **Finite inverse pair (2026-10-11-TSG-6):** programme
+§11.2 replaces that height with a terminal-cut elementary map having explicit
+formulas in both directions; §11.4 gives a revised projector certificate
+L=10⁸⁰⁰⁰, and §11.6 gives an explicit reversal F_cl of G_cl. C29a–h and I2v
+pass, the type-(c) constants and forward signs have had independent audits,
+and 276 sampled height and 38 reduced-count global forward compositions pass.
+This completes §0's finite elementary inverse-pair certificate, subject to
+human review. The fixed products are enormous and have not been evaluated
+numerically. This work does not resolve the old evaluator's I3–I5/T14 flags.
 
 `docs/s4t2_symbolic_programme.md` gives the block-by-block symbolic specification of F and G (§3) and the lemma
-list with status (§6.1). Summary:
+list with status (§6.1). The following table records the original fitted-lift
+architecture; the completed, separate two-way construction is in §11. Summary:
 
 | lemma | statement | status |
 |---|---|---|
@@ -286,16 +291,20 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   finite phase/projection operations and identifies the remaining inverse-first
   shell, concrete bundle embedding and derivative-bound work. The complete
   finite global expression and inverse pair have not been obtained.
-  **Tensor expression closed (2026-10-08-EH-2):** §11 completes the inverse-first
+  **Tensor expression closed (2026-10-08-EH-2):** §11 completed the inverse-first
   pole construction, the concrete bundle embedding, global derivative bounds,
   finite circle lift and phase gluing, and the global coefficient formula for J.
   It uses an elementary height inverse instead of elliptic functions. The closed
   formula has fixed but impractically large counts; reduced-count tests are not
-  a certificate for smaller counts. **Still open:** a finite elementary expression
-  for F_cl, a compact practical expression, and human review of the new global
-  statement. Those are distinguished from the now supplied finite formula for J.
+  a certificate for smaller counts. **Two-way upgrade (2026-10-11-TSG-6):**
+  the terminal-cut height and forward formula in §11 supply finite elementary
+  F_cl, with L=10⁸⁰⁰⁰ and correspondingly larger fixed counts. C29a–h and
+  I2v check its specified exact identities and final counts; the height,
+  forward and inverse blocks pass sampled compositions, and the type-(c)
+  certificate has been independently audited. Human review of the statement
+  and a shorter, practical expression remain.
 
-Dependencies: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
+Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.
 
 ## 4. How to contribute

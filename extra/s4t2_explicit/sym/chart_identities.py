@@ -754,7 +754,7 @@ with mp.workdps(85):
                 derivative23 = mp.diff(lambda aa:elementary_cusp_logradius(aa,tc23,nu23,dps=65),a23)
                 assert derivative23<0
                 if abs(a23)<mp.mpf('.5'):
-                    slope23 = mp.diff(lambda aa:inverse_height_moment(aa,qv23),a23)
+                    slope23 = mp.diff(lambda aa:inverse_height_moment(aa,qv23,lam23),a23)
                     slope_min23,slope_max23 = min(slope_min23,slope23),max(slope_max23,slope23)
                 if r23==mp.mpf('.5'):
                     height_error23 = max(height_error23,abs(rho23-P23*(a23+mp.mpf('.5'))))
@@ -765,8 +765,8 @@ with mp.workdps(85):
                     expected23 = -(1-lam23)+lam23*P23 if order23==1 else 0
                     height_error23 = max(height_error23,abs(derivative23-expected23))
     rep(f'C23d {height_cases23} elementary height/deck/collar cases and 108 seam jets: {float(height_error23):.1e}',
-        height_error23<mp.mpf('1e-50') and slope_min23>=mp.mpf(8)/9 and slope_max23<=14)
-    print(f'     sampled f_a range [{float(slope_min23):.6f},{float(slope_max23):.6f}], proved [8/9,14]')
+        height_error23<mp.mpf('1e-50') and slope_min23>0)
+    print(f'     sampled f_a range [{float(slope_min23):.6f},{float(slope_max23):.6f}] (numerical observation)')
     axis_reference_error23 = mp.mpf(0)
     for nu23 in (mp.mpf(1),mp.exp(-2)):
         for a23 in map(mp.mpf,('-.55','-.5','-.49','.49','.5','.55')):
@@ -1309,6 +1309,122 @@ with mp.workdps(85):
     rep(f'C28f {derivative_cases28} numerical two-cap inverse-Jacobian samples: '
         f'{float(derivative_error28):.1e}; min det {float(minimum_det28):.6e}',
         derivative_error28<mp.mpf('1e-7') and minimum_det28>0)
+
+# C29: exact identities for the two-way terminal-cut height in (11.3)--(11.7).
+u29,v29,mu29,La29 = sp.symbols('u29 v29 mu29 La29', positive=True)
+F29 = (La29*u29**2+mu29*u29)/(1+u29)
+Finv29 = 2*v29/(sp.sqrt((mu29-v29)**2+4*La29*v29)+mu29-v29)
+rep('C29a quadratic height correction has the stated positive inverse',
+    sp.simplify((La29*u29**2+(mu29-v29)*u29-v29).subs(u29,Finv29))==0
+    and sp.factor(sp.diff(F29,u29)-(La29+(mu29-La29)/(1+u29)**2))==0)
+vflat29 = sp.symbols('vflat29', positive=True)
+tail29 = sp.factor(vflat29*(1+F29.subs(u29,1/vflat29-1))/La29)
+convex29 = (1-vflat29)**2+(mu29/La29)*vflat29*(1-vflat29)+vflat29/La29
+rep('C29b terminal correction is the convex flat-tail expression',
+    sp.factor(tail29-convex29)==0)
+Ep029,Epz029,gp029,d29 = sp.symbols('Ep029 Epz029 gp029 d29',positive=True)
+mu_tuned29 = d29*Ep029/(gp029*Epz029)
+rep('C29c tuned endpoint derivative of T composed with g is d',
+    sp.cancel((Epz029*mu_tuned29/Ep029)*gp029-d29)==0)
+z29,q29,Y29,k29,a29 = sp.symbols('z29 q29 Y29 k29 a29',positive=True)
+rad29 = (z29+sp.sqrt(z29*z29+4*q29))/2
+rep('C29d positive quadratic root, inverse and open height seam',
+    sp.simplify(rad29**2-z29*rad29-q29)==0
+    and sp.simplify((z29-sp.sqrt(z29*z29+4*q29))/2+q29/rad29)==0
+    and sp.simplify(sp.exp(k29*(a29-sp.Rational(1,2)))
+        -q29*sp.exp(-k29*(a29-sp.Rational(1,2)))
+        -(q29/(q29*sp.exp(-k29*(a29-sp.Rational(1,2))))
+          -q29*sp.exp(-k29*(a29-sp.Rational(1,2)))))==0)
+# Derive b_R'=d(R/R')/da using only the elementary differential chain:
+# E'=E L^2/c, L'=L^2/c, F'=D E L^2/c,
+# M'=D E L^2/(c F), D'=D_x E L^2/c.
+E29,L29,Fp29,M29,D29,Dx29,c29 = sp.symbols('E29 L29 Fp29 M29 D29 Dx29 c29',positive=True)
+br29 = c29*Fp29*M29*(M29-1)/(D29*E29*L29**2)
+chain29 = {E29:E29*L29**2/c29,L29:L29**2/c29,
+           Fp29:D29*E29*L29**2/c29,
+           M29:D29*E29*L29**2/(c29*Fp29),
+           D29:Dx29*E29*L29**2/c29}
+deriv29 = sum(sp.diff(br29,key)*val for key,val in chain29.items())
+claimed29 = M29**2+M29-1-Fp29*M29*(M29-1)*(1+2/L29)/(E29*D29) \
+            -Fp29*M29*(M29-1)*Dx29/D29**2
+rep('C29e one-soft radial distortion derivative identity',
+    sp.factor(deriv29-claimed29)==0)
+ur29,ui29,vr29,vi29,lr29,li29 = sp.symbols(
+    'ur29 ui29 vr29 vi29 lr29 li29',real=True)
+xi29 = (ur29+sp.I*ui29,vr29+sp.I*vi29)
+phase29 = lr29+sp.I*li29
+hopf29 = lambda pair: sp.Matrix([sp.re(sp.expand(2*pair[0]*sp.conjugate(pair[1]))),
+    sp.im(sp.expand(2*pair[0]*sp.conjugate(pair[1]))),
+    sp.expand(pair[0]*sp.conjugate(pair[0])-pair[1]*sp.conjugate(pair[1]))])
+scaled29 = hopf29(tuple(phase29*w for w in xi29))
+source29 = hopf29(xi29)
+rep('C29f forward phase recovery preserves the Hopf base and circle value',
+    all(sp.factor(dif)==0 for dif in scaled29-(lr29**2+li29**2)*source29)
+    and sp.expand((sp.conjugate(phase29*xi29[0])*phase29**2*xi29[0]
+                   +sp.conjugate(phase29*xi29[1])*phase29**2*xi29[1])
+                  -(lr29**2+li29**2)*phase29*(abs(xi29[0])**2+abs(xi29[1])**2))==0)
+
+# The positive inverse of S and both logarithmic radial-coordinate inverses
+# give the two-way R composition in (11.3b). The intervening h and G_* maps
+# then cancel in the stated order in (11.4).
+xg29,ellg29,cg29 = sp.symbols('xg29 ellg29 cg29',positive=True)
+wg29 = xg29-1/xg29
+sg29 = sp.log(1+sp.exp(wg29))
+xback29 = (wg29+sp.sqrt(wg29**2+4))/2
+rg29 = cg29-cg29/ellg29
+rep('C29g positive one-soft inverse and both R radial-coordinate inverses',
+    sp.simplify(sp.exp(sg29)-1-sp.exp(wg29))==0
+    and sp.factor(wg29**2+4-(xg29+1/xg29)**2)==0
+    and sp.simplify(xback29.subs(sp.sqrt(wg29**2+4),xg29+1/xg29)-xg29)==0
+    and sp.simplify(cg29-cg29/sp.log(sp.exp(2)+sp.exp(ellg29)-sp.exp(2))-rg29)==0
+    and sp.simplify(cg29-cg29/sp.log(sp.E+sp.exp(ellg29)-sp.E)-rg29)==0)
+
+# Cusp torus restoration reverses the real Cramer coefficients and the
+# deck-equivariant height shift without choosing a circle argument.
+xh29,yh29,c2h29,c3h29,h29,b2h29,b3h29,t2h29,t3h29 = sp.symbols(
+    'xh29 yh29 c2h29 c3h29 h29 b2h29 b3h29 t2h29 t3h29')
+Ah29 = c2h29*t2h29+c3h29*t3h29
+ph2h29,ph3h29 = c2h29-h29*b2h29,c3h29-h29*b3h29
+Ch2h29,Ch3h29 = ph2h29+h29*b2h29,ph3h29+h29*b3h29
+rep('C29h cusp forward torus coefficients reverse tau_f restoration',
+    sp.simplify(Ch2h29-c2h29)==0 and sp.simplify(Ch3h29-c3h29)==0
+    and sp.simplify(xh29*sp.exp(Ah29)*sp.exp(-Ah29)-xh29)==0
+    and sp.simplify(yh29*sp.exp(-Ah29)*sp.exp(Ah29)-yh29)==0)
+
+# A reproducible numerical margin for the independently proved <200 bound.
+# This is a sample, not a proof of the inequality on the continuum.
+with mp.workdps(55):
+    radial_max29 = mp.mpf(0)
+    radial_arg29 = mp.mpf(0)
+    for radial_i29 in range(1,2000):
+        radial_a29 = mp.mpf('0.1')+mp.mpf('0.1')*radial_i29/2000
+        radial_L29 = mp.mpf('0.2')/(mp.mpf('0.2')-radial_a29)
+        radial_E29 = mp.exp(radial_L29)
+        radial_x29 = radial_E29-mp.exp(2)
+        radial_w29 = radial_x29-1/radial_x29
+        if radial_w29<0:
+            radial_S29 = mp.log1p(mp.exp(radial_w29))
+            radial_sigma29 = mp.exp(radial_w29)/(1+mp.exp(radial_w29))
+        else:
+            radial_S29 = radial_w29+mp.log1p(mp.exp(-radial_w29))
+            radial_sigma29 = 1/(1+mp.exp(-radial_w29))
+        radial_D29 = radial_sigma29*(1+1/radial_x29**2)
+        radial_Dp29 = (radial_sigma29*(1-radial_sigma29)
+                       *(1+1/radial_x29**2)**2
+                       -2*radial_sigma29/radial_x29**3)
+        radial_F29 = mp.e+radial_S29
+        radial_M29 = mp.log(radial_F29)
+        radial_derivative29 = (radial_M29**2+radial_M29-1
+            -radial_F29*radial_M29*(radial_M29-1)
+             *(1+2/radial_L29)/(radial_E29*radial_D29)
+            -radial_F29*radial_M29*(radial_M29-1)
+             *radial_Dp29/radial_D29**2)
+        if abs(radial_derivative29)>radial_max29:
+            radial_max29 = abs(radial_derivative29)
+            radial_arg29 = radial_a29
+rep(f'C29i 1999 radial-derivative samples (numerical): max '
+    f'{float(radial_max29):.6f} at a={float(radial_arg29):.7f}; '
+    f'margin to 200 is {float(200-radial_max29):.6f}', radial_max29<200)
 
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'
