@@ -320,17 +320,32 @@ assert 144/((1+160*16)**sp.Rational(3,2)*sp.sqrt(160+55*16))>sp.Rational(1,10**6
 assert 144/(95**sp.Rational(3,2)*sp.sqrt(sp.Rational(641,4)))>sp.Rational(1,100)
 assert sp.sqrt(160)<13 and sp.Rational(641,4)/144<3
 assert 4*128*100*10**6<10**12
+assert 128*100*10**6<2*10**10
+assert 10**15*2*10**10+100<10**27
 assert sum(sp.Integer(4)**k/sp.factorial(k) for k in range(6))>sp.Rational(1000,27)
 assert 4/(sp.Rational(3,4)**2)*55<392
 assert (1600+sp.Rational(9,4)*10000)*sp.Rational(9,8)<10**5
 assert (6300+sp.Rational(9,4)*10000)*sp.Rational(9,8)<10**5
+assert 1+56*(2*10**5+2)<10**16
 assert sp.Rational(10,3)+sp.Rational(32,9)<7
 assert sp.Rational(8,9)/(2*sp.sqrt(sp.Rational(3,2)))>sp.Rational(1,3)
 assert 14*sp.Rational(55,4)<200
 assert (3025+sp.Rational(9,4))*sp.Rational(55,4)<42000
 assert 2*42000+7+40<100000
+# In the collar rho is the physical log modulus; the quadratic root Y0 differs.
+pp1,pp2,mm = sp.symbols('pp1 pp2 mm',real=True)
+rr_phys = sp.sqrt(pp1**2+pp2**2+mm**2)
+Y_phys = (rr_phys-mm)/2
+rho_phys = sp.log(Y_phys)/2
+assert sp.simplify(sp.diff(rho_phys,pp1)-pp1/(4*Y_phys*rr_phys))==0
+assert sp.simplify(sp.diff(rho_phys,pp2)-pp2/(4*Y_phys*rr_phys))==0
+assert sp.simplify(sp.diff(rho_phys,mm)+1/(2*rr_phys))==0
+assert sp.Rational(3025,4)<1000
 assert 3000+300000*4<2*10**6
 assert 2000*(2*10**6+2)+1<10**16
+assert 2*sp.Rational(1,8)*sp.Rational(3,10)==sp.Rational(3,40)
+assert 3/(2*sp.Rational(3,40))==20 and 2*10**6+20<10**7
+assert 2*10**7<10**12
 assert 2*sp.Rational(44,7)*(1+20*Rinv)<14
 assert sp.Rational(1,1000)*sp.Rational(1,100)<Rinv
 assert 2*55*2000+2*55**2<10**6

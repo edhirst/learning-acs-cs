@@ -1982,34 +1982,45 @@ argument with an unspecified bound would not give a fixed finite expression.
    b=(2ν Re t_c,−2ν Im t_c,a) have ||Db||<10¹²δ⁻⁴.
 
 2. **Source coordinates.** For these bounds reduce the representative to |a|≤1/2;
-   this leaves P unchanged by (11.1)'s exact deck invariance. Then (11.5)
-   gives P≤ρ≤0, so q≤Y≤1, eu=q/Y≤1, u<4 and r=u+Y≤5;
-   here 1/8<ν≤1 and e>1/4. In the core, differentiating
-   f(a,q)=eu−Y gives |a_u|,|a_Y|<10⁵. Explicitly
-   |e_u|≤392Y, |e_Y|≤392u, |(eu)_u|<1600,
-   |(eu)_Y|<6300, |q_u|,|q_Y|<10000, and divide the resulting
-   bounds by f_a≥8/9. At fixed t_c, a_m=(eu+Y)/(r f_a)≥1/56.
+   this leaves P unchanged by (11.1)'s exact deck invariance. Distinguish the
+   quadratic root Y₀=e^(2ρ₀) in (11.5) from the physical source modulus
+   Y_*=e^(2ρ)=|y|²; they agree in the core but generally differ in the collar.
+   For t_c≠0, both ρ₀ and P(a+1/2) lie in [P,0], so (11.5) gives P≤ρ≤0,
+   q≤Y_*≤1 and eu=q/Y_*≤1. Hence u<4 and r=u+Y_*≤5;
+   here 1/8<ν≤1 and e≥exp(−4/3)>1/4 by exp(4)<55<64.
+   At t_c=0 use the open axis formulas (11.6a),
+   where the quotient q/Y_* can be undefined. In the core, Y_*=Y₀ and
+   differentiating f(a,q)=eu−Y_* gives |a_u|,|a_(Y_*)|<10⁵. Explicitly
+   |e_u|≤392Y_*, |e_(Y_*)|≤392u, |(eu)_u|<1600,
+   |(eu)_(Y_*)|<6300, |q_u|,|q_(Y_*)|<10000, and divide the resulting
+   bounds by f_a≥8/9. At fixed t_c, a_m=(eu+Y_*)/(r f_a)≥1/56.
+   Since |D_transverse u|,|D_transverse Y_*|≤1/2, this gives
+   |D_transverse a|<2·10⁵. The core triangular inverse has norm
+   <1+56(2·10⁵+2)<10¹⁶.
    In the collar .3≤|t_c|≤.5, 2/3<|P|<4, |P_r|<7 and
    1/3025<q<1/8. These constants follow from e⁴<55,
    log 2>2/3 and −log(.3)<4/3; a positive Taylor sum for e⁴ proves
    the last comparison. For R=√(f²+4q),
 
      1/3<−(ρ₀)_a=f_a/(2R)<200,
-     |(ρ₀)_q|=|(1/Y−f_q)/(2R)|<42000.
+     |(ρ₀)_q|=|(1/Y₀−f_q)/(2R)|<42000.
 
    Thus |ρ_r|<2·42000+7+40<100000, including the cutoff derivative.
    Inverting this scalar derivative gives |a_ρ|<3 and |a_r|<300000.
    In orbit coordinates p=(2ν Re t_c,−2ν Im t_c,m),
-   |D_transverse ρ|≤1/(4Y)<1000 and ||D_transverse t_c||<4.
+   D_transverse ρ=p_transverse/(4Y_*r) and ρ_m=−1/(2r), so in the collar
+   |D_transverse ρ|≤1/(4Y_*)≤3025/4<1000 and
+   ||D_transverse t_c||<4.
    Hence |D_transverse a|<2·10⁶, and a_m≥1/(400r)≥1/2000.
    The triangular matrix with rows (I₂,0) and (D_transverse a,a_m)
-   has inverse norm <2000(2·10⁶+2)+1<10¹⁶. This also bounds the
-   core inverse. In source coordinates z=(ν conj x,y), the Hopf derivative
-   has norm 2√r; in particular ||D_z a||<10¹²√r.
+   has inverse norm <2000(2·10⁶+2)+1<10¹⁶. In the core a_m≤9/8;
+   in the collar r≥2ν|t_c|>3/40 gives a_m<20. Thus ||D_p a||<10⁷.
+   In source coordinates z=(ν conj x,y), the Hopf derivative has norm 2√r;
+   in particular ||D_z a||<10¹²√r.
 
 3. **Embedding derivatives.** The first normalized cusp frame has derivative
    norm ≤2/√r. An active shifted frame has a<−.1. In the core,
-   Y−eu=|f|≥(8/9)|a|>4/45, so |y|>1/4. In the collar |y|>1/55.
+   Y_*−eu=|f|≥(8/9)|a|>4/45, so |y|>1/4. In the collar |y|>1/55.
    Its unnormalized coordinates are
    (exp(2|t_c|²/(1−|t_c|²))/conj y,
     exp(−2|t_c|²/(1−|t_c|²))conj z₁ y²).
@@ -2043,8 +2054,10 @@ argument with an unspecified bound would not give a fixed finite expression.
    If r≤1/250, (11.8)–(11.9)'s forward estimate gives |v|<14r;
    since |v|=1−X²≥δ, r≥δ/14. Otherwise r>1/250≥δ/1000.
    Thus always r≥δ/1000 and ||D_(n,X)P||<10⁵¹δ⁻⁵<L.
-   In the pure middle (.5≤|t|≤2), the same Cramer bound applied to
-   ξ₄, together with the independent argument coordinate, gives
+   In the pure middle (.5≤|t|≤2), T=u₁/u₂=t k_A(|t|): the ratio
+   bound and the radial/angular inverse-profile bounds in step 1 give
+   ||Dt||<128·100·10⁶δ⁻⁴<2·10¹⁰δ⁻⁴. The same Cramer bound applied to
+   ξ₄, together with the independent argument coordinate, then gives
    ||Dx₄||<10¹⁵||Dt||+100δ⁻⁴<10²⁷δ⁻⁴, and hence
    ||DP||<10³⁰δ⁻⁴<L. The radial cutoffs are flat at the chart boundaries.
 

@@ -1156,3 +1156,35 @@ in `AGENTS.md` §5.
 - **Open points:** the blend between |z_L|²=ε and 2ε still has no finite elementary forward inverse;
   the cap formula is a global F_cl component only on the (11.17) cap/overlap. Human review of the
   sixth-order obstruction is welcome.
+
+### 2026-10-11-TSG-2 — Repair the source-modulus derivative certificate
+- **Date:** 2026-10-11
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6)
+- **Type:** statement
+- **Based on:** `84d3d62`
+- **Where:** `docs/s4t2_symbolic_programme.md` §11.4, steps 2–4;
+  `extra/s4t2_explicit/sym/i2_margins.py` I2v. No manuscript or construction file was changed.
+- **Change:** corrected a false intermediate derivative claim in the global projector certificate.
+  The quadratic root Y₀=e^(2ρ₀) from (11.5) differs in the collar from the physical source modulus
+  Y_*=e^(2ρ)=|y|². The source bounds and D_transverse ρ now use Y_*; the derivative of ρ₀ with
+  respect to q continues to use Y₀. The core and collar triangular inverses are bounded separately.
+  Added the explicit pure-middle bound ||Dt||<2·10¹⁰δ⁻⁴ needed for the displayed ||Dx₄|| bound.
+  The global conclusion L=10¹¹⁴ and all fixed counts remain unchanged.
+- **Why:** the old inequality |D_transverse ρ|≤1/(4Y₀) is not valid in the collar. For the reduced
+  representative, both terms blended in (11.5) lie in [P,0], so q≤Y_*≤1. In the collar,
+  D_transverse ρ=p_transverse/(4Y_*r), and q>1/3025 yields
+  |D_transverse ρ|≤3025/4<1000. In the core Y_*=Y₀, and the displayed derivative bounds give
+  |D_transverse a|<2·10⁵ and a_m≥1/56. In the collar they give
+  |D_transverse a|<2·10⁶ and a_m≥1/2000. Both inverse norms remain <10¹⁶.
+  The profile inverse and ratio bounds in step 1 give ||Dt||<128·100·10⁶δ⁻⁴<2·10¹⁰δ⁻⁴
+  in the pure middle, completing the final inequality.
+- **Verification:** two independent agents re-derived the core/collar and pure-middle bounds.
+  I2v checks the physical-modulus derivative identities symbolically and all new constant
+  comparisons: `ALL PASS`. All four campaign symbolic suites: `ALL PASS`.
+  `verify_construction.py`: `all checks passed`; `sphere_products.py`:
+  `Dimension 8 check passed`. `git diff --check`: pass. LaTeX: **not run** (`latexmk` unavailable).
+  The full legacy numerical safety net was not run because no construction block changed.
+  Git fetch/pull and push were left to the collaborator as requested.
+- **Open points:** this correction of an intermediate mathematical claim merits human review.
+  The finite elementary forward inverse of the pole blend remains open.
