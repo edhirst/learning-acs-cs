@@ -1957,6 +1957,38 @@ forward problem as inversion of the finite elementary three-variable map
 The flat step itself has an elementary inverse (L2a–b); the unresolved part is
 its coupling to \(C_j\) and the Hopf projector.
 
+A separate obstruction rules out smoothing the **south canonical raw lift**
+by a real scalar taper, even if that taper may change the raw orbit radius
+(quadratic-jet identities (a), C27a–c). Put \(\kappa=2\pi\),
+\(p=\operatorname{Hopf}(z)\), \(r=|p|=|z|^2\), and write
+\(\Sigma(d)=\left(\begin{smallmatrix}d_3&d_1+id_2\\
+d_1-id_2&-d_3\end{smallmatrix}\right)\).
+The second jet of \(B\) in §4.3, together with
+\(\beta-1=O(r^2)\) and \(R_H=O(r^3)\), gives
+
+  C_0(p)=p+Δ₂(p)+O(r³),
+  Δ₂(p)=κ((−p₁²+p₂²+p₃²)/2+p₂p₃, −p₁(p₂+p₃), −p₁p₃). (11.12e)
+
+Consequently \(q=C_0^{-1}(p)=p-\Delta_2(p)+O(r^3)\).
+In (11.10), \(|q|=r-p\cdot\Delta_2(p)/r+O(r^3)\) and
+\(h=1+O(r^2)\). Expanding its normalized projector, the radial and
+directional terms cancel as follows, uniformly in the spinor direction:
+
+  g₀(z)=z−Σ(Δ₂(p))z/(2r)+O(|z|⁵).                       (11.12f)
+
+On the real spinor plane \(z=(x,y)\), the first component has
+
+  Im g₀,₁(x,y)=κ x y²(x²−y²)/(x²+y²)+O((x²+y²)^(5/2)).
+
+The homogeneous cubic term is not a polynomial: its numerator at \(x=iy\)
+is \(-2i\kappa y^5\ne0\), so \(x^2+y^2\) does not divide it.
+A \(C^3\) Taylor term would be a polynomial, hence \(g_0\) is not \(C^3\)
+at the pole. For any real scalar \(a(z)\to1\), the imaginary first
+component of \(a(z)g_0(z)\) has the same cubic term plus \(o(|z|^3)\);
+such a rescaling cannot be \(C^3\). This concerns scalar rescalings of the
+canonical raw lift. The preceding C25 obstruction separately concerns
+all smooth lifts preserving the unchanged south raw base.
+
 ### 11.4 A fixed global projector bound
 
 Here and below the base height is **(11.3)–(11.7)**; the old Gaussian, finite
@@ -2337,6 +2369,7 @@ observations, type (d), and do not replace the written certificates.
 | C25e, numerical | 18 independent raw-cap forward compositions on both caps; maximum relative error 6.3·10⁻⁶⁸ |
 | C26a–c | projector anticommutator, Hopf vector of the shell blend, phase projection and blended norm: ALL PASS |
 | C26d, numerical | 30 two-cap shell endpoint/interior base, norm and phase compositions; maximum relative residual 4.1·10⁻⁶⁷ |
+| C27a–c | south raw-base quadratic jet, normalized-projector cubic jet and nonpolynomial real-plane component: ALL PASS |
 | Elementary height | 132 value/deck/collar cases and 108 seam jets through order three; error 6.4·10⁻⁸⁶; sampled f_a∈[1,4.536928] versus proved [8/9,14] |
 | Open central-axis charts | 12 comparisons with the closed logarithmic inverse and 12 cell-seam jets, error 2.6·10⁻⁸⁶; 8 exact axis representatives also pass embedding and torus restoration checks |
 | Inverse-first caps | 64 independent forward compositions, relative error 2.1·10⁻⁶³; sampled value/derivative defect constants 2.552/11.348 versus proved 200/5000; sampled blend defect 3.2·10⁻⁷ versus proved 13200ε=1.32·10⁻⁴<1/1000 |

@@ -1036,5 +1036,69 @@ with mp.workdps(80):
     rep(f'C26d {shell_cases26} two-cap shell base/norm/phase compositions: '
         f'{float(shell_error26):.1e}',shell_error26<mp.mpf('1e-60'))
 
+# C27: the south raw lift has a non-polynomial homogeneous cubic term.
+p127,p227,p327,tau27 = sp.symbols('p127 p227 p327 tau27',real=True)
+R27 = sp.symbols('R27',positive=True)
+kappa27 = 2*sp.pi
+p27 = sp.Matrix([p127,p227,p327])
+delta27 = kappa27*sp.Matrix([
+    (-p127**2+p227**2+p327**2)/2+p227*p327,
+    -p127*(p227+p327),-p127*p327])
+a27,b27,c27 = (tau27*kappa27*v for v in p27)
+d27 = sp.sqrt(1+a27*a27+b27*b27)
+D27 = d27+a27*sp.cos(c27)+b27*sp.sin(c27)
+B27 = sp.Matrix([a27*sp.sin(c27)-b27*sp.cos(c27),
+                 -sp.sin(c27),D27-sp.cos(c27)])/D27
+Q027 = sp.Matrix([[0,-1,0],[0,0,-1],[1,0,0]])
+C027 = Q027.T*B27/kappa27
+rho227 = p127**2+p227**2
+beta27 = sp.sqrt((1+sp.exp(4)*tau27**2*rho227/(64*sp.pi**2))
+                 /(1+4*sp.pi**2*tau27**2*rho227))
+RH27 = (sp.exp(-4*tau27**2*rho227/(4-tau27**2*rho227))-1)\
+       *tau27*(R27+p327)/2
+rep('C27a south B/C0 quadratic jet and cubic onset of profile/height terms',
+    all(sp.expand(sp.series(C027[k],tau27,0,3).removeO()
+                  -tau27*p27[k]-tau27**2*delta27[k])==0 for k in range(3))
+    and sp.simplify(sp.series(tau27*(beta27-1),tau27,0,3).removeO())==0
+    and sp.simplify(sp.series(RH27,tau27,0,3).removeO())==0)
+
+def sigma27(v):
+    return sp.Matrix([[v[2],v[0]+sp.I*v[1]],
+                      [v[0]-sp.I*v[1],-v[2]]])
+
+dot27 = p27.dot(delta27)/R27
+s_tau27 = sp.sqrt(R27**2-2*tau27*p27.dot(delta27)
+                  +tau27**2*delta27.dot(delta27))
+Q_tau27 = (sp.eye(2)+sigma27(p27-tau27*delta27)/s_tau27)/2
+Qdot27 = -sigma27(delta27)/(2*R27)+dot27*sigma27(p27)/(2*R27**2)
+spinor_p27 = hopf26(z25)
+spinor_delta27 = delta27.subs(dict(zip(p27,spinor_p27)),simultaneous=True)
+spinor_r27 = rz25
+spinor_dot27 = spinor_p27.dot(spinor_delta27)/spinor_r27
+spinor_Qdot27 = (-sigma27(spinor_delta27)
+                 +spinor_dot27*sigma27(spinor_p27)/spinor_r27)/(2*spinor_r27)
+norm_dot27 = (z25.conjugate().T*spinor_Qdot27*z25)[0]
+formal_dot27 = (-spinor_dot27*z25/(2*spinor_r27)
+                +spinor_Qdot27*z25-norm_dot27*z25/(2*spinor_r27))
+rep('C27b normalized-projector first variation cancels to the stated cubic',
+    all(sp.simplify(v)==0 for v in
+        sp.diff(Q_tau27,tau27).subs(tau27,0)-Qdot27)
+    and all(sp.cancel(v)==0 for v in
+            sigma27(spinor_p27)*z25-spinor_r27*z25)
+    and sp.cancel(norm_dot27)==0
+    and all(sp.cancel(v)==0 for v in
+            formal_dot27+sigma27(spinor_delta27)*z25/(2*spinor_r27)))
+
+x27,y27 = sp.symbols('x27 y27',real=True)
+plane_delta27 = delta27.subs({p127:2*x27*y27,p227:0,
+                              p327:x27**2-y27**2})
+imag_num27 = sp.factor(-sp.im((sigma27(plane_delta27)
+                                  *sp.Matrix([x27,y27]))[0])/2)
+rep('C27c real-plane imaginary cubic numerator is not divisible by r',
+    sp.simplify(imag_num27-kappa27*x27*y27**2*(x27**2-y27**2))==0
+    and sp.simplify(imag_num27.subs(x27,sp.I*y27)
+                    +2*sp.I*kappa27*y27**5)==0
+    and sp.rem(imag_num27,x27**2+y27**2,x27)!=0)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

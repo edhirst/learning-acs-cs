@@ -1219,3 +1219,36 @@ in `AGENTS.md` §5.
   construction block changed. Git fetch/pull and push were left to the collaborator as requested.
 - **Open points:** no finite elementary inverse of the three-variable shell orbit equation is
   supplied; the stronger global finite elementary inverse-pair goal remains open.
+
+### 2026-10-11-TSG-4 — Exclude scalar smoothing of the south raw pole lift
+- **Date:** 2026-10-11
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6)
+- **Type:** addition
+- **Based on:** 4a7fdc0
+- **Where:** docs/s4t2_symbolic_programme.md §11.3 and §11.8;
+  extra/s4t2_explicit/sym/chart_identities.py C27. No manuscript or construction file was changed.
+- **Change:** derived the south raw-base quadratic jet and the resulting nonpolynomial
+  cubic term in the canonical raw spinor lift. Proved that multiplying this lift by
+  any real scalar tending to one cannot make it C³ at the pole, even when the scalar
+  changes the raw orbit radius. Added exact symbolic jet and divisibility checks C27a–c.
+- **Why:** the earlier C25 obstruction excludes smooth lifts over the unchanged raw base.
+  A scalar taper changes that base and was therefore not covered. With
+  \(C_0(p)=p+\Delta_2(p)+O(|p|^3)\), normalized-projector differentiation gives
+  \(g_0(z)=z-\Sigma(\Delta_2(\operatorname{Hopf}z))z/(2|z|^2)+O(|z|^5)\).
+  On real spinors \(z=(x,y)\), the imaginary first-component cubic has numerator
+  \(\kappa xy^2(x^2-y^2)\), nonzero at the complex root \(x=iy\) of \(x^2+y^2\).
+  Thus it cannot be a cubic Taylor polynomial. A real scalar tending to one
+  leaves this leading imaginary term unchanged.
+- **Verification:** two agents independently derived and reviewed the quadratic jet,
+  projector cancellation, uniform remainder, and scalar-taper scope. C27a–c in
+  sym/chart_identities.py: ALL PASS. An independent SymPy calculation of the B jet
+  and real-plane numerator also gave zero residuals and \(-2i\kappa y^5\) at \(x=iy\).
+  All four campaign symbolic suites: ALL PASS. verify_construction.py:
+  all checks passed; sphere_products.py: Dimension 8 check passed.
+  git diff --check: pass. LaTeX: **not run** (latexmk unavailable).
+  The full legacy numerical safety net was not run because no construction block changed.
+  Git fetch/pull and push were left to the collaborator as requested.
+- **Open points:** this excludes scalar rescaling of the canonical raw lift, not
+  a change in Hopf direction, a phase-modified lift, or an elementary inverse
+  of the existing blended shell.
