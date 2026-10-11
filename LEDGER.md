@@ -1348,3 +1348,25 @@ in `AGENTS.md` §5.
   the exact fixed-count products were not numerically executed, and no
   smaller counts are certified. The old fitted evaluator's I3–I5/T14
   flags remain open. A shorter practical formula is a further task.
+
+### 2026-10-11-TSG-7 — Flag the campaign category-(d) mismatch
+- **Date:** 2026-10-11
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6)
+- **Type:** flag
+- **Based on:** cab13eb
+- **Where:** SYMBOLIC_CAMPAIGN.md §0, compared with AGENTS.md §8.2 and
+  docs/s4t2_symbolic_programme.md §11.8. Only this ledger entry was added.
+- **Change:** flagged a pre-existing mismatch: the campaign introduction
+  labels a cited classical theorem as category (d), while binding AGENTS.md
+  uses category (d) for a labelled numerical observation. The current §11.8
+  follows AGENTS.md; no campaign claim was changed by this flag.
+- **Why:** a reader might misclassify a numerical check as a proof step, or
+  apply the wrong rule to a cited input. AGENTS.md §8.1 limits edits to
+  SYMBOLIC_CAMPAIGN.md to its task list and status, so an agent cannot
+  silently rewrite this definition in §0.
+- **Verification:** read the exact category lists in both files and checked
+  their conflict; git diff --check: pass. Mathematical and build checks:
+  **not run** (this entry changes no construction or proof).
+- **Open points:** a human collaborator should reconcile the §0 category
+  list with AGENTS.md §8.2 or explicitly authorize an edit there.
