@@ -948,5 +948,93 @@ with mp.workdps(80):
     rep(f'C25e {forward_cases25} independent raw-cap forward compositions: '
         f'{float(forward_error25):.1e}',forward_error25<mp.mpf('1e-60'))
 
+# C26: the patched shell descends to a three-real-variable Hopf-base map.
+alpha26,gamma26 = sp.symbols('alpha26 gamma26',real=True)
+h26 = sp.expand(ov25*sp.conjugate(ov25))/(rz25*sw25)
+sigma_z26,sigma_w26 = 2*Pz25-sp.eye(2),2*Pw25-sp.eye(2)
+rep('C26a rank-one projector anticommutator',
+    all(sp.cancel(v)==0 for v in
+        Pz25*Pw25+Pw25*Pz25-h26*sp.eye(2)-(sigma_z26+sigma_w26)/2))
+
+mix26 = alpha26*z25+gamma26*Pw25*z25
+def hopf26(pair):
+    cross = 2*pair[0]*sp.conjugate(pair[1])
+    return sp.Matrix([sp.re(cross).expand(complex=True),
+                      sp.im(cross).expand(complex=True),
+                      sp.expand(pair[0]*sp.conjugate(pair[0])
+                                -pair[1]*sp.conjugate(pair[1]))])
+
+rep('C26b Hopf vector of a projected spinor blend',
+    all(sp.cancel(v)==0 for v in
+        hopf26(mix26)-(alpha26**2+alpha26*gamma26)*hopf26(z25)
+        -rz25/sw25*(gamma26**2*h26+alpha26*gamma26)*hopf26(w25)))
+
+r26,s26,hpos26,theta26 = sp.symbols('r26 s26 hpos26 theta26',positive=True)
+a26 = 1-theta26
+g26 = theta26*sp.sqrt(s26/(r26*hpos26))
+rep('C26c phase projection and blended squared norm',
+    all(sp.cancel(v)==0 for v in
+        Pz25*mix26-(alpha26+gamma26*h26)*z25)
+    and sp.cancel((mix26.conjugate().T*mix26)[0]
+                  -rz25*(alpha26**2+2*alpha26*gamma26*h26
+                          +gamma26**2*h26))==0
+    and sp.simplify(a26**2*r26+2*a26*g26*r26*hpos26
+                    +g26**2*r26*hpos26
+                    -(a26**2*r26+theta26**2*s26
+                      +2*a26*theta26*sp.sqrt(r26*s26*hpos26)))==0
+    and sp.simplify((a26**2+a26*g26)*r26-a26**2*r26
+                    -a26*theta26*sp.sqrt(r26*s26/hpos26))==0
+    and sp.simplify(r26/s26*(g26**2*hpos26+a26*g26)
+                    -theta26**2-a26*theta26*sp.sqrt(r26/(s26*hpos26)))==0)
+
+with mp.workdps(80):
+    def hopf_mp26(pair):
+        cross = 2*pair[0]*mp.conj(pair[1])
+        return mp.matrix([cross.real,cross.imag,abs(pair[0])**2-abs(pair[1])**2])
+
+    shell_error26 = mp.mpf(0)
+    shell_cases26 = 0
+    epsilon26 = mp.mpf('1e-8')
+    for inf26 in (False,True):
+        scale26 = mp.pi if inf26 else 2*mp.pi
+        for radius26 in map(mp.mpf,('1e-8','1.1e-8','1.5e-8','1.9e-8','2e-8')):
+            for direction26 in ((1,0,0,0),(0,0,1,0),(-2,1,0,3)):
+                unit26 = mp.matrix(direction26)/mp.sqrt(sum(v*v for v in direction26))
+                z26 = mp.matrix([mp.mpc(unit26[0],unit26[1])*mp.sqrt(radius26),
+                                 mp.mpc(unit26[2],unit26[3])*mp.sqrt(radius26)])
+                raw26 = mp.matrix(elliptic_pole_raw_inverse(tuple(z26),inf26,
+                                                              dps=70,elementary=True))
+                output26 = mp.matrix(elliptic_pole_patch(tuple(z26),inf26,
+                                                           dps=70,elementary=True))
+                p26,q26 = hopf_mp26(z26),hopf_mp26(raw26)
+                rL26,rS26 = mp.norm(p26),mp.norm(q26)
+                nL26,nS26 = p26/rL26,q26/rS26
+                hval26 = (1+sum(nL26[k]*nS26[k] for k in range(3)))/2
+                theta_val26 = scalar_flat_step((rL26-epsilon26)/epsilon26)
+                base26 = forward_local23(tuple(raw26),inf26)
+                forward_p26 = (mp.matrix([base26[2],-base26[1],base26[0]])/scale26
+                               if inf26 else
+                               mp.matrix([base26[2],-base26[0],-base26[1]])/scale26)
+                predicted26 = ((1-theta_val26)**2*p26+theta_val26**2*q26
+                               +theta_val26*(1-theta_val26)
+                               *mp.sqrt(rL26*rS26/hval26)*(nL26+nS26))
+                predicted_norm26 = ((1-theta_val26)**2*rL26+theta_val26**2*rS26
+                                    +2*theta_val26*(1-theta_val26)
+                                    *mp.sqrt(rL26*rS26*hval26))
+                PL26 = mp.matrix([[1+nL26[2],nL26[0]+mp.j*nL26[1]],
+                                  [nL26[0]-mp.j*nL26[1],1-nL26[2]]])/2
+                projected26 = PL26*output26
+                recovered26 = mp.sqrt(rL26)*projected26/mp.norm(projected26)
+                shell_error26 = max(shell_error26,
+                    mp.norm(forward_p26-p26)/rL26,
+                    mp.norm(hopf_mp26(output26)-predicted26)/rL26,
+                    abs(mp.norm(hopf_mp26(output26))-predicted_norm26)/rL26,
+                    mp.norm(projected26-((1-theta_val26)
+                        +theta_val26*mp.sqrt(rS26*hval26/rL26))*z26)/mp.sqrt(rL26),
+                    mp.norm(recovered26-z26)/mp.sqrt(rL26))
+                shell_cases26 += 1
+    rep(f'C26d {shell_cases26} two-cap shell base/norm/phase compositions: '
+        f'{float(shell_error26):.1e}',shell_error26<mp.mpf('1e-60'))
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

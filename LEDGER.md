@@ -1188,3 +1188,34 @@ in `AGENTS.md` §5.
   Git fetch/pull and push were left to the collaborator as requested.
 - **Open points:** this correction of an intermediate mathematical claim merits human review.
   The finite elementary forward inverse of the pole blend remains open.
+
+### 2026-10-11-TSG-3 — Reduce the blended pole shell to an exact Hopf-orbit equation
+- **Date:** 2026-10-11
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6)
+- **Type:** addition
+- **Based on:** fd04e21
+- **Where:** docs/s4t2_symbolic_programme.md §11.3 and §11.8;
+  extra/s4t2_explicit/sym/chart_identities.py C26. No manuscript or construction file was changed.
+- **Change:** expressed the forward problem for the existing blended pole shell as one finite elementary
+  equation in the three real components of the raw source Hopf orbit. Once that orbit is known,
+  an explicit positive rank-one projection recovers the spinor and its phase. The equation
+  has a unique solution in the certified shell cap for data in its image. Added exact symbolic
+  identities C26a–c and 30 sampled two-cap compositions C26d.
+- **Why:** the inverse-first pole lift already has an elementary forward formula on the unblended
+  caps, but the transition shell is the remaining local inverse-pair problem. Expanding the
+  Hopf matrix of the blended spinor and using
+  \(P_LQ_S+Q_SP_L=hI+(\Sigma(n_L)+\Sigma(n_S))/2\)
+  gives (11.12c), while \(P_Lw\) is a positive real multiple of the unknown spinor,
+  giving (11.12d). This removes the circle phase from the unknowns without asserting
+  an elementary inverse for the three-variable orbit map.
+- **Verification:** two agents independently checked the projector algebra, the norm and phase
+  formulas, the domain restriction and the converse. sym/chart_identities.py: ALL PASS,
+  including C26a–c and 30 C26d samples with maximum relative residual 4.1e−67
+  (numerical evidence only). All four campaign symbolic suites: ALL PASS.
+  verify_construction.py: all checks passed; sphere_products.py:
+  Dimension 8 check passed. git diff --check: pass. LaTeX: **not run**
+  (latexmk unavailable). The full legacy numerical safety net was not run because no
+  construction block changed. Git fetch/pull and push were left to the collaborator as requested.
+- **Open points:** no finite elementary inverse of the three-variable shell orbit equation is
+  supplied; the stronger global finite elementary inverse-pair goal remains open.

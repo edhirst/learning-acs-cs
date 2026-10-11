@@ -1919,6 +1919,44 @@ base or on an elementary inverse of the existing blend. In particular, a
 smooth diffeomorphic inverse-direction lift preserving the raw base would have
 a smooth local forward inverse \(L\), which has just been excluded.
 
+The blended shell itself has an exact **three-real-variable forward reduction**
+(identities (a), C26a–c). Given \(w=\widehat g_j(z_L)\), let
+\(b=\operatorname{Hopf}(w)\). The unknown raw source orbit is
+\(q=\operatorname{Hopf}(g_j(z_L))\); put \(p=C_j(q)\),
+\(r_S=|q|\), \(r_L=|p|\), \(n_S=q/r_S\), \(n_L=p/r_L\),
+\(h=(1+n_L\cdot n_S)/2\), and
+\(\vartheta=s((r_L-\varepsilon)/\varepsilon)\). On
+\(\varepsilon<r_L<2\varepsilon\), the sole orbit equation is
+
+  b=Φ_j(q):=(1−ϑ)²p+ϑ²q
+    +ϑ(1−ϑ)√(r_L r_S/h)(n_L+n_S).                   (11.12c)
+
+Indeed, with \(P_L=\Pi(n_L)\), \(Q_S=\Pi(n_S)\), and
+\(g_j(z_L)=\sqrt{r_S/(r_Lh)}Q_Sz_L\), expand the Hopf matrix of
+\((1-\vartheta)z_L+\vartheta g_j(z_L)\) and use
+\(P_LQ_S+Q_SP_L=hI+(\Sigma(n_L)+\Sigma(n_S))/2\), where
+\(\Sigma(n)=2\Pi(n)-I\). In particular,
+
+  |b|=(1−ϑ)²r_L+ϑ²r_S+2ϑ(1−ϑ)√(r_L r_S h).       (11.12c′)
+
+The phase requires no further solve. Projection gives the positive real multiple
+\(P_Lw=[(1-\vartheta)+\vartheta\sqrt{r_Sh/r_L}]z_L\), hence, once \(q\)
+is known,
+
+  z_L=√r_L P_Lw/|P_Lw|.                              (11.12d)
+
+Conversely, if \(q\) solves (11.12c), the spinor in (11.12d) has Hopf
+orbit \(p=C_j(q)\); its patched image has Hopf vector \(b\) and the same
+positive \(P_L\)-projected phase as \(w\), so it equals \(w\).
+The margin \(h\geq525/529\) above keeps every denominator nonzero.
+The contraction proof for \(\widehat g_j\) gives uniqueness of the orbit
+solution in the certified shell cap: two solutions there would give two
+preimages of \(w\) by (11.12d). Equations (11.12c)–(11.12d) isolate the remaining
+forward problem as inversion of the finite elementary three-variable map
+\(\Phi_j\); they do not provide a finite elementary formula for that inverse.
+The flat step itself has an elementary inverse (L2a–b); the unresolved part is
+its coupling to \(C_j\) and the Hopf projector.
+
 ### 11.4 A fixed global projector bound
 
 Here and below the base height is **(11.3)–(11.7)**; the old Gaussian, finite
@@ -2297,6 +2335,8 @@ observations, type (d), and do not replace the written certificates.
 | C23–C24 / I2t–v | quadratic height, projection-phase and finite coefficient rules, all explicit endpoint constants and implemented counts: ALL PASS |
 | C25a–d | raw-cap forward projection, south raw-base norm expansion and sixth-order divisibility obstruction: ALL PASS; the explicit obstruction coefficient η<−46 |
 | C25e, numerical | 18 independent raw-cap forward compositions on both caps; maximum relative error 6.3·10⁻⁶⁸ |
+| C26a–c | projector anticommutator, Hopf vector of the shell blend, phase projection and blended norm: ALL PASS |
+| C26d, numerical | 30 two-cap shell endpoint/interior base, norm and phase compositions; maximum relative residual 4.1·10⁻⁶⁷ |
 | Elementary height | 132 value/deck/collar cases and 108 seam jets through order three; error 6.4·10⁻⁸⁶; sampled f_a∈[1,4.536928] versus proved [8/9,14] |
 | Open central-axis charts | 12 comparisons with the closed logarithmic inverse and 12 cell-seam jets, error 2.6·10⁻⁸⁶; 8 exact axis representatives also pass embedding and torus restoration checks |
 | Inverse-first caps | 64 independent forward compositions, relative error 2.1·10⁻⁶³; sampled value/derivative defect constants 2.552/11.348 versus proved 200/5000; sampled blend defect 3.2·10⁻⁷ versus proved 13200ε=1.32·10⁻⁴<1/1000 |
