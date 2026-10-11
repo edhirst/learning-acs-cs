@@ -21,8 +21,10 @@
 > bundle embedding and fixed-count projection/phase formulas. Equations (11.18)–(11.19) give
 > G_cl and J_cl with no implicit solve, quadrature or infinite series. The counts are enormous;
 > this is a finite elementary expression, not a practical expanded formula. The global statement
-> requires human review. The stronger finite **inverse pair** is still open: F_cl is not claimed
-> elementary and is not evaluated in J_cl. Legacy I3–I5/T14 remain flags for the old evaluator.
+> requires human review. Section 11.3 now gives a finite elementary inverse for the pole patch;
+> the stronger finite **inverse pair** is still open because the global height transition (11.3)
+> has no elementary forward inverse supplied here. F_cl is not evaluated in J_cl.
+> Legacy I3–I5/T14 remain flags for the old evaluator.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
 > **Resume point: §11.8 (verification scope, review, and the remaining inverse-pair question).**
 
@@ -1848,7 +1850,8 @@ Since ||D_z Hopf||=2√r_L, they give
 The latter estimate has slack: the sum of the three derivative contributions is
 <1500r_L. I2u verifies these constants.
 
-Set ε=10⁻⁸ and replace the raw lift near each pole by the closed map
+An earlier closed pole patch, retained here with its checks and obstruction,
+used ε=10⁻⁸ and the map
 
   ĝ_j(z)=z+s((|z|²−ε)/ε)(g_j(z)−z).                        (11.12)
 
@@ -1857,17 +1860,19 @@ transition ||Dĝ_j−I||≤13200ε<1/1000. On the entire ball |z|²≤10⁻⁴ 
 ≤1/2. Extending the defect by radial projection gives a contraction inverse for
 both local maps, proving that the replacement preserves the image of that ball
 (the maps agree on its boundary). This proves a smooth injective pole replacement.
-The forward inverse of (11.12) is not asserted to be elementary; the eventual
-complex-structure coefficient formula uses ĝ_j and its derivative directly.
+The forward inverse of (11.12) is not asserted to be elementary. The two-sided
+elementary replacement used below is (11.12h).
 
-There is, however, a finite elementary forward formula on the **unblended** part
-of each cap (identity (a), C25a; bound (c)). Given a nonzero source spinor
+There is a finite elementary forward formula on the **raw** part of each cap
+(identity (a), C25a; bound (c)). Given a nonzero source spinor
 \(w=(\nu_j\overline{x_s},y_s)\), set
 
   p_S=Hopf(w),  s=|w|²,  p_L=C_j(p_S),  r_L=|p_L|,
   P_L=Π(p_L/r_L),  z_L=√r_L P_Lw/|P_Lw|.                (11.12a)
 
-Use this when \(s\leq1/250\) and \(2\varepsilon\leq r_L\leq10^{-4}\).
+The formula inverts the raw \(g_j\) whenever \(0<s\leq1/250\) and
+\(0<r_L\leq10^{-4}\); the additional condition \(r_L\geq2\varepsilon\)
+is needed only for the patches to agree with \(g_j\).
 All entries are finite elementary: (11.7) gives the height in these caps,
 and (9.4) gives \(C_j\). The bound preceding (11.9) gives
 \(|p_L-p_S|\leq20s^2\), hence
@@ -1875,13 +1880,13 @@ and (9.4) gives \(C_j\). The bound preceding (11.9) gives
 If \(Q_S=\Pi(p_S/s)\), the rank-one identity
 \(Q_SP_Lw=h w\), \(h=(1+(p_S/s)\cdot(p_L/r_L))/2\geq525/529\), gives
 \(|P_Lw|^2=sh>0\) and shows directly that
-\(g_j(z_L)=w\). Since \(\widehat g_j=g_j\) at this \(r_L\), (11.12a) also
-inverts the patched lift there. On \(|w|^2\leq\varepsilon\), its inverse is
-simply \(w\), by the injectivity above and \(\widehat g_j(w)=w\).
+\(g_j(z_L)=w\). Since both patches equal \(g_j\) at this \(r_L\), (11.12a)
+also inverts them there. On \(|w|^2\leq\varepsilon\), the inverse of either
+patch is simply \(w\).
 In (9.7) take \(Z_0=\sqrt{s_j}U_jz_L\) and \(h_0=s_jr_L\) to obtain the
 round coordinates. On \(1-|X|<\alpha/2\) they agree with the S⁴ component
-of the global forward map, by (11.17). The intervening
-blend still has no finite elementary forward inverse supplied here.
+of the global forward map, by (11.17). The intervening part of the earlier
+blend (11.12) has no finite elementary forward inverse supplied here.
 
 The blend cannot be replaced by a smooth diffeomorphic lift obtained merely
 by changing the phase over the **unchanged south raw base for (11.7)**.
@@ -1919,7 +1924,7 @@ base or on an elementary inverse of the existing blend. In particular, a
 smooth diffeomorphic inverse-direction lift preserving the raw base would have
 a smooth local forward inverse \(L\), which has just been excluded.
 
-The blended shell itself has an exact **three-real-variable forward reduction**
+The earlier blended shell (11.12) has an exact **three-real-variable forward reduction**
 (identities (a), C26a–c). Given \(w=\widehat g_j(z_L)\), let
 \(b=\operatorname{Hopf}(w)\). The unknown raw source orbit is
 \(q=\operatorname{Hopf}(g_j(z_L))\); put \(p=C_j(q)\),
@@ -1951,7 +1956,7 @@ positive \(P_L\)-projected phase as \(w\), so it equals \(w\).
 The margin \(h\geq525/529\) above keeps every denominator nonzero.
 The contraction proof for \(\widehat g_j\) gives uniqueness of the orbit
 solution in the certified shell cap: two solutions there would give two
-preimages of \(w\) by (11.12d). Equations (11.12c)–(11.12d) isolate the remaining
+preimages of \(w\) by (11.12d). Equations (11.12c)–(11.12d) isolate that earlier
 forward problem as inversion of the finite elementary three-variable map
 \(\Phi_j\); they do not provide a finite elementary formula for that inverse.
 The flat step itself has an elementary inverse (L2a–b); the unresolved part is
@@ -1988,6 +1993,106 @@ component of \(a(z)g_0(z)\) has the same cubic term plus \(o(|z|^3)\);
 such a rescaling cannot be \(C^3\). This concerns scalar rescalings of the
 canonical raw lift. The preceding C25 obstruction separately concerns
 all smooth lifts preserving the unchanged south raw base.
+
+The pole patch can instead have a **finite elementary inverse in both
+directions**. The following identities are type (a), C28a–d; the inequalities
+and margins are type (b)/(c). Put \(a=\varepsilon=10^{-8}\),
+\(c=3\varepsilon/2\), \(b=2\varepsilon\), and \(R_*=10^{-4}\). For \(t<c\)
+let \(E(t)=\exp(c/(c-t))\), and set
+
+  φ(r)=E(r)−e³  (a<r<c),   ψ(s)=E(s)−e  (0<s<c),
+  T(x)=log(1+exp(x−1/x))  (x>0).                         (11.12g)
+
+Each is strictly increasing onto \((0,\infty)\):
+\(T'(x)=\exp(x-1/x)(1+x^{-2})/[1+\exp(x-1/x)]>0\).
+Their finite elementary inverses are
+
+  φ⁻¹(x)=c(1−1/log(x+e³)),   ψ⁻¹(y)=c(1−1/log(y+e)),
+  T⁻¹(y)=(L+√(L²+4))/2,   L=log(exp(y)−1).
+
+Define \(S(r)=\psi^{-1}(T(\phi(r)))\) for \(a<r<c\), and \(S(r)=r\) for
+\(r\geq c\). Its inverse on \(0<s<c\) is
+\(S^{-1}(s)=\phi^{-1}(T^{-1}(\psi(s)))\), and it is the identity for
+\(s\geq c\). Thus \(S:(a,\infty)\to(0,\infty)\) is an increasing
+elementary diffeomorphism. In fact \(S(r)<r\) on \((a,c)\):
+\(\phi(r)<\psi(r)\), while \(T(x)<x\) follows from
+\(e^{-x}<1/(1+x)\) and \(e^{-1/x}<x/(1+x)\).
+For \(a<|z|^2<R_*\), write
+
+  D(z)=√[S(|z|²)/|z|²] z,   D⁻¹(w)=√[S⁻¹(|w|²)/|w|²] w,
+  H_j(z)=D⁻¹(g_j(D(z))),  H_j⁻¹(w)=D⁻¹(g_j⁻¹(D(w))).       (11.12h)
+
+Set \(H_j(z)=z\) on \(|z|^2\leq a\), and \(H_j^{-1}(w)=w\) on
+\(|w|^2\leq a\). The exterior inverse is asserted on \(g_j(B_{R_*})\),
+where \(B_{R_*}=\{z:|z|^2<R_*\}\). Here \(g_j^{-1}\) is exactly the
+projector formula (11.12a), without its restriction to the raw collar.
+All branches of (11.12h) have a fixed number of elementary operations.
+
+Here are the seam checks. At \(r=a+t\), \(\phi(r)\) has a simple zero
+with \(\phi'(a)=6e^3/\varepsilon\),
+\(T(x)\) is flat at \(x=0\), and \(\psi^{-1}\) is smooth at zero; hence
+\(S(a+t)\) is flat in \(t\). At \(r=c-t\), let \(q=e^{-c/t}\),
+\(A=e^3\), \(B=e\), and
+\(D_0(q)=B-A-q/(1-Aq)+\log(1+\exp(-q^{-1}+A+q/(1-Aq)))\).
+Then \(D_0\) extends smoothly to \(q=0\), and, with
+\(\ell=\log(1+qD_0(q))\), direct substitution gives
+
+  S(c−t)−(c−t)=t²ℓ/(c+tℓ).                            (11.12i)
+
+Since \(q\) is flat in \(t\), this joins \(S\) and its inverse to the
+identity to all orders at \(c\). To check the inner spinor seam, write
+\(z=\sqrt u\,\xi\). On the spherical blowup of the origin, (11.7) gives
+\(R_H(un)=u^3\) times a smooth function of \((u,n)\), and (9.4) is analytic.
+Thus \(C_j(un)=u\widetilde C_j(u,n)\), with
+\(\widetilde C_j(0,n)=n\). The parameterized inverse function theorem gives
+\(C_j^{-1}(un)=uM_j(u,n)\), smooth with \(M_j(0,n)=n\). Formula (11.10)
+therefore has \(g_j(\sqrt u\,\xi)=\sqrt u\,G_j(u,\xi)\), with \(G_j\)
+smooth and \(G_j(0,\xi)=\xi\). Its squared output radius and unit direction
+have the forms \(v=u(1+uA_j(u,\xi))\) and \(\eta=\xi+uB_j(u,\xi)\),
+with smooth \(A_j,B_j\). Put \(x=\phi(r)\), \(u=S(r)\),
+\(x'=T^{-1}(\psi(v))\). Since
+\(h_0(t)=(\exp(\psi(t))-1)/t\) is smooth and positive at zero,
+\((\exp\psi(v)-1)/(\exp\psi(u)-1)
+=(1+uA_j)h_0(v)/h_0(u)=1+u\widetilde D_1(u,\xi)\),
+with smooth \(\widetilde D_1\). Taking its logarithm yields
+\(F(x')-F(x)=uD_1(u,\xi)\), where \(F(x)=x-1/x\) and \(D_1\) is smooth.
+The exact identity
+\(x'-x=uD_1xx'/(1+xx')\) gives
+\(x'-x=x^2uW(x,u,\xi)\): the resulting equation
+\(W[1+x^2(1+xuW)]=D_1(1+xuW)\) has derivative one in \(W\) at
+\((x,u)=(0,0)\), so the implicit function theorem gives smooth \(W\).
+Consequently both the output-radius change and
+\(\eta-\xi\) are flat in \(r-a\). Thus \(H_j\) joins the identity smoothly,
+with derivative \(I\), at \(|z|^2=a\). Away from that sphere it is a
+composition of diffeomorphisms. It is \(S^1\)-equivariant because \(D\) is
+radial and (11.10) is equivariant.
+
+The image and overlap have explicit margins. By (11.11), on
+\(|z|\leq\sqrt{R_*}=.01\), the raw defect \(g_j(z)-z\) has Lipschitz
+constant at most \(5000R_*=1/2\) and size at most
+\(200R_*^{3/2}=.0002\). The projected-defect contraction shows that
+\(g_j(B_{R_*})\) contains every \(|w|<.01-.0002=.0098\), in particular
+\(B_c\). Since \(D\) maps the annulus \(a<|z|^2<R_*\) onto the punctured
+\(B_{R_*}\) and \(D^{-1}\) rearranges only \(B_c\), adding its identity
+inner ball proves \(H_j(B_{R_*})=g_j(B_{R_*})\). The inner and outer images
+have disjoint squared radii \(\leq a\) and \(>a\), so (11.12h) is the
+inverse on that image. Its exterior formula is defined throughout this image:
+for \(w\in g_j(B_{R_*})\), either \(|w|^2\geq c\) and \(D(w)=w\), or
+\(|w|^2<c\) and \(D(w)\in B_c\subset g_j(B_{R_*})\).
+For \(r=|z|^2\geq b\), (11.9) gives
+
+  |g_j(z)|²≥r−80r²≥b−80b²=1.9999968·10⁻⁸>c,         (11.12j)
+
+with margin \(4.999968\cdot10^{-9}\). Both \(D(z)=z\) and
+\(D^{-1}(g_j(z))=g_j(z)\) there, so \(H_j=g_j\) exactly for
+\(2\varepsilon\leq r<R_*\); the middle comparison uses
+\((r-80r^2)'=1-160r>0\) on \(r\leq R_*\). For the modified inner cap,
+\(u=S(r)\leq r\) and \(v=|g_j(D(z))|^2\leq u+80u^2\leq r+80r^2\).
+If \(v\geq c\), the output radius is \(v\); if \(v<c\), it is
+\(S^{-1}(v)<c\). The identity branch satisfies the same estimate, so
+\(|H_j(z)|^2\leq\max(c,r+80r^2)\). This replacement changes the raw base inside its
+small ball, as required by the C25 obstruction; it does not resolve the
+separate inverse of the global height (11.3).
 
 ### 11.4 A fixed global projector bound
 
@@ -2217,16 +2322,31 @@ exactly specified point of W.
 On the cap of sign j, define the **elementary** local formula
 
   z_L=U_j*Z /√[s_j(1+|X|√(2−X²))],
-  z_S=ĝ_j(z_L),  (x_s,y_s)=(conj(z_S,1)/ν_j,z_S,2),         (11.17)
+  z_S=H_j(z_L),  (x_s,y_s)=(conj(z_S,1)/ν_j,z_S,2),          (11.17)
 
-where (s₀,s_∞)=(2π,π), (ν₀,ν_∞)=(1,e⁻²), and ĝ is (11.12)
-with the elementary inverse (11.5). The formula includes the exact pole: there
+where (s₀,s_∞)=(2π,π), (ν₀,ν_∞)=(1,e⁻²), and H_j is (11.12h)
+with the elementary raw lift (11.10) and inverse height (11.5). The formula includes the exact pole: there
 it uses its identity piece and never evaluates n or a vanishing Hopf denominator.
 Use (11.17) for 1−|X|<α/2; use (11.15)–(11.16) otherwise.
+The cap satisfies |Z|²=1−X²<α and
+1+|X|√(2−X²)>2−α/2, so (11.17) gives
+r_L<α/[π(2−α/2)]<1.7·10⁻⁶. The patched bound after (11.12j) gives
+|z_S|²≤max(c,r_L+80r_L²)<2·10⁻⁶<(.0098)². Thus every source point in this
+cap lies in the certified image of H_j, and the elementary H_j⁻¹ of
+(11.12h) applies there.
+
+Conversely, for a source spinor w=(ν_j conj(x_s),y_s) with
+|w|²<2·10⁻⁶, the inradius in §11.3 puts w in that image. Set
+z_L=H_j⁻¹(w), h=s_j|z_L|², and σ₀=−1, σ_∞=+1. The local forward formula is
+
+  X=σ_j(1−h)/√(1+h²),   Z=√[2s_j/(1+h²)] U_j z_L.       (11.17a)
+
+The sphere and denominator identities in C28i show that (11.17a) reverses
+(11.17) on its cap. It also gives a source-side selector by computing 1−|X|.
 
 There is an open overlap: take α/3<1−|X|<α/2. If r_L=|z_L|²,
 then r_L≤2(1−|X|)/3 and 1−|X|≤7r_L. On this overlap
-r_L>α/21>2ε, so ĝ=g. The homogeneous embedding (11.1) and minimal
+r_L>α/21>2ε, so H_j=g_j. The homogeneous embedding (11.1) and minimal
 Hopf projection (11.10) identify d_j with exactly the same raw g_j lift;
 (11.16) equals d_j there. Thus the two W-formulas agree, including all jets.
 They cover S⁴. The raw base is globally bijective by the positive scalar
@@ -2234,8 +2354,12 @@ height derivative, the positive radial profile derivative and the clutching
 identity C15a. On the free part (11.15) and (11.16) are circle isomorphisms.
 Before pole smoothing this is a homeomorphism, smooth with invertible derivative
 away from the poles, and equals g_j near them. Replace it on each ball
-r_L≤10⁻⁷ by ĝ_j. The raw and patched maps agree on its boundary; the
-contraction argument in §11.3 gives the same ball image and injectivity. Their
+r_L≤10⁻⁷ by H_j. At this smaller radius ρ=10⁻⁷, (11.11) gives raw-defect
+Lipschitz constant at most 5000ρ=0.0005 and size at most
+200ρ³ᐟ²<6.33·10⁻⁹. Thus the same contraction proves that
+g_j(B_ρ) contains B_c; D only rearranges B_c. The raw and patched maps
+agree on the boundary and have the same ball image; (11.12h)–(11.12j)
+give an elementary inverse and injectivity. Their
 images are disjoint cusp neighbourhoods. The replacement is smooth with
 invertible differential, including at z_L=0. This proves a diffeomorphism
 G_W:S⁴→W, without a numerical degree or Nijenhuis assumption.
@@ -2331,9 +2455,9 @@ it is not asserted to give identical coefficients to the legacy fitted map.
 **Expression-class distinction.** (11.19) is a finite elementary, globally glued
 closed expression for J. It is not a compact or feasible-to-expand expression:
 its fixed sums/products have the enormous counts (11.14). The inverse map
-F_cl=G_cl⁻¹ exists smoothly, but its coordinate expression need not be elementary:
-inverting (11.3) in its transition and (11.12) can still require an implicit
-solve. These inverses do not occur in J_cl. Thus this closes the tensor expression
+F_cl=G_cl⁻¹ exists smoothly. Its pole patch now has the elementary inverse
+(11.12h), but inverting the global height (11.3) in its transition can still
+require an implicit solve. That inverse does not occur in J_cl. Thus this closes the tensor expression
 by an inverse-first construction; it does not establish the stronger request in
 §0 for an elementary pair F and G. No impossibility of such a pair is claimed.
 
@@ -2341,15 +2465,58 @@ by an inverse-first construction; it does not establish the stronger request in
 
 `cusp.elementary_closed_parameters()` returns all constants and counts as exact
 rational numbers/integers. `elementary_projection_section`, `elementary_phase_family`,
-`elementary_global_slice`, `scalar_finite_height`, `elementary_restore_torus` and
-`elementary_global_coordinates` implement (11.15)–(11.18) independently of the
+`elementary_global_slice`, `elementary_pole_patch`, `elementary_pole_forward`,
+`scalar_finite_height`, `elementary_restore_torus` and
+`elementary_global_coordinates` implement (11.12h) and (11.15)–(11.18) independently of the
 legacy numerical evaluator. The defaults are the certified counts. An explicit
 `max_work` guard prevents an accidental astronomical calculation; the parameter
 specification and pole formula can be evaluated immediately. Supplying smaller
 counts defines different finite maps for numerical checks. Such checks do not
 certify those smaller counts globally and are not described as evaluation of the
 full certified expression. The code checks actual nonzero/right-half-plane
-conditions on each evaluated path.
+conditions on each evaluated path. The `mpmath` pole evaluator has two precision
+shortcuts, justified by the following type (c) bounds; the exact symbolic
+definition remains (11.12h). Write \(a=10^{-8}\), \(c=3a/2\), and let
+\(d=\texttt{dps}\geq1\). At the inner guard put \(r=|z|^2\),
+\(x=\phi(r)\), \(u=S(r)\), and \(F(x)=x-x^{-1}\). Its condition is
+\(F(x)\leq-(d+10)\log 10\). Since \(T(x)\leq e^{F(x)}\) and
+\(\psi(u)\geq(e/c)u\), it gives \(u\leq(c/e)10^{-d-10}\). For
+\(0<t<c/10\), \(\psi'(t)<5/c\), \(\psi(t)>2t/c\), and \(\psi(t)<2\):
+use \(e^{10/9}<4\), \((c-t)^2>81c^2/100\), and convexity of \(E\).
+Since \(1-e^{-\psi}\geq\psi/(1+\psi)\),
+\(J(t)=\log(e^{\psi(t)}-1)\) has
+\(J'(t)=\psi'(t)/(1-e^{-\psi(t)})<15/(2t)\). Also
+\(J(S(r))=F(\phi(r))\), \((F^{-1})'<1\), and
+\((\phi^{-1})'\leq c/(9e^3)<a/120\).
+
+The squared radii \(u,v,s\) used in these derivative comparisons are
+\(<c/10\): the raw forward radius is
+\(v\leq u(1+80u)<2u\), while at the inverse guard
+\(s=S(|w|^2)\leq(c/e)10^{-d-10}\) and its raw inverse radius is \(<2s\).
+For the raw output squared radius \(v=|g_j(Dz)|^2\), (11.9) gives
+\(|v-u|\leq80u^2\), hence \(|\log(v/u)|<160u\). The preceding derivatives
+give \(|S^{-1}(v)-r|<10au\). Normalizing the two spinors and using
+(11.11), \(v>u/2\), gives a unit-direction change less than
+\((200+80)\sqrt2\,u<400u\). Since \(r\geq a\), these bounds imply
+\(|H_j(z)-z|/|z|<1000u\). For the inverse shortcut, put
+\(s=S(|w|^2)\) and \(u=|g_j^{-1}(Dw)|^2\). The raw preimage lies in
+\(B_{R_*}\), so (11.9) and (11.11) give
+\((1-200R_*)^2u\leq s\leq(1+80R_*)u\), hence \(s/2<u<2s\) and
+\(|s-u|\leq80u^2\leq320s^2\). Therefore
+\(|\log(u/s)|<640s\), \(|S^{-1}(u)-|w|^2|<40as\), and the unit-direction
+change is less than \((400+320\sqrt2)s<1000s\). It follows that
+\(|H_j^{-1}(w)-w|/|w|<3000s\). Both relative errors are less than
+\(3000(c/e)10^{-d-10}<10^{-d}\).
+
+At the outer shortcut let \(q=e^{-c/(c-r)}\), with \(r\) the argument's
+squared radius. The implemented condition gives
+\(q<10^{-\texttt{working dps}-10}\). Here \(r>c/2\). Since
+\(20<e^3<21\), \(2<e<3\), \(q<10^{-11}\), and the exponential in
+\(D_0\) is less than one, its three terms have absolute bounds \(19,1,1\);
+thus \(|D_0(q)|<22\), \(|\ell|<44q\), and \(c+t\ell>c/2\). Hence
+\(|S(r)-r|<88cq\), a relative error less than \(176q\). For
+\(S^{-1}(r)\), apply the same bound at \(r'=S^{-1}(r)>r\):
+\(q_{r'}<q_r\) and \(|r'-r|/r<176q_r\). Each is below working precision.
 
 The global claim in this section is a new statement for human review. Verification
 of its new implementations and the numerical safety net is recorded in §11.8;
@@ -2367,17 +2534,23 @@ observations, type (d), and do not replace the written certificates.
 | C23–C24 / I2t–v | quadratic height, projection-phase and finite coefficient rules, all explicit endpoint constants and implemented counts: ALL PASS |
 | C25a–d | raw-cap forward projection, south raw-base norm expansion and sixth-order divisibility obstruction: ALL PASS; the explicit obstruction coefficient η<−46 |
 | C25e, numerical | 18 independent raw-cap forward compositions on both caps; maximum relative error 6.3·10⁻⁶⁸ |
-| C26a–c | projector anticommutator, Hopf vector of the shell blend, phase projection and blended norm: ALL PASS |
-| C26d, numerical | 30 two-cap shell endpoint/interior base, norm and phase compositions; maximum relative residual 4.1·10⁻⁶⁷ |
+| C26a–c, earlier blend | projector anticommutator, Hopf vector of the earlier shell blend, phase projection and blended norm: ALL PASS |
+| C26d, numerical, earlier blend | 30 two-cap earlier-shell endpoint/interior base, norm and phase compositions; maximum relative residual 4.1·10⁻⁶⁷ |
 | C27a–c | south raw-base quadratic jet, normalized-projector cubic jet and nonpolynomial real-plane component: ALL PASS |
+| C28a–d,h–i | elementary radial inverse, seam identities, raw-collar and cap-domain margins, rational north stereographic inversion and forward-cap identity: ALL PASS |
+| C28e, numerical | 120 two-cap patch/inverse compositions, relative error <2·10⁻⁶⁸; sampled raw-collar residual zero at 85-digit working precision; phase-equivariance error <2·10⁻⁸⁶; sampled source squared radius <1.701·10⁻⁶ versus proved <2·10⁻⁶ |
+| C28f, numerical | 10 two-cap inverse-Jacobian compositions, entrywise residual <2·10⁻²⁴; all sampled determinants positive |
+| C28g, numerical | 120 production versus independent pole-patch/forward comparisons, relative error <2·10⁻⁶⁸ |
 | Elementary height | 132 value/deck/collar cases and 108 seam jets through order three; error 6.4·10⁻⁸⁶; sampled f_a∈[1,4.536928] versus proved [8/9,14] |
 | Open central-axis charts | 12 comparisons with the closed logarithmic inverse and 12 cell-seam jets, error 2.6·10⁻⁸⁶; 8 exact axis representatives also pass embedding and torus restoration checks |
-| Inverse-first caps | 64 independent forward compositions, relative error 2.1·10⁻⁶³; sampled value/derivative defect constants 2.552/11.348 versus proved 200/5000; sampled blend defect 3.2·10⁻⁷ versus proved 13200ε=1.32·10⁻⁴<1/1000 |
+| Inverse-first caps, earlier blend | 64 independent forward compositions, relative error 2.1·10⁻⁶³; sampled value/derivative defect constants 2.552/11.348 versus proved 200/5000; sampled earlier-blend defect 3.2·10⁻⁷ versus proved 13200ε=1.32·10⁻⁴<1/1000 |
 | Concrete torch embedding | 4096 tests for each earlier height, error ≤4.7·10⁻¹⁴; per height/cusp 1024 chart comparisons, 256 exact-axis tangent comparisons (≤8.6·10⁻¹⁰) and 128 exact homogeneous cap models |
 | Elementary scalar embedding/torus | 70 cusp/collar cases, including branch, deck and circle changes and an independent torch torus check; embedding error 7.4·10⁻⁵⁶ |
 | Raw global base/projector | 96 round trips, error 1.4·10⁻⁴⁷; projector residual 2.0·10⁻⁵⁶; 16 derivative samples give maximum Frobenius norm 32.8697 versus the proved operator bound 10¹¹⁴ |
 | Finite real logarithm with interval parameter | 12 tests with multiple turns of phase and both real chart values, error 2.5·10⁻⁵⁴ |
 | Full pole/slab overlap, **reduced counts N=512,K=32** | errors 3.1·10⁻⁶⁰ and 1.2·10⁻⁵⁴; sampled projection norm ≥.05504, phase increment real part ≥.91584 |
+| Elementary pole shells | 8 production forward/inverse compositions, relative error <2·10⁻⁷⁶; 2 cap tensors inside the new shell, J²=−I and minimum sampled \|det DG\|=.00633258 |
+| Elementary pole seam guards | 18 two-cap forward/inverse compositions including inner gaps 10⁻⁶, 10⁻¹⁰, 10⁻⁴⁰ and outer gaps 10⁻⁶, 10⁻³⁰; maximum relative round-trip error 3.0·10⁻⁵⁹; precision shortcuts certified in §11.7 |
 | New local tensors | six pole/round-axis points and a free point with N=512; nonzero DG, J²=−I, independent sphere-chart change and integer torus changes pass; free-point \|det DG\|=2217.99 |
 | Central-circle tensors | both a=1/2 circles, including transverse derivatives in the open axis charts; \|det DG\|=2.67101 and .0900846; J²=−I passes |
 | Independent new-tensor finite-difference N | two caps and one free N=512 point, h=2·10⁻⁷ and 10⁻⁷; normalized residuals fall by a factor of four, maxima 4.73·10⁻¹⁰ and 1.18·10⁻¹⁰; nonintegrable controls .566/.0255 |

@@ -78,7 +78,8 @@ remain unresolved. There is no completed finite global lift or tensor.
 
 **Finite global tensor (2026-10-08-EH-2):** programme §11 gives a separate,
 elementary inverse-first construction. It supplies the full cusp inverse/collar,
-open central-fibre charts, a closed pole patch with derivative defect <1/1000,
+open central-fibre charts, a smooth pole patch with a finite elementary inverse
+in both directions (programme (11.12g)–(11.12j)),
 a concrete C¹⁰ bundle projector with proved bound L=10¹¹⁴, and finite projection
 and phase formulas with fixed counts N=4L+1, K=8·32(N+1)L+1. Together with the
 finite forward height for the torus trivialization, (11.18)–(11.19) specify a
@@ -87,8 +88,9 @@ This is a new mathematical statement for human review. The counts have 115 and
 232 digits: the full expression has not been numerically expanded or evaluated.
 Block, overlap, central-fibre and reduced-count tensor checks pass; the legacy
 safety net also stays green. **The tensor expression is closed, but §0's stronger
-finite elementary inverse-pair goal remains open:** F_cl exists smoothly and may
-still require implicit inversion. It is not used to evaluate J_cl. This result
+finite elementary inverse-pair goal remains open:** F_cl exists smoothly, but
+the global height transition (11.3) may still require implicit inversion.
+The pole patch no longer requires one. F_cl is not used to evaluate J_cl. This result
 does not resolve the old evaluator's I3–I5/T14 flags.
 
 `docs/s4t2_symbolic_programme.md` gives the block-by-block symbolic specification of F and G (§3) and the lemma

@@ -335,6 +335,128 @@ def elliptic_pole_patch(z,infinity=False,dps=50,elementary=False):
         return tuple(+(w+weight*(v-w)) for w,v in zip(zz,raw))
 
 
+def _elementary_pole_radial(pair,inverse=False):
+    """The radial conjugation D (or D inverse) in programme (11.12g--h)."""
+    import mpmath as mp
+    z = tuple(map(mp.mpc,pair))
+    radius = sum(abs(w)**2 for w in z)
+    a,c = mp.mpf('1e-8'),mp.mpf('1.5e-8')
+    if radius>=c:
+        return z
+    # In (11.12i), q=exp(-c/(c-radius)) and |S(radius)-radius|/radius
+    # (likewise for S^{-1}) is <176q here. Avoid forming 1/q as an exp once
+    # this is below working precision.
+    if c/(c-radius)>(mp.mp.dps+10)*mp.log(10):
+        return z
+    if inverse:
+        if radius<=0:
+            raise ValueError('radial inverse requires positive radius')
+        y = mp.e*mp.expm1(radius/(c-radius))
+        L = (y+mp.log1p(-mp.exp(-y)) if y>1 else mp.log(mp.expm1(y)))
+        x = 2/(mp.sqrt(L*L+4)-L) if L<0 else (L+mp.sqrt(L*L+4))/2
+        ell = mp.log1p(x/mp.exp(3))
+        new_radius = a+c*ell/(3*(3+ell))
+    else:
+        if radius<=a:
+            raise ValueError('radial compression requires radius greater than 1e-8')
+        x = mp.exp(3)*mp.expm1(3*(radius-a)/(c-radius))
+        f = x-1/x
+        y = mp.log1p(mp.exp(f)) if f<0 else f+mp.log1p(mp.exp(-f))
+        ell = mp.log1p(y/mp.e)
+        new_radius = c*ell/(1+ell)
+    factor = mp.sqrt(new_radius/radius)
+    return tuple(+(factor*w) for w in z)
+
+
+def elementary_pole_raw_forward(w,infinity=False,dps=50):
+    """Finite elementary inverse of the raw local lift (11.10), away from zero."""
+    import mpmath as mp
+    with mp.workdps(max(mp.mp.dps,dps)+20):
+        pair = tuple(map(mp.mpc,w))
+        radius = sum(abs(a)**2 for a in pair)
+        if radius<=0:
+            raise ValueError('raw pole forward map requires nonzero spinor')
+        nu = mp.exp(-2) if infinity else mp.mpf(1)
+        tc = mp.conj(pair[0])*pair[1]/nu
+        u,v = abs(pair[0])**2,abs(pair[1])**2
+        e = mp.exp(-4*abs(tc)**2/(1-abs(tc)**2))
+        height = e*u-v
+        A,B = (4*mp.pi)**2,mp.exp(4)
+        if infinity:
+            ratio = tc*mp.sqrt((abs(tc)**2+A)/(A*abs(tc)**2+B))
+            u1 = mp.exp(2*mp.pi*mp.j*(-height+mp.mpf('.5')))/mp.sqrt(1+abs(ratio)**2)
+            u2 = ratio*u1
+        else:
+            ratio = tc*mp.sqrt((A+B*abs(tc)**2)/(1+A*abs(tc)**2))
+            u2 = mp.exp(2*mp.pi*mp.j*height)/mp.sqrt(1+abs(ratio)**2)
+            u1 = ratio*u2
+        if infinity:
+            # Rational inverted stereographic coordinates stay defined at
+            # the exact north axis u1=-1, u2=0.
+            den = 2*(1-u2.real)
+            stereo = (u1.imag/den,(u2.real-1-u1.real)/den,u2.imag/den)
+        else:
+            den = 1+u1.real
+            stereo = (u1.imag/den,u2.real/den-1,u2.imag/den)
+        aa,bb,cc = stereo[0],-stereo[2],-stereo[1]
+        scale = mp.pi if infinity else 2*mp.pi
+        p = tuple(a/scale for a in (aa,bb,cc))
+        # The local linear pole model is v=s_j O_j Hopf(z).
+        pL = ((p[2],-p[1],p[0]) if infinity else (p[2],-p[0],-p[1]))
+        rL = mp.sqrt(sum(a*a for a in pL))
+        n = tuple(a/rL for a in pL)
+        projected = ((1+n[2])*pair[0]+(n[0]+mp.j*n[1])*pair[1],
+                     (n[0]-mp.j*n[1])*pair[0]+(1-n[2])*pair[1])
+        length = mp.sqrt(sum(abs(a)**2 for a in projected))
+        if length==0:
+            raise ValueError('raw pole forward projector is orthogonal')
+        factor = mp.sqrt(rL)/length
+        return tuple(+(factor*a) for a in projected)
+
+
+def elementary_pole_patch(z,infinity=False,dps=50):
+    """Two-sided elementary pole patch H_j of programme (11.12h)."""
+    import mpmath as mp
+    with mp.workdps(max(mp.mp.dps,dps)+50):
+        pair = tuple(map(mp.mpc,z))
+        inner = mp.mpf('1e-8')
+        outer = mp.mpf('1.5e-8')
+        radius = sum(abs(a)**2 for a in pair)
+        if radius<=inner:
+            return pair
+        if radius<(inner+outer)/2:
+            x = mp.exp(3)*mp.expm1(3*(radius-inner)/(outer-radius))
+            if x-1/x<=-(dps+10)*mp.log(10):
+                # u=S(radius)<(outer/e)*10^(-dps-10). For u<c/10,
+                # J(t)=log(expm1(psi(t))) has J'(t)<15/(2t).
+                # The raw bounds (11.9),(11.11) then give
+                # |H(z)-z|/|z|<1000u, below the requested precision.
+                return pair
+        compressed = _elementary_pole_radial(pair)
+        raw = elliptic_pole_raw_inverse(compressed,infinity,dps=dps,elementary=True)
+        return _elementary_pole_radial(raw,inverse=True)
+
+
+def elementary_pole_forward(w,infinity=False,dps=50):
+    """Finite elementary inverse H_j^{-1} on the certified cap image."""
+    import mpmath as mp
+    with mp.workdps(max(mp.mp.dps,dps)+50):
+        pair = tuple(map(mp.mpc,w))
+        inner = mp.mpf('1e-8')
+        outer = mp.mpf('1.5e-8')
+        radius = sum(abs(a)**2 for a in pair)
+        if radius<=inner:
+            return pair
+        if radius<(inner+outer)/2:
+            x = mp.exp(3)*mp.expm1(3*(radius-inner)/(outer-radius))
+            if x-1/x<=-(dps+10)*mp.log(10):
+                # The same estimate gives |H^{-1}(w)-w|/|w|<3000S(radius).
+                return pair
+        compressed = _elementary_pole_radial(pair)
+        raw = elementary_pole_raw_forward(compressed,infinity,dps=dps)
+        return _elementary_pole_radial(raw,inverse=True)
+
+
 def scalar_flat_step(u):
     """mpmath reference for the existing flat step, with exact endpoint pieces."""
     import mpmath as mp
@@ -764,7 +886,7 @@ def elementary_global_slice(Z,X,*,projection_steps=None,phase_steps=None,dps=50,
             scale = mp.pi if inf else 2*mp.pi
             den = mp.sqrt(scale*(1+abs(X)*mp.sqrt(2-X*X)))
             pair = _elementary_pole_inclusion(Z,inf)[4:6] if inf else _elementary_pole_inclusion(Z)[:2]
-            zz = elliptic_pole_patch(tuple(a/den for a in pair),inf,dps=dps,elementary=True)
+            zz = elementary_pole_patch(tuple(a/den for a in pair),inf,dps=dps)
             nu = mp.exp(-2) if inf else mp.mpf(1)
             # A third entry is unnecessary: the torus restoration uses H_f.
             return ('ci' if inf else 'c0',(mp.conj(zz[0])/nu,zz[1]))

@@ -316,6 +316,52 @@ def check_elementary_closed_blocks():
                 u = mp.matrix([*vector,*phi])
                 J,DG = C.elementary_tensor_numeric(u,sign=sign,dps=55)
                 assert abs(mp.det(DG))>mp.mpf('1e-6') and mp.norm(J*J+mp.eye(6))<mp.mpf('1e-40')
+        # The replacement H_j differs from the historical blend only inside
+        # this narrow shell. Exercise both directions and the actual cap tensor.
+        shell_error = mp.mpf(0)
+        shell_det = mp.inf
+        for sign in (-1,1):
+            inf = sign>0
+            scale = mp.pi if inf else 2*mp.pi
+            for radius in map(mp.mpf,('1.01e-8','1.25e-8','1.49e-8','2e-8')):
+                local = (mp.sqrt(radius*mp.mpf('.7')),
+                         mp.sqrt(radius*mp.mpf('.3'))*mp.exp(mp.j*mp.mpf('.7')))
+                source = C.elementary_pole_patch(local,inf,dps=55)
+                recovered = C.elementary_pole_forward(source,inf,dps=55)
+                shell_error = max(shell_error,
+                                  mp.norm(mp.matrix(recovered)-mp.matrix(local))/mp.sqrt(radius))
+                if radius==mp.mpf('1.25e-8'):
+                    h = scale*radius
+                    X = sign*(1-h)/mp.sqrt(1+h*h)
+                    U = (mp.matrix([[1,1],[1,-1]]) if inf else
+                         mp.matrix([[1,1],[mp.j,-mp.j]]))/mp.sqrt(2)
+                    Z = mp.sqrt(2*scale/(1+h*h))*U*mp.matrix(local)
+                    assert abs(X*X+sum(abs(v)**2 for v in Z)-1)<mp.mpf('1e-50')
+                    J,DG = C.elementary_tensor_numeric(
+                        mp.matrix([Z[0].real,Z[0].imag,Z[1].real,Z[1].imag,*phi]),
+                        sign=sign,dps=55)
+                    shell_det = min(shell_det,abs(mp.det(DG)))
+                    assert mp.norm(J*J+mp.eye(6))<mp.mpf('1e-40')
+        assert shell_error<mp.mpf('1e-40') and shell_det>mp.mpf('1e-6')
+        print(f'Elementary pole shells: 8 forward/inverse cases, relative error {float(shell_error):.1e}; '
+              f'2 cap tensors, minimum |det DG|={float(shell_det):.6g}: PASS',flush=True)
+        # The radial conjugation is flatter than the precision used by the
+        # raw stereographic formulas very close to its inner and outer seams.
+        seam_error = mp.mpf(0)
+        for inf in (False,True):
+            for radius in [mp.mpf('1e-8')*(1+gap) for gap in
+                           map(mp.mpf,('1e-40','1e-10','1e-6','5.5e-5','6e-5','7e-5','1e-4'))]+[
+                           mp.mpf('1.5e-8')*(1-mp.mpf('1e-6')),
+                           mp.mpf('1.5e-8')*(1-mp.mpf('1e-30'))]:
+                local = (mp.sqrt(radius*mp.mpf('.7')),
+                         mp.sqrt(radius*mp.mpf('.3'))*mp.exp(mp.j*mp.mpf('.7')))
+                source = C.elementary_pole_patch(local,inf,dps=55)
+                recovered = C.elementary_pole_forward(source,inf,dps=55)
+                seam_error = max(seam_error,
+                                 mp.norm(mp.matrix(recovered)-mp.matrix(local))/mp.sqrt(radius))
+        assert seam_error<mp.mpf('1e-40')
+        print(f'Elementary pole seams: 18 near-inner/outer forward/inverse cases, '
+              f'relative error {float(seam_error):.1e}: PASS',flush=True)
         # A free point exercises a full projection product, with no cap cutoff.
         X = mp.mpf('.4')
         Z = tuple(a*mp.sqrt(1-X*X) for a in xi)

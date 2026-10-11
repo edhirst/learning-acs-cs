@@ -1100,5 +1100,215 @@ rep('C27c real-plane imaginary cubic numerator is not divisible by r',
                     +2*sp.I*kappa27*y27**5)==0
     and sp.rem(imag_num27,x27**2+y27**2,x27)!=0)
 
+# C28: the new pole patch is a flat radial conjugation with an elementary inverse.
+from extra.s4t2_explicit.cusp import elementary_pole_patch, elementary_pole_forward
+
+x28,l28 = sp.symbols('x28 l28',positive=True)
+f28 = x28-1/x28
+soft28 = sp.log(1+sp.exp(f28))
+root28 = (l28+sp.sqrt(l28**2+4))/2
+rep('C28a softplus quadratic inverse and strict derivative factor',
+    sp.simplify(sp.exp(soft28)-1-sp.exp(f28))==0
+    and sp.simplify(root28*(root28-l28)-1)==0
+    and sp.simplify(sp.diff(f28,x28)-(1+x28**-2))==0)
+
+coord28 = sp.symbols('coord28',positive=True)
+outer_scale28 = sp.symbols('outer_scale28',positive=True)
+back28 = outer_scale28*(1-1/coord28)
+rep('C28a2 radial endpoint coordinate inverse identities',
+    sp.simplify(outer_scale28/(outer_scale28-back28)-coord28)==0
+    and sp.simplify(outer_scale28*(1-1/sp.log(sp.exp(coord28)))-back28)==0)
+
+c28,t28,q28,d28 = sp.symbols('c28 t28 q28 d28',positive=True)
+ell28 = sp.log(1+q28*d28)
+shifted28 = c28*(1-1/(c28/t28+ell28))
+A28,B28 = sp.exp(3),sp.E
+raw_x28 = 1/q28-A28
+outer_d28 = B28-A28-q28/(1-A28*q28)\
+            +sp.log(1+sp.exp(-1/q28+A28+q28/(1-A28*q28)))
+soft_large28 = raw_x28-1/raw_x28\
+               +sp.log(1+sp.exp(-raw_x28+1/raw_x28))
+rep('C28b exact outer-seam expression and flat-factor identity',
+    sp.simplify(soft_large28+B28-1/q28-outer_d28)==0
+    and sp.simplify(shifted28-(c28-t28)-t28**2*ell28/(c28+t28*ell28))==0)
+
+xp28,u28,D28 = sp.symbols('xp28 u28 D28',positive=True)
+Fdiff28 = (xp28-1/xp28)-(x28-1/x28)
+W28 = sp.symbols('W28',real=True)
+xw28 = x28+x28**2*u28*W28
+rep('C28c inner-seam conjugation identity',
+    sp.simplify(Fdiff28-(xp28-x28)*(1+1/(x28*xp28)))==0
+    and sp.simplify(((xw28-1/xw28)-(x28-1/x28))/u28
+                    -W28*(1+x28**2*(1+x28*u28*W28))
+                    /(1+x28*u28*W28))==0)
+
+eps28 = sp.Rational(1,10**8)
+a28,c28r,b28,R28 = eps28,3*eps28/2,2*eps28,sp.Rational(1,10**4)
+alpha28 = sp.Rational(1,10**5)
+cap28 = sp.Rational(17,10**7)
+rho28 = sp.Rational(1,10**7)
+rep('C28d raw-collar and source-domain rational margins',
+    b28-80*b28**2>c28r
+    and sp.simplify(R28**sp.Rational(1,2)-200*R28**sp.Rational(3,2)
+                    -sp.Rational(98,10**4))==0
+    and 5000*rho28<1
+    and rho28**sp.Rational(1,2)-200*rho28**sp.Rational(3,2)>sp.sqrt(c28r)
+    and alpha28/(3*(2-alpha28/2))<cap28
+    and alpha28/21>b28
+    and cap28+80*cap28**2<sp.Rational(2,10**6)
+    and sp.Rational(2,10**6)<sp.Rational(98,10**4)**2)
+
+ur28,ui28,vr28,vi28 = sp.symbols('ur28 ui28 vr28 vi28',real=True)
+den28 = 1+ur28
+stereo28 = (ui28/den28,vr28/den28-1,vi28/den28)
+norm28 = sum(v*v for v in stereo28)
+rep('C28h rational north stereographic inversion on the unit S3',
+    sp.simplify(den28**2*(norm28-2*(1-vr28)/den28)
+                -(ur28**2+ui28**2+vr28**2+vi28**2-1))==0)
+
+h28 = sp.symbols('h28',nonnegative=True)
+X28 = (1-h28)/sp.sqrt(1+h28**2)
+rep('C28i forward cap sphere and inverse denominator identities',
+    sp.simplify(X28**2+2*h28/(1+h28**2)-1)==0
+    and sp.simplify((2-X28**2)*(1+h28**2)-(1+h28)**2)==0
+    and sp.simplify(1+X28*(1+h28)/sp.sqrt(1+h28**2)
+                    -2/(1+h28**2))==0)
+
+with mp.workdps(85):
+    epsilon28 = mp.mpf('1e-8')
+    inner28,outer28 = epsilon28,3*epsilon28/2
+    def soft_mp28(x):
+        f = x-1/x
+        return mp.log1p(mp.exp(f)) if f<0 else f+mp.log1p(mp.exp(-f))
+    def soft_inv_mp28(y):
+        L = mp.log(mp.expm1(y))
+        return 2/(mp.sqrt(L*L+4)-L) if L<0 else (L+mp.sqrt(L*L+4))/2
+    def scale_mp28(r):
+        if r>=outer28:
+            return r
+        x = mp.exp(outer28/(outer28-r))-mp.exp(3)
+        y = soft_mp28(x)
+        ell = mp.log1p(y/mp.e)
+        return outer28*ell/(1+ell)
+    def scale_inv_mp28(s):
+        if s>=outer28:
+            return s
+        y = mp.exp(outer28/(outer28-s))-mp.e
+        x = soft_inv_mp28(y)
+        ell = mp.log1p(x/mp.exp(3))
+        return inner28+outer28*ell/(3*(3+ell))
+    def radial_mp28(pair,inverse=False):
+        r = sum(abs(v)**2 for v in pair)
+        s = scale_inv_mp28(r) if inverse else scale_mp28(r)
+        factor = mp.sqrt(s/r)
+        return (factor*pair[0],factor*pair[1])
+    def raw_forward_mp28(pair,inf):
+        base = forward_local23(pair,inf)
+        scale = mp.pi if inf else 2*mp.pi
+        pL = (mp.matrix([base[2],-base[1],base[0]])/scale if inf else
+              mp.matrix([base[2],-base[0],-base[1]])/scale)
+        rL = mp.norm(pL)
+        nL = pL/rL
+        projector = mp.matrix([[1+nL[2],nL[0]+mp.j*nL[1]],
+                               [nL[0]-mp.j*nL[1],1-nL[2]]])/2
+        projected = projector*mp.matrix(pair)
+        z = mp.sqrt(rL)*projected/mp.norm(projected)
+        return (z[0],z[1])
+    def patched_mp28(pair,inf,inverse=False):
+        r = sum(abs(v)**2 for v in pair)
+        if r<=inner28:
+            return pair
+        compressed = radial_mp28(pair)
+        middle = (raw_forward_mp28(compressed,inf) if inverse else
+                  elliptic_pole_raw_inverse(compressed,inf,dps=80,elementary=True))
+        return radial_mp28(middle,inverse=True)
+    inverse_error28 = mp.mpf(0)
+    raw_error28 = mp.mpf(0)
+    phase_error28 = mp.mpf(0)
+    production_error28 = mp.mpf(0)
+    max_source28 = mp.mpf(0)
+    cases28 = 0
+    for inf28 in (False,True):
+        for multiplier28 in map(mp.mpf,('0.5','1','1.001','1.01','1.05','1.1',
+                                        '1.25','1.4','1.49','1.8','2','3','10','100','170')):
+            radius28 = multiplier28*epsilon28
+            for direction28 in ((1,0,0,0),(0,0,1,0),(1,2,3,-1),(-2,1,0,3)):
+                unit28 = mp.matrix(direction28)/mp.sqrt(sum(v*v for v in direction28))
+                z28 = (mp.mpc(unit28[0],unit28[1])*mp.sqrt(radius28),
+                       mp.mpc(unit28[2],unit28[3])*mp.sqrt(radius28))
+                output28 = patched_mp28(z28,inf28)
+                max_source28 = max(max_source28,sum(abs(v)**2 for v in output28))
+                recovered28 = patched_mp28(output28,inf28,inverse=True)
+                inverse_error28 = max(inverse_error28,
+                    mp.norm(mp.matrix(recovered28)-mp.matrix(z28))/mp.sqrt(radius28))
+                production28 = elementary_pole_patch(z28,inf28,dps=80)
+                try:
+                    production_inverse28 = elementary_pole_forward(output28,inf28,dps=80)
+                except Exception as exc:
+                    raise AssertionError(
+                        f'C28g production forward failed at infinity={inf28}, '
+                        f'multiplier={multiplier28}, direction={direction28}') from exc
+                production_error28 = max(
+                    production_error28,
+                    mp.norm(mp.matrix(production28)-mp.matrix(output28))/mp.sqrt(radius28),
+                    mp.norm(mp.matrix(production_inverse28)-mp.matrix(recovered28))/mp.sqrt(radius28))
+                if multiplier28>=2:
+                    raw28 = elliptic_pole_raw_inverse(z28,inf28,dps=80,elementary=True)
+                    raw_error28 = max(raw_error28,
+                        mp.norm(mp.matrix(output28)-mp.matrix(raw28))/mp.sqrt(radius28))
+                if multiplier28 in (mp.mpf('1.25'),mp.mpf('1.8'),mp.mpf('100')):
+                    phase28 = mp.exp(mp.j*mp.mpf('.37'))
+                    phase_output28 = patched_mp28(tuple(phase28*v for v in z28),inf28)
+                    phase_error28 = max(phase_error28,
+                        mp.norm(mp.matrix(phase_output28)
+                                -phase28*mp.matrix(output28))/mp.sqrt(radius28))
+                cases28 += 1
+    rep(f'C28e {cases28} two-cap elementary patch/inverse compositions: '
+        f'{float(inverse_error28):.1e}; raw collar {float(raw_error28):.1e}; '
+        f'phase {float(phase_error28):.1e}; max source radius² '
+        f'{float(max_source28):.7e}',
+        inverse_error28<mp.mpf('1e-55') and raw_error28<mp.mpf('1e-55')
+        and phase_error28<mp.mpf('1e-55') and max_source28<mp.mpf('2e-6'))
+    rep(f'C28g {cases28} production versus independent H_j evaluations: '
+        f'{float(production_error28):.1e}',production_error28<mp.mpf('1e-55'))
+
+    def real_vector28(pair):
+        return mp.matrix((pair[0].real,pair[0].imag,pair[1].real,pair[1].imag))
+    def complex_pair28(vector):
+        return (mp.mpc(vector[0],vector[1]),mp.mpc(vector[2],vector[3]))
+    def central_jacobian28(func,pair,step):
+        base = real_vector28(pair)
+        jac = mp.matrix(4,4)
+        for k in range(4):
+            direction = mp.matrix([int(k==j) for j in range(4)])
+            plus = real_vector28(func(complex_pair28(base+step*direction)))
+            minus = real_vector28(func(complex_pair28(base-step*direction)))
+            for j in range(4):
+                jac[j,k] = (plus[j]-minus[j])/(2*step)
+        return jac
+    derivative_error28 = mp.mpf(0)
+    minimum_det28 = mp.inf
+    derivative_cases28 = 0
+    for inf28 in (False,True):
+        for multiplier28 in map(mp.mpf,('1.1','1.25','1.8','2','100')):
+            radius28 = multiplier28*epsilon28
+            direction28 = mp.matrix((1,2,3,-1))/mp.sqrt(15)
+            z28 = (mp.mpc(direction28[0],direction28[1])*mp.sqrt(radius28),
+                   mp.mpc(direction28[2],direction28[3])*mp.sqrt(radius28))
+            w28 = patched_mp28(z28,inf28)
+            step28 = mp.sqrt(radius28)*mp.mpf('1e-7')
+            jac28 = central_jacobian28(lambda v: patched_mp28(v,inf28),z28,step28)
+            inv_jac28 = central_jacobian28(
+                lambda v: patched_mp28(v,inf28,inverse=True),w28,step28)
+            defect28 = inv_jac28*jac28-mp.eye(4)
+            derivative_error28 = max(derivative_error28,
+                                     max(abs(defect28[j,k]) for j in range(4)
+                                         for k in range(4)))
+            minimum_det28 = min(minimum_det28,mp.det(jac28))
+            derivative_cases28 += 1
+    rep(f'C28f {derivative_cases28} numerical two-cap inverse-Jacobian samples: '
+        f'{float(derivative_error28):.1e}; min det {float(minimum_det28):.6e}',
+        derivative_error28<mp.mpf('1e-7') and minimum_det28>0)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

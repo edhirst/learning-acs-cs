@@ -1252,3 +1252,46 @@ in `AGENTS.md` §5.
 - **Open points:** this excludes scalar rescaling of the canonical raw lift, not
   a change in Hopf direction, a phase-modified lift, or an elementary inverse
   of the existing blended shell.
+
+### 2026-10-11-TSG-5 — Give the pole replacement an elementary inverse in both directions
+- **Date:** 2026-10-11
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6)
+- **Type:** addition
+- **Based on:** 72f2513
+- **Where:** docs/s4t2_symbolic_programme.md §11.3, §11.6–11.8;
+  SYMBOLIC_CAMPAIGN.md status; extra/s4t2_explicit/cusp.py,
+  check_inverse.py and sym/chart_identities.py. No manuscript file was changed.
+- **Change:** replaced the pole-shell blend in the elementary inverse-first
+  construction by the radial conjugation \(H_j=D^{-1}g_jD\), joined to the
+  identity inside \(|z|^2\leq10^{-8}\). Both \(H_j\) and its inverse now have
+  finite elementary formulas. Added the corresponding forward formula on the
+  source cap, exact symbolic identities, independent sampled compositions,
+  shell tensor checks, and precision guards for evaluating the flat seams.
+- **Why:** the earlier smooth blend had no elementary forward inverse. The
+  increasing radial map \(S=\psi^{-1}T\phi\) compresses the inner boundary
+  to zero and is the identity to all orders at its outer boundary; conjugation
+  makes the raw lift's nonsmooth pole jet flat while preserving its explicit
+  inverse. The spherical-blowup argument in §11.3 proves smoothness at the
+  inner seam. The raw defect bound proves that the image contains the required
+  cap and that the local formulas agree with the slab on an open overlap.
+- **Verification:** two agents independently reviewed the radial identities,
+  seam proof, image/domain bounds and forward-cap signs. C28a–d,h–i give exact
+  identities and rational margins; C28e–g give 120 two-cap compositions and
+  10 inverse-Jacobian samples. The 18-case production seam check has relative
+  round-trip error at most 3.0e−59; its precision shortcuts have explicit
+  type-(c) bounds in §11.7. `sym/chart_identities.py`, all three other campaign
+  symbolic suites, `check_inverse.py --closed`, and
+  `check_inverse.py --closed-nijenhuis`: **ALL PASS**. The legacy checks
+  `check_tcore.py`, `check_tlift.py`, `check_lift.py`, `check_degree.py`,
+  `check_full.py`, `check_inverse.py`, `check_step1.py`, `check_step2.py`,
+  `check_glue.py`, `check_hopf.py`, `nijenhuis_round.py 2000`, and
+  `check_jround.py` passed; the fine 1121×128×128 degree grid had positive
+  determinant at all 18,366,464 nodes and degree 1.000000.
+  `verify_construction.py`: `all checks passed`; `sphere_products.py`:
+  `Dimension 8 check passed`; `git diff --check`: pass. LaTeX: **not run**
+  (`latexmk` unavailable). Git fetch/pull and push were left to the
+  collaborator as requested.
+- **Open points:** the inverse of the global height transition in (11.3)
+  remains implicit. This commit gives an elementary inverse of the pole
+  replacement, not yet a finite elementary global inverse pair.
