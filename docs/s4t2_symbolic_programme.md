@@ -1860,6 +1860,65 @@ both local maps, proving that the replacement preserves the image of that ball
 The forward inverse of (11.12) is not asserted to be elementary; the eventual
 complex-structure coefficient formula uses ĝ_j and its derivative directly.
 
+There is, however, a finite elementary forward formula on the **unblended** part
+of each cap (identity (a), C25a; bound (c)). Given a nonzero source spinor
+\(w=(\nu_j\overline{x_s},y_s)\), set
+
+  p_S=Hopf(w),  s=|w|²,  p_L=C_j(p_S),  r_L=|p_L|,
+  P_L=Π(p_L/r_L),  z_L=√r_L P_Lw/|P_Lw|.                (11.12a)
+
+Use this when \(s\leq1/250\) and \(2\varepsilon\leq r_L\leq10^{-4}\).
+All entries are finite elementary: (11.7) gives the height in these caps,
+and (9.4) gives \(C_j\). The bound preceding (11.9) gives
+\(|p_L-p_S|\leq20s^2\), hence
+\(|p_L/r_L-p_S/s|\leq40s/(1-20s)\leq4/23<2\).
+If \(Q_S=\Pi(p_S/s)\), the rank-one identity
+\(Q_SP_Lw=h w\), \(h=(1+(p_S/s)\cdot(p_L/r_L))/2\geq525/529\), gives
+\(|P_Lw|^2=sh>0\) and shows directly that
+\(g_j(z_L)=w\). Since \(\widehat g_j=g_j\) at this \(r_L\), (11.12a) also
+inverts the patched lift there. On \(|w|^2\leq\varepsilon\), its inverse is
+simply \(w\), by the injectivity above and \(\widehat g_j(w)=w\).
+In (9.7) take \(Z_0=\sqrt{s_j}U_jz_L\) and \(h_0=s_jr_L\) to obtain the
+round coordinates. On \(1-|X|<\alpha/2\) they agree with the S⁴ component
+of the global forward map, by (11.17). The intervening
+blend still has no finite elementary forward inverse supplied here.
+
+The blend cannot be replaced by a smooth diffeomorphic lift obtained merely
+by changing the phase over the **unchanged south raw base for (11.7)**.
+The identities are type (a), C25b–d, and the bound below is type (c).
+Indeed, put
+\(p=(p_1,p_2,p_3)=\operatorname{Hopf}(w)\), \(r=|p|\),
+\(\rho^2=p_1^2+p_2^2\), \(\kappa=2\pi\),
+\(u=(r+p_3)/2\), \(v=(r-p_3)/2\),
+\(\beta_2=e^4/(128\pi^2)-2\pi^2\), and \(R_3=-4u^2v\).
+Here \(\beta=1+\beta_2\rho^2+O(r^4)\) and
+\(R_H=R_3+O(r^5)\). From
+\(C_0(p)=\kappa^{-1}Q_0^{-1}B(\kappa\beta p_1,\kappa\beta p_2,
+\kappa(p_3+R_H))\), with \(Q_0\) orthogonal, and
+\(|B(a,b,c)|^2=2(d-\cos c)/(d+a\cos c+b\sin c)\),
+\(d=\sqrt{1+a^2+b^2}\), one obtains
+
+  |C_0(p)|²=r²−κp₁r²+F₄+O(r⁵),
+  F₄=2β₂ρ⁴+2p₃R₃+κ²[r²(p₁²−ρ²/2−p₂p₃)−ρ⁴/4−p₃⁴/12],
+  |C_0(p)|=r−κp₁r/2+N/(2r)+O(r⁴),  N=F₄−κ²p₁²r²/4. (11.12b)
+
+On the real spinor plane \(w=(x,y)\), we have
+\(p_1=2xy\), \(p_2=0\), \(p_3=x^2-y^2\), and \(r=x^2+y^2\).
+As a polynomial-divisibility test over \(\mathbb C\), substituting \(x=iy\)
+in \(N\) gives \(16y^8\eta\), where
+\(\eta=1+e^4/(64\pi^2)-16\pi^2/3<1+55/576-48<-46\), using
+\(e^4<55\) and \(\pi>3\) from §4.3. Thus \(x^2+y^2\) does not divide \(N\), so the
+homogeneous degree-six term \(N/(2r)\) is not a polynomial. The remainder in
+(11.12b) becomes \(O(|w|^8)\); a \(C^6\) function of \(w\) would have a
+polynomial sixth-order Taylor term. Consequently
+\(w\mapsto|C_0(\operatorname{Hopf}(w))|\) is not \(C^6\) at zero. Any
+\(C^6\) lift \(L\) preserving this raw base would satisfy
+\(|L(w)|^2=|C_0(\operatorname{Hopf}(w))|\), an impossibility. This only
+obstructs the unchanged raw base; it places no restriction on a redesigned
+base or on an elementary inverse of the existing blend. In particular, a
+smooth diffeomorphic inverse-direction lift preserving the raw base would have
+a smooth local forward inverse \(L\), which has just been excluded.
+
 ### 11.4 A fixed global projector bound
 
 Here and below the base height is **(11.3)–(11.7)**; the old Gaussian, finite
@@ -2223,6 +2282,8 @@ observations, type (d), and do not replace the written certificates.
 |---|---|
 | C21–C22 | deck/branch identities, norm square, north stereographic inverse, Hopf projector and horizontal derivative identities: ALL PASS |
 | C23–C24 / I2t–v | quadratic height, projection-phase and finite coefficient rules, all explicit endpoint constants and implemented counts: ALL PASS |
+| C25a–d | raw-cap forward projection, south raw-base norm expansion and sixth-order divisibility obstruction: ALL PASS; the explicit obstruction coefficient η<−46 |
+| C25e, numerical | 18 independent raw-cap forward compositions on both caps; maximum relative error 6.3·10⁻⁶⁸ |
 | Elementary height | 132 value/deck/collar cases and 108 seam jets through order three; error 6.4·10⁻⁸⁶; sampled f_a∈[1,4.536928] versus proved [8/9,14] |
 | Open central-axis charts | 12 comparisons with the closed logarithmic inverse and 12 cell-seam jets, error 2.6·10⁻⁸⁶; 8 exact axis representatives also pass embedding and torus restoration checks |
 | Inverse-first caps | 64 independent forward compositions, relative error 2.1·10⁻⁶³; sampled value/derivative defect constants 2.552/11.348 versus proved 200/5000; sampled blend defect 3.2·10⁻⁷ versus proved 13200ε=1.32·10⁻⁴<1/1000 |

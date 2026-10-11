@@ -1124,3 +1124,35 @@ in `AGENTS.md` §5.
      construction; environment, runner and reference outputs of the manuscript scripts.
   2. The write-up is derived from `main.tex`. When the manuscript changes, it should be updated in a later
      entry. Its header records the base commit.
+
+### 2026-10-11-TSG-1 — Recover the forward map on raw pole caps and locate a radial obstruction
+- **Date:** 2026-10-11
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6)
+- **Type:** addition
+- **Based on:** `338d95c` (the collaborator's pulled branch)
+- **Where:** `docs/s4t2_symbolic_programme.md` §11.3 and §11.8;
+  `extra/s4t2_explicit/sym/chart_identities.py` C25. No manuscript or construction file was changed.
+- **Change:** gave a finite elementary formula for the forward inverse of the inverse-first pole lift
+  on both unblended caps, with the explicit projection margin 525/529. Expanded the unchanged south
+  raw base for (11.7) through the first radial obstruction and proved that its spinor radius is not C⁶ at the
+  pole. This excludes a smooth diffeomorphic lift obtained only by changing phase over that raw base;
+  it does not exclude a redesigned base or an elementary inverse of the existing blend. Added exact
+  symbolic checks C25a–d and 18 independent numerical compositions C25e.
+- **Why:** the stronger finite elementary inverse-pair goal remains open. The cap formula supplies a
+  genuine forward piece of it, while the obstruction identifies why a phase-only removal of the
+  pole blend cannot work. The formula is derived by reversing two rank-one projectors with a positive
+  real scalar. For the obstruction, the exact norm identity for B and the profile/height jets give
+  (11.12b). On a real spinor plane, its homogeneous sixth-order term is nonpolynomial: the numerator
+  does not vanish at the complex root x=iy of x²+y², with coefficient
+  η<1+55/576−48<−46. A C⁶ lift would make this norm C⁶, contradicting its Taylor expansion.
+- **Verification:** two agents independently re-derived the south norm expansion and reviewed the
+  local/global scope. `sym/chart_identities.py`: `ALL PASS`, including C25a–d and 18 C25e compositions
+  with maximum relative error 6.3e−68 (numerical evidence only). All four campaign symbolic suites:
+  `ALL PASS`. `verify_construction.py`: `all checks passed`; `sphere_products.py`:
+  `Dimension 8 check passed`. `git diff --check`: pass. LaTeX: **not run** (`latexmk` unavailable in the
+  active environment). The full legacy numerical safety net was not run because no construction block
+  changed. Git fetch/pull and push were left to the collaborator as requested.
+- **Open points:** the blend between |z_L|²=ε and 2ε still has no finite elementary forward inverse;
+  the cap formula is a global F_cl component only on the (11.17) cap/overlap. Human review of the
+  sixth-order obstruction is welcome.

@@ -856,5 +856,97 @@ rep('C24d half-angle argument chart has the same first jet',
     sp.simplify(sp.diff(arg24,v24)*w24+sp.diff(arg24,a24)*b24
                 -(v24*b24-a24*w24)/(v24*v24+a24*a24))==0)
 
+# C25: exact forward reversal on raw caps and the south raw-base obstruction.
+za25,zb25,zc25,zd25,wa25,wb25,wc25,wd25 = sp.symbols(
+    'za25 zb25 zc25 zd25 wa25 wb25 wc25 wd25',real=True)
+z25 = sp.Matrix([za25+sp.I*zb25,zc25+sp.I*zd25])
+w25 = sp.Matrix([wa25+sp.I*wb25,wc25+sp.I*wd25])
+rz25 = (z25.conjugate().T*z25)[0]
+sw25 = (w25.conjugate().T*w25)[0]
+Pz25 = z25*z25.conjugate().T/rz25
+Pw25 = w25*w25.conjugate().T/sw25
+ov25 = (z25.conjugate().T*w25)[0]
+rep('C25a reverse raw-cap projection has positive real phase',
+    all(sp.simplify(v)==0 for v in
+        Pw25*Pz25*w25-sp.conjugate(ov25)*ov25*w25/(rz25*sw25)))
+rep('C25a2 explicit nonzero projection margin',
+    sp.Rational(40,250)/(1-sp.Rational(20,250))==sp.Rational(4,23)
+    and 1-sp.Rational(4,23)**2/4==sp.Rational(525,529))
+
+a25,b25,c25 = sp.symbols('a25 b25 c25',real=True)
+d25 = sp.sqrt(1+a25*a25+b25*b25)
+D25 = d25+a25*sp.cos(c25)+b25*sp.sin(c25)
+Bnum25 = [a25*sp.sin(c25)-b25*sp.cos(c25),-sp.sin(c25),D25-sp.cos(c25)]
+rep('C25b exact norm identity for the south raw-base block B',
+    sp.trigsimp(sp.expand(sum(v*v for v in Bnum25)-2*D25*(d25-sp.cos(c25))))==0)
+
+tt25,p125,p225,p325,rr25,kk25,bb25 = sp.symbols(
+    'tt25 p125 p225 p325 rr25 kk25 bb25',real=True)
+rho225 = p125**2+p225**2
+u25,v25 = (rr25+p325)/2,(rr25-p325)/2
+R325 = -4*u25*u25*v25
+ac25 = kk25*tt25*p125*(1+bb25*tt25**2*rho225)
+bc25 = kk25*tt25*p225*(1+bb25*tt25**2*rho225)
+cc25 = kk25*(tt25*p325+tt25**3*R325)
+dc25 = sp.sqrt(1+ac25*ac25+bc25*bc25)
+Dc25 = dc25+ac25*sp.cos(cc25)+bc25*sp.sin(cc25)
+F425 = (2*bb25*rho225**2+2*p325*R325
+        +kk25**2*(rr25**2*(p125**2-rho225/2-p225*p325)-rho225**2/4-p325**4/12))
+rawnorm25 = 2*(dc25-sp.cos(cc25))/(Dc25*kk25**2)
+target25 = tt25**2*rr25**2-kk25*tt25**3*p125*rr25**2+tt25**4*F425
+difference25 = sp.expand(sp.series(rawnorm25,tt25,0,5).removeO()-target25)
+unit25 = rr25**2-p125**2-p225**2-p325**2
+rep('C25b2 south raw-base norm expansion through order four',
+    all(sp.factor(sp.rem(sp.expand(difference25.coeff(tt25,j)),unit25,rr25))==0
+        for j in range(2,5)))
+
+ee25,uu25,vv25 = sp.symbols('ee25 uu25 vv25',real=True)
+beta25 = sp.sqrt((1+sp.exp(4)*ee25**2/(64*sp.pi**2))/(1+4*sp.pi**2*ee25**2))
+beta225 = sp.exp(4)/(128*sp.pi**2)-2*sp.pi**2
+height25 = ee25*uu25*(sp.exp(-4*ee25**2*uu25*vv25/(1-ee25**2*uu25*vv25))-1)
+rep('C25c algebraic profile and elementary height jets',
+    sp.simplify(sp.diff(beta25,ee25,2).subs(ee25,0)/2-beta225)==0
+    and sp.simplify(sp.series(height25,ee25,0,4).removeO()
+                    +4*ee25**3*uu25**2*vv25)==0)
+
+x25,y25 = sp.symbols('x25 y25',real=True)
+N25 = F425-kk25**2*p125**2*rr25**2/4
+Nxy25 = sp.expand(N25.subs({p125:2*x25*y25,p225:0,p325:x25**2-y25**2,
+                            rr25:x25**2+y25**2,kk25:2*sp.pi,bb25:beta225}))
+eta25 = 1+sp.exp(4)/(64*sp.pi**2)-16*sp.pi**2/3
+rep('C25d nonpolynomial sixth-order norm term on a real spinor plane',
+    sp.simplify(Nxy25.subs(x25,sp.I*y25)-16*eta25*y25**8)==0
+    and sp.rem(Nxy25,x25**2+y25**2,x25)!=0)
+rep('C25d2 explicit obstruction coefficient bound using e^4<55 and pi>3',
+    1+sp.Rational(55,576)-48 < -46)
+
+with mp.workdps(80):
+    forward_error25 = mp.mpf(0)
+    forward_cases25 = 0
+    for inf25 in (False,True):
+        scale25 = mp.pi if inf25 else 2*mp.pi
+        for radius25 in map(mp.mpf,('3e-8','1e-6','7e-5')):
+            for direction25 in ((1,0,0,0),(1,2,3,-1),(-2,1,0,3)):
+                unit25 = mp.matrix(direction25)/mp.sqrt(sum(v*v for v in direction25))
+                source25 = (mp.mpc(unit25[0],unit25[1])*mp.sqrt(radius25),
+                            mp.mpc(unit25[2],unit25[3])*mp.sqrt(radius25))
+                base25 = forward_local23(source25,inf25)
+                pL25 = mp.matrix([base25[2],-base25[1],base25[0]])/scale25 if inf25 else \
+                       mp.matrix([base25[2],-base25[0],-base25[1]])/scale25
+                rL25 = mp.norm(pL25)
+                assert 2*mp.mpf('1e-8')<rL25<mp.mpf('1e-4')
+                nL25 = pL25/rL25
+                projector25 = mp.matrix([[1+nL25[2],nL25[0]+mp.j*nL25[1]],
+                                         [nL25[0]-mp.j*nL25[1],1-nL25[2]]])/2
+                projected25 = projector25*mp.matrix(source25)
+                zL25 = projected25*mp.sqrt(rL25)/mp.norm(projected25)
+                recovered25 = elliptic_pole_raw_inverse((zL25[0],zL25[1]),inf25,
+                                                        dps=70,elementary=True)
+                forward_error25 = max(forward_error25,
+                    mp.norm(mp.matrix(recovered25)-mp.matrix(source25))/mp.sqrt(radius25))
+                forward_cases25 += 1
+    rep(f'C25e {forward_cases25} independent raw-cap forward compositions: '
+        f'{float(forward_error25):.1e}',forward_error25<mp.mpf('1e-60'))
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'
