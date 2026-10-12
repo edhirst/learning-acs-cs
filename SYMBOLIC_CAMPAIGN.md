@@ -333,8 +333,12 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   positive-root branches and their dominant-coordinate selector seam;
   C33 checks the negative-height cusp projector frame; C34 checks one
   active-collar negative-real-log seam through source Cramer coordinates.
-  The full radial-shell composition, other free-slab scalar/projector
-  cells, and the global source-chart seam table still need checking.
+  **South transition (2026-10-12-TSG-7):** section (g) of
+  symbolic_identities.py composes both nonidentity radial maps with the
+  actual south raw inverse, round cap and torus restoration to a local
+  six-real second-jet \(J\) circuit. The rest of the radial shells,
+  other free-slab scalar/projector cells, and the global source-chart
+  seam table still need checking.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.

@@ -19,6 +19,8 @@
       use the written cap and derivative bounds; other chambers remain open.
   (f) the corresponding north raw-pole annulus has a separate source-linked
       second-jet circuit and compositional 36/216 coefficient checks.
+  (g) one south nonidentity radial-transition chamber includes both radial
+      conjugations, the actual raw inverse, round cap, and torus restoration.
 Run from the repo root."""
 import sympy as sp
 
@@ -1238,4 +1240,369 @@ with mp.workdps(60):
           mp.nstr(measured_norm_f,17),
           '; sigma_min =',mp.nstr(measured_sigma_f,17),
           '; source value error =',mp.nstr(source_error_f,5),': PASS')
+# (g) An open south radial-transition chamber, 1.3e-8<|z_L|^2<1.4e-8,
+# p3(Hopf z_L)>0 and Im(2z0 conj z1)>0, of the actual two-sided pole
+# patch H_0=D^-1 o g_0 o D.  The scalar value and first/second jets of both
+# nonidentity radial maps are explicit finite DAGs; the 43-node raw DAG in
+# (e) is re-used unchanged between them.  This is one chamber, not the whole
+# radial shell, whose outer edge may take the identity branch of D^-1.
+for statement in (
+    "a,c = mp.mpf('1e-8'),mp.mpf('1.5e-8')",
+    'factor = mp.sqrt(new_radius/radius)',
+    'return tuple(+(factor*w) for w in z)',
+):
+    assert source_statement_e(cusp._elementary_pole_radial,statement),statement
+assert source_if_first_e(cusp._elementary_pole_radial,'radius>=c','return z')
+assert source_if_first_e(cusp._elementary_pole_radial,
+    'c/(c-radius)>(mp.mp.dps+10)*mp.log(10)','return z')
+assert source_if_prefix_f(cusp._elementary_pole_radial,'inverse',
+    "if radius<=0:\n"
+    "    raise ValueError('radial inverse requires positive radius')\n"
+    'y = mp.e*mp.expm1(radius/(c-radius))\n'
+    'L = (y+mp.log1p(-mp.exp(-y)) if y>1 else mp.log(mp.expm1(y)))\n'
+    'x = 2/(mp.sqrt(L*L+4)-L) if L<0 else (L+mp.sqrt(L*L+4))/2\n'
+    'ell = mp.log1p(x/mp.exp(3))\n'
+    'new_radius = a+c*ell/(3*(3+ell))')
+
+
+def source_if_else_prefix_g(function,condition,body):
+    tree = ast.parse(inspect.getsource(function))
+    indented = '\n'.join('    '+line for line in body.splitlines())
+    expected = ast.parse('if '+condition+':\n    pass\nelse:\n'
+                         +indented).body[0]
+    wanted = [ast.dump(item,include_attributes=False)
+              for item in expected.orelse]
+    return any(isinstance(node,ast.If) and
+               ast.dump(node.test,include_attributes=False)==
+               ast.dump(expected.test,include_attributes=False) and
+               len(node.orelse)>=len(wanted) and
+               [ast.dump(item,include_attributes=False)
+                for item in node.orelse[:len(wanted)]]==wanted
+               for node in ast.walk(tree))
+
+
+assert source_if_else_prefix_g(cusp._elementary_pole_radial,'inverse',
+    "if radius<=a:\n"
+    "    raise ValueError('radial compression requires radius greater than 1e-8')\n"
+    'x = mp.exp(3)*mp.expm1(3*(radius-a)/(c-radius))\n'
+    'f = x-1/x\n'
+    'y = mp.log1p(mp.exp(f)) if f<0 else f+mp.log1p(mp.exp(-f))\n'
+    'ell = mp.log1p(y/mp.e)\n'
+    'new_radius = c*ell/(1+ell)')
+
+ga,gc = sp.Rational(1,10**8),sp.Rational(3,2*10**8)
+grmin,grmax = sp.Rational(13,10**9),sp.Rational(14,10**9)
+assert ga<sp.Rational(5,4)*ga<grmin<grmax<gc
+gz0 = sp.Rational(1,10000)
+gz1 = (5-3*sp.I)/100000
+grw = sp.expand(gz0*sp.conjugate(gz0)+gz1*sp.conjugate(gz1))
+gpcw = sp.expand(2*gz0*sp.conjugate(gz1))
+gp3w = sp.expand(gz0*sp.conjugate(gz0)-gz1*sp.conjugate(gz1))
+assert grmin<grw<grmax and sp.re(gpcw)>0 and gp3w>0
+assert sp.im(gpcw)>0 and gpcw!=0
+# Throughout the stated angular subchamber, p3>0 gives gamma>0,
+# Im(pc)>0 gives aa=-2*pi*Im(pc)!=0, and 1+beta>1-8r>0.
+# Hence 0<height=atan(gamma/(1+beta))/(2*pi)<1/12<1/10,
+# Re(u2)>0, and tc!=0.  The following rational inequalities certify
+# the upper bound uniformly and at the strict witness.
+assert 8*grmax<sp.Rational(1,2)
+assert 8*gp3w/(1-8*sp.re(gpcw))<sp.Rational(1,2)
+assert 8*grmax/(1-8*grmax)<sp.Rational(1,2)
+assert sp.Rational(1,12)<sp.Rational(1,10)
+# S is strictly increasing by the positive factors in N10b,d and S(r)<r
+# by (11.12g).  At r_min, c/(c-r_min)=15/2>7; e in (2,3) gives
+# phi(r_min)=e^(15/2)-e^3>2^7-3^3=101.  Thus F(phi)>100 and
+# T(phi)>100>psi(a)=e^3-e<27; hence S(r)>a throughout this chamber.
+assert gc/(gc-grmin)==sp.Rational(15,2)
+assert sp.E>2 and sp.E<3 and 2**7-3**3>100>3**3
+assert 101-sp.Rational(1,101)>100
+assert grmax+80*grmax**2<sp.Rational(141,10**10)<gc
+assert ga-80*grmax**2>sp.Rational(9,10**9)
+# For u=S(r), (11.9) implies u-80u²<v=|g(Dz)|²<u+80u²;
+# so 9e-9<v<1.41e-8.  The output radial inverse is nonidentity.
+# Both precision guards are false for dps>=50: c/(c-r)<=15 and
+# c/(c-v)<50/3, whereas (mp.mp.dps+10)log 10>120.
+assert gc/(gc-grmax)==15
+assert gc/(gc-sp.Rational(141,10**10))==sp.Rational(50,3)
+assert sp.log(10)>2 and sp.Rational(50,3)<120
+# v>9e-9 implies c/(c-v)>5/2.  Thus the inverse y>e^2-e>1,
+# so its source L uses y+log1p(-exp(-y)) and is positive; the source
+# quadratic x uses its L>=0 branch.  The input x>101 gives f>100>0.
+assert gc/(gc-sp.Rational(9,10**9))==sp.Rational(5,2)
+assert sp.E**2-sp.E>1
+assert 5000*grmax==sp.Rational(7,10**5)
+# The compressed spinor remains in the same Hopf direction.  At the
+# rational witness p3>0, so the south elementary height uses the smooth
+# positive branch and its inverse ratio is nonzero on a neighborhood.
+assert grmax<sp.Rational(1,10**4)
+print('(g1) source-bound nonidentity radial branches and strict open'
+      ' south witness: PASS')
+
+# N10a–d prove the stable-code rewrites and the four-output radial jet
+# formula.  Here each scalar derivative is a source-specific named circuit,
+# rather than an unevaluated derivative of S or S^-1.
+gX,gY = sp.symbols('gX gY',positive=True)
+assert sp.simplify(sp.exp(gX+sp.log(1+sp.exp(-gX)))
+                   -(1+sp.exp(gX)))==0
+assert sp.simplify(sp.exp(gY+sp.log(1-sp.exp(-gY)))
+                   -(sp.exp(gY)-1))==0
+
+
+def scalar_jet_dag_g(variable, nodes):
+    known = {variable:(sp.S.One,sp.S.Zero)}
+    assignments = []
+    for node,rhs in nodes:
+        deps = tuple(sorted(rhs.free_symbols & known.keys(),key=str))
+        assert rhs.free_symbols <= set(deps)
+        d1 = {p:sp.diff(rhs,p) for p in deps}
+        d2 = {(p,q):sp.diff(d1[p],q) for p in deps for q in deps}
+        assert all(sp.simplify(d2[p,q]-d2[q,p])==0
+                   for p in deps for q in deps)
+        first = sum((d1[p]*known[p][0] for p in deps),sp.S.Zero)
+        second = sum((d1[p]*known[p][1] for p in deps),sp.S.Zero)
+        second += sum((d2[p,q]*known[p][0]*known[q][0]
+                       for p in deps for q in deps),sp.S.Zero)
+        first_node = sp.Symbol(f'{node}_d',real=True)
+        second_node = sp.Symbol(f'{node}_dd',real=True)
+        assignments.extend(((node,rhs),(first_node,first),
+                            (second_node,second)))
+        known[node]=(first_node,second_node)
+    return assignments,known
+
+
+gr = sp.Symbol('gr',positive=True)
+gxe, gxf, gyt, gle, gS, gDgain = sp.symbols(
+    'gxe gxf gyt gle gS gDgain',positive=True)
+S_nodes_g = [
+    (gxe,sp.exp(3)*(sp.exp(3*(gr-ga)/(gc-gr))-1)),
+    (gxf,gxe-1/gxe),
+    (gyt,gxf+sp.log(1+sp.exp(-gxf))),
+    (gle,sp.log(1+gyt/sp.E)),
+    (gS,gc*gle/(1+gle)),
+    (gDgain,sp.sqrt(gS/gr))]
+S_jet_defs_g,S_known_g = scalar_jet_dag_g(gr,S_nodes_g)
+assert len(S_jet_defs_g)==3*len(S_nodes_g)
+
+gs = sp.Symbol('gs',positive=True)
+gye,gL,groot,gell,gR,gIgain = sp.symbols(
+    'gye gL groot gell gR gIgain',positive=True)
+R_nodes_g = [
+    (gye,sp.E*(sp.exp(gs/(gc-gs))-1)),
+    (gL,gye+sp.log(1-sp.exp(-gye))),
+    (groot,(gL+sp.sqrt(gL**2+4))/2),
+    (gell,sp.log(1+groot/sp.exp(3))),
+    (gR,ga+gc*gell/(3*(3+gell))),
+    (gIgain,sp.sqrt(gR/gs))]
+R_jet_defs_g,R_known_g = scalar_jet_dag_g(gs,R_nodes_g)
+assert len(R_jet_defs_g)==3*len(R_nodes_g)
+assert sp.cancel(gc/(gc-gr)-3-3*(gr-ga)/(gc-gr))==0
+assert sp.cancel(gc*gle/(1+gle)-gc*(1-1/(1+gle)))==0
+assert sp.cancel(ga+gc*gell/(3*(3+gell))
+                 -gc*(1-1/(3+gell)))==0
+# The root identity is checked with its defining positive expression.
+root_rhs_g = dict(R_nodes_g)[groot]
+assert sp.simplify(root_rhs_g*(root_rhs_g-gL)-1)==0
+print('(g2) source-specific finite S and S^-1 scalar value/first/second'
+      ' jet DAGs: PASS')
+
+def radial_jets_g(inputs,gain,first,second):
+    value = sp.Matrix([gain*z for z in inputs])
+    M = sp.Matrix(4,4,lambda k,i:
+        gain*int(k==i)+2*first*inputs[k]*inputs[i])
+    H = [sp.Matrix(4,4,lambda i,j:
+         2*first*(int(k==i)*inputs[j]+int(k==j)*inputs[i]
+                  +int(i==j)*inputs[k])
+         +4*second*inputs[k]*inputs[i]*inputs[j])
+         for k in range(4)]
+    assert all(H[k][i,j]==H[k][j,i]
+               for k in range(4) for i in range(4) for j in range(4))
+    return value,M,H
+
+
+# This is the literal four-real-coordinate differentiation underlying N10c,
+# checked once with an arbitrary radial scalar before binding the two actual
+# scalar DAGs.  No derivative remains in the bound stage circuits below.
+formal_z_g = sp.symbols('formal_z_g0:4',real=True)
+formal_q_g = sum(z*z for z in formal_z_g)
+formal_dummy_g = sp.Symbol('formal_dummy_g',positive=True)
+formal_fun_g = sp.Function('formal_fun_g')
+formal_value_g = sp.Matrix([formal_fun_g(formal_q_g)*z for z in formal_z_g])
+formal_first_g = sp.diff(formal_fun_g(formal_dummy_g),formal_dummy_g
+                         ).subs(formal_dummy_g,formal_q_g)
+formal_second_g = sp.diff(formal_fun_g(formal_dummy_g),formal_dummy_g,2
+                          ).subs(formal_dummy_g,formal_q_g)
+_,formal_M_g,formal_H_g = radial_jets_g(
+    formal_z_g,formal_fun_g(formal_q_g),formal_first_g,formal_second_g)
+assert formal_value_g.jacobian(formal_z_g)==formal_M_g
+assert all(sp.hessian(formal_value_g[k],formal_z_g)==formal_H_g[k]
+           for k in range(4))
+
+gz_in = sp.symbols('gz_in0:4',real=True)
+gw_in = sp.symbols('gw_in0:4',real=True)
+D_value_g,M_D_g,H_D_g = radial_jets_g(
+    gz_in,gDgain,*S_known_g[gDgain])
+I_value_g,M_I_g,H_I_g = radial_jets_g(
+    gw_in,gIgain,*R_known_g[gIgain])
+assert all(not entry.has(sp.Derivative) for entry in M_D_g)
+assert all(not entry.has(sp.Derivative) for entry in M_I_g)
+assert len(H_D_g)==len(H_I_g)==4
+print('(g3) actual four-output D and D^-1 value/first/64 second'
+      ' derivative circuits: PASS')
+
+# Bind the true stage order.  z_e is the input of the existing south raw
+# 43-node DAG, now assigned D(local_e(Z)); gw_in is assigned that DAG's
+# output.  The final gIgain is therefore S^-1(|g(Dz)|^2), not S^-1(r).
+stage_defs_g = list(zip(gz_in,local_e))
+stage_defs_g.append((gr,sum(z*z for z in gz_in)))
+stage_defs_g.extend(S_jet_defs_g)
+stage_defs_g.extend(zip(z_e,D_value_g))
+stage_defs_g.extend(raw_jet_defs_e)
+stage_defs_g.extend(zip(gw_in,raw_out_e))
+stage_defs_g.append((gs,sum(w*w for w in gw_in)))
+stage_defs_g.extend(R_jet_defs_g)
+stage_inputs_g = set(round_e)|{p2e,p3e}
+stage_bound_g = set(stage_inputs_g)
+for node,rhs in stage_defs_g:
+    assert rhs.free_symbols <= stage_bound_g
+    stage_bound_g.add(node)
+assert tuple(rhs for _,rhs in stage_defs_g[:4])==tuple(local_e)
+assert all(value.free_symbols <= stage_bound_g for value in I_value_g)
+
+M_D_at_round_g = bind_matrix_e(M_D_g,gz_in,local_e)
+H_D_at_round_g = [bind_matrix_e(H,gz_in,local_e) for H in H_D_g]
+M_raw_at_D_g = bind_matrix_e(Mraw_e,z_e,D_value_g)
+H_raw_at_D_g = [bind_matrix_e(H,z_e,D_value_g) for H in Hraw_e]
+M_I_at_raw_g = bind_matrix_e(M_I_g,gw_in,raw_out_e)
+H_I_at_raw_g = [bind_matrix_e(H,gw_in,raw_out_e) for H in H_I_g]
+
+
+def compose_jets_g(outer_M,outer_H,inner_M,inner_H):
+    nout,nmid = outer_M.shape
+    assert inner_M.rows==nmid and len(outer_H)==nout
+    assert len(inner_H)==nmid
+    M = sp.MatMul(outer_M,inner_M,evaluate=False)
+    H = [sp.MatAdd(*[
+         sp.MatMul(outer_M[k,p],inner_H[p],evaluate=False)
+         for p in range(nmid)],
+         sp.MatMul(inner_M.T,outer_H[k],inner_M,evaluate=False),
+         evaluate=False) for k in range(nout)]
+    return M,H
+
+
+M_Dround_g,H_Dround_g = compose_jets_g(
+    M_D_at_round_g,H_D_at_round_g,Mround_e,Hround_e)
+M_rawround_g,H_rawround_g = compose_jets_g(
+    M_raw_at_D_g,H_raw_at_D_g,M_Dround_g,H_Dround_g)
+M_patch4_g,H_patch4_g = compose_jets_g(
+    M_I_at_raw_g,H_I_at_raw_g,M_rawround_g,H_rawround_g)
+M_patch6_g = sp.BlockDiagMatrix(M_patch4_g,sp.eye(2))
+H_patch6_g = [sp.BlockDiagMatrix(H,sp.zeros(2,2))
+              for H in H_patch4_g]
+H_patch6_g.extend([sp.ZeroMatrix(6,6),sp.ZeroMatrix(6,6)])
+rest_input_g = tuple(I_value_g)+(p2e,p3e)
+full_value_g = sp.Matrix([
+    bind_e(restore_e[k],rest_e,rest_input_g) for k in range(6)])
+M_rest_at_patch_g = bind_matrix_e(Mrestore_e,rest_e,rest_input_g)
+H_rest_at_patch_g = [bind_matrix_e(H,rest_e,rest_input_g)
+                     for H in Hrestore_e]
+Mfull_g,Hfull_g = compose_jets_g(
+    M_rest_at_patch_g,H_rest_at_patch_g,M_patch6_g,H_patch6_g)
+J_transition_g = sp.MatMul(sp.Inverse(Mfull_g),J0,Mfull_g,
+                            evaluate=False)
+assert Mfull_g.shape==(6,6) and J_transition_g.shape==(6,6)
+assert len(Hfull_g)==6 and all(H.shape==(6,6) for H in Hfull_g)
+assert all(value.free_symbols <= stage_bound_g for value in full_value_g)
+assert Mfull_g.free_symbols <= stage_bound_g
+assert all(H.free_symbols <= stage_bound_g for H in Hfull_g)
+assert J_transition_g.free_symbols <= stage_bound_g
+print('(g4) actual stage-bound south transition h, 6x6 M, and six'
+      ' second-jet circuits: PASS')
+
+# Every 4D output Hessian skew vanishes at each of the three compositions.
+# The final 6D skews then vanish by the same exact chain-rule identity as
+# (e6), with the actual bound source Hessians, not a placeholder map.
+assert second_jet_skew_e(M_D_at_round_g,H_D_at_round_g,
+                         Mround_e,Hround_e)==64
+assert second_jet_skew_e(M_raw_at_D_g,H_raw_at_D_g,
+                         M_Dround_g,H_Dround_g,
+                         inner_skew_certified=True)==64
+assert second_jet_skew_e(M_I_at_raw_g,H_I_at_raw_g,
+                         M_rawround_g,H_rawround_g,
+                         inner_skew_certified=True)==64
+assert second_jet_skew_e(M_rest_at_patch_g,H_rest_at_patch_g,
+                         M_patch6_g,H_patch6_g,
+                         inner_skew_certified=True)==216
+# N10d proves det_R D=S*S'/r>0 and det_R D^-1=R*R'/s>0
+# from the positive scalar derivative factors.  The raw singular-value
+# margin follows (11.11), while (e6) proves the round and restoration
+# determinants.  Consequently this actual Mfull_g is invertible.
+assert 1-5000*grmax==sp.Rational(99993,100000)
+# The inverse of the south round radial inclusion (11.17a) is
+# rho=2h/(1+h²), h=2*pi*r.  On h<1 its positive square root is
+# sqrt(1-rho²)=(1-h²)/(1+h²), recovering r exactly.  Thus the rational
+# local witness is in the round cap image; the next inequality places it
+# strictly in the pole selector's open region.
+gh = sp.Symbol('gh',positive=True)
+grho = 2*gh/(1+gh**2)
+groot_rho = (1-gh**2)/(1+gh**2)
+assert sp.factor(grho**2+groot_rho**2-1)==0
+assert sp.cancel(grho/(2*sp.pi*(1+groot_rho))
+                 -gh/(2*sp.pi))==0
+assert 8*grmax<1
+assert 8*grmax+(8*grmax)**2/2<sp.Rational(1,2*10**5)
+assert sp.Rational(2,10**6)**2/4<1
+assert J0*J0==-sp.eye(6)
+print('(g5) 3x64+216 compositional skews and 36/216 J certificate;'
+      ' raw margin >99993/100000, using N10/(11.11)/§11.6: PASS')
+
+# (g6) Type-(d), one-point production correspondence and measured raw
+# singular-value margin.  These numbers do not enter the exact certificate.
+with mp.workdps(80):
+    numerical_g = dict(zip(gz_in,[sp.Rational(1,10000),sp.S.Zero,
+                                   sp.Rational(5,100000),
+                                   -sp.Rational(3,100000)]))
+    numerical_g[gr] = sum(value*value for value in numerical_g.values())
+    for node,rhs in S_nodes_g:
+        assert rhs.free_symbols <= numerical_g.keys()
+        numerical_g[node] = rhs.subs(numerical_g).evalf(90)
+    compressed_g = [mp.mpf(str(rhs.subs(numerical_g).evalf(80)))
+                    for rhs in D_value_g]
+    for node,rhs in zip(z_e,D_value_g):
+        numerical_g[node] = rhs.subs(numerical_g).evalf(90)
+    for node,rhs in raw_cse_e:
+        assert rhs.free_symbols <= numerical_g.keys()
+        numerical_g[node] = rhs.subs(numerical_g).evalf(90)
+    raw_value_g = [rhs.subs(numerical_g).evalf(90) for rhs in raw_out_e]
+    numerical_g.update(zip(gw_in,raw_value_g))
+    numerical_g[gs] = sum(value*value for value in raw_value_g)
+    for node,rhs in R_nodes_g:
+        assert rhs.free_symbols <= numerical_g.keys()
+        numerical_g[node] = rhs.subs(numerical_g).evalf(90)
+    symbolic_patch_g = [mp.mpf(str(rhs.subs(numerical_g).evalf(80)))
+                        for rhs in I_value_g]
+    source_patch_g = cusp.elementary_pole_patch(
+        (mp.mpc(mp.mpf(1)/10000),
+         mp.mpc(mp.mpf(5)/100000,-mp.mpf(3)/100000)),
+        False,dps=80)
+    source_patch_real_g = [source_patch_g[0].real,source_patch_g[0].imag,
+                           source_patch_g[1].real,source_patch_g[1].imag]
+    patch_error_g = max(abs(a-b) for a,b in
+                        zip(symbolic_patch_g,source_patch_real_g))
+    assert patch_error_g<mp.mpf('1e-55')
+    sample_M_g = mp.matrix([[mp.diff(
+        lambda value:source_raw_real_e(compressed_g[:j]+[value]
+                                       +compressed_g[j+1:])[i],
+        compressed_g[j]) for j in range(4)] for i in range(4)])
+    measured_defect_g = sample_M_g-mp.eye(4)
+    measured_norm_g = mp.sqrt(max(mp.eigsy(
+        measured_defect_g.T*measured_defect_g,eigvals_only=True)))
+    measured_sigma_g = mp.sqrt(min(mp.eigsy(
+        sample_M_g.T*sample_M_g,eigvals_only=True)))
+    raw_bound_g = 5000*sum(value*value for value in compressed_g)
+    assert measured_norm_g<raw_bound_g<5000*mp.mpf(14)/10**9
+    assert measured_sigma_g>mp.mpf(99993)/100000
+    print('(g6) numerical one-point sample only: full patch value error =',
+          mp.nstr(patch_error_g,5),'; raw ||Dg-I|| =',
+          mp.nstr(measured_norm_g,17),'vs bound',mp.nstr(raw_bound_g,17),
+          '; raw sigma_min =',mp.nstr(measured_sigma_g,17),': PASS')
 print('ALL PASS')

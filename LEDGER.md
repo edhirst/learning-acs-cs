@@ -1611,3 +1611,46 @@ in `AGENTS.md` §5.
   slots. Other projector cells and seams, the full fixed-count
   projection/phase composition, and the direct global \(J_{\mathrm{cl}}\)
   check remain open.
+
+### 2026-10-12-TSG-7 — Verify one south nonidentity radial-shell tensor
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** 7d265d1
+- **Where:** extra/s4t2_explicit/symbolic_identities.py (g),
+  docs/s4t2_symbolic_programme.md status and §11.8, and
+  SYMBOLIC_CAMPAIGN.md T16 status. No manuscript or construction file
+  changed.
+- **Change:** added a source-linked six-real second-jet circuit on one
+  open south radial-transition chamber. It composes the actual round
+  cap, nonidentity \(D\), the existing 43-node south raw inverse,
+  nonidentity \(D^{-1}\), and finite torus restoration; stores the
+  resulting value, \(6\times6\) Jacobian, six Hessian circuits and
+  \(J=M^{-1}J_0M\). Three 64-entry four-dimensional and one
+  216-entry six-dimensional Hessian-skew checks pass. The previously
+  checked (c8) identity then reduces all 36 square and 216 Nijenhuis
+  components for this bound circuit.
+- **Why:** N10 checked the radial maps separately, but the actual
+  shell tensor contains the nonlinear raw inverse between them.
+  Exact bounds on \(1.3\cdot10^{-8}<|z_L|^2<1.4\cdot10^{-8}\) make both
+  radial branches and the raw source chamber fixed, avoid runtime
+  precision shortcuts, and give the uniform raw singular-value
+  margin \(>99993/100000\). The written (11.11), N10 and §11.6
+  determinant bounds make the local Jacobian invertible.
+- **Verification:** symbolic_identities.py (g1–g6): **ALL PASS** on
+  an independent full run; verify_construction.py: all checks passed;
+  sphere_products.py: Dimension 8 check passed; git diff --check:
+  pass. The separately labelled numerical observation (d), sample
+  size one, has production radial-patch value error
+  \(4.3267\cdot10^{-84}\), raw
+  \(\|Dg-I\|_{\mathrm{op}}=1.1986845\cdot10^{-7}\) against its
+  pointwise bound \(6.6998742\cdot10^{-5}\), and sampled
+  \(\sigma_{\min}=0.9999999867\). LaTeX: **not run**
+  (latexmk unavailable). Git fetch/pull and push were left to the
+  collaborator as requested.
+- **Open points:** the Nijenhuis calculation uses the specific
+  source-bound second jets with the generic polynomial identity (c8);
+  it does not expand 216 giant component expressions. This checks
+  one south transition chamber, not both full shells, the free-slab
+  round-to-\(W\) map, or the global \(J_{\mathrm{cl}}\).

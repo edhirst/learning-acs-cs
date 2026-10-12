@@ -66,6 +66,11 @@
 > phase, cusp reconstruction and their local chart-coordinate jets.
 > These are regional projector checks;
 > the complete free-slab map remains open.
+> **South transition audit (2026-10-12-TSG-7):** the two nonidentity
+> radial maps, south raw inverse, round cap and torus restoration now
+> compose to a source-linked six-real \(J\) circuit on one strict open
+> radial-transition chamber. Its compositional second-jet and
+> \(J^2/N_J\) checks pass; the rest of the shell and free slab remain open.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
 > **Resume point: complete T16's exact branch circuit and second-jet checks, then simplify the fixed counts.**
 
@@ -2914,6 +2919,7 @@ derivatives are numerical observations, type (d).
 | N10a–d, radial shell (a,b) | source-linked finite elementary \(S,S^{-1}\) nodes, exact scalar inverse and derivative identities, 16 first and 64 second entries for each radial direction, and \(\det DD=S(r)S'(r)/r>0\) on \(10^{-8}<r<1.5\cdot10^{-8}\): ALL PASS; the raw pole and torus stages are not composed here |
 | N11a–e, dominant raw-reference profile and selector seam (a,b) | the ordered source path selects \(T=u_2/u_1\) when \(|u_1|>|u_2|\), and \(T=u_1/u_2\) otherwise; its positive-root \(\mathrm{small}=T\sqrt{c/[A(1-z)+\sqrt{A^2(1-z)^2+4Bz}]}\), \(z=|T|^2\), \(c=2B\) or \(2\), has explicit value, 4 first and 8 second real-ratio entries on each branch: ALL PASS. The strict \(X=0\) witnesses have \(z=4/45\) and \(9/16\). \(A=(4\pi)^2>0\), \(B=e^4>0\), \(0\le z\le1\) make the root denominator positive. At \(|u_1|=|u_2|\), \(D_iD_d=4B\) proves the effective \(t\) and its first two jets agree; the source's inf test is false there and its phase input is \(u_2\) on both sides. The height and ten-slot projector are separate. |
 | North raw-pole annulus, f1–f6 (a,b,c,d) | on \(3\cdot10^{-8}<|z_L|^2<10^{-7}\), \(1+2\beta>0\), \(0<\mathrm{height}<1/10\), \(t_c\ne0\): ordered north source guards, 28-node scalar 2-jet circuit, actual round and torus stages, 64+216 compositional Hessian skews, and named \(J=M^{-1}J_0M\): ALL PASS using the written (11.11) and §11.6 bounds. Proven raw singular-value margin \(>1999/2000\); one separately labelled numerical witness gives \(\|Dg-I\|_{\mathrm{op}}=3.9588551\cdot10^{-7}\) versus its bound \(3\cdot10^{-4}\), \(\sigma_{\min}=1.0000000086\), and source-value error \(3.53\cdot10^{-64}\). |
+| South nonidentity radial transition, g1–g6 (a,b,c,d) | on \(1.3\cdot10^{-8}<|z_L|^2<1.4\cdot10^{-8}\), \(p_3(\operatorname{Hopf}z_L)>0\), \(\Im(2z_0\overline z_1)>0\): the source-bound \(h(Z,\phi)=\tau_f^{-1}(D^{-1}(g_0(D(z_L(Z)))),\phi)\) has a six-real value, Jacobian and six Hessian circuits; three 64-entry four-dimensional and one 216-entry six-dimensional compositional Hessian skews pass. The named \(J=M^{-1}J_0M\) satisfies the checked 36/216 square/Nijenhuis identity using (c8) and the stated invertibility bounds: ALL PASS. Both radial calls take nonidentity branches; the proved raw singular-value margin is \(>99993/100000\). At one rational witness, the separate numerical value error is \(4.3267\cdot10^{-84}\), measured raw defect \(1.1986845\cdot10^{-7}\) versus its pointwise bound \(6.6998742\cdot10^{-5}\), and sampled \(\sigma_{\min}=0.9999999867\). |
 | `symbolic_identities.py`, pure middle (a,b) | actual six-coordinate \(\tau_f^{-1}\) on \(1/2\le |t|\le2\): explicit Jacobian, positive determinant \(2\pi(1+|t|^2)((|t|^2-1)\log|t|+2|t|^2)\), \(J^2=-I\), and all 216 \(N_J\) entries: ALL PASS; \((|t|^2-1)\log|t|\ge0\) is manifest |
 | `symbolic_identities.py`, one active south collar chamber (a,b,c,d) | exact Cramer formulas, finite four-seed height and torus correction on \(3/10<|t|<1/2\), \(1/16<A,Y<1/2\); compositional 216-entry Hessian-skew check and positive determinant: ALL PASS; one 60-digit production comparison has error \(3.93\cdot10^{-61}\) and is numerical only |
 | `symbolic_identities.py`, south raw-pole annulus (a,b,c,d) | on \(3\cdot10^{-8}<|z_L|^2<10^{-7}\), \(\Re u_2>0\), \(0<\mathrm{height}<1/10\), \(t_c\ne0\): source-linked raw inverse, round cap, and finite torus restoration form an explicit 43-node scalar second-jet circuit and a named six-real \(J=M^{-1}J_0M\); its 36 square and 216 Nijenhuis entries vanish by the checked compositional skew identity, using the written (11.11) and §11.6 bounds: ALL PASS. The proven raw singular-value margin is \(>1999/2000\); at one rational witness the separately labelled numerical values are \(\|Dg-I\|_{\mathrm{op}}=5.4871\cdot10^{-7}\) versus its bound \(3\cdot10^{-4}\), and \(\sigma_{\min}=0.9999999270\). |
@@ -3002,6 +3008,23 @@ restoration factor has determinant \((1-|t|^4)/\nu^2>0\).
 The same rational witness \(z_L=(1/5000,(1-i)/10000)\) lies in this
 north chamber. This is a local annulus check, not a check of the
 radial transition or the free slab.
+
+For the checked south radial-transition chamber, use the preceding
+south six-real formula with
+\[
+ w=D^{-1}\!\bigl(g_0(D(z_L))\bigr),\qquad
+ D(z)=\sqrt{S(|z|^2)/|z|^2}\,z,\qquad
+ D^{-1}(w)=\sqrt{S^{-1}(|w|^2)/|w|^2}\,w.
+\]
+The exact finite scalar nodes for \(S,S^{-1}\), including their
+positive-root and logarithm branches, are N10 and g2; g3–g5 bind
+their first and second jets around the 43-node south raw inverse and
+the same torus restoration. Both radial stages use their nonidentity
+branches on the strict chamber in the table. The rational witness
+\(z_L=(1/10000,(5-3i)/100000)\) has
+\(|z_L|^2=1.34\cdot10^{-8}\). The square and Nijenhuis reductions
+are compositional applications of (c8) to these actual bound jets.
+This is one open part of the south shell.
 
 The new second-jet checks are exact on their stated domains. The pole check
 uses the identity piece \(H_j(z_L)=z_L\) for \(|z_L|^2\le10^{-8}\), and its
