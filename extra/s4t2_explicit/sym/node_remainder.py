@@ -1273,5 +1273,274 @@ rep('N11e removable dominant-selector seam: common t, phase input and two jets',
     profile_phase_source11 and profile_seam_algebra11
     and profile_sqrt_jets11 and profile_tie11)
 
+# ---------------------------------------------------------------- N12: one active inverse-first height stage.
+# This certifies the source path from (a,r,nu) through the terminal-forward
+# output v, with exact 2-jets in (b,q,lambda).  It does not differentiate the
+# subsequent G^{-1}, R^{-1}, G chain, Y, rho, or the full round J.
+def ordered_block12(function, snippet):
+    """Find the given consecutive source statements in one actual AST block."""
+    tree = ast.parse(inspect.getsource(function))
+    wanted = [ast.dump(node,include_attributes=False)
+              for node in ast.parse(snippet).body]
+    for owner in ast.walk(tree):
+        for _,block in ast.iter_fields(owner):
+            if isinstance(block,list):
+                actual = [ast.dump(node,include_attributes=False)
+                          for node in block if isinstance(node,ast.AST)]
+                if any(actual[i:i+len(wanted)]==wanted
+                       for i in range(len(actual)-len(wanted)+1)):
+                    return True
+    return False
+
+height_source12 = (
+    ordered_block12(cusp8.elementary_cusp_logradius,'''\
+P = mp.log(nu)+mp.log(r)-2*r*r/(1-r*r)
+q = mp.exp(2*P)
+n = mp.floor(a+mp.mpf('.5'))
+b = a-n
+lam = scalar_flat_step((r-mp.mpf('.3'))/mp.mpf('.2'))
+if lam==1:
+    return +(P*(a+mp.mpf('.5')))
+f = inverse_height_moment(b,q,lam)
+''')
+    and ordered_block12(cusp8.scalar_flat_step,'''\
+a,b = mp.exp(-1/u),mp.exp(-1/(1-u))
+return a/(a+b)
+''')
+    and ordered_block12(cusp8._terminal_height_data,'''\
+k = -mp.log(q)
+kappa = 2+lam*(k-2)
+amp = lam*k
+d = 1-lam+2*lam*mp.sqrt(q)*k
+''')
+    and ordered_block12(cusp8._terminal_height_data,'''\
+B,C = mp.exp(-kappa/2),q*mp.exp(kappa/2)
+z0 = B-C
+zcut = B*mp.exp(mp.mpf('.4')*kappa)-C*mp.exp(-mp.mpf('.4')*kappa)
+eta = mp.mpf('.01')
+E0 = mp.exp(eta/zcut)
+Acut = mp.exp(eta/(zcut-z0))
+Lambda = mp.exp(Acut-E0)
+Eprime0 = E0*eta/zcut**2
+Eprime_z0 = Acut*eta/(zcut-z0)**2
+mu = d*Eprime0/(kappa*(B+C)*Eprime_z0)
+''')
+    and ordered_block12(cusp8.inverse_height_moment,'''\
+data = _terminal_height_data(q,lam)
+kappa,amp,d,B,C,z0,_,_,_,_,_,_ = data
+aa = abs(a)
+if lam==1 or aa<=mp.mpf('.1'):
+    return _height_G(a,amp,d)
+if aa>=mp.mpf('.4'):
+    return mp.sign(a)*(B*mp.exp(kappa*aa)-C*mp.exp(-kappa*aa))
+u = _height_R(aa)
+delta_z = B*mp.expm1(kappa*u)-C*mp.expm1(-kappa*u)
+v = _height_terminal_forward(delta_z,data)
+return mp.sign(a)*_height_G(_height_R(_height_G(v,amp,d,inverse=True),inverse=True),amp,d)
+''')
+    and ordered_block12(cusp8._height_R,'''\
+delta,c = mp.mpf('.1'),mp.mpf('.2')
+if inverse:
+    if value<=0:
+        return delta
+elif value<=delta:
+    return mp.mpf(0)
+if value>=c:
+    return value
+''')
+    and ordered_block12(cusp8._height_R,'''\
+x = mp.exp(2)*mp.expm1(2*(value-delta)/(c-value))
+F = x-1/x
+soft = (mp.log1p(mp.exp(F)) if F<0 else
+        F+mp.log1p(mp.exp(-F)))
+ell = mp.log1p(soft/mp.e)
+return c*ell/(1+ell)
+''')
+    and ordered_block12(cusp8._height_terminal_forward,'''\
+gap0 = zcut-z0
+if delta_z<=0:
+    return mp.mpf(0)
+if delta_z>=gap0:
+    return z0+delta_z
+gap = gap0-delta_z
+L = eta/gap
+Ez = mp.exp(L)
+''')
+    and ordered_block12(cusp8._height_terminal_forward,'''\
+x = Acut*mp.expm1(eta*delta_z/(gap*gap0))
+u = mp.expm1(x)
+F = (Lambda*u*u+mu*u)/(1+u)
+M = mp.log1p(F)
+ell = mp.log1p(M/E0)
+return zcut*ell/(eta/zcut+ell)
+''')
+    and all(has_if_test9(cusp8._height_terminal_forward,test)
+            for test in ('delta_z<=0','delta_z>=gap0',
+                         'Ez>(mp.mp.dps+20)*mp.log(10)+mp.log(K)',
+                         'Ez>50'))
+    and has_if_test9(cusp8._height_R,'c/(c-value)>(mp.mp.dps+10)*mp.log(10)'))
+rep('N12a ordered production height, moment, radial and terminal source path',
+    height_source12)
+
+# The exact source witness is a=b=3/20, r=2/5, nu=1.  It has n=0 and
+# lambda=s(1/2)=1/2.  q=(4/25)exp(-16/21).  The following rational bounds
+# prove 1/2500<q<1/8 and 2<k=-log(q)<4, with no sampled inequality.
+height_r12 = sp.Rational(2,5)
+height_b12 = sp.Rational(3,20)
+height_P12 = sp.log(height_r12)-2*height_r12**2/(1-height_r12**2)
+height_q12 = sp.exp(2*height_P12)
+height_lam12 = sp.Rational(1,2)
+height_bounds12 = (
+    sp.simplify(height_P12-sp.log(sp.Rational(2,5))+sp.Rational(8,21))==0
+    and sp.simplify(height_q12-sp.Rational(4,25)*sp.exp(-sp.Rational(16,21)))==0
+    and sp.Rational(3,10)<height_r12<sp.Rational(1,2)
+    and sp.Rational(1,10)<height_b12<sp.Rational(1,5)
+    and sp.floor(height_b12+sp.Rational(1,2))==0
+    and sp.simplify(sp.exp(-2)/(sp.exp(-2)+sp.exp(-2))-height_lam12)==0
+    and bool(sp.Rational(5,2)<sp.E<sp.Rational(11,4))
+    and sp.Rational(4,75)>sp.Rational(1,2500)
+    and sp.Rational(4,75)>sp.Rational(16,625)
+    and sp.Rational(84,925)<sp.Rational(1,8)
+    and sp.Rational(1,8)<sp.Rational(16,121)
+    and sp.Rational(1,10)/(sp.Rational(1,5)-height_b12)==2
+    and sp.Rational(1,5)/(sp.Rational(1,5)-height_b12)==4)
+# Since e<3 and 16/21<1, q>4/(25e)>4/75.
+# Since exp(x)>1+x for x>0, q<84/925.  e>5/2 gives
+# e^{-4}<16/625<4/75, while e<11/4 gives 1/8<16/121<e^{-2}.
+# Thus 2<k<4, kappa=1+k/2 in (2,3), B=e^{-kappa/2}>1/9,
+# C/B=q e^kappa=e sqrt(q)<1, and zcut>z0>0.
+# For the source R branch, x=e^2(exp(2)-1)>12, so F>0 and its
+# positive-F softplus is chosen.  Then 0<u=R(b)<1/5.  For
+# g(s)=B exp(kappa s)-C exp(-kappa s), g'(s)>2/9 on [0,2/5].
+# Hence 0<delta_z<gap0 and gap=g(2/5)-g(u)>2/45.  Therefore
+# L=eta/gap<9/40, Ez<e<3<50.  The precision shortcut is also false:
+# K>=1 and (dps+20)log(10)>42, whereas Ez<3.  The R precision
+# shortcut is false because c/(c-b)=4<(dps+10)log(10).
+height_branch12 = (height_bounds12
+    and bool(sp.exp(2)*(sp.exp(2)-1)>12)
+    and sp.Rational(2,9)*sp.Rational(1,5)==sp.Rational(2,45)
+    and sp.Rational(1,100)/sp.Rational(2,45)==sp.Rational(9,40)
+    and sp.Rational(9,40)<1
+    and sp.Rational(4)<sp.Rational(22)
+    and sp.Rational(3)<sp.Rational(42))
+rep('N12b strict exact witness for active R and terminal correction',
+    height_branch12)
+
+# Every RHS below is the exact source expression in its selected branch;
+# expm1(x)=exp(x)-1 and log1p(x)=log(1+x) are algebraic identities.
+# Keeping each intermediate as an atom makes a finite, executable 2-jet
+# circuit without expanding the enormous terminal composition.
+hb12,hq12,hl12 = sp.symbols('hb12 hq12 hl12',real=True)
+hn12 = sp.symbols('hn12_0:32',real=True)
+eta12,c12,delta12 = sp.Rational(1,100),sp.Rational(1,5),sp.Rational(1,10)
+(hk12,hkap12,hamp12,hd12,hB12,hC12,hz012,hzcut12,hE012,
+ hAcut12,hLambda12,hEp012,hEpz012,hmu12,hxR12,hFR12,
+ hsoft12,hellR12,huR12,hdz12,hgap012,hgap12,hL12,hEz12,
+ hxT12,huT12,hFT12,hMT12,hellT12,hv12) = hn12[:30]
+height_nodes12 = [
+    (hk12,-sp.log(hq12)),
+    (hkap12,2+hl12*(hk12-2)),
+    (hamp12,hl12*hk12),
+    (hd12,1-hl12+2*hl12*sp.sqrt(hq12)*hk12),
+    (hB12,sp.exp(-hkap12/2)),
+    (hC12,hq12*sp.exp(hkap12/2)),
+    (hz012,hB12-hC12),
+    (hzcut12,hB12*sp.exp(sp.Rational(2,5)*hkap12)
+              -hC12*sp.exp(-sp.Rational(2,5)*hkap12)),
+    (hE012,sp.exp(eta12/hzcut12)),
+    (hAcut12,sp.exp(eta12/(hzcut12-hz012))),
+    (hLambda12,sp.exp(hAcut12-hE012)),
+    (hEp012,hE012*eta12/hzcut12**2),
+    (hEpz012,hAcut12*eta12/(hzcut12-hz012)**2),
+    (hmu12,hd12*hEp012/(hkap12*(hB12+hC12)*hEpz012)),
+    (hxR12,sp.exp(2)*(sp.exp(2*(hb12-delta12)/(c12-hb12))-1)),
+    (hFR12,hxR12-1/hxR12),
+    (hsoft12,hFR12+sp.log(1+sp.exp(-hFR12))),
+    (hellR12,sp.log(1+hsoft12/sp.E)),
+    (huR12,c12*hellR12/(1+hellR12)),
+    (hdz12,hB12*(sp.exp(hkap12*huR12)-1)
+             -hC12*(sp.exp(-hkap12*huR12)-1)),
+    (hgap012,hzcut12-hz012),
+    (hgap12,hgap012-hdz12),
+    (hL12,eta12/hgap12),
+    (hEz12,sp.exp(hL12)),
+    (hxT12,hAcut12*(sp.exp(eta12*hdz12/(hgap12*hgap012))-1)),
+    (huT12,sp.exp(hxT12)-1),
+    (hFT12,(hLambda12*huT12**2+hmu12*huT12)/(1+huT12)),
+    (hMT12,sp.log(1+hFT12)),
+    (hellT12,sp.log(1+hMT12/hE012)),
+    (hv12,hzcut12*hellT12/(eta12/hzcut12+hellT12))]
+
+# Topologically bind every local expression before differentiation.  A
+# second-order chain rule composes each exact local SymPy derivative with
+# already-certified input jets, producing three first and six independent
+# second partials per scalar node.  No unevaluated Derivative is admitted.
+height_inputs12 = (hb12,hq12,hl12)
+height_jet12 = {
+    s:(tuple(int(i==j) for i in range(3)),
+       tuple(tuple(sp.Integer(0) for j in range(3)) for i in range(3)))
+    for j,s in enumerate(height_inputs12)}
+height_circuit12 = []
+height_topology12 = True
+for out12,rhs12 in height_nodes12:
+    deps12 = sorted(rhs12.free_symbols,key=str)
+    if out12 in height_jet12 or any(dep not in height_jet12 for dep in deps12):
+        height_topology12 = False
+        break
+    d112 = {dep:sp.diff(rhs12,dep) for dep in deps12}
+    d212 = {(p,w):sp.diff(d112[p],w) for p in deps12 for w in deps12}
+    grad12 = tuple(sum((d112[p]*height_jet12[p][0][i]
+                        for p in deps12),sp.Integer(0)) for i in range(3))
+    hess12 = tuple(tuple(
+        sum((d112[p]*height_jet12[p][1][i][j]
+             for p in deps12),sp.Integer(0))
+        +sum((d212[p,w]*height_jet12[p][0][i]*height_jet12[w][0][j]
+              for p in deps12 for w in deps12),sp.Integer(0))
+        for j in range(3)) for i in range(3))
+    local12 = [rhs12,*d112.values(),*d212.values()]
+    if (any(item.has(sp.Derivative) for item in local12)
+            or any(sp.simplify(d212[p,w]-d212[w,p])!=0
+                   for p in deps12 for w in deps12)
+            or any(sp.simplify(hess12[i][j]-hess12[j][i])!=0
+                   for i in range(3) for j in range(3))):
+        height_topology12 = False
+        break
+    height_jet12[out12] = grad12,hess12
+    height_circuit12.append((out12,rhs12,grad12,hess12))
+rep('N12c source-bound active terminal stage: value, 3 first and 6 second jets',
+    height_topology12 and len(height_circuit12)==30
+    and height_circuit12[-1][0]==hv12
+    and all(not item.has(sp.Derivative)
+            for _,rhs,grad,hess in height_circuit12
+            for item in (rhs,*grad,*(entry for row in hess for entry in row))))
+
+# Type-(d) one-point transcription check and measured margins.  The
+# inequalities in N12b, not these decimal values, certify the branch.
+with mp.workdps(90):
+    sample_q12 = mp.exp(2*(mp.log(mp.mpf(2)/5)-mp.mpf(8)/21))
+    sample_data12 = cusp8._terminal_height_data(sample_q12,mp.mpf(1)/2)
+    sample_u12 = cusp8._height_R(mp.mpf(3)/20)
+    sample_dz12 = (sample_data12[3]*mp.expm1(sample_data12[0]*sample_u12)
+                   -sample_data12[4]*mp.expm1(-sample_data12[0]*sample_u12))
+    source_v12 = cusp8._height_terminal_forward(sample_dz12,sample_data12)
+    sample_values12 = {hb12:height_b12,hq12:height_q12,hl12:height_lam12}
+    for node12,rhs12 in height_nodes12:
+        sample_values12[node12] = rhs12.subs(sample_values12).evalf(95)
+    circuit_v12 = mp.mpf(str(sample_values12[hv12].evalf(90)))
+    sample_L12 = sample_data12[7]/(
+        sample_data12[6]-sample_data12[5]-sample_dz12)
+    sample_error12 = abs(circuit_v12-source_v12)
+    assert sample_error12<mp.mpf('1e-75')
+    assert sample_q12>mp.mpf(1)/2500
+    assert sample_q12<mp.mpf(1)/8
+    assert sample_L12<mp.mpf(9)/40
+    print('N12d one-point numerical source check only: |v_DAG-v_source|=',
+          mp.nstr(sample_error12,5),
+          '; q lower/upper margins =',
+          mp.nstr(sample_q12-mp.mpf(1)/2500,12),
+          mp.nstr(mp.mpf(1)/8-sample_q12,12),
+          '; eta/gap upper margin =',
+          mp.nstr(mp.mpf(9)/40-sample_L12,12),': PASS')
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A symbolic identity, constant bound, or numerical check failed'

@@ -1654,3 +1654,34 @@ in `AGENTS.md` §5.
   it does not expand 216 giant component expressions. This checks
   one south transition chamber, not both full shells, the free-slab
   round-to-\(W\) map, or the global \(J_{\mathrm{cl}}\).
+
+### 2026-10-12-TSG-8 — Check one active inverse-first height stage
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** 6f67208
+- **Where:** extra/s4t2_explicit/sym/node_remainder.py (N12),
+  docs/s4t2_symbolic_programme.md status, and SYMBOLIC_CAMPAIGN.md T16
+  status. No manuscript or construction file changed.
+- **Change:** added an ordered source-path check and a 30-node finite
+  second-jet circuit for one active inverse-first cusp height stage,
+  ending at the terminal-forward output \(v\). It gives the value,
+  three first, and six independent second partials in
+  \((b,q,\lambda)\), with no unevaluated derivative.
+- **Why:** the active terminal correction is a nontrivial scalar
+  branch inside every free-slab reference. The exact witness
+  \(a=b=3/20,\ |t|=2/5,\ \nu=1,\ \lambda=1/2\) and written rational
+  bounds certify its source guards and exclude the working-precision
+  shortcuts on a neighborhood.
+- **Verification:** node_remainder.py N12a–d: **ALL PASS** on an
+  independent full run. The separately labelled one-point numerical
+  check (d) gives source value error \(<10^{-75}\), \(q\) lower/upper
+  margins \(0.0742842,0.0503158\), and terminal \(\eta/\mathrm{gap}\)
+  upper margin \(0.2012902\). verify_construction.py: all checks passed;
+  sphere_products.py: Dimension 8 check passed; git diff --check:
+  pass. LaTeX: **not run** (latexmk unavailable). Git fetch/pull and
+  push were left to the collaborator as requested.
+- **Open points:** this circuit stops before the subsequent
+  \(G^{-1}/R^{-1}/G\) height chain, \(Y\), \(\rho\), the other height
+  cells, and the global six-real \(J_{\mathrm{cl}}\) circuit.
