@@ -1957,3 +1957,42 @@ in `AGENTS.md` §5.
   nonvanishing bound and covers only two free-slab neighborhoods.
   Their full second-jet \(J\) circuits, other cells and seams,
   and global direct \(J_{\mathrm{cl}}\) verification remain open.
+
+### 2026-10-12-TSG-16 — Factor the exact finite projection phase
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** a940814
+- **Where:** extra/s4t2_explicit/symbolic_identities.py (k),
+  docs/s4t2_symbolic_programme.md status, and
+  SYMBOLIC_CAMPAIGN.md T16 status. No manuscript or construction
+  file changed.
+- **Change:** derived the production \(N+1\) normalized
+  rank-one projection result as the final unit reference times
+  an initial normalized overlap and \(N\) consecutive normalized
+  scalar overlaps. The executable check binds the source loop
+  and exact certified \(N\), verifies the scalar update and all
+  28 coefficients of its six-variable second jet, telescopes
+  a variable reference gauge, and checks the local argument/deck
+  convention. A same-cell C31 reference gives one positive
+  source-specific adjacent overlap.
+- **Why:** the certified projection count cannot be expanded
+  literally. The scalar formula gives a finite exact expression
+  with an inductive jet rule that can be used by a direct
+  six-real \(h\) circuit when its path cells and denominators
+  are certified.
+- **Verification:** symbolic_identities.py (k1–k4): **ALL PASS**
+  on an independent full run. The algebraic one-step identity
+  and six-variable Taylor coefficients are exact; the C31
+  same-cell overlap is manifestly positive. The full-count
+  induction is conditional on nonzero overlaps and source
+  reference jets at every sample.
+  verify_construction.py: all checks passed; sphere_products.py:
+  Dimension 8 check passed; git diff --check: pass. LaTeX:
+  **not run** (latexmk unavailable). Git fetch/pull and push were
+  left to the collaborator as requested.
+- **Open points:** this result alone does not instantiate all
+  meridian reference cells, certify every argument seam, or
+  construct the full free-slab \(h/M/H/J\) circuit. Global
+  direct \(J_{\mathrm{cl}}\) verification remains open.

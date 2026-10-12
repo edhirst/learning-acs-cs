@@ -2428,4 +2428,136 @@ print('(j4) final phase correction and middle W data match'
 margin_j=sp.Rational(175,256)*sp.log(sp.Rational(4,3))
 print('(j5) one-point numerical Cramer margin above 225/128 =',
       margin_j.evalf(15),'; proved positive from log(4/3)>0: PASS')
+
+# (k) The scalar phase of the exact finite projection fold.  Write r_j
+# for the unit source reference at h_j, v_-1=I_0 xi, and let
+# c_0=<r_0,v_-1>, c_j=<r_j,r_(j-1)> for j>=1.  The source loop has
+# j=0,...,N.  If every c_j is nonzero, its returned vector is exactly
+# r_N times (c_0/|c_0|) product_(j=1)^N(c_j/|c_j|).
+# The factors are unit complex numbers, not chosen real arguments.
+assert source_statement_e(cusp._elementary_inner,
+    'return sum(mp.conj(a)*b for a,b in zip(u,v))')
+assert source_statement_e(cusp.elementary_projection_section,
+    'vector = _elementary_pole_inclusion(xi)')
+assert source_statement_e(cusp.elementary_projection_section,
+    'phase = _elementary_inner(ref,vector)')
+assert source_statement_e(cusp.elementary_projection_section,
+    "if phase==0:\n    raise ValueError('finite projection product vanished')")
+assert source_statement_e(cusp.elementary_projection_section,
+    'vector = tuple(a*phase/abs(phase) for a in ref)')
+assert source_statement_e(cusp.elementary_projection_section,
+    'return tuple(+a for a in vector)')
+assert has_source_fold_i(cusp.elementary_projection_section,
+                         'range(steps+1)')
+N_k = cusp.elementary_closed_parameters()['projection_steps']
+assert N_k==4*10**8000+1 and N_k==N_i
+assert source_statement_e(cusp.elementary_global_slice,
+    "N = params['projection_steps'] if projection_steps is None else projection_steps")
+ca_k,cb_k,old_angle_k=sp.symbols('ca_k cb_k old_angle_k',real=True)
+c_k=ca_k+sp.I*cb_k
+zold_k=sp.exp(sp.I*old_angle_k)
+raw_step_k=c_k*zold_k
+assert sp.simplify(raw_step_k*sp.conjugate(raw_step_k)
+                   -c_k*sp.conjugate(c_k))==0
+assert sp.simplify(
+    raw_step_k/sp.sqrt(raw_step_k*sp.conjugate(raw_step_k))
+    -zold_k*c_k/sp.sqrt(c_k*sp.conjugate(c_k)))==0
+# Base j=0 uses c_0 by the same source update; the displayed one-step
+# identity preserves the product formula from j-1 to j.  Induction
+# therefore proves it at the exact, finite N without expanding N factors.
+# Nonzero c_j is precisely the source nonzero-denominator premise,
+# because |<r_j,v_(j-1)>|=|c_j| after the first update.
+print('(k1) source final projection phase factors into the initial'
+      ' and N consecutive normalized overlaps: PASS')
+
+# A six-real-variable second jet of the scalar update z -> z*c/|c|.
+# At an arbitrary nonzero overlap a constant rotation puts its value
+# at a positive real number; rescale it to one.  Thus below Re c=1,
+# Im c=0 is a local chart calculation, not a restriction on the fold.
+# All 6 first and 21 symmetric second entries of Re c, Im c and the
+# incoming angle are independent.  On Re c>0 its local angle is
+# atan(Im c/Re c); changing an angle chart changes only a constant 2pi
+# integer and hence not this unit factor or any of its jets.
+cag_k,cbg_k,tg_k=(sp.symbols('cag_k0:6',real=True),
+                  sp.symbols('cbg_k0:6',real=True),
+                  sp.symbols('tg_k0:6',real=True))
+cah_k,cbh_k,th_k=(sp.symbols('cah_k0:21',real=True),
+                  sp.symbols('cbh_k0:21',real=True),
+                  sp.symbols('th_k0:21',real=True))
+re_k,im_k,theta_k=(SixJetI(1,cag_k,cah_k),
+                   SixJetI(0,cbg_k,cbh_k),
+                   SixJetI(0,tg_k,th_k))
+overlap_k=jadd_i(re_k,jmul_i(jconst_i(sp.I),im_k))
+unit_overlap_k=jdiv_i(overlap_k,jsqrt_i(
+    jmul_i(overlap_k,jconj_i(overlap_k))))
+phase_before_k=jexp_i(jmul_i(jconst_i(sp.I),theta_k))
+phase_after_k=jmul_i(phase_before_k,unit_overlap_k)
+local_angle_k=jadd_i(theta_k,jatan_i(jdiv_i(im_k,re_k)))
+phase_chart_k=jexp_i(jmul_i(jconst_i(sp.I),local_angle_k))
+assert jzero_i(jsub_i(phase_after_k,phase_chart_k))
+assert jzero_i(jsub_i(jmul_i(phase_after_k,jconj_i(phase_after_k)),
+                     jconst_i(1)))
+assert sp.simplify(phase_after_k.value-1)==0
+assert all(sp.simplify(phase_after_k.grad[a]
+                       -sp.I*(tg_k[a]+cbg_k[a]))==0
+           for a in range(6))
+assert all(sp.simplify(
+    phase_after_k.second(a,b)
+    -(sp.I*(th_k[_index_i[(a,b)]]+cbh_k[_index_i[(a,b)]]
+             -cag_k[a]*cbg_k[b]-cag_k[b]*cbg_k[a])
+      -(tg_k[a]+cbg_k[a])*(tg_k[b]+cbg_k[b])))==0
+           for a,b in _pairs_i)
+# The generic Taylor-ring product and unary identities in (i1) and the
+# exact local angle identity above make this one-step result inductive
+# at the source's fixed N, conditional on valid local reference jets.
+print('(k2) normalized scalar overlap: value, six first and 21'
+      ' symmetric second jet entries; local Arg chart: PASS')
+
+# A changing reference gauge r_j -> exp(i gamma_j) r_j multiplies
+# c_j by exp(i(gamma_(j-1)-gamma_j)); the initial c_0 gets
+# exp(-i gamma_0).  These factors telescope, leaving r_N z_N
+# unchanged.  This is the exact phase version of (i4).
+gp_k,gn_k=sp.symbols('gp_k gn_k',real=True)
+c_gauge_k=sp.exp(sp.I*(gp_k-gn_k))*c_k
+z_gauge_k=sp.exp(-sp.I*gp_k)*zold_k
+assert sp.simplify(c_gauge_k*z_gauge_k
+                   -sp.exp(-sp.I*gn_k)*raw_step_k)==0
+assert sp.simplify(c_gauge_k*sp.conjugate(c_gauge_k)
+                   -c_k*sp.conjugate(c_k))==0
+assert sp.simplify(
+    c_gauge_k*z_gauge_k/sp.sqrt(
+        c_gauge_k*sp.conjugate(c_gauge_k))
+    -sp.exp(-sp.I*gn_k)*raw_step_k/sp.sqrt(
+        c_k*sp.conjugate(c_k)))==0
+assert source_statement_e(cusp.elementary_global_slice,
+    'return kind,(t,one+mp.arg(phase)/(2*mp.pi),four,lt)')
+assert source_statement_e(cusp.elementary_global_slice,
+    'return kind,(mp.conj(phase)*x,phase*y)')
+integer_k=sp.symbols('integer_k',integer=True)
+angle_k=sp.symbols('angle_k',real=True)
+assert sp.simplify(sp.exp(sp.I*(angle_k+2*sp.pi*integer_k))
+                   -sp.exp(sp.I*angle_k))==0
+# In a middle chart the corresponding change of one by integer_k
+# changes z=2pi*one-i*log(t)*four by integer_k*e1 and leaves w fixed;
+# the cusp output uses the unit phase directly.
+assert sp.simplify(2*sp.pi*integer_k-integer_k*e1_j[0])==0
+print('(k3) variable reference gauges telescope; Arg choices differ'
+      ' by the middle e1 deck shift: PASS')
+
+# Source-linked C31 instance: in its strict two-angular-slot cell the
+# actual references have r(d)=(d,1)/sqrt(1+d^2) in slots 8,9, with
+# 0<d<1.  Two adjacent samples that stay in this cell therefore have
+# positive overlap (1+d_j*d_(j-1))/sqrt((1+d_j^2)(1+d_(j-1)^2)).
+# This instantiates one factor; it does not certify every path cell.
+da_k,db_k=sp.symbols('da_k db_k',positive=True)
+ra_k=sp.Matrix([da_k,1])/sp.sqrt(1+da_k**2)
+rb_k=sp.Matrix([db_k,1])/sp.sqrt(1+db_k**2)
+cab_k=(rb_k.conjugate().T*ra_k)[0]
+assert sp.simplify(cab_k-(1+da_k*db_k)/sp.sqrt(
+    (1+da_k**2)*(1+db_k**2)))==0
+assert sp.ask(sp.Q.positive(cab_k)) is True
+assert ref_i[8].value==d_i.value/dr_i.value
+assert ref_i[9].value==1/dr_i.value
+print('(k4) one actual C31 source reference profile gives a strictly'
+      ' positive same-cell consecutive overlap: PASS')
 print('ALL PASS')

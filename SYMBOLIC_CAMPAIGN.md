@@ -379,6 +379,12 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   witness neighborhoods and proves it nonzero, using the
   finite-projection nonvanishing bound. Its Hessians, other
   free-slab cells, and the global direct \(J\) check remain open.
+  **Exact scalar phase fold (2026-10-12-TSG-16):** section (k) of
+  symbolic_identities.py factors the production \(N+1\) normalized
+  projections into an initial overlap and \(N\) consecutive scalar
+  overlaps, with a six-variable second-jet induction at the exact
+  fixed count. The source path's remaining cell and seam obligations
+  are unchanged.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.
