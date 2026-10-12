@@ -2264,5 +2264,636 @@ full_jets32 = (len(full_first32)==5 and len(full_second32)==5
 rep('C32d nonconstant two-pair projector: 80 first and 400 second entries, symmetric',
     full_jets32)
 
+# C33: the negative-height cusp cell has a genuinely different second frame.
+# On -1/4<H<-1/10, |xy|<3/10 and y!=0, both pair weights are nonzero,
+# while the source's H<0 deck branch replaces (x,y) in the second frame by
+# (1/(m*y),m*x*y*y), m=nu*exp(-2|xy|^2/(1-|xy|^2)).  This is a local
+# meridian-projector generator for either cusp, not a claim about the full
+# meridian path.  The ordered source branch check below binds all assignments
+# and guards together, rather than finding their AST nodes independently.
+expected_cusp_body33 = ast.parse('''
+x,y = map(mp.mpc,data[:2])
+nu = mp.exp(-2) if kind=='ci' else mp.mpf(1)
+H = mp.mpf(data[2]) if elementary else elliptic_height_chart(x,y,nu,dps=dps)
+if abs(x*y)>mp.mpf('.3') or abs(H)>mp.mpf('.6'):
+    raise ValueError('pure cusp embedding requires |xy|<=.3 and |H|<=.6')
+f = frame(x,y,nu)
+block = [hw(H)*q for q in f]
+w = hw(H+mp.mpf('.5') if H<0 else H-mp.mpf('.5'))
+if H<0 and w>0:
+    rr = abs(x*y)**2
+    m = nu*mp.exp(-2*rr/(1-rr))
+    f = frame(1/(m*y),m*x*y*y,nu)
+block.extend(w*q for q in f)
+start = 4 if kind=='ci' else 0
+vec[start:start+4] = block
+''').body
+cusp_test33 = ast.dump(ast.parse("kind in ('c0','ci')",mode='eval').body,
+                       include_attributes=False)
+cusp_nodes33 = [node for node in ast.walk(bundle_tree32)
+                if isinstance(node,ast.If)
+                and ast.dump(node.test,include_attributes=False)==cusp_test33]
+source_branch33 = (len(cusp_nodes33)==1 and
+    [ast.dump(node,include_attributes=False) for node in cusp_nodes33[0].body]
+    ==[ast.dump(node,include_attributes=False) for node in expected_cusp_body33])
+flat_tree33 = source_tree30(cusp30.scalar_flat_step)
+expected_flat_body33 = ast.parse('''
+import mpmath as mp
+u = mp.mpf(u)
+if u<=0:
+    return mp.mpf(0)
+if u>=1:
+    return mp.mpf(1)
+a,b = mp.exp(-1/u),mp.exp(-1/(1-u))
+return a/(a+b)
+''').body
+source_branch33 &= (
+    source_cusp32
+    and [ast.dump(node,include_attributes=False) for node in flat_tree33.body[1:]]
+        ==[ast.dump(node,include_attributes=False) for node in expected_flat_body33]
+    and matching_if_test32(flat_tree33,'u<=0')
+    and matching_if_test32(flat_tree33,'u>=1')
+    and matching_statement31(flat_tree33,
+                             'a,b = mp.exp(-1/u),mp.exp(-1/(1-u))')
+    and matching_statement31(flat_tree33,'return a/(a+b)')
+    and matching_if_test32(reference_tree32,'a>0')
+    and matching_statement31(reference_tree32,
+        "Y = 2/(R+f) if cell==-1 else (R-f)/2")
+    and matching_statement31(reference_tree32,'y = mp.sqrt(Y)')
+    and matching_statement31(reference_tree32,'return t/y,y')
+    and matching_assignment30(raw_tree31,'phase_coordinate',
+                              '-mp.conj(u1) if inf else u2')
+    and matching_if_test32(raw_tree31,
+        "phase_coordinate.real<-mp.mpf('.9')*abs(phase_coordinate)")
+    and matching_assignment30(raw_tree31,'a',
+                              'mp.arg(phase_coordinate)/(2*mp.pi)')
+    and matching_statement31(raw_tree31,
+        'xs,yy = elementary_cusp_reference(tc,a,nu)')
+    and returned_expr30(raw_tree31,
+        "('ci' if inf else 'c0'),(xs,yy,a)"))
+
+H33 = sp.Symbol('H33',real=True)
+cut33 = (H33+sp.Rational(1,4))/sp.Rational(3,20)
+flat33 = sp.exp(-1/cut33)/(sp.exp(-1/cut33)
+                             +sp.exp(-1/(1-cut33)))
+weight33 = 1-flat33
+# At t=1/10, a=-1/6 the reference lies in the strict cell.  Its cell
+# integer is zero and the certified odd, increasing moment has f<0.  Write
+# F=-f>0; then R=sqrt(F^2+4q), Y=(R+F)/2>0 and x=t/sqrt(Y), y=sqrt(Y).
+# This also proves that the source's 1/y deck shift is defined.
+t_w33,a_w33 = sp.Rational(1,10),-sp.Rational(1,6)
+F_w33,nu_w33 = sp.symbols('F_w33 nu_w33',positive=True)
+e_w33 = sp.exp(-sp.Rational(4,99))
+q_w33 = e_w33*nu_w33**2*t_w33**2
+R_w33 = sp.sqrt(F_w33**2+4*q_w33)
+A_w33,Y_w33 = (R_w33-F_w33)/2,(R_w33+F_w33)/2
+y_w33 = sp.sqrt(Y_w33)
+x_w33 = t_w33/y_w33
+witness33 = (
+    sp.Rational(-1,4)<a_w33<sp.Rational(-1,10)
+    and 0<cut33.subs(H33,a_w33)<1
+    and sp.floor(a_w33+sp.Rational(1,2))==0
+    and t_w33<sp.Rational(3,10)
+    and bool(e_w33<1)
+    and all(bool(q_w33.subs(nu_w33,nu)<sp.Rational(1,8))
+            for nu in (sp.Integer(1),sp.exp(-2)))
+    and sp.simplify(x_w33*y_w33-t_w33)==0
+    and sp.simplify(A_w33*Y_w33-q_w33)==0
+    and sp.simplify(e_w33*nu_w33**2*x_w33**2-A_w33)==0)
+# An exact round-meridian witness reaches this cell, too: X=0 and
+# n=(sqrt(3)/4,3sqrt(3)/8,5/8).  The raw stereographic algebra gives
+# |u1|^2=13/49<36/49=|u2|^2, Arg(u2)=-pi/3, and
+# |ratio|^2=13/36.  In the source's inverse_ratio=False branch,
+# |small|^2=2z/(b+sqrt(b^2+4Bz))<z/b=13/(23A)<1/100,
+# since A=(4pi)^2>144.  Thus it selects the south cusp, its direct
+# argument chart, and a nonzero |tc|<1/10, with height a=-1/6.
+n_w33 = (sp.sqrt(3)/4,3*sp.sqrt(3)/8,sp.Rational(5,8))
+target_y_w33 = (n_w33[0],1-n_w33[2],-n_w33[1])
+s2_w33 = sum(v*v for v in target_y_w33)
+u1_w33 = (1-s2_w33+2*sp.I*target_y_w33[0])/(1+s2_w33)
+u2_w33 = 2*(target_y_w33[1]+sp.I*target_y_w33[2])/(1+s2_w33)
+ratio_w33 = sp.simplify(u1_w33/u2_w33)
+z_w33 = sp.Rational(13,36)
+Aprof_w33,Bprof_w33 = (4*sp.pi)**2,sp.exp(4)
+bprof_w33 = Aprof_w33*(1-z_w33)
+rootprof_w33 = sp.sqrt(bprof_w33**2+4*Bprof_w33*z_w33)
+round_witness33 = (
+    sp.simplify(sum(v*v for v in n_w33)-1)==0
+    and sp.simplify(s2_w33-sp.Rational(3,4))==0
+    and sp.simplify(u1_w33*sp.conjugate(u1_w33)-sp.Rational(13,49))==0
+    and sp.simplify(u2_w33*sp.conjugate(u2_w33)-sp.Rational(36,49))==0
+    and sp.arg(u2_w33)/(2*sp.pi)==a_w33
+    and sp.re(u2_w33)>0
+    and sp.simplify(ratio_w33*sp.conjugate(ratio_w33)-z_w33)==0
+    and sp.simplify(bprof_w33-Aprof_w33*sp.Rational(23,36))==0
+    and bool(sp.pi>3)
+    and sp.Rational(13,23*144)<sp.Rational(1,100))
+witness33 &= round_witness33
+rep('C33a negative cusp deck branch: ordered source path and strict witness',
+    source_branch33 and witness33)
+
+xr33,xi33,yr33,yi33 = sp.symbols('xr33 xi33 yr33 yi33',real=True)
+nu33,m33 = sp.symbols('nu33 m33',positive=True)
+w33 = sp.Symbol('w33',real=True)
+X33,Y33 = xr33+sp.I*xi33,yr33+sp.I*yi33
+sx33,sy33 = xr33**2+xi33**2,yr33**2+yi33**2
+rho33 = sx33*sy33
+z033 = sp.Matrix([nu33*sp.conjugate(X33),Y33])
+z133 = sp.Matrix([nu33*Y33/(m33*sy33),m33*X33*Y33**2])
+r033 = nu33**2*sx33+sy33
+r133 = nu33**2/(m33**2*sy33)+m33**2*sx33*sy33**2
+R033,R133 = sp.symbols('R033 R133',positive=True)
+V33 = sp.Matrix([z033[0]/sp.sqrt(R033),z033[1]/sp.sqrt(R033),
+                 w33*z133[0]/sp.sqrt(R133),
+                 w33*z133[1]/sp.sqrt(R133)])/sp.sqrt(1+w33**2)
+P33 = V33*V33.conjugate().T
+normal33 = ((r033/R033+w33**2*r133/R133)/(1+w33**2))
+# The second spinor is precisely frame(1/(m*y),m*x*y^2,nu) before its
+# radius normalization.  It has the same base product xy as the first.
+shifted_value33 = (
+    sp.cancel((1/(m33*Y33))*(m33*X33*Y33**2)-X33*Y33)==0
+    and sp.cancel((z033.conjugate().T*z033)[0]-r033)==0
+    and sp.cancel((z133.conjugate().T*z133)[0]-r133)==0
+    and sp.cancel((V33.conjugate().T*V33)[0]-normal33)==0
+    and sp.simplify(normal33.subs({R033:r033,R133:r133})-1)==0)
+# An exact rank-one polynomial identity plus the checked unit norm gives
+# P^2=P.  Positivity is manifest: sy>0, m>0, nu>0, and r0,r1>0.
+v33 = sp.Matrix(sp.symbols('v0_33 v1_33 v2_33 v3_33'))
+b33 = sp.Matrix(sp.symbols('b0_33 b1_33 b2_33 b3_33'))
+abstract_P33 = v33*b33.T
+rank_one33 = all(sp.expand(z)==0 for z in
+    abstract_P33*abstract_P33-(b33.T*v33)[0]*abstract_P33)
+rep('C33b actual shifted four-slot cusp projector has unit rank-one value',
+    shifted_value33 and rank_one33)
+
+actual_m33 = nu33*sp.exp(-2*rho33/(1-rho33))
+source_vars33 = (xr33,xi33,yr33,yi33)
+exp_prime33 = -2/(1-rho33)**2
+exp_second33 = -4/(1-rho33)**3
+mjet33 = True
+for i33,vi33 in enumerate(source_vars33):
+    rhoi33 = sp.diff(rho33,vi33)
+    mi33 = actual_m33*exp_prime33*rhoi33
+    mjet33 &= sp.simplify((sp.diff(actual_m33,vi33)-mi33)/actual_m33)==0
+    for vj33 in source_vars33[:i33+1]:
+        rhoj33 = sp.diff(rho33,vj33)
+        mij33 = actual_m33*((exp_second33+exp_prime33**2)
+                             *rhoi33*rhoj33
+                             +exp_prime33*sp.diff(rho33,vi33,vj33))
+        mjet33 &= sp.simplify((sp.diff(actual_m33,vi33,vj33)
+                               -mij33)/actual_m33)==0
+slope33 = flat33*(1-flat33)*(1/cut33**2+1/(1-cut33)**2)
+curvature33 = flat33*(1-flat33)*(
+    (1-2*flat33)*(1/cut33**2+1/(1-cut33)**2)**2
+    -2/cut33**3+2/(1-cut33)**3)
+wjet33 = (sp.simplify(sp.diff(weight33,H33)
+                     +sp.Rational(20,3)*slope33)==0
+          and sp.simplify(sp.diff(weight33,H33,2)
+                          +sp.Rational(400,9)*curvature33)==0)
+rep('C33c source deck exponential and negative flat weight: exact two-jets',
+    mjet33 and wjet33)
+
+# Substitution after conjugation retains the certified positive-radius
+# meaning of both square roots.  Differentiating these actual components
+# supplies all 20 first and 100 second entries of V, and the explicit
+# rank-one product supplies all 80 first and 400 second entries of P.
+actual_V33 = V33.subs({R033:r033,R133:r133,m33:actual_m33,
+                        w33:weight33})
+actual_barV33 = V33.conjugate().T.subs(
+    {R033:r033,R133:r133,m33:actual_m33,w33:weight33})
+full_vars33 = (*source_vars33,H33)
+V_first33 = [actual_V33.diff(v) for v in full_vars33]
+barV_first33 = [actual_barV33.diff(v) for v in full_vars33]
+V_second33 = [[actual_V33.diff(vi,vj) for vj in full_vars33]
+              for vi in full_vars33]
+barV_second33 = [[actual_barV33.diff(vi,vj) for vj in full_vars33]
+                 for vi in full_vars33]
+P_first33 = [V_first33[i]*actual_barV33
+             +actual_V33*barV_first33[i] for i in range(5)]
+P_second33 = [[V_second33[i][j]*actual_barV33
+               +V_first33[i]*barV_first33[j]
+               +V_first33[j]*barV_first33[i]
+               +actual_V33*barV_second33[i][j]
+               for j in range(5)] for i in range(5)]
+full_jets33 = (
+    all(V_second33[i][j]==V_second33[j][i]
+        and barV_second33[i][j]==barV_second33[j][i]
+        and P_second33[i][j]==P_second33[j][i]
+        for i in range(5) for j in range(5))
+    and any(V_first33[4][k]!=0 for k in range(4))
+    and any(V_first33[0][k]!=0 for k in range(4))
+    and any(P_first33[4][0,k]!=0 for k in range(4))
+    and any(P_second33[0][4][0,k]!=0 for k in range(4)))
+rep('C33d shifted source projector: complete five-variable first and second jets',
+    full_jets33 and generic_projector31)
+
+# C34: one active-collar principal-log seam, at negative real t.  The raw
+# source uses a real Cramer solve before discarding its second and third
+# lattice coordinates.  Both cusp and middle slots are present for
+# 3/10<|t_c|<1/2.  We check the source's south/north log-deck changes, then
+# the surviving angular-slot phase and cusp reconstruction on the seam.
+lattice_tree34 = source_tree30(cusp30.scalar_lattice_coords)
+logradius_tree34 = source_tree30(cusp30.elementary_cusp_logradius)
+source_collar34 = (
+    matching_assignment30(lattice_tree34,'rows',
+        '[[v.imag for v in ez],[v.real for v in ew],[v.imag for v in ew]]')
+    and matching_assignment30(lattice_tree34,'rhs',
+                              '(z.imag,w.real,w.imag)')
+    and matching_statement31(lattice_tree34,
+        'replaced = [[rhs[i] if j==k else rows[i][j] for j in range(3)] for i in range(3)]')
+    and matching_statement31(lattice_tree34,'coords.append(det(replaced)/den)')
+    and matching_assignment30(lattice_tree34,'one',
+        '(z.real-sum(a*b.real for a,b in zip(coords,ez)))/(2*mp.pi)')
+    and returned_expr30(lattice_tree34,'(one,*coords)')
+    and matching_statement31(raw_tree31,'''if inf:
+    zm,wm = -mp.j*rho,mp.mpc(0)
+else:
+    ss = lt/(2*mp.j*mp.pi)
+    zm,wm = -mp.j*rho+mp.pi*ss*(ss-1),2*t*ss''')
+    and matching_statement31(raw_tree31,
+        'lattice = scalar_lattice_coords(zm,wm,t,lt)')
+    and matching_assignment30(raw_tree31,'rho',
+        '(elementary_cusp_logradius if elementary else elliptic_cusp_logradius)(a,tc,nu,dps=dps)')
+    and matching_assignment30(logradius_tree34,'r','abs(t)')
+    and matching_if_test32(raw_tree31,"inf or abs(t)<mp.mpf('.5')")
+    and matching_if_test32(raw_tree31,
+                           "abs(tc)<=mp.mpf('.3') and elementary")
+    and matching_assignment30(raw_tree31,'data',
+        '(t,lattice[0],lattice[3],lt,a) if elementary else (t,lattice[0],lattice[3],lt)')
+    and returned_expr30(raw_tree31,"'mid',data")
+    and matching_assignment30(bundle_tree32,'principal','mp.log(t)')
+    and matching_assignment30(bundle_tree32,'branch',
+        'mp.nint((lt.imag-principal.imag)/(2*mp.pi))')
+    and matching_statement31(bundle_tree32,
+        'one,lt = one+branch*four,principal')
+    and matching_assignment30(bundle_tree32,'known_height',
+        'mp.mpf(data[4]) if elementary and len(data)>4 else None')
+    and matching_assignment30(bundle_tree32,'b0',
+        "1-scalar_flat_step((r-mp.mpf('.3'))/mp.mpf('.2'))")
+    and matching_assignment30(bundle_tree32,'bi',
+        "1-scalar_flat_step((1/r-mp.mpf('.3'))/mp.mpf('.2'))")
+    and matching_assignment30(bundle_tree32,'bm','1-b0-bi')
+    and matching_if_test32(bundle_tree32,'b0>0')
+    and matching_if_test32(bundle_tree32,'bi>0')
+    and matching_if_test32(bundle_tree32,'bm>0')
+    and matching_statement31(bundle_tree32,
+        'z,w = 2*mp.pi*one-mp.j*lt*four,2*t*four')
+    and matching_statement31(bundle_tree32,
+        'det = e2.real*e3.imag-e3.real*e2.imag')
+    and matching_statement31(bundle_tree32,
+        'return ((rhs.real*e3.imag-e3.real*rhs.imag)/det,'
+        '(e2.real*rhs.imag-rhs.real*e2.imag)/det)')
+    and matching_statement31(bundle_tree32,
+        'zc,wc = z-mp.pi*s*(s-1),w-2*t*s')
+    and matching_statement31(bundle_tree32,
+        's = lt/(2*mp.j*mp.pi)')
+    and matching_statement31(bundle_tree32,
+        'c2,c3 = coeffs(-wc,1-t*t,mp.j*(1+t*t))')
+    and matching_statement31(bundle_tree32,
+        'zz = mp.exp(mp.j*(zc-mp.j*c2*t-c3*t))')
+    and matching_statement31(bundle_tree32,
+        'vec[:4] = [b0*q for q in torus_pair(zz,t,mp.mpf(1),known_height)]')
+    and matching_statement31(bundle_tree32,
+        'zc,wc = z-mp.j*w/t,w/(t*t)')
+    and matching_statement31(bundle_tree32,'s = 1/t')
+    and matching_statement31(bundle_tree32,
+        'c2,c3 = coeffs(-wc,s*s-1,mp.j*(1+s*s))')
+    and matching_statement31(bundle_tree32,
+        'zz = mp.exp(mp.j*(zc-mp.j*c2*s+c3*s))')
+    and matching_statement31(bundle_tree32,
+        'vec[4:8] = [bi*q for q in torus_pair(zz,s,mp.exp(-2),known_height)]')
+    and matching_assignment30(bundle_tree32,'angle',
+        'mp.arg(t if index==0 else -t)')
+    and matching_assignment30(bundle_tree32,'weight',
+        '1-scalar_flat_step((abs(angle)-mp.pi/2)/(mp.pi/4))')
+    and matching_statement31(bundle_tree32,
+        'vec[8+index]=bm*weight*mp.exp(mp.j*(2*mp.pi*one'
+        '-(angle+centre-lt.imag)*four))'))
+
+# Two exact target witnesses, both with n=(0,0,-1).  For the south take
+# X=sqrt(2/37); for the north take X=sqrt(2/5).  The raw y_1 values are
+# 12/5 and 4, so (u1,u2)=(-119,120)/169 and (-15,8)/17.  Both phase
+# coordinates are positive real, hence a=0 and no argument-selector seam.
+Xs34,Xn34 = sp.sqrt(sp.Rational(2,37)),sp.sqrt(sp.Rational(2,5))
+def target_y1_34(X):
+    aa = X*sp.sqrt(2-X**2)
+    return 1+(1-X**2)/(1-aa)
+ys34,yn34 = target_y1_34(Xs34),target_y1_34(Xn34)
+def unit_pair34(y):
+    return ((1-y**2)/(1+y**2),2*y/(1+y**2))
+us34,un34 = unit_pair34(ys34),unit_pair34(yn34)
+zs34,zn34 = (sp.Rational(119,120)**2,
+             sp.Rational(8,15)**2)
+# Let A=(4pi)^2, B=e^4.  The exponential series has S4=65/24;
+# for n>=5, n! >= 5!*6^(n-5), with a strict inequality from n=7,
+# so 0<e-S4<1/(5!*(1-1/6))=1/100.  Thus 50<B<64.
+# The classical 3<pi<22/7 gives
+# 144<A<160.  For the south s=|small|^2 solves
+# B*s^2+A(1-zs)*s-zs=0; for the north s solves
+# s^2+A(1-zn)*s-B*zn=0.  The following strict rational signs bracket
+# both positive roots in (9/100,1/4).  Thus both have 3/10<|tc|<1/2.
+lo34,hi34 = sp.Rational(9,100),sp.Rational(1,4)
+S4_34 = sum(1/sp.factorial(j) for j in range(5))
+etail34 = 1/(sp.factorial(5)*(1-sp.Rational(1,6)))
+strict_collar34 = (
+    sp.simplify(ys34-sp.Rational(12,5))==0
+    and sp.simplify(yn34-4)==0
+    and us34==(sp.Rational(-119,169),sp.Rational(120,169))
+    and un34==(sp.Rational(-15,17),sp.Rational(8,17))
+    and S4_34==sp.Rational(65,24)
+    and etail34==sp.Rational(1,100)
+    and S4_34>sp.Rational(8,3)
+    and S4_34+etail34<sp.Rational(11,4)
+    and sp.Rational(8,3)**4>50
+    and sp.Rational(11,4)**4<64
+    and bool(sp.pi>3) and bool(sp.pi<sp.Rational(22,7))
+    and 16*sp.Rational(22,7)**2<160
+    and 64*lo34**2+160*(1-zs34)*lo34-zs34<0
+    and 50*hi34**2-zs34>0
+    and lo34**2+160*(1-zn34)*lo34-50*zn34<0
+    and hi34**2+144*(1-zn34)*hi34-64*zn34>0)
+# Perturb n=(0,0,-1) to (eps,0,-sqrt(1-eps^2)).  With the same X,
+# y0=R*eps, y1=1+R*sqrt(1-eps^2), and u1/u2 has imaginary part y0/y1.
+# Thus eps of either sign gives the upper/lower negative-axis sector,
+# while u2 stays positive.  All collar inequalities above are strict,
+# so they persist on an open interval around eps=0.
+eps34 = sp.Symbol('eps34',real=True)
+positive_root34 = sp.Symbol('positive_root34',positive=True)
+def angular_perturb34(radial_factor):
+    y0 = radial_factor*eps34
+    # On |eps|<1 substitute positive_root=sqrt(1-eps^2) after the
+    # real-algebra check; keeping the positive root formal avoids SymPy's
+    # global complex continuation of sqrt outside this open interval.
+    y1 = 1+radial_factor*positive_root34
+    ysq = y0**2+y1**2
+    u1 = (1-ysq+2*sp.I*y0)/(1+ysq)
+    u2 = 2*y1/(1+ysq)
+    return sp.simplify(sp.im(u1/u2)-y0/y1)==0
+strict_collar34 &= (angular_perturb34(sp.Rational(7,5))
+                    and angular_perturb34(sp.Integer(3)))
+rep('C34a source-bound south/north active-collar negative-axis witnesses',
+    source_collar34 and strict_collar34)
+
+ar34,ai34,ell34,theta34,rho34 = sp.symbols(
+    'ar34 ai34 ell34 theta34 rho34',real=True)
+k34 = sp.Symbol('k34',integer=True)
+one34,two34,three34,four34 = sp.symbols(
+    'one34 two34 three34 four34',real=True)
+t34 = ar34+sp.I*ai34
+L34 = ell34+sp.I*theta34
+s34 = L34/(2*sp.I*sp.pi)
+e2z34,e3z34,e4z34 = -sp.I*t34,-t34,-sp.I*L34
+e2w34,e3w34,e4w34 = 1-t34**2,sp.I*(1+t34**2),2*t34
+R34 = sp.Matrix([[-ar34,-ai34,-ell34],
+                 [1-ar34**2+ai34**2,-2*ar34*ai34,2*ar34],
+                 [-2*ar34*ai34,1+ar34**2-ai34**2,2*ai34]])
+det_expected34 = (1+ar34**2+ai34**2)*(
+    (ar34**2+ai34**2-1)*ell34+2*(ar34**2+ai34**2))
+cramer34 = (R34==M.subs({sp.Symbol('t_r',real=True):ar34,
+                         sp.Symbol('t_i',real=True):ai34,lr:ell34})
+            and sp.factor(R34.det()-det_expected34)==0)
+# In the south collar 3/10<|t|<1/2 and ell=log|t|<0; in the north
+# 2<|t|<10/3 and ell>0.  Thus (|t|^2-1)*ell>=0 in either collar,
+# and det R>2r^2(1+r^2).  This polynomial increases for r>0 because
+# its derivative is 4r(1+2r^2)>0.  The strict margins are 981/5000
+# south and 40 north, so the Cramer coordinates are unique.
+radius_bound34 = sp.Symbol('radius_bound34',positive=True)
+det_margin34 = 2*radius_bound34**2*(1+radius_bound34**2)
+cramer34 &= (
+    sp.simplify(sp.diff(det_margin34,radius_bound34)
+                -4*radius_bound34*(1+2*radius_bound34**2))==0
+    and det_margin34.subs(radius_bound34,sp.Rational(3,10))
+        ==sp.Rational(981,5000)
+    and det_margin34.subs(radius_bound34,2)==40)
+rep('C34b active-collar real-Cramer matrix and positive determinant',
+    cramer34)
+# Numerical observations (d), two interior radii, kept beside the
+# proven uniform lower bounds.  They play no role in the certificate.
+south_sample34 = sp.N(det_expected34.subs({
+    ar34:sp.Rational(2,5),ai34:0,
+    ell34:sp.log(sp.Rational(2,5))}),20)
+north_sample34 = sp.N(det_expected34.subs({
+    ar34:sp.Rational(5,2),ai34:0,
+    ell34:sp.log(sp.Rational(5,2))}),20)
+rep('C34b2 two numerical Cramer determinant samples (d)',
+    south_sample34>sp.Rational(981,5000)
+    and north_sample34>40)
+print('C34b2 south/north determinant samples:', south_sample34,
+      north_sample34)
+
+def lattice_z34(L,one,two,three,four):
+    return 2*sp.pi*one-sp.I*t34*two-t34*three-sp.I*L*four
+def lattice_w34(two,three,four):
+    return e2w34*two+e3w34*three+2*t34*four
+Lshift34 = L34+2*sp.pi*sp.I*k34
+south_one34 = one34-k34*four34-k34*(k34+1)/2
+south_four34 = four34+k34
+north_one34 = one34-k34*four34
+south_deck34 = (
+    sp.expand(lattice_z34(Lshift34,south_one34,two34,three34,
+                          south_four34)
+              -lattice_z34(L34,one34,two34,three34,four34)
+              -sp.pi*((s34+k34)*(s34+k34-1)-s34*(s34-1)))==0
+    and sp.expand(lattice_w34(two34,three34,south_four34)
+                  -lattice_w34(two34,three34,four34)-2*t34*k34)==0)
+north_deck34 = (
+    sp.expand(lattice_z34(Lshift34,north_one34,two34,three34,
+                          four34)-lattice_z34(L34,one34,two34,
+                                               three34,four34))==0
+    and lattice_w34(two34,three34,four34)
+        ==lattice_w34(two34,three34,four34))
+rep('C34c raw south/north lattice one/four transformations for every deck k',
+    south_deck34 and north_deck34)
+
+# The source's middle reduction first takes the principal logarithm.  For
+# a raw input whose log differs by 2pi*i*k, its south normalized one changes
+# by k(k-1)/2, an integer; its north normalized one is unchanged.
+normalized_south34 = south_one34+k34*south_four34
+normalized_north34 = north_one34+k34*four34
+principal34 = (
+    sp.simplify(normalized_south34-one34-k34*(k34-1)/2)==0
+    and sp.simplify(normalized_north34-one34)==0)
+# On the upper side Arg(t)=theta near pi, Arg(-t)=theta-pi, so
+# delta=Arg(-t)+pi-Im(L)=0.  On the lower side the corresponding delta is
+# 2pi.  The index-0 angular weight vanishes (|Arg t|>3pi/4), while the
+# index-1 weight is 1 (|Arg(-t)|<pi/2).  For k=-1, the lower exponent
+# differs by 2pi south and by zero north, so its complex phase agrees.
+delta_upper34 = (theta34-sp.pi)+sp.pi-theta34
+delta_lower34 = (theta34+sp.pi)+sp.pi-theta34
+angular34 = (
+    delta_upper34==0 and delta_lower34==2*sp.pi
+    and sp.Rational(7,8)>sp.Rational(3,4)
+    and sp.simplify((south_one34-south_four34).subs(k34,-1)
+                    -one34-1)==0
+    and sp.simplify((north_one34-four34).subs(k34,-1)
+                    -one34)==0)
+rep('C34d surviving angular-slot phase agrees across the negative-axis cut',
+    principal34 and angular34)
+
+# Cramer's equations reconstruct the full raw (z_m,w_m).  In the south,
+# z_m=-i*rho+pi*s(s-1), w_m=2*t*s.  In the north, z_m=-i*rho,w_m=0.
+# The source's 2x2 real coeffs eliminate the discarded lattice coordinates:
+# its determinants are 1-|t|^4>0 (south) and |1/t|^4-1<0 (north),
+# both nonzero on the active collars.  The exponent in either `zz` is rho.
+raw_z_s34 = -sp.I*rho34+sp.pi*s34*(s34-1)
+raw_z_n34 = -sp.I*rho34
+def real_det2_34(e2,e3):
+    return sp.re(e2)*sp.im(e3)-sp.re(e3)*sp.im(e2)
+def source_coeff34(rhs,e2,e3):
+    den = real_det2_34(e2,e3)
+    return ((sp.re(rhs)*sp.im(e3)-sp.re(e3)*sp.im(rhs))/den,
+            (sp.re(e2)*sp.im(rhs)-sp.re(rhs)*sp.im(e2))/den)
+def source_lattice34(raw_z,raw_w):
+    # The source computes these three entries by Cramer's rule, which equals
+    # this exact solve because C34b proves det(R)!=0.
+    rhs = sp.Matrix([sp.im(sp.expand_complex(raw_z)),
+                     sp.re(sp.expand_complex(raw_w)),
+                     sp.im(sp.expand_complex(raw_w))])
+    two,three,four = R34.LUsolve(rhs)
+    one = (sp.re(sp.expand_complex(raw_z))
+           -two*sp.re(e2z34)-three*sp.re(e3z34)
+           -four*sp.re(e4z34))/(2*sp.pi)
+    z_middle = 2*sp.pi*one-sp.I*L34*four
+    w_middle = 2*t34*four
+    return two,three,z_middle,w_middle
+two_s34,three_s34,z_mid_s34,w_mid_s34 = source_lattice34(
+    raw_z_s34,2*t34*s34)
+zc_s34,wc_s34 = z_mid_s34-sp.pi*s34*(s34-1),w_mid_s34-2*t34*s34
+c2_s34,c3_s34 = source_coeff34(-wc_s34,e2w34,e3w34)
+south_reconstruction34 = (
+    sp.simplify(c2_s34-two_s34)==0
+    and sp.simplify(c3_s34-three_s34)==0
+    and sp.simplify(sp.I*(zc_s34-sp.I*c2_s34*t34-c3_s34*t34)
+                    -rho34)==0)
+sn34 = 1/t34
+two_n34,three_n34,z_mid_n34,w_mid_n34 = source_lattice34(
+    raw_z_n34,sp.Integer(0))
+zc_n34,wc_n34 = z_mid_n34-sp.I*w_mid_n34/t34,w_mid_n34/t34**2
+c2_n34,c3_n34 = source_coeff34(
+    -wc_n34,sn34**2-1,sp.I*(1+sn34**2))
+north_reconstruction34 = (
+    sp.simplify(c2_n34-two_n34)==0
+    and sp.simplify(c3_n34-three_n34)==0
+    and sp.simplify(sp.I*(zc_n34-sp.I*c2_n34*sn34+c3_n34*sn34)
+                    -rho34)==0)
+south_det2_34 = sp.simplify(real_det2_34(e2w34,e3w34)
+                            -(1-(ar34**2+ai34**2)**2))==0
+sr34,si34 = sp.symbols('sr34 si34',real=True)
+ss34 = sr34+sp.I*si34
+north_det2_34 = sp.simplify(real_det2_34(
+    ss34**2-1,sp.I*(1+ss34**2))
+    -((sr34**2+si34**2)**2-1))==0
+inverse_radius34 = sp.cancel(sn34*sp.conjugate(sn34)
+                               -1/(ar34**2+ai34**2))==0
+rep('C34e both collar cusp reconstructions give zz=exp(rho)',
+    south_reconstruction34 and north_reconstruction34
+    and south_det2_34 and north_det2_34
+    and inverse_radius34)
+
+# C34f: second jets of precisely the two scalar entries just glued.
+# Use local real chart variables (Re t,Im t,rho,H,one,four).  The source's
+# surviving index-1 entry has bm=s(q), with q=5|t|-3/2 south and
+# q=5/|t|-3/2 north.  C34d makes its phase exp(2pi*i*one) on both sides.
+# C34e makes the reconstructed cusp input zz=exp(rho) on both sides.
+# These are chart-coordinate jets; rho, one and four still depend on the
+# round meridian variables through earlier maps, which this seam check does
+# not differentiate.
+Hseam34 = sp.Symbol('Hseam34',real=True)
+p34 = sp.Symbol('p34',real=True)
+r34 = sp.sqrt(ar34**2+ai34**2)
+q_s34,q_n34 = 5*r34-sp.Rational(3,2),5/r34-sp.Rational(3,2)
+flat_actual34 = sp.exp(-1/p34)/(
+    sp.exp(-1/p34)+sp.exp(-1/(1-p34)))
+flat_slope34 = flat_actual34*(1-flat_actual34)*(
+    1/p34**2+1/(1-p34)**2)
+flat_curv34 = flat_actual34*(1-flat_actual34)*(
+    (1-2*flat_actual34)*(1/p34**2+1/(1-p34)**2)**2
+    -2/p34**3+2/(1-p34)**3)
+flat_jets34 = (
+    sp.simplify(sp.diff(flat_actual34,p34)-flat_slope34)==0
+    and sp.simplify(sp.diff(flat_actual34,p34,2)-flat_curv34)==0)
+radial_jets34 = True
+radial_xy34 = (ar34,ai34)
+for i34,vi34 in enumerate(radial_xy34):
+    radial_jets34 &= (
+        sp.simplify(sp.diff(q_s34,vi34)-5*vi34/r34)==0
+        and sp.simplify(sp.diff(q_n34,vi34)+5*vi34/r34**3)==0)
+    for j34,vj34 in enumerate(radial_xy34[:i34+1]):
+        same34 = int(i34==j34)
+        radial_jets34 &= (
+            sp.simplify(sp.diff(q_s34,vi34,vj34)
+                        -5*(same34/r34-vi34*vj34/r34**3))==0
+            and sp.simplify(sp.diff(q_n34,vi34,vj34)
+                            -(-5*same34/r34**3
+                              +15*vi34*vj34/r34**5))==0)
+
+F34 = sp.Function('F34')
+phase_common34 = sp.exp(2*sp.pi*sp.I*one34)
+vars_seam34 = (ar34,ai34,rho34,Hseam34,one34,four34)
+angular_value_jets34 = True
+source_flat_bind34 = True
+for qcell34,lower_one34,lower_four34 in (
+    (q_s34,south_one34.subs(k34,-1),south_four34.subs(k34,-1)),
+    (q_n34,north_one34.subs(k34,-1),four34)):
+    f0cell34 = F34(qcell34)
+    f1cell34 = sp.Subs(sp.diff(F34(p34),p34),p34,qcell34)
+    f2cell34 = sp.Subs(sp.diff(F34(p34),p34,2),p34,qcell34)
+    # On this strict 0<q<1 cell the source flat-step body is exactly
+    # flat_actual34.  Bind every formal value/jet used below to its
+    # source-specific exponential expression, whose derivatives were
+    # checked in flat_jets34 above.
+    flat_bind34 = {
+        f0cell34:flat_actual34.subs(p34,qcell34),
+        f1cell34:flat_slope34.subs(p34,qcell34),
+        f2cell34:flat_curv34.subs(p34,qcell34)}
+    source_flat_bind34 &= (
+        not any(expr.has(F34) for expr in flat_bind34.values())
+        and flat_bind34[f0cell34]
+            ==sp.Lambda(p34,flat_actual34)(qcell34))
+    common34 = f0cell34*phase_common34
+    upper34 = f0cell34*sp.exp(sp.I*(2*sp.pi*one34
+                                        -delta_upper34*four34))
+    lower34 = f0cell34*sp.exp(sp.I*(2*sp.pi*lower_one34
+                                        -delta_lower34*lower_four34))
+    angular_value_jets34 &= sp.simplify(upper34-lower34)==0
+    for i34,vi34 in enumerate(vars_seam34):
+        qi34 = sp.diff(qcell34,vi34)
+        di34 = int(vi34==one34)
+        expected_first34 = phase_common34*(
+            f1cell34*qi34+2*sp.pi*sp.I*f0cell34*di34)
+        source_flat_bind34 &= not expected_first34.xreplace(
+            flat_bind34).has(F34)
+        angular_value_jets34 &= (
+            sp.simplify(sp.diff(common34,vi34)-expected_first34)==0
+            and sp.simplify(sp.diff(upper34,vi34)
+                            -sp.diff(lower34,vi34))==0)
+        for j34,vj34 in enumerate(vars_seam34[:i34+1]):
+            qj34 = sp.diff(qcell34,vj34)
+            qij34 = sp.diff(qcell34,vi34,vj34)
+            dj34 = int(vj34==one34)
+            expected_second34 = phase_common34*(
+                f2cell34*qi34*qj34+f1cell34*qij34
+                +2*sp.pi*sp.I*f1cell34*(qi34*dj34+qj34*di34)
+                -(2*sp.pi)**2*f0cell34*di34*dj34)
+            source_flat_bind34 &= not expected_second34.xreplace(
+                flat_bind34).has(F34)
+            angular_value_jets34 &= (
+                sp.simplify(sp.diff(common34,vi34,vj34)
+                            -expected_second34)==0
+                and sp.simplify(sp.diff(upper34,vi34,vj34)
+                                -sp.diff(lower34,vi34,vj34))==0)
+zz_common34 = sp.exp(rho34)
+zz_jets34 = all(
+    sp.diff(zz_common34,vi34)
+        ==zz_common34*int(vi34==rho34)
+    and all(sp.diff(zz_common34,vi34,vj34)
+            ==zz_common34*int(vi34==rho34)*int(vj34==rho34)
+            for vj34 in vars_seam34)
+    for vi34 in vars_seam34)
+rep('C34f index-1 angular and cusp-zz first/second seam jets agree',
+    flat_jets34 and radial_jets34 and source_flat_bind34
+    and angular_value_jets34
+    and zz_jets34 and south_reconstruction34 and north_reconstruction34)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

@@ -326,7 +326,15 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   the round cap, raw inverse, and torus restoration, and checks its second-jet
   reduction. Other projector and height cells, the complete free
   round-to-\(W\) composition, and remaining seams are open. The complete
-  global direct check remains open.
+  global direct check remains open. **Additional regional checks
+  (2026-10-12-TSG-3 through TSG-6):** N10 supplies exact two-jets for the
+  nonidentity pole radial map and its inverse; the north raw annulus has
+  a separate six-real \(J\) circuit; N11 checks both raw-reference
+  positive-root branches and their dominant-coordinate selector seam;
+  C33 checks the negative-height cusp projector frame; C34 checks one
+  active-collar negative-real-log seam through source Cramer coordinates.
+  The full radial-shell composition, other free-slab scalar/projector
+  cells, and the global source-chart seam table still need checking.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.

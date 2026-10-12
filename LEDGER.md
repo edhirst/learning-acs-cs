@@ -1573,3 +1573,41 @@ in `AGENTS.md` §5.
   fixed-count free-slab projection/phase composition, or the global
   six-dimensional \(J_{\mathrm{cl}}\). The complete direct T16
   verification and human review of the global certificate remain open.
+
+### 2026-10-12-TSG-6 — Check a shifted cusp projector and log-cut seam
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** 7e963cb
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (C33–C34),
+  docs/s4t2_symbolic_programme.md status and §11.8, and
+  SYMBOLIC_CAMPAIGN.md T16 status. No manuscript or construction file
+  changed.
+- **Change:** added an ordered source-path check for the negative-height
+  deck-shifted cusp frame, its unit rank-one four-slot projector, and its
+  five-variable first and second jets at both cusp signs. Added a
+  source-linked active-collar negative-real-log seam certificate: the
+  real Cramer solve and two-coordinate cusp reconstruction, south/north
+  deck transformations, surviving angular phase, and matching
+  value/first/second chart-coordinate jets for the angular entry and
+  cusp input. Strict target witnesses show both seam sectors are
+  nonempty.
+- **Why:** the free-slab meridian projector crosses the negative-height
+  cusp frame and principal-log cuts. These branches cannot be inferred
+  from the previously checked positive-height frame. On the collar the
+  Cramer determinant has manifest lower bounds \(981/5000\) south and
+  \(40\) north, so the coordinate reconstruction is unique.
+- **Verification:** chart_identities.py C33a–d and C34a–f: **ALL PASS**.
+  The separately labelled numerical observations (d), sample size two,
+  give south/north determinants 1.2640336891 and 125.5013159820
+  against the proved bounds above. verify_construction.py:
+  all checks passed; sphere_products.py: Dimension 8 check passed;
+  git diff --check: pass. LaTeX: **not run** (latexmk unavailable).
+  Git fetch/pull and push were left to the collaborator as requested.
+- **Open points:** C34 differentiates the surviving angular entry and
+  reconstructed cusp scalar in six local chart variables; it does not
+  differentiate the preceding round-meridian map or all ten embedding
+  slots. Other projector cells and seams, the full fixed-count
+  projection/phase composition, and the direct global \(J_{\mathrm{cl}}\)
+  check remain open.

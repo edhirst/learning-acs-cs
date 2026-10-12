@@ -59,6 +59,13 @@
 > the removable dominant-coordinate selector seam for the effective \(t\).
 > It is a scalar generator check; the remaining projector and free-slab
 > composition remain open.
+> **Cusp projector and log-seam audit (2026-10-12-TSG-6):** C33 checks
+> the negative-height shifted cusp frame and its second jets at both
+> cusp signs. C34 checks a negative-real-log seam in the active south
+> and north collars through the source Cramer coordinates, angular
+> phase, cusp reconstruction and their local chart-coordinate jets.
+> These are regional projector checks;
+> the complete free-slab map remains open.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
 > **Resume point: complete T16's exact branch circuit and second-jet checks, then simplify the fixed counts.**
 
@@ -2900,6 +2907,8 @@ derivatives are numerical observations, type (d).
 | C30a–n, exact local second jets (a) | elementary, projection and phase second-jet identities; source checks that the certified counts reach the two recurrence sites; both cusp Cramer/torus-restoration signs and one open noncap branch of the four-seed height; inverse-map-convention \(J^2\) (36 entries) and \(N_J\) (216 entries): ALL PASS |
 | C31a–d, one pure-middle projector cell (a,c) | source-linked reciprocal dominant branch with exact witness \(t=(-1+2i)/3\), explicit rank-one projector and complete local second-jet chain: ALL PASS; the rational witness bounds are written in the script |
 | C32a–d, one two-active-pair cusp projector cell (a,b,c) | on \(1/10<H<1/4\), \(|xy|<3/10\), both cusp signs: the source frame and nonconstant flat weight give an explicit rank-one four-slot projector; all 80 first and 400 second source-coordinate entries, including mixed-partial symmetry, are checked: ALL PASS; \(t=1/10,H=1/5\) is an exact nonempty-cell witness |
+| C33a–d, negative-height cusp projector cell (a,b) | on \(-1/4<H<-1/10\), \(|xy|<3/10\), \(y\ne0\), both cusp signs: the source deck-shifted frame has the same product \(xy\), its four-slot projector is unit rank one, and the source weight/deck exponential have exact two-jets; all 80 first and 400 second entries in the five independent variables \((\Re x,\Im x,\Re y,\Im y,H)\) obey the checked product rule: ALL PASS. A strict south round-meridian witness has \(t=1/10,H=-1/6\). |
+| C34a–f, negative-real-log active-collar seam (a,b,c,d) | on \(3/10<|t_c|<1/2\), with south \(t=t_c\) and north \(t=1/t_c\): exact source Cramer solves reconstruct \(e^\rho\) in each cusp slot; deck changes preserve the surviving middle angular phase. The surviving angular entry and reconstructed cusp input have matching value/first/second jets in \((\Re t,\Im t,\rho,H,\mathrm{one},\mathrm{four})\); strict target witnesses and angular perturbations show nonempty seam sectors: ALL PASS. Manifest determinant bounds are \(>981/5000\) south and \(>40\) north; the separately labelled two numerical samples are 1.2640336891 and 125.5013159820. The source formulas imply projector agreement on this seam; they do not differentiate the earlier round-meridian map or cover other chart seams. |
 | N8, actual inner-pole charts (a) | both signs: the six real outputs of (11.17)–(11.18), including the four-seed \(H_f\), are differentiated to a 6×6 Jacobian and six Hessians; all 90 mixed-partial pairs per sign, the nonzero pole determinant, and 216 normal-frame \(N_J\) entries: ALL PASS |
 | N9a–i, cap/slab overlap (a,c) | for both signs, exact phase telescoping, source-linked raw-reference/projector identification, matching cusp inputs, torus restoration and first/second jets: ALL PASS, conditional on the written §11.3, §11.5 and §10.6 bounds; the post-raw radial margin is checked in N9b |
 | N10a–d, radial shell (a,b) | source-linked finite elementary \(S,S^{-1}\) nodes, exact scalar inverse and derivative identities, 16 first and 64 second entries for each radial direction, and \(\det DD=S(r)S'(r)/r>0\) on \(10^{-8}<r<1.5\cdot10^{-8}\): ALL PASS; the raw pole and torus stages are not composed here |
