@@ -394,5 +394,478 @@ bad_N8 = sp.expand(sum(J08[p,0]*bad_dJ8[p][1,3]
                        for p in range(dim8)))
 rep('N8g non-Jacobian-frame control: N^1_(0,3)=+1',bad_N8 == 1)
 
+# ---------------------------------------------------------------- N9: exact cap/slab overlap, conditional on §11.5's bounds.
+# The type-(c) derivative bound ||Dg_j||<L_g, the cap projector
+# identification in (11.10), and d<=7r_L are separate written certificates.
+# The real agreement of the north/south phase branches uses the connectedness
+# argument in §10.6.  N9 checks their exact algebraic consequence on
+# alpha/3 < 1-|X| < alpha/2.  In
+# particular, the K increments are legitimate smooth atan branches by that
+# bound; the following telescoping is not a sampled phase comparison.
+import ast
+import inspect
+
+
+def has_statement9(function, statement):
+    tree = ast.parse(inspect.getsource(function))
+    expected = ast.dump(ast.parse(statement).body[0], include_attributes=False)
+    return any(ast.dump(node, include_attributes=False) == expected
+               for node in ast.walk(tree))
+
+
+def has_if_test9(function, test):
+    tree = ast.parse(inspect.getsource(function))
+    expected = ast.dump(ast.parse(test, mode='eval').body,
+                        include_attributes=False)
+    return any(isinstance(node, ast.If)
+               and ast.dump(node.test, include_attributes=False) == expected
+               for node in ast.walk(tree))
+
+
+rep('N9a source cutoff, direct mismatch, pole selector and cusp action',
+    has_statement9(cusp8._elementary_corrected_section,
+                   'direct = _elementary_unit(P*mp.matrix(_elementary_pole_inclusion(xx,inf)))')
+    and has_statement9(cusp8._elementary_corrected_section,
+                       'return _elementary_inner(direct,section)')
+    and has_statement9(cusp8._elementary_corrected_section,
+                       'weight = 1-scalar_flat_step((distance-alpha/2)/(alpha/2))')
+    and has_statement9(cusp8._elementary_corrected_section,
+                       'result = tuple(a*mp.exp(-mp.j*weight*theta) for a in result)')
+    and has_if_test9(cusp8.elementary_global_slice,
+                     'distance<alpha/2 and not force_slab')
+    and has_statement9(cusp8.elementary_global_slice,
+                       'xi = tuple(a/mp.sqrt(1-X*X) for a in Z)')
+    and has_statement9(cusp8.elementary_global_slice,
+                       'den = mp.sqrt(scale*(1+abs(X)*mp.sqrt(2-X*X)))')
+    and has_statement9(cusp8.elementary_global_slice,
+                       'zz = elementary_pole_patch(tuple(a/den for a in pair),inf,dps=dps)')
+    and has_statement9(cusp8.elementary_global_slice,
+                       'phase = _elementary_inner(ref,result)')
+    and has_statement9(cusp8.elementary_global_slice,
+                       'return kind,(mp.conj(phase)*x,phase*y)')
+    and has_statement9(cusp8._elementary_pole_radial,
+                       'if radius>=c:\n    return z')
+    and has_statement9(cusp8.scalar_flat_step,
+                       'if u<=0:\n    return mp.mpf(0)')
+    and has_statement9(cusp8.elementary_pole_patch,
+                       'raw = elliptic_pole_raw_inverse(compressed,infinity,dps=dps,elementary=True)')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'factor = mp.sqrt(source_radius)/length')
+    and has_statement9(cusp8.elementary_restore_torus,
+                       'H = scalar_finite_height(x,y,mp.exp(-2) if inf else mp.mpf(1))')
+    and has_statement9(cusp8.elementary_restore_torus,
+                       'return kind,(x*mp.exp(-A),y*mp.exp(A),C[0]*e2+C[1]*e3)')
+    and has_statement9(cusp8.elementary_global_coordinates,
+                       'return elementary_restore_torus(kind,data,phi)'))
+
+alpha9, epsilon9 = sp.Rational(1,10**5), sp.Rational(1,10**8)
+d9 = sp.Symbol('d9', positive=True)
+cutoff_argument9 = sp.cancel((d9-alpha9/2)/(alpha9/2))
+rep('N9b given d<=7r_L: overlap cutoff=1, r_L>2epsilon',
+    cutoff_argument9.subs(d9,alpha9/3) == -sp.Rational(1,3)
+    and cutoff_argument9.subs(d9,alpha9/2) == 0
+    and alpha9/21 > 2*epsilon9
+    and alpha9/21 > sp.Rational(3,2)*epsilon9
+    # By (11.11), |g_j(z)-z|<=200r_L^(3/2).  The lower bound below makes
+    # the *output* radial inverse the identity as well as the input radial
+    # compression.  We use r_L<2alpha/3, weaker than the overlap's bound.
+    and 200**2*2*alpha9/3 < sp.Rational(13,25)**2
+    and (alpha9/21)*(1-sp.Rational(13,25))**2
+        > sp.Rational(3,2)*epsilon9)
+
+# At the certified image radius < 2e-6, the four finite-height seeds are
+# all in their identity pieces and |H_f|<.1.  Therefore the only nonzero
+# embedding weight is the first cusp pair, e(w)=w/sqrt(|w|^2).
+source_bound9 = sp.Rational(2,10**6)
+height_bound9 = source_bound9/(1-source_bound9**2)
+rep('N9c certified cusp image: first embedding weight 1, second 0',
+    source_bound9 < sp.Rational(1,16)
+    and height_bound9 < sp.Rational(1,10)
+    and has_statement9(cusp8.elliptic_bundle_embedding,
+                       'block = [hw(H)*q for q in f]')
+    and has_statement9(cusp8.elliptic_bundle_embedding,
+                       "w = hw(H+mp.mpf('.5') if H<0 else H-mp.mpf('.5'))"))
+
+# The north/south K-increment products telescope for arbitrary unit phases;
+# induction inserts any further increment, including the enormous fixed K.
+gA9,gN9,gE9,gS9,gT9 = sp.symbols('gA9 gN9 gE9 gS9 gT9', nonzero=True)
+north_phase9 = gA9*(gN9/gA9)*(gT9/gN9)
+south_phase9 = gA9*(gN9/gA9)*(gE9/gN9)*(gS9/gE9)*(gT9/gS9)
+rep('N9d finite real-log exponent: north and south phase products equal g_j',
+    sp.cancel(north_phase9-gT9) == 0
+    and sp.cancel(south_phase9-gT9) == 0)
+
+# E and d_j are unit vectors in the same final rank-one projector line.
+# Hence E=e^{i theta}d_j and d_j^*E=e^{i theta}.  With the weight exactly 1,
+# the corrected finite section is d_j on the whole open overlap.
+theta9 = sp.symbols('theta9', real=True)
+q19,q29,q39,q49 = sp.symbols('q19 q29 q39 q49', real=True)
+qvec9 = sp.Matrix([q19+sp.I*q29,q39+sp.I*q49])
+norm29 = sum(sp.expand(sp.conjugate(q)*q) for q in qvec9)
+rho9 = sp.Symbol('rho9', positive=True)  # rho9^2=norm29; nonzero by the cap bound.
+dvec9 = qvec9/rho9
+Evec9 = sp.exp(sp.I*theta9)*dvec9
+mismatch9 = (dvec9.conjugate().T*Evec9)[0]
+corrected9 = sp.exp(-sp.I*theta9)*Evec9
+rep('N9e finite correction E_c=d_j for either pole projector line',
+    sp.expand(sp.cancel((mismatch9-sp.exp(sp.I*theta9))*rho9**2
+                        /sp.exp(sp.I*theta9)).subs(rho9**2,norm29)) == 0
+    and all(sp.simplify(corrected9[k]-dvec9[k]) == 0 for k in range(2)))
+rep('N9e2 unit input phase commutes with every normalized projection',
+    sp.simplify(sum(sp.conjugate(z)*z for z in Evec9)-norm29/rho9**2) == 0
+    and has_statement9(cusp8.elementary_projection_section,
+                       'vector = tuple(a*phase/abs(phase) for a in ref)'))
+
+# z_L=c I_j xi with c>0, since its two denominators are positive on the
+# overlap.  Thus normalization commutes with this positive rescaling.
+scale9, source_radius9 = sp.symbols('scale9 source_radius9', positive=True)
+raw9 = sp.sqrt(source_radius9)*(scale9*qvec9)/(scale9*rho9)
+rep('N9f raw pole spinor equals sqrt(source radius) times d_j',
+    all(sp.simplify(raw9[k]-sp.sqrt(source_radius9)*dvec9[k]) == 0
+        for k in range(2)))
+
+# A local source reference is a phase rotation of the same raw spinor.
+# Its normalized embedding is e_ref, and lambda=e_ref^*d_j removes that
+# phase.  The production cusp action multiplies (nu*conj(x),y) by lambda.
+u9 = sp.symbols('u9_0:4', real=True)
+phi9 = sp.symbols('phi9_0:2', real=True)
+beta9 = sp.Function('beta9', real=True)(*u9)
+xr9 = sp.Function('xr9', real=True)(*u9)
+xi9 = sp.Function('xi9', real=True)(*u9)
+yr9 = sp.Function('yr9', real=True)(*u9)
+yi9 = sp.Function('yi9', real=True)(*u9)
+nu9 = sp.symbols('nu9', positive=True)
+xraw9,yraw9 = xr9+sp.I*xi9,yr9+sp.I*yi9
+lambda9 = sp.exp(-sp.I*beta9)
+eref9 = sp.exp(sp.I*beta9)*dvec9
+lambda_from_inner9 = (eref9.conjugate().T*dvec9)[0]
+xref9 = sp.conjugate(sp.exp(sp.I*beta9)*nu9*sp.conjugate(xraw9))/nu9
+yref9 = sp.exp(sp.I*beta9)*yraw9
+xslab9 = sp.conjugate(lambda9)*xref9
+yslab9 = lambda9*yref9
+rep('N9g source circle action gives the identical raw cusp W point',
+    sp.expand(sp.cancel((lambda_from_inner9-lambda9)*rho9**2
+                        /lambda9).subs(rho9**2,norm29)) == 0
+    and sp.simplify(xslab9-xraw9) == 0
+    and sp.simplify(yslab9-yraw9) == 0)
+
+def restored9(x,y,sigma):
+    t = x*y
+    rr = t*sp.conjugate(t)
+    AA = nu9**2*sp.exp(-4*rr/(1-rr))*x*sp.conjugate(x)
+    YY = y*sp.conjugate(y)
+    HH = (AA-YY)/(1-AA*YY)  # Exact four-seed H_f here, by N8a/N9c.
+    W = phi9[0]-sp.I*sigma*phi9[1]
+    AAcomplex = t*W+HH*2*rr/(1-rr)
+    return (x*sp.exp(-AAcomplex),y*sp.exp(AAcomplex),
+            sigma*(sp.conjugate(W)-W*t*t+2*HH*t))
+
+# Simplify the equal W inputs before composition.  This is the exact open
+# equality argument: all first and second jets of the full torus-restored
+# maps then agree, without expanding the astronomical projection product.
+# Per cusp, 18 complex first entries and 108 complex second entries are
+# exactly 36 and 216 real entries, respectively.
+hraw9 = [restored9(xraw9,yraw9,sigma) for sigma in (1,-1)]
+hslab9 = [restored9(sp.simplify(xslab9),sp.simplify(yslab9),sigma)
+          for sigma in (1,-1)]
+jets9 = []
+for h0,h1 in zip(hraw9,hslab9):
+    for a,b in zip(h0,h1):
+        delta = b-a
+        jets9.extend([delta]+[sp.diff(delta,v) for v in (*u9,*phi9)]
+                     +[sp.diff(delta,v,w) for v in (*u9,*phi9)
+                       for w in (*u9,*phi9)])
+rep('N9h both cusps: exact torus restoration and all 36/216 first/second jets',
+    len(jets9) == 2*3*(1+6+36) and all(v == 0 for v in jets9))
+
+# N9i closes the source-reference premise used in N9g.  The separate cap
+# bounds in §11.6 give |z_L|^2<2e-6 and raw source norm^2<2e-6; since
+# s_j<=2pi<7, hence
+# 0<h=s_j|z_L|^2<1/10, |height|<1/10, and Qz_L != 0.
+# The following identities are exact on that open region; they do not
+# evaluate the astronomical finite projection loop or prove its bounds.
+zr9i,zi9i,wr9i,wi9i = sp.symbols('zr9i zi9i wr9i wi9i', real=True)
+z9i = sp.Matrix([zr9i+sp.I*zi9i,wr9i+sp.I*wi9i])
+def hopf9i(pair):
+    pc = sp.expand(2*pair[0]*sp.conjugate(pair[1]))
+    return sp.Matrix([sp.re(pc).expand(),sp.im(pc).expand(),
+                      sp.expand(pair[0]*sp.conjugate(pair[0])
+                                -pair[1]*sp.conjugate(pair[1]))])
+
+p9i = hopf9i(z9i)
+r9i = sum(sp.expand(v*sp.conjugate(v)) for v in z9i)
+U09i = sp.Matrix([[1,1],[sp.I,-sp.I]])/sp.sqrt(2)
+Ui9i = sp.Matrix([[1,1],[1,-1]])/sp.sqrt(2)
+O09i = sp.Matrix([-p9i[1],-p9i[2],p9i[0]])
+Oi9i = sp.Matrix([p9i[2],-p9i[1],p9i[0]])
+hopf_source9i = (
+    sp.simplify(hopf9i(U09i*z9i)-O09i)==sp.zeros(3,1)
+    and sp.simplify(hopf9i(Ui9i*z9i)-Oi9i)==sp.zeros(3,1)
+    and sp.expand(sum(v*v for v in p9i)-r9i**2)==0)
+h9i,scale9i = sp.symbols('h9i scale9i',positive=True)
+r_input9i = sp.Symbol('r_input9i',positive=True)
+rL_bound9i = sp.Rational(2,10**6)
+root9i = (1+h9i)/sp.sqrt(1+h9i*h9i)
+round_source9i = True
+for sign9i in (-1,1):
+    X9i = sign9i*(1-h9i)/sp.sqrt(1+h9i*h9i)
+    aa9i = sign9i*(1-h9i*h9i)/(1+h9i*h9i)
+    # The positive root is root9i.  For south the source stereo coordinate
+    # is L=s_j O_j p; for north it is L/h^2.
+    expected_gain9i = scale9i if sign9i==-1 else scale9i/h9i**2
+    round_source9i &= (
+        sp.simplify(2-X9i**2-root9i**2)==0
+        and sp.simplify(X9i*root9i-aa9i)==0
+        and sp.simplify(1-X9i**2-2*h9i/(1+h9i*h9i))==0
+        and sp.simplify((2*scale9i/(1+h9i*h9i))/(1-aa9i)
+                        -expected_gain9i)==0)
+round_source9i &= (
+    sp.simplify(sp.sqrt(2*scale9i/(1+h9i*h9i))
+                /sp.sqrt(2*scale9i*r_input9i/(1+h9i*h9i))
+                -1/sp.sqrt(r_input9i))==0
+    and sp.simplify(sp.sqrt(2*scale9i/(1+h9i*h9i))
+                    /sp.sqrt(scale9i*(1+(1-h9i*h9i)/(1+h9i*h9i)))
+                    -1)==0)
+round_ast9i = (
+    has_statement9(cusp8._elementary_pole_inclusion,
+                   'pair = ((a+b)/mp.sqrt(2),(a-b)/mp.sqrt(2)) if infinity else ((a-mp.j*b)/mp.sqrt(2),(a+mp.j*b)/mp.sqrt(2))')
+    and has_statement9(cusp8.elementary_global_slice,
+                       'den = mp.sqrt(scale*(1+abs(X)*mp.sqrt(2-X*X)))')
+    and has_statement9(cusp8.elementary_global_slice,
+                       'zz = elementary_pole_patch(tuple(a/den for a in pair),inf,dps=dps)')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'v = tuple(scale*w for w in ((p[2],-p[1],p[0]) if infinity else (-p[1],-p[2],p[0])))'))
+rep('N9i1 both Hopf rotations and round-to-pole stereographic gains',
+    hopf_source9i and round_source9i and round_ast9i
+    and 7*rL_bound9i<sp.Rational(1,10))
+
+# In the north, substituting w=L/|L|^2 into the ordinary inverse
+# stereographic formula produces exactly the source's stable rational u.
+# South uses w=L directly.  Write L=(a,b,c), |L|^2=a^2+b^2+c^2.
+la9i,lb9i,lc9i = sp.symbols('la9i lb9i lc9i',real=True)
+lh29i = la9i**2+lb9i**2+lc9i**2
+def stereo9i(y0,y1,y2):
+    s2 = y0*y0+y1*y1+y2*y2
+    return ((1-s2+2*sp.I*y0)/(1+s2),
+            2*(y1+sp.I*y2)/(1+s2))
+
+unorth9i = stereo9i(la9i/lh29i,1+lb9i/lh29i,lc9i/lh29i)
+north_den9i = 1+2*lb9i+2*lh29i
+unorth_source9i = ((-1-2*lb9i+2*sp.I*la9i)/north_den9i,
+                   2*(lb9i+lh29i+sp.I*lc9i)/north_den9i)
+usouth9i = stereo9i(la9i,1+lb9i,lc9i)
+south_s29i = la9i**2+(lb9i+1)**2+lc9i**2
+usouth_source9i = ((1-south_s29i+2*sp.I*la9i)/(1+south_s29i),
+                    2*(lb9i+1+sp.I*lc9i)/(1+south_s29i))
+raw_base_source9i = (
+    has_statement9(cusp8.elliptic_raw_base_reference,
+                   'aa = xx*mp.sqrt(2-xx*xx)')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       'w = (vv[0]/(1-aa),-vv[2]/(1-aa),-vv[1]/(1-aa))')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       'y = (w[0],w[1]+1,w[2])')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       'u1 = mp.mpc(1-s2,2*y[0])/(1+s2)')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       'u2 = mp.mpc(2*y[1],2*y[2])/(1+s2)')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       'inverse_ratio = abs(u1)>abs(u2)')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       'ratio = u2/u1 if inverse_ratio else u1/u2')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       'rr = abs(ratio)**2')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       'b = A*(1-rr)')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       'root = mp.sqrt(b*b+4*B*rr)')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       'small = ratio*mp.sqrt((2*B if inverse_ratio else 2)/(b+root))')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       'inf = inverse_ratio and abs(small)<mp.mpf(\'.5\')')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       'tc = small if inf else t')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       'phase_coordinate = -mp.conj(u1) if inf else u2')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       'a = mp.arg(phase_coordinate)/(2*mp.pi)')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       'nu = mp.exp(-2) if inf else mp.mpf(1)')
+    and has_if_test9(cusp8.elliptic_raw_base_reference,
+                     'abs(tc)<=mp.mpf(\'.3\') and elementary')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       'xs,yy = elementary_cusp_reference(tc,a,nu)')
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       "return ('ci' if inf else 'c0',(xs,yy,a))")
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'aa,bb,cc = v[0],-v[2],-v[1]')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'u1 = mp.mpc(-1-2*bb,2*aa)/den')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'u2 = mp.mpc(2*(bb+s2),2*cc)/den')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'u1 = mp.mpc(1-s2,2*aa)/(1+s2)')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'u2 = mp.mpc(2*(bb+1),2*cc)/(1+s2)')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'ratio = u1/u2')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'ratio = u2/u1')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'height = mp.arg(u2)/(2*mp.pi)')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'height = -mp.arg(-u1)/(2*mp.pi)')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'nu = mp.exp(-2) if infinity else mp.mpf(1)')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'uu = abs(ratio)**2')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'den = A*(1-uu)+mp.sqrt(A*A*(1-uu)**2+4*B*uu)')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'tc = ratio*mp.sqrt((2*B if infinity else 2)/den)'))
+# At h=|L|<1/10, south has 1+B>=1-h and
+# 1+|y|^2=2+2B+h^2<=2+2h+h^2<221/100.  Hence
+# Re(u2)=2(1+B)/(1+|y|^2)>180/221>1/sqrt(2).
+# North has den=1+2B+2h^2>1-2h>4/5, and
+# |B+h^2+iC|<=h+h^2<11/100.  Hence |u2|<11/40<1/sqrt(2),
+# while Re(-u1)=(1+2B)/den>0.  Both source paths select the same
+# dominant ratio.  The south phase coordinate u2 and the north coordinate
+# -conj(u1) have positive real part, so the half-centred selector is off.
+# On the source image |tc|=|zeta_0 zeta_1|/nu<=rho^2/(2nu).
+# Here nu is 1 or e^-2>1/8 (I1a gives e^4<55<64), so
+# |tc|<4*(2e-6)<.3.
+# Hence the raw reference takes its c0/ci return and the north `inf` flag.
+dominance9i = ((sp.Rational(180,221))**2>sp.Rational(1,2)
+              and (sp.Rational(11,40))**2<sp.Rational(1,2)
+              and 2*(1-sp.Rational(1,10))
+                  /(2+2*sp.Rational(1,10)+sp.Rational(1,10)**2)
+                  ==sp.Rational(180,221)
+              and 2*(sp.Rational(1,10)+sp.Rational(1,10)**2)
+                  /(1-2*sp.Rational(1,10))==sp.Rational(11,40)
+              and 1-2*sp.Rational(1,10)>0
+              and 55<64
+              and 4*source_bound9<sp.Rational(3,10))
+rep('N9i2 both source u formulas, dominant ratio and positive profile path',
+    all(sp.factor(left-right)==0 for left,right in
+        zip(unorth9i,unorth_source9i))
+    and all(sp.factor(left-right)==0 for left,right in
+            zip(usouth9i,usouth_source9i))
+    and dominance9i and raw_base_source9i)
+
+# On |height|<1/10, inverse_height_moment(height,q,0)=height.  Both
+# reference branches and the raw inverse therefore use the same positive
+# A=(R+height)/2, Y=(R-height)/2, with A*Y=q.  The raw inverse writes
+# A or Y in rationalized form when the sign makes a subtraction small.
+height9i = sp.Symbol('height9i',real=True)
+q9i = sp.Symbol('q9i',positive=True)
+R9i = sp.sqrt(height9i**2+4*q9i)
+AA9i,YY9i = (R9i+height9i)/2,(R9i-height9i)/2
+seed_source9i = (
+    has_statement9(cusp8.elliptic_pole_raw_inverse,
+                   'R = mp.sqrt(height*height+4*q)')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'AA = 2*q/(R-height) if height<0 else (R+height)/2')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'yy = 2*q/(R+height) if height>=0 else (R-height)/2')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'moment,source_radius = xx-yy,xx+yy')
+    and has_statement9(cusp8.elementary_cusp_reference,
+                       'f = inverse_height_moment(b,q,0)')
+    and has_statement9(cusp8.elementary_cusp_reference,
+                       'cell = int(mp.floor(a+mp.mpf(\'.5\')))')
+    and has_statement9(cusp8._terminal_height_data,
+                       'kappa,amp,d = mp.mpf(2),mp.mpf(0),mp.mpf(1)')
+    and has_statement9(cusp8.inverse_height_moment,
+                       'if lam==1 or aa<=mp.mpf(\'.1\'):\n    return _height_G(a,amp,d)')
+    and has_statement9(cusp8._height_G,
+                       'if amp==0:\n    return a/d if inverse else d*a')
+    and has_statement9(cusp8.elementary_cusp_reference,
+                       'A = 2/(R-f) if cell==1 else (R+f)/2')
+    and has_statement9(cusp8.elementary_cusp_reference,
+                       'Y = 2/(R+f) if cell==-1 else (R-f)/2')
+    and has_statement9(cusp8.elementary_cusp_reference,
+                       'x = mp.sqrt(A/e)/nu')
+    and has_statement9(cusp8.elementary_cusp_reference,
+                       'return x,t/x')
+    and has_statement9(cusp8.elementary_cusp_reference,
+                       'y = mp.sqrt(Y)')
+    and has_statement9(cusp8.elementary_cusp_reference,
+                       'return t/y,y')
+    and has_statement9(cusp8.elliptic_bundle_embedding,
+                       'return (nu*mp.conj(x)/mp.sqrt(r),y/mp.sqrt(r))'))
+rep('N9i3 the raw inverse and cusp reference have identical A,Y invariants',
+    sp.simplify(AA9i-YY9i-height9i)==0
+    and sp.simplify(AA9i*YY9i-q9i)==0
+    and sp.simplify((R9i-height9i)*AA9i-2*q9i)==0
+    and sp.simplify((R9i+height9i)*YY9i-2*q9i)==0
+    and -sp.Rational(1,10)+sp.Rational(1,2)>0
+    and sp.Rational(1,10)+sp.Rational(1,2)<1
+    and seed_source9i)
+
+# The source's w0,w1 numerator is precisely the rank-one projector of the
+# active cusp frame zeta=(nu*conj(x),y).  The same projector is P_j in that
+# two-component block.  Since the already certified Qz_L is nonzero,
+# Qz_L/|Qz_L|=e_ref*(e_ref^*z_L)/|e_ref^*z_L| exactly.
+xr9i,xi9i,yr9i,yi9i = sp.symbols('xr9i xi9i yr9i yi9i',real=True)
+nu9i = sp.symbols('nu9i',positive=True)
+x9i,y9i = xr9i+sp.I*xi9i,yr9i+sp.I*yi9i
+tc9i = x9i*y9i
+zeta9i = sp.Matrix([nu9i*sp.conjugate(x9i),y9i])
+rho29i = sp.expand((zeta9i.conjugate().T*zeta9i)[0])
+Q9i = zeta9i*zeta9i.conjugate().T/rho29i
+xx9i,yy9i = (nu9i**2*x9i*sp.conjugate(x9i),
+              y9i*sp.conjugate(y9i))
+source_pc9i = 2*nu9i*sp.conjugate(tc9i)
+moment9i = xx9i-yy9i
+z09i,z19i = sp.symbols('z09i z19i')
+input9i = sp.Matrix([z09i,z19i])
+raw_numerator9i = sp.Matrix([
+    ((rho29i+moment9i)*z09i+source_pc9i*z19i)/(2*rho29i),
+    (sp.conjugate(source_pc9i)*z09i+(rho29i-moment9i)*z19i)/(2*rho29i)])
+projector_source9i = (
+    has_statement9(cusp8.elliptic_pole_raw_inverse,
+                   'source_pc = 2*nu*mp.conj(tc)')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'w0 = ((source_radius+moment)*z0+source_pc*z1)/(2*source_radius)')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'w1 = (mp.conj(source_pc)*z0+(source_radius-moment)*z1)/(2*source_radius)')
+    and has_statement9(cusp8.elliptic_pole_raw_inverse,
+                       'factor = mp.sqrt(source_radius)/length')
+    and has_statement9(cusp8.elliptic_meridian_projector,
+                       'return mp.matrix([[a*mp.conj(b) for b in e] for a in e])'))
+# The actual unit phase is c/|c|, c=zeta* z_L.  We verify its real and
+# imaginary decomposition from this very frame, then normalize a formal
+# nonzero c=(c_r+i c_i); c=0 is excluded by the certified Qz_L bound.
+cactual9i = (zeta9i.conjugate().T*z9i)[0]
+cactual_re9i = sp.expand(sp.re(cactual9i))
+cactual_im9i = sp.expand(sp.im(cactual9i))
+Qz_actual9i = Q9i*z9i
+Qz_norm29i = sum(sp.conjugate(v)*v for v in Qz_actual9i)
+cr9i,cim9i = sp.symbols('cr9i cim9i',real=True)
+cformal9i = cr9i+sp.I*cim9i
+cnorm9i = sp.sqrt(cr9i**2+cim9i**2)
+lam9i = cformal9i/cnorm9i
+rho_symbol9i = sp.Symbol('rho_symbol9i',positive=True)
+formal_Qz9i = zeta9i*cformal9i/rho_symbol9i
+formal_norm9i = sp.sqrt((cr9i**2+cim9i**2)/rho_symbol9i)
+normalized_raw9i = sp.sqrt(rho_symbol9i)*formal_Qz9i/formal_norm9i
+rawspin9i = lam9i*zeta9i
+phase_from_inner9i = (zeta9i.conjugate().T*rawspin9i)[0]/rho29i
+slab_pair9i = (sp.conjugate(lam9i)*x9i,lam9i*y9i)
+cap_pair9i = (sp.conjugate(rawspin9i[0])/nu9i,rawspin9i[1])
+rep('N9i4 actual raw Qz numerator, active frame and cusp phase action',
+    all(sp.cancel(v)==0 for v in Q9i*input9i-raw_numerator9i)
+    and all(sp.cancel(v)==0 for v in Q9i*input9i
+            -zeta9i*(zeta9i.conjugate().T*input9i)[0]/rho29i)
+    and sp.expand(cactual9i-cactual_re9i-sp.I*cactual_im9i)==0
+    and sp.expand(cactual9i*sp.conjugate(cactual9i)
+                  -cactual_re9i**2-cactual_im9i**2)==0
+    and sp.cancel(Qz_norm29i
+                  -cactual9i*sp.conjugate(cactual9i)/rho29i)==0
+    and sp.simplify(lam9i*sp.conjugate(cformal9i)/cnorm9i-1)==0
+    and all(sp.simplify(a-b)==0 for a,b in zip(normalized_raw9i,rawspin9i))
+    and sp.simplify(phase_from_inner9i-lam9i)==0
+    and all(sp.simplify(a-b)==0 for a,b in zip(slab_pair9i,cap_pair9i))
+    and projector_source9i)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A symbolic identity, constant bound, or numerical check failed'

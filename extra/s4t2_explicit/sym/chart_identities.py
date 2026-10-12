@@ -1875,5 +1875,394 @@ rep('C30n cusp-restoration J^2/N via its coordinate Hessian (round-to-W separate
     source_cusp_ok30 and basis_ok30 and height_ok30 and structural_c30
     and square_inverse30 and all(value==0 for value in N_inverse30))
 
+# C31: the actual meridian projector on one pure-middle open chart.
+# Assume 1/2<|t|<1 and pi/2<Arg(t)<3pi/4, away from the argument cuts.
+# Both cusp radial cutoffs vanish; the raw reference is ('mid',t,0,x4,log t).
+# Arg(-t)+pi=Arg(t), so the two surviving embedding entries have the *same*
+# phase, independently of x4. Their weights are (d,1), where
+# d=1-s((Arg(t)-pi/2)/(pi/4)). The projector has only the last 2x2 block
+# [[d^2,d],[d,1]]/(1+d^2). This specializes P_j=P(n,h_j), rather than an
+# arbitrary smooth rank-one projector. The path from the south through the
+# cusp regions and its subsequent phase correction remain separate.
+def matching_statement31(tree,statement):
+    expected = ast.dump(ast.parse(statement).body[0],include_attributes=False)
+    return any(ast.dump(node,include_attributes=False)==expected
+               for node in ast.walk(tree))
+
+
+meridian_tree31 = source_tree30(cusp30.elliptic_meridian_projector)
+raw_tree31 = source_tree30(cusp30.elliptic_raw_base_reference)
+bundle_tree31 = source_tree30(cusp30.elliptic_bundle_embedding)
+middle_source31 = (
+    matching_assignment30(meridian_tree31,'v',
+        'tuple((1-h*h)*mp.mpf(a) for a in n)')
+    and matching_call30(meridian_tree31,
+        'elliptic_raw_base_reference(v,h,dps=dps,elementary=elementary)')
+    and matching_call30(meridian_tree31,
+        'elliptic_bundle_embedding(kind,data,dps=dps,elementary=elementary)')
+    and matching_call30(meridian_tree31,
+        'mp.matrix([[a*mp.conj(b) for b in e] for a in e])')
+    and matching_assignment30(raw_tree31,'aa','xx*mp.sqrt(2-xx*xx)')
+    and matching_assignment30(raw_tree31,'u1',
+        'mp.mpc(1-s2,2*y[0])/(1+s2)')
+    and matching_assignment30(raw_tree31,'u2',
+        'mp.mpc(2*y[1],2*y[2])/(1+s2)')
+    and matching_assignment30(raw_tree31,'inverse_ratio',
+        'abs(u1)>abs(u2)')
+    and matching_assignment30(raw_tree31,'ratio',
+        'u2/u1 if inverse_ratio else u1/u2')
+    and matching_assignment30(raw_tree31,'small',
+        'ratio*mp.sqrt((2*B if inverse_ratio else 2)/(b+root))')
+    and matching_assignment30(raw_tree31,'inf',
+        "inverse_ratio and abs(small)<mp.mpf('.5')")
+    and matching_assignment30(raw_tree31,'t',
+        'None if inf else (1/small if inverse_ratio else small)')
+    and returned_expr30(raw_tree31,"'mid',(t,mp.mpf(0),four,lt)")
+    and matching_assignment30(bundle_tree31,'b0',
+        "1-scalar_flat_step((r-mp.mpf('.3'))/mp.mpf('.2'))")
+    and matching_assignment30(bundle_tree31,'bi',
+        "1-scalar_flat_step((1/r-mp.mpf('.3'))/mp.mpf('.2'))")
+    and matching_assignment30(bundle_tree31,'bm','1-b0-bi')
+    and matching_assignment30(bundle_tree31,'angle',
+        'mp.arg(t if index==0 else -t)')
+    and matching_assignment30(bundle_tree31,'weight',
+        '1-scalar_flat_step((abs(angle)-mp.pi/2)/(mp.pi/4))')
+    and matching_statement31(bundle_tree31,
+        'vec[8+index]=bm*weight*mp.exp(mp.j*(2*mp.pi*one'
+        '-(angle+centre-lt.imag)*four))')
+    and matching_assignment30(bundle_tree31,'norm2',
+        'sum(abs(q)**2 for q in vec)')
+    and matching_assignment30(bundle_tree31,'result',
+        'tuple(+(q/mp.sqrt(norm2)) for q in vec)'))
+rep('C31a actual raw-reference, embedding and meridian-projector source path',
+    middle_source31)
+
+# On 1/2<|t|<1 the dominant coordinate is u1: indeed
+# |u1/u2|^2>1 iff B|t|^4>1, and B=e^4>16. The actual source therefore
+# sets ratio=u2/u1, solves for small=1/t by its positive root, then takes
+# t=1/small. This positive factor gives Arg(t)=Arg(u1/u2). If
+# sigma=|1/t|^2, z=|u2/u1|^2=sigma(sigma+A)/(A sigma+B), and b=A(1-z),
+# both sigma and the source's 2Bz/(b+sqrt(b^2+4Bz)) solve the quadratic.
+radius31,Aprof31,Bprof31 = sp.symbols('radius31 Aprof31 Bprof31',positive=True)
+zprof31 = radius31*(radius31+Aprof31)/(Aprof31*radius31+Bprof31)
+bprof31 = Aprof31*(1-zprof31)
+rootprof31 = sp.Symbol('rootprof31',positive=True)
+inverse_radius31 = 2*Bprof31*zprof31/(bprof31+rootprof31)
+profile31 = (
+    sp.factor(zprof31-1
+              -(radius31**2-Bprof31)
+               /(Aprof31*radius31+Bprof31))==0
+    and
+    sp.factor(radius31**2+bprof31*radius31-Bprof31*zprof31)==0
+    and sp.factor((inverse_radius31**2
+                   +bprof31*inverse_radius31-Bprof31*zprof31)
+                  *(bprof31+rootprof31)**2/(Bprof31*zprof31)
+                  -(bprof31**2+4*Bprof31*zprof31-rootprof31**2))==0)
+
+# The raw u1 conj(u2) argument is an explicit rational function of (n,X).
+# In the stated upper-left angular sector its half-angle formula is smooth.
+ym131,ym231,ym331 = sp.symbols('ym131 ym231 ym331',real=True)
+ymnorm31 = ym131**2+ym231**2+ym331**2
+u131 = (1-ymnorm31+2*sp.I*ym131)/(1+ymnorm31)
+u231 = 2*(ym231+sp.I*ym331)/(1+ymnorm31)
+realarg31 = (1-ymnorm31)*ym231+2*ym131*ym331
+imagarg31 = 2*ym131*ym231-(1-ymnorm31)*ym331
+arg_numerator31 = sp.expand(u131*sp.conjugate(u231)
+    -2*(realarg31+sp.I*imagarg31)/(1+ymnorm31)**2)
+arg_source31 = sp.simplify(arg_numerator31)==0
+n131,n231,n331,X31 = sp.symbols('n131 n231 n331 X31',real=True)
+target_den31 = 1-X31*sp.sqrt(2-X31**2)
+target_factor31 = (1-X31**2)/target_den31
+target_y31 = (target_factor31*n131,
+              1-target_factor31*n331,-target_factor31*n231)
+target_v31 = tuple((1-X31**2)*v for v in (n131,n231,n331))
+target_aa31 = X31*sp.sqrt(2-X31**2)
+target_w31 = (target_v31[0]/(1-target_aa31),
+              -target_v31[2]/(1-target_aa31),
+              -target_v31[1]/(1-target_aa31))
+target_y_source31 = (target_w31[0],target_w31[1]+1,target_w31[2])
+target_source31 = (
+    matching_assignment30(raw_tree31,'w',
+        '(vv[0]/(1-aa),-vv[2]/(1-aa),-vv[1]/(1-aa))')
+    and matching_assignment30(raw_tree31,'y','(w[0],w[1]+1,w[2])')
+    and matching_assignment30(raw_tree31,'aa','xx*mp.sqrt(2-xx*xx)')
+    and all(sp.simplify(target_y_source31[j]-target_y31[j])==0
+            for j in range(3)))
+
+# An exact point in this open source branch is t=(-1+2i)/3. Write
+# s=|t|^2=5/9 and R=|u1/u2|^2=s(A+Bs)/(1+As), with A=(4pi)^2>144
+# and 16<B=e^4<64. Here pi>3 follows from an inscribed regular hexagon;
+# 2<e<8/3+5/96=87/32<11/4 follows by bounding the series tail after
+# 1/3! by (1/4!)/(1-1/5), and (11/4)^4<64. The rational inequalities
+# below prove 1<R<2,
+# so the source chooses inverse_ratio, obtains small=1/t (hence no `inf`),
+# and enters its pure-middle branch. Choose u2>0 and u1/|u1|=t/|t|.
+# Then |u1|^2,|u2|^2 lie in (1/3,2/3). For the inverse S3 chart,
+# D=1+Re(u1)>1-sqrt(2/15)>3/5, while D<1. The resulting real stereographic
+# w=(Im(u1)/D,u2/D-1,0) has 1/2<w[0]<4/3 and -1/2<w[1]<2/3.
+# Thus 1/2<|w|<2 and X=(|w|-1)/sqrt(1+|w|^2) lies in (-1/2,1/2),
+# since X'(r)=(r+1)/(1+r^2)^(3/2)>0 and its endpoint values are +/-1/sqrt(5).
+# This supplies a nonempty open (n,X) cell, with all strict inequalities.
+tw31 = (-1+2*sp.I)/3
+sw31 = sp.Rational(5,9)
+rw31 = sp.Symbol('rw31',positive=True)
+Xw31 = (rw31-1)/sp.sqrt(1+rw31**2)
+aw31 = Xw31*sp.sqrt(2-Xw31**2)
+# Since 2-X^2=(r+1)^2/(1+r^2) and r>0, its positive square root is
+# (r+1)/sqrt(1+r^2), giving a=(r^2-1)/(r^2+1).
+aw_root31 = (rw31+1)/sp.sqrt(1+rw31**2)
+aw_formula31 = (rw31**2-1)/(rw31**2+1)
+target_scale_w31 = (1-Xw31**2)/(1-aw_formula31)
+witness31 = (
+    sp.simplify(tw31*sp.conjugate(tw31)-sw31)==0
+    and sp.re(tw31)<0 and sp.im(tw31)>-sp.re(tw31)
+    and sp.Rational(8,3)+sp.Rational(5,96)==sp.Rational(87,32)
+    and sp.Rational(87,32)<sp.Rational(11,4)
+    and sp.Rational(11,4)**4<64
+    and sp.Rational(1,4)<sw31<1
+    and 16*sw31**2>1
+    and 64*sw31**2 < 2+144*sw31
+    and sw31*144/(1+144*sw31)>sp.Rational(1,2)
+    and sp.Rational(2,15)<sp.Rational(4,25)
+    and sp.Rational(4,15)>sp.Rational(1,4)
+    and sp.Rational(8,15)<sp.Rational(16,25)
+    and sp.Rational(1,3)>sp.Rational(1,4)
+    and sp.Rational(4,3)**2+sp.Rational(2,3)**2<4
+    and sp.simplify(2-Xw31**2-aw_root31**2)==0
+    and sp.simplify(Xw31*aw_root31-aw_formula31)==0
+    and sp.simplify(sp.diff(Xw31,rw31)
+                    -(rw31+1)/(1+rw31**2)**sp.Rational(3,2))==0
+    and sp.simplify(Xw31.subs(rw31,sp.Rational(1,2))
+                    +1/sp.sqrt(5))==0
+    and sp.simplify(Xw31.subs(rw31,2)-1/sp.sqrt(5))==0
+    and sp.Rational(1,5)<sp.Rational(1,4)
+    and sp.simplify(target_scale_w31-rw31)==0)
+rep('C31b positive profile, target argument and exact open-cell witness',
+    profile31 and arg_source31 and target_source31 and witness31)
+
+# On pi/2<theta<3pi/4, d1=1 and d0=d. The local projector is independent
+# of the raw reference's x1=0 and x4. Its 2-jet is checked directly below.
+d31 = sp.Symbol('d31',real=True)
+Pmid31 = sp.Matrix([[d31*d31,d31],[d31,1]])/(1+d31*d31)
+Pd31 = Pmid31.diff(d31)
+Pdd31 = Pd31.diff(d31)
+projector_mid31 = (
+    sp.simplify(Pmid31*Pmid31-Pmid31)==sp.zeros(2)
+    and Pmid31.T==Pmid31 and sp.simplify(sp.trace(Pmid31)-1)==0
+    and sp.simplify(Pmid31*Pd31+Pd31*Pmid31-Pd31)==sp.zeros(2)
+    and sp.simplify(Pmid31*Pdd31+Pdd31*Pmid31
+                    +2*Pd31*Pd31-Pdd31)==sp.zeros(2))
+theta31 = sp.Symbol('theta31',real=True)
+stheta31 = (theta31-sp.pi/2)/(sp.pi/4)
+flat_theta31 = sp.exp(-1/stheta31)/(
+    sp.exp(-1/stheta31)+sp.exp(-1/(1-stheta31)))
+dtheta31 = 1-flat_theta31
+first_dtheta31 = -4*flat_slope30.subs(u30,stheta31)/sp.pi
+second_dtheta31 = -16*flat_curvature30.subs(u30,stheta31)/sp.pi**2
+flat_chain31 = (
+    sp.simplify(sp.diff(dtheta31,theta31)-first_dtheta31)==0
+    and sp.simplify(sp.diff(dtheta31,theta31,2)-second_dtheta31)==0)
+theta_i31,theta_j31,theta_ij31 = sp.symbols(
+    'theta_i31 theta_j31 theta_ij31',real=True)
+d0_31,ds_31,dss_31 = sp.symbols('d0_31 ds_31 dss_31',real=True)
+d_lift31 = (d0_31+ds_31*theta_i31*s30+ds_31*theta_j31*t30
+            +(dss_31*theta_i31*theta_j31
+              +ds_31*theta_ij31)*s30*t30)
+Pjet31 = Pmid31.subs(d31,d_lift31)
+expected_Pij31 = (Pd31.subs(d31,d0_31)
+    *(dss_31*theta_i31*theta_j31+ds_31*theta_ij31)
+    +Pdd31.subs(d31,d0_31)*ds_31**2*theta_i31*theta_j31)
+middle_jet31 = all(sp.factor(jet_mixed30(Pjet31[i,j])
+                                  -expected_Pij31[i,j])==0
+                   for i in range(2) for j in range(2))
+rep('C31c pure-middle projector and its complete local second-jet chain',
+    projector_mid31 and middle_jet31 and flat_chain31)
+
+# Generic exact two-jet product for P=VV*/(V*V). It extends the preceding
+# 2x2 calculation entrywise to the actual ten-component embedding; positivity
+# of V*V is (11.2), and C30c gives the normalized component second jet.
+e031,es31,et31,est31,f031,fs31,ft31,fst31 = sp.symbols(
+    'e031 es31 et31 est31 f031 fs31 ft31 fst31')
+e_lift31 = e031+es31*s30+et31*t30+est31*s30*t30
+f_lift31 = f031+fs31*s30+ft31*t30+fst31*s30*t30
+entry31 = e_lift31*sp.conjugate(f_lift31)
+entry_mixed31 = (est31*sp.conjugate(f031)
+    +es31*sp.conjugate(ft31)+et31*sp.conjugate(fs31)
+    +e031*sp.conjugate(fst31))
+generic_projector31 = sp.expand(jet_mixed30(entry31)-entry_mixed31)==0
+rep('C31d ten-component normalized projector has exact symmetric 2-jets',
+    generic_projector31 and modulus_ok30 and normal_ok30)
+
+# C32: a second actual meridian-projector generator, with *both* cusp pairs
+# active.  This is the positive-height cusp cell
+#       1/10 < H < 1/4,  |xy| < 3/10,  (x,y) != (0,0).
+# The first pair has weight 1.  The second, unshifted pair has the nonconstant
+# weight w=1-s((1/4-H)/(3/20)) in (0,1).  The source's H<0 deck-shift branch is
+# inactive.  This checks a genuine noncap projector cell, for either cusp;
+# it does not assert that all meridian steps lie in this one cell.
+bundle_tree32 = source_tree30(cusp30.elliptic_bundle_embedding)
+reference_tree32 = source_tree30(cusp30.elementary_cusp_reference)
+def matching_if_test32(tree,test):
+    expected = ast.dump(ast.parse(test,mode='eval').body,
+                        include_attributes=False)
+    return any(isinstance(node,ast.If)
+               and ast.dump(node.test,include_attributes=False)==expected
+               for node in ast.walk(tree))
+
+source_cusp32 = (
+    matching_assignment30(meridian_tree31,'e',
+        'elliptic_bundle_embedding(kind,data,dps=dps,elementary=elementary)')
+    and matching_statement31(meridian_tree31,
+        'return mp.matrix([[a*mp.conj(b) for b in e] for a in e])')
+    and matching_if_test32(bundle_tree32,"kind in ('c0','ci')")
+    and matching_if_test32(bundle_tree32,
+        "abs(x*y)>mp.mpf('.3') or abs(H)>mp.mpf('.6')")
+    and matching_if_test32(bundle_tree32,'H<0 and w>0')
+    and matching_assignment30(bundle_tree32,'nu',
+        "mp.exp(-2) if kind=='ci' else mp.mpf(1)")
+    and matching_assignment30(bundle_tree32,'H',
+        'mp.mpf(data[2]) if elementary else elliptic_height_chart(x,y,nu,dps=dps)')
+    and matching_statement31(bundle_tree32,
+        "return 1-scalar_flat_step((abs(h)-mp.mpf('.25'))/mp.mpf('.15'))")
+    and matching_statement31(bundle_tree32,
+        'r = nu*nu*abs(x)**2+abs(y)**2')
+    and matching_statement31(bundle_tree32,
+        'return (nu*mp.conj(x)/mp.sqrt(r),y/mp.sqrt(r))')
+    and matching_statement31(bundle_tree32,'block = [hw(H)*q for q in f]')
+    and matching_statement31(bundle_tree32,
+        "w = hw(H+mp.mpf('.5') if H<0 else H-mp.mpf('.5'))")
+    and matching_statement31(bundle_tree32,'block.extend(w*q for q in f)')
+    and matching_statement31(bundle_tree32,
+        "start = 4 if kind=='ci' else 0")
+    and matching_statement31(bundle_tree32,'vec[start:start+4] = block')
+    and matching_statement31(bundle_tree32,
+        'norm2 = sum(abs(q)**2 for q in vec)')
+    and matching_statement31(bundle_tree32,
+        'result = tuple(+(q/mp.sqrt(norm2)) for q in vec)')
+    and matching_statement31(reference_tree32,
+        "cell = int(mp.floor(a+mp.mpf('.5')))")
+    and matching_statement31(reference_tree32,
+        'f = inverse_height_moment(b,q,0)')
+    and matching_statement31(reference_tree32,
+        'x = mp.sqrt(A/e)/nu')
+    and matching_statement31(reference_tree32,'return x,t/x'))
+H32 = sp.Symbol('H32',real=True)
+cut32 = (sp.Rational(1,4)-H32)/sp.Rational(3,20)
+first_cut32 = (H32-sp.Rational(1,4))/sp.Rational(3,20)
+# The strict cell inequalities imply 0<cut32<1, so this is exactly the
+# source's open flat-step branch.  A source reference at t=1/10, a=1/5
+# realizes the cell: q=nu^2 exp(-4/99)/100<1/8 for nu in {1,e^-2}, and
+# the certified increasing moment in (11.4) gives a finite positive frame.
+witness32 = (sp.simplify(cut32.subs(H32,sp.Rational(1,10))-1)==0
+             and cut32.subs(H32,sp.Rational(1,4))==0
+             and sp.simplify(first_cut32+cut32)==0
+             and 0<cut32.subs(H32,sp.Rational(1,5))<1
+             and sp.Rational(1,10)<sp.Rational(1,5)<sp.Rational(1,4)
+             and sp.Rational(1,10)<sp.Rational(3,10)
+             and sp.Rational(1,100)<sp.Rational(1,8)
+             and bool(sp.exp(-sp.Rational(4,99))<1)
+             and bool(sp.exp(-4)<1)
+             and sp.floor(sp.Rational(1,5)+sp.Rational(1,2))==0)
+# At that witness the certified f(a,q,0) is positive (strictly increasing
+# with f(0,q,0)=0).  Its positive value gives the source's a>0 branch below;
+# these two identities check the resulting nonzero frame.
+f_w32,nu_w32 = sp.symbols('f_w32 nu_w32',positive=True)
+t_w32 = sp.Rational(1,10)
+e_w32 = sp.exp(-sp.Rational(4,99))
+q_w32 = nu_w32**2*e_w32*t_w32**2
+root_w32 = sp.sqrt(f_w32**2+4*q_w32)
+A_w32,Y_w32 = (root_w32+f_w32)/2,(root_w32-f_w32)/2
+x_w32 = sp.sqrt(A_w32/e_w32)/nu_w32
+y_w32 = t_w32/x_w32
+witness32 &= (sp.simplify(x_w32*y_w32-t_w32)==0
+              and sp.simplify(A_w32*Y_w32-q_w32)==0)
+rep('C32a both-cusp two-active-pair source path and exact open witness',
+    source_cusp32 and witness32)
+
+xr32,xi32,yr32,yi32 = sp.symbols('xr32 xi32 yr32 yi32',real=True)
+nu32 = sp.Symbol('nu32',positive=True)  # 1 or exp(-2), constant in jets.
+weight32 = sp.Symbol('weight32',real=True)
+radius32 = (nu32**2*(xr32**2+xi32**2)+yr32**2+yi32**2)
+spinor32 = sp.Matrix([nu32*(xr32-sp.I*xi32),yr32+sp.I*yi32])
+norm32 = spinor32*spinor32.conjugate().T
+Q32 = norm32/radius32
+B32 = sp.Matrix([[1,weight32],[weight32,weight32**2]])/(1+weight32**2)
+P32 = sp.kronecker_product(B32,Q32)
+# A separate positive radius symbol makes conjugation of the source's
+# normalizing square root unambiguous; then impose the manifest sum of
+# squares radius.  The four entries occupy 0:4 (south) or 4:8 (north) in C^10.
+positive_radius32 = sp.Symbol('positive_radius32',positive=True)
+source_vector32 = sp.Matrix([*spinor32,weight32*spinor32[0],
+                             weight32*spinor32[1]]) / sp.sqrt(
+                                 positive_radius32*(1+weight32**2))
+source_projector32 = sp.kronecker_product(
+    B32,norm32/positive_radius32)
+source_norm32 = (source_vector32.conjugate().T*source_vector32)[0]
+source_value32 = (
+    all(sp.simplify(v)==0 for v in
+        source_vector32*source_vector32.conjugate().T-source_projector32)
+    and source_projector32.subs(positive_radius32,radius32)==P32
+    and sp.simplify(source_norm32-radius32/positive_radius32)==0
+    and all(sp.cancel(v)==0 for v in P32*P32-P32)
+    and all(sp.cancel(v)==0 for v in P32.conjugate().T-P32)
+    and sp.cancel(sp.trace(P32)-1)==0)
+rep('C32b actual four-slot projector B(weight) tensor Q(x,y), rank one',
+    source_value32)
+
+flat32 = sp.exp(-1/cut32)/(sp.exp(-1/cut32)
+                             +sp.exp(-1/(1-cut32)))
+actual_weight32 = 1-flat32
+slope32 = flat32*(1-flat32)*(1/cut32**2+1/(1-cut32)**2)
+curvature32 = flat32*(1-flat32)*(
+    (1-2*flat32)*(1/cut32**2+1/(1-cut32)**2)**2
+    -2/cut32**3+2/(1-cut32)**3)
+weight_H32 = sp.Rational(20,3)*slope32
+weight_HH32 = -sp.Rational(400,9)*curvature32
+weight_jet32 = (
+    sp.simplify(sp.diff(actual_weight32,H32)-weight_H32)==0
+    and sp.simplify(sp.diff(actual_weight32,H32,2)-weight_HH32)==0)
+
+# These are the complete source-coordinate first and second jets of Q.
+# The denominator radius32 is positive on the stated nonnode cell.
+source_vars32 = (xr32,xi32,yr32,yi32)
+Qjet_ok32 = True
+for i32,vi32 in enumerate(source_vars32):
+    zi32 = spinor32.diff(vi32)
+    Ni32 = zi32*spinor32.conjugate().T+spinor32*zi32.conjugate().T
+    ri32 = sp.diff(radius32,vi32)
+    Qi32 = Ni32/radius32-norm32*ri32/radius32**2
+    Qjet_ok32 &= all(sp.cancel(v)==0 for v in Qi32-Q32.diff(vi32))
+    for j32,vj32 in enumerate(source_vars32[:i32+1]):
+        zj32 = spinor32.diff(vj32)
+        Nj32 = zj32*spinor32.conjugate().T+spinor32*zj32.conjugate().T
+        rj32 = sp.diff(radius32,vj32)
+        Nij32 = (zi32*zj32.conjugate().T+zj32*zi32.conjugate().T)
+        rij32 = sp.diff(radius32,vi32,vj32)
+        Qij32 = (Nij32/radius32
+                 -(Ni32*rj32+Nj32*ri32+norm32*rij32)/radius32**2
+                 +2*norm32*ri32*rj32/radius32**3)
+        Qjet_ok32 &= all(sp.cancel(v)==0
+                         for v in Qij32-Q32.diff(vi32,vj32))
+rep('C32c actual normalized cusp frame: all 4 first and 10 second jets',
+    Qjet_ok32 and weight_jet32)
+
+# Directly differentiate every entry of the 4x4 projector in its five local
+# source variables, with the actual open flat weight substituted.  Check all
+# 400 second entries for mixed-partial symmetry; no opaque smooth projector
+# or free jet is introduced.
+actual_P32 = P32.subs(weight32,actual_weight32)
+full_vars32 = (*source_vars32,H32)
+full_first32 = [actual_P32.diff(v) for v in full_vars32]
+full_second32 = [[actual_P32.diff(vi,vj) for vj in full_vars32]
+                 for vi in full_vars32]
+full_jets32 = (len(full_first32)==5 and len(full_second32)==5
+    and all(len(row)==5 for row in full_second32)
+    and all(full_second32[i][j]==full_second32[j][i]
+            for i in range(5) for j in range(5))
+    and any(full_first32[4][0,j]!=0 for j in range(4))
+    and any(full_second32[0][4][0,j]!=0 for j in range(4)))
+rep('C32d nonconstant two-pair projector: 80 first and 400 second entries, symmetric',
+    full_jets32)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

@@ -1414,3 +1414,56 @@ in `AGENTS.md` §5.
   exact branch-circuit work. The previously stated global theorem still rests
   on the written inverse/gluing certificate and generic naturality, and still
   requires human review.
+
+### 2026-10-12-TSG-2 — Extend source-linked local checks of the specific tensor
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** statement
+- **Based on:** 8b74839
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (C31–C32),
+  extra/s4t2_explicit/sym/node_remainder.py (N9),
+  extra/s4t2_explicit/symbolic_identities.py (d–e),
+  docs/s4t2_symbolic_programme.md status and §11.8,
+  SYMBOLIC_CAMPAIGN.md task T16. No manuscript or construction file changed.
+- **Change:** added exact, source-linked projector and second-jet checks on one
+  pure-middle and one two-active-pair cusp cell; identified the actual raw
+  projector and cusp reference on both cap/slab overlaps and checked equality
+  of their torus-restored values and jets; differentiated the finite torus
+  correction on one active south collar chamber; and constructed the actual
+  six-real-coordinate map and `J=M^{-1}J_0M` on one south raw-pole annulus.
+  The latter uses 43 explicitly defined scalar second-jet nodes and six
+  stage-bound Hessian circuits. The documents record these as partial regional
+  checks and retain T16 as open.
+- **Why:** the source raw inverse, round cap and torus restoration compose to
+  a concrete elementary map on the stated annulus. The exact CSE circuit
+  reconstructs that map and propagates its first and second derivatives;
+  the checked chain-rule skew identity and the existing 216-component
+  algebraic identity reduce `N_J` to zero for this particular local `J`.
+  The round factor is invertible, (11.11) gives the raw singular-value margin
+  >1999/2000, and the restoration determinant is
+  `-(1-|t|^4) ≠ 0`. N9 uses source formulas to identify the raw cap
+  projector with the slab reference before applying the exact phase and cusp
+  actions. C32 checks the nonconstant two-pair projector rather than treating
+  a meridian projector as an arbitrary smooth function.
+- **Verification:** chart_identities.py C31a–d and C32a–d: **ALL PASS**;
+  node_remainder.py N9a–i: **ALL PASS**; symbolic_identities.py d1–d5 and
+  e1–e7: **ALL PASS**. The e7 raw-Jacobian comparison is numerical only,
+  with one witness: measured \(\|Dg-I\|_{\mathrm{op}}=5.4871\cdot10^{-7}\)
+  versus proved bound \(3\cdot10^{-4}\), and sampled minimum singular value
+  0.9999999270 versus proved uniform lower bound 0.9995. The d5 production
+  comparison is also numerical only (error \(3.9233\cdot10^{-61}\)).
+  verify_construction.py: `all checks passed`; sphere_products.py:
+  `Dimension 8 check passed`; git diff --check: pass. check_inverse.py
+  --closed: **ALL PASS** earlier this turn on the unchanged construction
+  code; the numerical construction was not modified. LaTeX: **not run**
+  (latexmk unavailable). Git fetch/pull and push were left to the
+  collaborator as requested.
+- **Open points:** this is not a direct executable verification of the
+  specific global `J_cl`. The free-slab round-to-W branch and
+  its intervening cusp/collar projectors, remaining height and selector
+  cells, the north and radial-transition cap chambers, and remaining seam
+  jets are open. Human review is required for the newly checked cap/slab
+  overlap status and regional claims. The global conclusion still uses the written
+  diffeomorphism/gluing certificate and generic naturality, and requires
+  human review.

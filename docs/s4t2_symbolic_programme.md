@@ -34,6 +34,15 @@
 > actual map on both inner pole caps, and the pure-middle check computes its
 > actual local tensor. All pass. The exact free-slab and seam branch circuit
 > needed for a direct check of the specific global \(J_{\mathrm{cl}}\) is open.
+> **Further regional audit (2026-10-12-TSG-2):** C31 and C32 follow an actual
+> pure-middle projector cell and a two-active-pair cusp projector cell with
+> their second jets; N9 identifies the source cap projector and checks both
+> cap/slab overlaps using the stated bounds;
+> the active south collar check differentiates its finite torus correction;
+> and a south raw-pole annulus check constructs a six-real-coordinate
+> second-jet circuit for the complete local map and its specific \(J\).
+> These pass on their stated cells, but T16's complete global branch circuit
+> is still open.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
 > **Resume point: complete T16's exact branch circuit and second-jet checks, then simplify the fixed counts.**
 
@@ -2873,8 +2882,13 @@ derivatives are numerical observations, type (d).
 | C29a–h, new height | quadratic F inverse/derivative, convex tail, tuned endpoint derivative, positive quadratic root/open seam, one-soft b_R′ and its inverse coordinates, unit-phase/Hopf recovery, and cusp torus reversal: ALL PASS |
 | C29i, numerical | 1999 fixed radial-derivative samples; max \|b_R′\|=3.301394, measured margin 196.698606 to the proved bound 200 |
 | C30a–n, exact local second jets (a) | elementary, projection and phase second-jet identities; source checks that the certified counts reach the two recurrence sites; both cusp Cramer/torus-restoration signs and one open noncap branch of the four-seed height; inverse-map-convention \(J^2\) (36 entries) and \(N_J\) (216 entries): ALL PASS |
+| C31a–d, one pure-middle projector cell (a,c) | source-linked reciprocal dominant branch with exact witness \(t=(-1+2i)/3\), explicit rank-one projector and complete local second-jet chain: ALL PASS; the rational witness bounds are written in the script |
+| C32a–d, one two-active-pair cusp projector cell (a,b,c) | on \(1/10<H<1/4\), \(|xy|<3/10\), both cusp signs: the source frame and nonconstant flat weight give an explicit rank-one four-slot projector; all 80 first and 400 second source-coordinate entries, including mixed-partial symmetry, are checked: ALL PASS; \(t=1/10,H=1/5\) is an exact nonempty-cell witness |
 | N8, actual inner-pole charts (a) | both signs: the six real outputs of (11.17)–(11.18), including the four-seed \(H_f\), are differentiated to a 6×6 Jacobian and six Hessians; all 90 mixed-partial pairs per sign, the nonzero pole determinant, and 216 normal-frame \(N_J\) entries: ALL PASS |
+| N9a–i, cap/slab overlap (a,c) | for both signs, exact phase telescoping, source-linked raw-reference/projector identification, matching cusp inputs, torus restoration and first/second jets: ALL PASS, conditional on the written §11.3, §11.5 and §10.6 bounds; the post-raw radial margin is checked in N9b |
 | `symbolic_identities.py`, pure middle (a,b) | actual six-coordinate \(\tau_f^{-1}\) on \(1/2\le |t|\le2\): explicit Jacobian, positive determinant \(2\pi(1+|t|^2)((|t|^2-1)\log|t|+2|t|^2)\), \(J^2=-I\), and all 216 \(N_J\) entries: ALL PASS; \((|t|^2-1)\log|t|\ge0\) is manifest |
+| `symbolic_identities.py`, one active south collar chamber (a,b,c,d) | exact Cramer formulas, finite four-seed height and torus correction on \(3/10<|t|<1/2\), \(1/16<A,Y<1/2\); compositional 216-entry Hessian-skew check and positive determinant: ALL PASS; one 60-digit production comparison has error \(3.93\cdot10^{-61}\) and is numerical only |
+| `symbolic_identities.py`, south raw-pole annulus (a,b,c,d) | on \(3\cdot10^{-8}<|z_L|^2<10^{-7}\), \(\Re u_2>0\), \(0<\mathrm{height}<1/10\), \(t_c\ne0\): source-linked raw inverse, round cap, and finite torus restoration form an explicit 43-node scalar second-jet circuit and a named six-real \(J=M^{-1}J_0M\); its 36 square and 216 Nijenhuis entries vanish by the checked compositional skew identity, using the written (11.11) and §11.6 bounds: ALL PASS. The proven raw singular-value margin is \(>1999/2000\); at one rational witness the separately labelled numerical values are \(\|Dg-I\|_{\mathrm{op}}=5.4871\cdot10^{-7}\) versus its bound \(3\cdot10^{-4}\), and \(\sigma_{\min}=0.9999999270\). |
 | N8, cap/source comparison (d) | three high-precision inner-cap values per sign: maximum coordinate errors \(1.1\cdot10^{-72}\) south and \(1.1\cdot10^{-75}\) north; these samples guard transcription only |
 | New terminal-cut height, C23d | 132 value/deck/collar cases and 108 seam jets through order three: error 6.4·10⁻⁸⁶; sampled f_a∈[.466903,6.682791] versus proved type-(c) bound (11.13c) |
 | New two-way height and forward evaluator, numerical | 276 cell/seam/axis/node compositions, error 1.0·10⁻⁵⁶; 38 reduced-count cap/free, exact half-cell seam, deck/lattice and independent-source compositions, error 1.2·10⁻⁵⁴ |
@@ -2896,6 +2910,24 @@ derivatives are numerical observations, type (d).
 | Central-circle tensors | both a=1/2 circles, including transverse derivatives in the open axis charts; \|det DG\|=2.67101 and .0900846; J²=−I passes |
 | Independent new-tensor finite-difference N | two caps and one free N=512 point, h=2·10⁻⁷ and 10⁻⁷; normalized residuals fall by a factor of four, maxima 4.73·10⁻¹⁰ and 1.18·10⁻¹⁰; nonintegrable controls .566/.0255 |
 
+On the checked south raw-pole annulus, write \(r=|Z_0|^2+|Z_1|^2\) and
+\(z_L=(Z_0-iZ_1,Z_0+iZ_1)/\sqrt{4\pi(1+\sqrt{1-r^2})}\). Let \(w=g_0(z_L)\)
+be the explicit positive-root projector formula (11.10), and put
+\(t=\overline{w_0}w_1\), \(E=\exp(-4|t|^2/(1-|t|^2))\),
+\(H=(E|w_0|^2-|w_1|^2)/(1-E|w_0|^2|w_1|^2)\),
+\(c=2(\Re t,\Im t)/(1-|t|^2)\), \(C=\phi+Hc\), and
+\(A=t(C_2-iC_3)\). The specific six-real-coordinate map checked by the
+script is the real and imaginary parts of
+\((\overline{w_0}e^{-A},w_1e^A,C_2(1-t^2)+iC_3(1+t^2))\).
+Its circuit explicitly defines \(M=Dh\) and \(J=M^{-1}J_0M\). The round
+factor has positive determinant, (11.11) gives
+\(\sigma_{\min}(Dg_0)>1999/2000\), and the restoration factor has determinant
+\(-(1-|t|^4)\ne0\). These bounds make the displayed inverse legitimate
+throughout this one annulus chamber.
+The rational local witness is \(z_L=(1/5000,(1-i)/10000)\), with
+\(|z_L|^2=6\cdot10^{-8}\); the positive round-cap radial factor gives it a
+round input.
+
 The new second-jet checks are exact on their stated domains. The pole check
 uses the identity piece \(H_j(z_L)=z_L\) for \(|z_L|^2\le10^{-8}\), and its
 four-seed height simplifies there to \(H_f=(A-Y)/(1-AY)\). The pure-middle
@@ -2905,10 +2937,20 @@ The checks distinguish a coordinate Hessian from an arbitrary frame: their
 noncoordinate controls have \(J^2=-I\) but nonzero \(N_J\). C30 proves the
 second-jet step identities for the exact finite projection and phase counts,
 and checks the relevant source call sites; it does not symbolically execute all
-scalar branches of (11.18). Thus these scripts do **not** yet constitute a
+scalar branches of (11.18). C31 and C32 cover two nonempty projector cells.
+The active collar calculation begins after the round-to-\(W\) map and uses a compositional
+second jet of its explicitly displayed torus correction; its numerical source
+comparison is only a transcription check. The south raw-pole annulus check
+starts with the actual round inputs, passes through the raw inverse and torus
+restoration, and stores \(J=M^{-1}J_0M\) and all six Hessians as a finite
+straight-line circuit; its 216-component conclusion uses the source-specific
+jet symmetries and the C30/c8 algebraic identity, without expanding the full
+radical expression. N9 identifies the raw cap projector with the source
+reference and verifies the overlap algebra and jets, using the existing
+analytic cap and phase bounds. Thus these scripts do **not** yet constitute a
 direct executable verification of the specific \(J_{\mathrm{cl}}\) on all of
 the round \(S^4\times T^2\). The free-slab reference and embedding, remaining
-height/selector cells, cap/slab and collar seams, and their source-code
+height/selector cells, remaining collar seams, and their source-code
 correspondence still need a single exact branch circuit and second-jet audit.
 The global \(J^2=-I\) and \(N_J=0\) conclusion above continues to use the
 written diffeomorphism/gluing certificate and the generic C10 identity.

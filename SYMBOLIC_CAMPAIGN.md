@@ -317,7 +317,16 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   restoration; N8 differentiates the exact inner-pole map at both signs; the
   pure-middle check differentiates \(\tau_f^{-1}\) and computes its tensor.
   The free round-to-\(W\) map, other scalar cells, selectors, and seams still
-  need the exact branch circuit. The complete direct check remains open.
+  need the exact branch circuit. **Further partial work (2026-10-12-TSG-2):**
+  C31 and C32 check actual pure-middle and two-active-pair cusp projector
+  cells; N9 identifies the source cap projector and checks cap/slab overlap
+  jets using the written bounds;
+  and the active south collar check traces its finite torus correction. A
+  south raw-pole annulus check builds the actual six-real \(J\) circuit through
+  the round cap, raw inverse, and torus restoration, and checks its second-jet
+  reduction. Other projector and height cells, the complete free
+  round-to-\(W\) composition, and remaining seams are open. The complete
+  global direct check remains open.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.

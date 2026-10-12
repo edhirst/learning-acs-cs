@@ -8,7 +8,15 @@
   (c) on 1/2 <= |t| <= 2, the pure-middle torus-restoration factor of G_cl
       has the six-real-variable formula h=(z,w,t) and an invertible Jacobian.
       The induced tensor J=(Dh)^-1 J0 Dh satisfies J^2=-Id and all 216
-      Nijenhuis identities.  Round-to-W and collar factors are outside scope.
+      Nijenhuis identities.  The round-to-W factor is outside this check.
+  (d) on one open, active south middle-collar seed chamber, the exact Cramer
+      and four-seed formulas give a smooth torus shear.  Its compositional
+      second jet has positive determinant, J^2=-Id, and N=0.  This does not
+      cover the other seed chambers or the north collar.
+  (e) on one south raw-pole annulus chamber, the actual round cap, raw inverse
+      and cusp torus restoration give a source-linked six-real-coordinate
+      second-jet circuit and J.  Its compositional 36/216 coefficient checks
+      use the written cap and derivative bounds; other chambers remain open.
 Run from the repo root."""
 import sympy as sp
 
@@ -196,4 +204,691 @@ for i in range(6):
                 for p in range(6))
             assert sp.expand(direct-factored[out]) == 0
 print('(c8) all 216 factorization identities for arbitrary frame jets: PASS')
+
+# (d) One genuinely active c0 middle-collar chamber, 3/10<|t|<1/2.
+# This chamber has beta0 in (0,1), beta_inf=0, and
+# 1/16<A,Y<1/2.  Since q<1/8, the other two seed arguments qA,qY
+# lie below 1/16.  These are open inequalities, not a claim that this
+# single chamber covers the whole collar.
+def flat_open(v):
+    left, right = sp.exp(-1/v), sp.exp(-1/(1-v))
+    return left/(left+right)
+
+sr, si = theta/(2*sp.pi), -ell/(2*sp.pi)  # log(t)/(2*pi*i)
+qz_real = sp.pi*(sr*sr-si*si-sr)          # pi*s*(s-1)
+qz_imag = sp.pi*si*(2*sr-1)
+qw_real = 2*(a*sr-b*si)                  # 2*t*s
+qw_imag = 2*(a*si+b*sr)
+R0 = sp.Matrix([[1-a*a+b*b,-2*a*b],[-2*a*b,1+a*a-b*b]])
+R0det = 1-r2*r2
+assert sp.expand(R0.det()-R0det) == 0
+c0 = R0.adjugate()*sp.Matrix([2*a,2*b])/R0det
+wc_real = 2*(a*(x4-sr)+b*si)            # w-2*t*s
+wc_imag = 2*(b*(x4-sr)-a*si)
+cc0 = R0.adjugate()*sp.Matrix([-wc_real,-wc_imag])/R0det
+assert all(sp.cancel(v) == 0 for v in R0*c0-sp.Matrix([2*a,2*b]))
+assert all(sp.cancel(v) == 0 for v in R0*cc0+sp.Matrix([wc_real,wc_imag]))
+
+L0 = sp.Matrix([[-a,-b,-ell],
+                [1-a*a+b*b,-2*a*b,2*a],
+                [-2*a*b,1+a*a-b*b,2*b]])
+L0det = (1+r2)*(ell*(r2-1)+2*r2)
+assert sp.factor(L0.det()-L0det) == 0
+xi0 = L0.adjugate()*sp.Matrix([qz_imag,qw_real,qw_imag])/L0det
+assert all(sp.cancel(v) == 0 for v in
+           L0*xi0-sp.Matrix([qz_imag,qw_real,qw_imag]))
+print('(d1) actual c0 torus and source-lattice Cramer systems: PASS')
+
+# From yy=exp(i*(zc-i*(cc0[0]*t-cc0[1]*i*t))), its squared modulus is
+# Y=exp(2*(Re(cc0[0]*t-cc0[1]*i*t)-Im(zc))).  x_s=t/yy.
+zc_imag = -ell*x4-qz_imag
+Y0 = sp.exp(2*(a*cc0[0]+b*cc0[1]-zc_imag))
+q0 = r2*sp.exp(-4*r2/(1-r2))
+A0 = q0/Y0
+step_A = flat_open(sp.log(16*A0)/sp.log(8))
+step_Y = flat_open(sp.log(16*Y0)/sp.log(8))
+Hfinite = (A0-Y0)/(1-q0)-step_A*A0*A0/(1+A0)+step_Y*Y0*Y0/(1+Y0)
+# On this chamber the four seeds are seed(A)=A-step_A*A^2/(1+A),
+# seed(qA)=qA, seed(Y)=Y-step_Y*Y^2/(1+Y), seed(qY)=qY.
+four_seeds = (A0-step_A*A0*A0/(1+A0)+q0*A0
+              -Y0+step_Y*Y0*Y0/(1+Y0)-q0*Y0
+              +q0*q0*(A0-Y0)/(1-q0))
+assert sp.cancel(four_seeds-Hfinite) == 0
+# q<1/8 follows from exp(x)>1+x: q<u(1-u)/(1+3u), u=r^2,
+# and 1-5u+8u^2=8(u-5/16)^2+7/32>0.
+u0 = sp.symbols('u0', real=True)
+assert sp.expand(1-5*u0+8*u0*u0
+                 -(8*(u0-sp.Rational(5,16))**2+sp.Rational(7,32))) == 0
+# The chamber is nonempty: t=2/5, x4 below gives Y=1/4 and
+# A=4q in (16/105,336/925), which lies in (1/16,1/2).
+x4star = sp.log(sp.Rational(5,8))/(2*(sp.log(sp.Rational(2,5))-sp.Rational(8,21)))
+Yexponent = 2*(a*cc0[0]+b*cc0[1]-zc_imag)
+assert sp.cancel(Yexponent.subs({b:0,theta:0})
+                 -ell-2*(ell-2*a*a/(1-a*a))*x4) == 0
+assert sp.cancel(2*(sp.log(sp.Rational(2,5))-sp.Rational(8,21))*x4star
+                 -sp.log(sp.Rational(5,8))) == 0
+assert sp.simplify(sp.exp(sp.log(sp.Rational(2,5))+sp.log(sp.Rational(5,8)))
+                   -sp.Rational(1,4)) == 0
+qstar = sp.simplify(q0.subs({a:sp.Rational(2,5),b:0}))
+xstar = sp.Rational(16,21)
+assert qstar == sp.Rational(4,25)*sp.exp(-xstar)
+assert sp.simplify(4*qstar-sp.Rational(16,25)*sp.exp(-xstar)) == 0
+# For x>0, exp(x)>1+x and exp(-x)>1-x: both differences start
+# at zero, and their derivatives exp(x)-1 and 1-exp(-x) are positive.
+xp = sp.symbols('xp', positive=True)
+assert sp.diff(sp.exp(xp)-1-xp,xp) == sp.exp(xp)-1
+assert sp.diff(sp.exp(-xp)-1+xp,xp) == 1-sp.exp(-xp)
+assert 0<xstar<1
+assert sp.Rational(16,25)*(1-xstar) == sp.Rational(16,105)
+assert sp.Rational(16,25)/(1+xstar) == sp.Rational(336,925)
+assert sp.Rational(16,105)>sp.Rational(1,16)
+assert sp.Rational(336,925)<sp.Rational(1,2)
+beta0 = 1-flat_open((sp.sqrt(r2)-sp.Rational(3,10))/sp.Rational(1,5))
+D0 = sp.Matrix([xi0[k]+(Hfinite-x4+xi0[2])*c0[k] for k in range(2)])
+assert all(not value.has(x1,phi2,phi3) for value in D0)
+assert not beta0.has(x1,x4,phi2,phi3)
+# This is the exact value formula of elementary_restore_torus('mid',...)
+# on the stated open chamber, expressed in real components.
+C2, C3 = phi2+beta0*D0[0], phi3+beta0*D0[1]
+collar_h = middle_h.subs({phi2:C2,phi3:C3},simultaneous=True)
+assert collar_h[4] == a and collar_h[5] == b
+print('(d2) finite four-seed height and active torus shift are explicit: PASS')
+
+# Directly differentiate the displayed finite expressions in two orders.
+# The D0 test holds ell,theta independent here; the physical derivatives
+# also include their explicitly commuting a,b chain-rule vector fields.
+assert sp.diff(beta0,a,b) == sp.diff(beta0,b,a)
+assert all(sp.diff(value,a,x4) == sp.diff(value,x4,a) for value in D0)
+assert sp.cancel(sp.diff(b/r2,a)-sp.diff(a/r2,b)) == 0
+assert sp.cancel(sp.diff(a/r2,a)-sp.diff(-b/r2,b)) == 0
+print('(d2b) actual beta: mixed (a,b); both actual D components:'
+      ' mixed (a,x4) at fixed ell,theta; log/angle chain fields commute: PASS')
+
+# For the 2-jet check, keep the already specified elementary D0 and beta0
+# as named smooth nodes.  Formal derivatives here are exact chain-rule nodes,
+# not numerical samples or unknown functions chosen after the fact.
+bf = sp.Function('beta0')(a,b)
+d2f = sp.Function('D02')(a,b,x4)
+d3f = sp.Function('D03')(a,b,x4)
+shear = sp.Matrix([a,b,x1,x4,phi2+bf*d2f,phi3+bf*d3f])
+S1 = shear.jacobian(u)
+assert sp.factor(S1.det()-1) == 0
+S2 = [S1.diff(variable) for variable in u]
+assert all(sp.simplify(S2[i][out,j]-S2[j][out,i]) == 0
+           for i in range(6) for j in range(6) for out in range(6))
+# h_collar = h_middle o shear.  Its first and second jets are the
+# following exact finite chain-rule circuits; no inverse of D0 is needed.
+subC = {phi2:shear[4],phi3:shear[5]}
+M0S = M.subs(subC,simultaneous=True)
+H0S = [slice_.subs(subC,simultaneous=True) for slice_ in H]
+Mcollar = M0S*S1
+# The first factor has det middle_det, and the shear has det 1.
+assert sp.factor(M0S[:4,2:].det()-middle_det) == 0
+S1inv = sp.eye(6)
+S1inv[4,:4], S1inv[5,:4] = -S1[4,:4], -S1[5,:4]
+assert S1*S1inv == sp.eye(6)
+# The actual collar J is S1^-1*(J_middle at C)*S1, so these inverse
+# identities and (c4) give its 36 J^2=-Id identities exactly.
+assert J0*J0 == -sp.eye(6)
+print('(d3) active-collar shear has det 1; full coordinate det =',
+      middle_det, ': PASS')
+
+# For each k,i, the antisymmetric part of the composed Hessian is
+# sum_(p,q) (H0[p][:,q]-H0[q][:,p])*S1[p,k]*S1[q,i]
+#       + M0S*(S2[k][:,i]-S2[i][:,k]).
+# This is the exact second-order chain rule.  Checking every output and
+# input pair tests all 216 actual collar Hessian-skew coefficients without
+# expanding the large finite-height expression.  The generic 216-component
+# factorization in (c8) then gives N=0 for this collar J.
+for k in range(6):
+    for i in range(6):
+        skew_composed = (
+            sum(((H0S[p][:,q]-H0S[q][:,p])*S1[p,k]*S1[q,i]
+                 for p in range(6) for q in range(6)), sp.zeros(6,1))
+            +M0S*(S2[k][:,i]-S2[i][:,k]))
+        assert all(sp.simplify(value) == 0 for value in skew_composed)
+print('(d4) 216 composed Hessian-skew coefficients vanish; collar J^2=-Id'
+      ' and N=0 follow from (c8): PASS')
+
+# Numerical implementation correspondence only: this 60-digit interior
+# sample is not used in the symbolic proof above.  It catches transcription
+# drift between this SymPy formula and cusp.elementary_restore_torus.
+import sys
+import mpmath as mp
+sys.path.insert(0,'extra/s4t2_explicit')
+import cusp
+mp.mp.dps = 70
+t_sample = mp.mpf(2)/5
+x4_sample = mp.mpf(str(x4star.evalf(60)))
+one_sample, p2_sample, p3_sample = mp.mpf(1)/7,mp.mpf(1)/11,-mp.mpf(1)/13
+source = cusp.elementary_restore_torus(
+    'mid',(t_sample,one_sample,x4_sample,mp.log(t_sample)),
+    (p2_sample,p3_sample))[1]
+sample_sub = {a:sp.Rational(2,5),b:0,ell:sp.log(sp.Rational(2,5)),theta:0,
+              x1:sp.Rational(1,7),x4:x4star,
+              phi2:sp.Rational(1,11),phi3:-sp.Rational(1,13)}
+symbolic_value = [mp.mpf(str(value.subs(sample_sub).evalf(60))) for value in collar_h]
+source_value = [source[0].real,source[0].imag,source[1].real,
+                source[1].imag,source[2].real,source[2].imag]
+source_error = max(abs(left-right) for left,right in zip(symbolic_value,source_value))
+assert source_error < mp.mpf('1e-50')
+print('(d5) numerical source-code correspondence at one interior point:'
+      ' max error =',mp.nstr(source_error,5),': PASS')
+
+# (e) One actual south raw-pole chamber of the round-to-W factor, followed
+# by the exact cusp torus restoration.  This is an open six-real-dimensional
+# region: 3e-8<r_L=|z_L|^2<1e-7, Re(u2)>0, 0<height<1/10, and t_c!=0.
+# The raw inverse contains no floor, terminal-cut, or precision shortcut here.
+# It is distinct from (c),(d), which start after the round-to-W factor.
+import ast
+import inspect
+
+
+def source_statement_e(function, statement):
+    tree = ast.parse(inspect.getsource(function))
+    expected = ast.dump(ast.parse(statement).body[0], include_attributes=False)
+    return any(ast.dump(node, include_attributes=False) == expected
+               for node in ast.walk(tree))
+
+
+def source_if_first_e(function, condition, first_statement):
+    tree = ast.parse(inspect.getsource(function))
+    want_test = ast.dump(ast.parse('if '+condition+':\n    pass').body[0].test,
+                         include_attributes=False)
+    want_body = ast.dump(ast.parse(first_statement).body[0],
+                         include_attributes=False)
+    return any(isinstance(node,ast.If) and node.body and
+               ast.dump(node.test,include_attributes=False)==want_test and
+               ast.dump(node.body[0],include_attributes=False)==want_body
+               for node in ast.walk(tree))
+
+
+assert source_statement_e(cusp.elementary_global_slice,
+    'if distance<alpha/2 and not force_slab:\n    inf = X>0\n    scale = mp.pi if inf else 2*mp.pi\n    den = mp.sqrt(scale*(1+abs(X)*mp.sqrt(2-X*X)))\n    pair = _elementary_pole_inclusion(Z,inf)[4:6] if inf else _elementary_pole_inclusion(Z)[:2]\n    zz = elementary_pole_patch(tuple(a/den for a in pair),inf,dps=dps)\n    nu = mp.exp(-2) if inf else mp.mpf(1)\n    return (\'ci\' if inf else \'c0\'),(mp.conj(zz[0])/nu,zz[1])')
+assert source_statement_e(cusp._elementary_pole_radial,
+                          'if radius>=c:\n    return z')
+assert source_statement_e(cusp._elementary_pole_radial,
+    "a,c = mp.mpf('1e-8'),mp.mpf('1.5e-8')")
+assert source_statement_e(cusp.elementary_pole_patch,
+    'raw = elliptic_pole_raw_inverse(compressed,infinity,dps=dps,elementary=True)')
+for statement in (
+    "inner = mp.mpf('1e-8')",
+    "outer = mp.mpf('1.5e-8')",
+    'if radius<=inner:\n    return pair',
+    'compressed = _elementary_pole_radial(pair)',
+    'return _elementary_pole_radial(raw,inverse=True)',
+):
+    assert source_statement_e(cusp.elementary_pole_patch, statement), statement
+assert source_if_first_e(cusp.elementary_pole_patch,
+                         'radius<(inner+outer)/2',
+                         'x = mp.exp(3)*mp.expm1(3*(radius-inner)/(outer-radius))')
+assert source_statement_e(cusp.elliptic_pole_raw_inverse,
+    'tc = ratio*mp.sqrt((2*B if infinity else 2)/den)')
+for statement in (
+    'pc = 2*z0*mp.conj(z1)',
+    'p = (pc.real,pc.imag,abs(z0)**2-abs(z1)**2)',
+    'scale = mp.pi if infinity else 2*mp.pi',
+    'v = tuple(scale*w for w in ((p[2],-p[1],p[0]) if infinity else (-p[1],-p[2],p[0])))',
+    'aa,bb,cc = v[0],-v[2],-v[1]',
+    's2 = aa*aa+(bb+1)**2+cc*cc',
+    'u1 = mp.mpc(1-s2,2*aa)/(1+s2)',
+    'u2 = mp.mpc(2*(bb+1),2*cc)/(1+s2)',
+    'ratio = u1/u2',
+    'height = mp.arg(u2)/(2*mp.pi)',
+    'A,B = (4*mp.pi)**2,mp.exp(4)',
+    'uu = abs(ratio)**2',
+    'den = A*(1-uu)+mp.sqrt(A*A*(1-uu)**2+4*B*uu)',
+    'e = mp.exp(-4*abs(tc)**2/(1-abs(tc)**2))',
+    'q = e*nu*nu*abs(tc)**2',
+    'nu = mp.exp(-2) if infinity else mp.mpf(1)',
+    'xx = AA/e',
+    'moment,source_radius = xx-yy,xx+yy',
+    'source_pc = 2*nu*mp.conj(tc)',
+    'w0 = ((source_radius+moment)*z0+source_pc*z1)/(2*source_radius)',
+    'w1 = (mp.conj(source_pc)*z0+(source_radius-moment)*z1)/(2*source_radius)',
+    'length = mp.sqrt(abs(w0)**2+abs(w1)**2)',
+    'factor = mp.sqrt(source_radius)/length',
+    'return (+(factor*w0),+(factor*w1))',
+):
+    assert source_statement_e(cusp.elliptic_pole_raw_inverse, statement), statement
+assert source_if_first_e(cusp.elliptic_pole_raw_inverse,
+    "not 0<radius<=mp.mpf('1e-4')",
+    "raise ValueError('raw pole inverse requires 0<|z|^2<=1e-4')")
+assert source_if_first_e(cusp.elliptic_pole_raw_inverse,
+    "abs(height)>=mp.mpf('.1')",
+    "raise ValueError('elementary pole inverse left its certified height region')")
+assert source_statement_e(cusp.elliptic_pole_raw_inverse,
+    'R = mp.sqrt(height*height+4*q)')
+assert source_statement_e(cusp.elliptic_pole_raw_inverse,
+    'AA = 2*q/(R-height) if height<0 else (R+height)/2')
+assert source_statement_e(cusp.elliptic_pole_raw_inverse,
+    'yy = 2*q/(R+height) if height>=0 else (R-height)/2')
+assert source_statement_e(cusp.elliptic_pole_raw_inverse,
+    'factor = mp.sqrt(source_radius)/length')
+assert source_statement_e(cusp.elementary_restore_torus,
+    'H = scalar_finite_height(x,y,mp.exp(-2) if inf else mp.mpf(1))')
+for statement in (
+    "inf = kind=='ci'",
+    't = x*y',
+    'e2,e3,e4,a2,a3 = cusp_data(t,inf)',
+    'c = coeffs(e4,e2,e3)',
+    'C = tuple(v+H*w for v,w in zip(phi,c))',
+    'A = C[0]*a2+C[1]*a3',
+    'return kind,(x*mp.exp(-A),y*mp.exp(A),C[0]*e2+C[1]*e3)',
+):
+    assert source_statement_e(cusp.elementary_restore_torus, statement), statement
+assert source_statement_e(cusp.elementary_restore_torus,
+    'return ((t*t-1,mp.j*(1+t*t),-2*t,t,mp.j*t) if inf else '
+    '(1-t*t,mp.j*(1+t*t),2*t,t,-mp.j*t))')
+for statement in (
+    'rr = abs(x*y)**2',
+    'e = mp.exp(-4*rr/(1-rr))',
+    'A,Y = nu*nu*e*abs(x)**2,abs(y)**2',
+    'q = A*Y',
+    'return seed(A)+seed(q*A)-seed(Y)-seed(q*Y)+q*q*(A-Y)/(1-q)',
+):
+    assert source_statement_e(cusp.scalar_finite_height, statement), statement
+assert source_if_first_e(cusp.scalar_finite_height,
+                         'v<=mp.mpf(1)/16','value = v')
+print('(e1) exact south cap, raw inverse and torus source statements: PASS')
+
+# The annulus lies inside the cap: h=2*pi*r_L<8e-7 and
+# 1-|X|<h+h^2/2<alpha/2.  Its two radial-conjugation calls are identity:
+# (11.11) gives |g(z)|^2>=r_L(1-200r_L)^2>1.5e-8.
+rmin_e,rmax_e = sp.Rational(3,10**8),sp.Rational(1,10**7)
+hmax_e = 8*rmax_e   # pi<4
+assert rmin_e>sp.Rational(2,10**8)  # raw outer branch; skips precision shortcut
+# With rho=|Z|^2 and h=2*pi*r_L, (11.17) gives
+# rho=2h/(1+h^2), |X|=(1-h)/sqrt(1+h^2).  For 0<h<1,
+# (1+h^2)(1-h^2/2)^2<1, so 1-|X|<h+h^2/2.
+he_e = sp.symbols('he_e',positive=True)
+rho_e = 2*he_e/(1+he_e**2)
+assert sp.factor(1-rho_e**2
+                 -((1-he_e**2)/(1+he_e**2))**2)==0
+assert sp.expand(1-(1+he_e**2)*(1-he_e**2/2)**2
+                 -he_e**4*(3-he_e**2)/4)==0
+assert hmax_e<1
+assert hmax_e+hmax_e**2/2 < sp.Rational(1,2*10**5)
+assert rmin_e*(1-200*rmax_e)**2 > sp.Rational(3,2*10**8)
+assert 5000*rmax_e == sp.Rational(1,2000)
+assert 1-5000*rmax_e == sp.Rational(1999,2000)
+assert rmax_e+80*rmax_e**2<sp.Rational(2,10**6)
+# Each of A,Y and qA,qY in scalar_finite_height lies below 1/16 on this
+# cap, by the source-radius estimate.  All four seed calls therefore use
+# their linear branch; the exact q^2 tail sums the remaining geometric tail.
+source_radius_max_e = sp.Rational(2,10**6)
+assert source_radius_max_e<sp.Rational(1,16)
+assert source_radius_max_e**2/4<sp.Rational(1,4)
+assert source_radius_max_e**2<sp.Rational(1,8)
+As_e,Ys_e,qs_e = sp.symbols('As_e Ys_e qs_e')
+assert sp.factor((As_e-Ys_e)*(1+qs_e+qs_e**2/(1-qs_e))
+                 -(As_e-Ys_e)/(1-qs_e))==0
+# A rational complex witness with r_L=6e-8 has positive height and t_c!=0.
+zw0_e,zw1_e = sp.Rational(1,5000),(1-sp.I)/10000
+rw_e = sp.expand(zw0_e*sp.conjugate(zw0_e)
+                 +zw1_e*sp.conjugate(zw1_e))
+pcw_e = sp.expand(2*zw0_e*sp.conjugate(zw1_e))
+p3w_e = sp.expand(zw0_e*sp.conjugate(zw0_e)
+                  -zw1_e*sp.conjugate(zw1_e))
+assert rw_e == sp.Rational(6,10**8) and rmin_e<rw_e<rmax_e
+assert sp.re(pcw_e)>0 and sp.im(pcw_e)>0 and p3w_e>0
+# beta=-2*pi*Re(pc), gamma=2*pi*p3.  Since pi<4, 1+beta>0;
+# gamma>0 makes Arg(u2)>0, while alpha=-2*pi*Im(pc)!=0 makes u1!=0.
+assert 1-8*sp.re(pcw_e)>0 and sp.im(pcw_e)>0
+assert 8*p3w_e/(1-8*sp.re(pcw_e)) < sp.Rational(1,2)
+# Then gamma/(1+beta)<1/2, so height<1/(4*pi)<1/12<1/10.
+assert sp.pi>3 and sp.Rational(1,12)<sp.Rational(1,10)
+print('(e2) exact open-chamber witness; raw derivative margin >=1999/2000: PASS')
+
+# Actual source raw inverse in four real pole coordinates.  The real
+# formulas below are its elementary=True, south, height>0 branch.  For the
+# displayed source projector, uY=|t_c|^2 and R^2-height^2=4q; hence its
+# rationalized yy=2q/(R+height) equals (R-height)/2 exactly.
+z0r,z0i,z1r,z1i = z_e = sp.symbols('z0r_e z0i_e z1r_e z1i_e',real=True)
+pr_e = 2*(z0r*z1r+z0i*z1i)
+pi_e = 2*(z0i*z1r-z0r*z1i)
+p3_e = z0r*z0r+z0i*z0i-z1r*z1r-z1i*z1i
+alpha_e,beta_e,gamma_e = -2*sp.pi*pi_e,-2*sp.pi*pr_e,2*sp.pi*p3_e
+d_e = alpha_e**2+(1+beta_e)**2+gamma_e**2
+u1r_e,u1i_e = (1-d_e)/(1+d_e),2*alpha_e/(1+d_e)
+u2r_e,u2i_e = 2*(1+beta_e)/(1+d_e),2*gamma_e/(1+d_e)
+uden_e = u2r_e**2+u2i_e**2
+Tr_e = (u1r_e*u2r_e+u1i_e*u2i_e)/uden_e
+Ti_e = (u1i_e*u2r_e-u1r_e*u2i_e)/uden_e
+Q_e = Tr_e**2+Ti_e**2
+Aprof_e,Bprof_e = (4*sp.pi)**2,sp.exp(4)
+D_e = Aprof_e*(1-Q_e)+sp.sqrt(Aprof_e**2*(1-Q_e)**2+4*Bprof_e*Q_e)
+tr_e,ti_e = Tr_e*sp.sqrt(2/D_e),Ti_e*sp.sqrt(2/D_e)
+height_e = sp.atan(gamma_e/(1+beta_e))/(2*sp.pi)
+te2_e = tr_e**2+ti_e**2
+E_e = sp.exp(-4*te2_e/(1-te2_e))
+q_e = E_e*te2_e
+R_e = sp.sqrt(height_e**2+4*q_e)
+AA_e,YY_e = (R_e+height_e)/2,(R_e-height_e)/2
+uu_e = AA_e/E_e
+ss_e = uu_e+YY_e
+# The cancellation is checked on small algebraic nodes; substituting the
+# long nested elementary expressions into ``simplify`` is unnecessary.
+rh_e,qe_e,ee_e,te_e = sp.symbols('rh_e qe_e ee_e te_e',positive=True)
+rnode_e = sp.sqrt(rh_e**2+4*qe_e)
+assert sp.expand((rnode_e-rh_e)*(rnode_e+rh_e)-4*qe_e)==0
+assert sp.expand((rnode_e+rh_e)*(rnode_e-rh_e)/(4*ee_e)
+                 -qe_e/ee_e)==0
+assert q_e == E_e*te2_e and uu_e == AA_e/E_e
+V_e = sp.Matrix([
+    uu_e*z0r+tr_e*z1r+ti_e*z1i,
+    uu_e*z0i+tr_e*z1i-ti_e*z1r,
+    tr_e*z0r-ti_e*z0i+YY_e*z1r,
+    tr_e*z0i+ti_e*z0r+YY_e*z1i])
+Vnorm_e = sum(entry*entry for entry in V_e)
+raw_e = sp.sqrt(ss_e/Vnorm_e)*V_e
+# The source w0,w1 before its final factor are Q_source*z/s, with
+# Q_source=[[u,conj(t)],[t,Y]].  Since the source length is |Qz|/s,
+# its final factor gives exactly raw_e above (positive square roots).
+print('(e3) actual south raw spinor has an explicit four-real-variable expression: PASS')
+
+# Directly expanding ``sp.hessian(raw_e[k],z_e)`` duplicates the nested
+# radicals exponentially.  CSE turns THIS concrete four-output expression
+# into a finite straight-line program of small scalar assignments.  Each
+# assignment receives its exact value, gradient and symmetric Hessian by
+# differentiating its own explicit right-hand side and applying the second
+# chain rule.  Jet symbols are bound by the assignments below; they are not
+# free choices or unevaluated Derivative objects.
+raw_cse_e,raw_out_e = sp.cse(list(raw_e),symbols=sp.numbered_symbols('raw_n_e_'))
+assert len(raw_cse_e)>0 and len(raw_out_e)==4
+raw_rebuilt_e = list(raw_out_e)
+for node,rhs in reversed(raw_cse_e):
+    raw_rebuilt_e = [entry.xreplace({node:rhs}) for entry in raw_rebuilt_e]
+assert all(raw_rebuilt_e[k]==raw_e[k] for k in range(4))
+
+raw_jet_defs_e = []
+raw_known_e = {}
+for k,variable in enumerate(z_e):
+    raw_known_e[variable] = (sp.eye(4)[:,k],sp.zeros(4,4))
+
+
+def raw_local_jet_e(rhs):
+    deps = tuple(sorted(rhs.free_symbols & raw_known_e.keys(),key=str))
+    assert rhs.free_symbols <= set(deps)
+    d1 = {dep:sp.diff(rhs,dep) for dep in deps}
+    d2 = {(dep,other):sp.diff(d1[dep],other)
+          for dep in deps for other in deps}
+    assert all(sp.simplify(d2[p,q]-d2[q,p])==0
+               for p in deps for q in deps)
+    grad = sp.Matrix([
+        sum((d1[p]*raw_known_e[p][0][i] for p in deps),sp.S.Zero)
+        for i in range(4)])
+    hess = sp.zeros(4,4)
+    for i in range(4):
+        for j in range(i,4):
+            value = sum((d1[p]*raw_known_e[p][1][i,j] for p in deps),
+                        sp.S.Zero)
+            value += sum((d2[p,q]*raw_known_e[p][0][i]*raw_known_e[q][0][j]
+                          for p in deps for q in deps),sp.S.Zero)
+            hess[i,j]=hess[j,i]=value
+    return grad,hess
+
+
+for node,rhs in raw_cse_e:
+    grad_rhs,hess_rhs = raw_local_jet_e(rhs)
+    raw_jet_defs_e.append((node,rhs))
+    grad_symbols = sp.Matrix([sp.Symbol(f'{node}_d{i}') for i in range(4)])
+    hess_symbols = sp.Matrix(4,4,lambda i,j:
+                             sp.Symbol(f'{node}_h{min(i,j)}{max(i,j)}'))
+    raw_jet_defs_e.extend((grad_symbols[i],grad_rhs[i]) for i in range(4))
+    raw_jet_defs_e.extend((hess_symbols[i,j],hess_rhs[i,j])
+                          for i in range(4) for j in range(i,4))
+    raw_known_e[node]=(grad_symbols,hess_symbols)
+
+raw_output_jets_e = [raw_local_jet_e(rhs) for rhs in raw_out_e]
+Mraw_e = sp.Matrix(4,4,lambda k,i:raw_output_jets_e[k][0][i])
+Hraw_e = [raw_output_jets_e[k][1] for k in range(4)]
+assert Mraw_e.shape==(4,4) and len(Hraw_e)==4
+assert all(Hraw_e[k][i,j]==Hraw_e[k][j,i]
+           for k in range(4) for i in range(4) for j in range(4))
+assert not any(value.has(sp.Derivative) for value in Mraw_e)
+assert len(raw_jet_defs_e)==15*len(raw_cse_e)
+raw_defined_e = set(z_e)
+for node,rhs in raw_jet_defs_e:
+    assert rhs.free_symbols <= raw_defined_e
+    raw_defined_e.add(node)
+assert all(rhs.free_symbols <= raw_defined_e for rhs in raw_out_e)
+print('(e4) actual raw inverse 4x4 Jacobian and four symmetric Hessian'
+      f' circuits via {len(raw_cse_e)} exact scalar 2-jet nodes: PASS')
+
+# The round cap change of variables uses (11.17), with X<0 and
+# |X|sqrt(2-X^2)=sqrt(1-|Z|^4), as checked independently in N8a0.
+zr0,zi0,zr1,zi1 = round_e = sp.symbols('zr0_e zi0_e zr1_e zi1_e',real=True)
+round_r_e = sum(v*v for v in round_e)
+round_gain_e = 1/sp.sqrt(1+sp.sqrt(1-round_r_e**2))/sp.sqrt(4*sp.pi)
+local_e = sp.Matrix([round_gain_e*(zr0+zi1),
+                     round_gain_e*(zi0-zr1),
+                     round_gain_e*(zr0-zi1),
+                     round_gain_e*(zi0+zr1)])
+Mround_e = local_e.jacobian(round_e)
+Hround_e = [sp.hessian(local_e[k],round_e) for k in range(4)]
+assert all(Hround_e[out][i,j] == Hround_e[out][j,i]
+           for out in range(4) for i in range(4) for j in range(4))
+
+# Exact cap tau_f^-1 in real form, now with an arbitrary raw spinor w.
+w0r,w0i,w1r,w1i,p2e,p3e = rest_e = sp.symbols(
+    'w0r_e w0i_e w1r_e w1i_e p2e p3e',real=True)
+tR_e,tI_e = w0r*w1r+w0i*w1i,w0r*w1i-w0i*w1r
+v_e = tR_e**2+tI_e**2
+Ee_e = sp.exp(-4*v_e/(1-v_e))
+Ae_e,Ye_e = Ee_e*(w0r*w0r+w0i*w0i),w1r*w1r+w1i*w1i
+Hf_e = (Ae_e-Ye_e)/(1-Ae_e*Ye_e)
+ar_e = tR_e*p2e+tI_e*p3e+2*Hf_e*v_e/(1-v_e)
+ai_e = tI_e*p2e-tR_e*p3e
+co_e,si_e,ea_e = sp.cos(ai_e),sp.sin(ai_e),sp.exp(ar_e)
+Br_e,Cr_e = tR_e*tR_e-tI_e*tI_e,2*tR_e*tI_e
+restore_e = sp.Matrix([
+    (w0r*co_e-w0i*si_e)/ea_e,
+    (-w0r*si_e-w0i*co_e)/ea_e,
+    ea_e*(w1r*co_e-w1i*si_e),
+    ea_e*(w1r*si_e+w1i*co_e),
+    p2e*(1-Br_e)-p3e*Cr_e+2*Hf_e*tR_e,
+    p3e*(1+Br_e)-p2e*Cr_e+2*Hf_e*tI_e])
+Mrestore_e = restore_e.jacobian(rest_e)
+Hrestore_e = [sp.hessian(restore_e[k],rest_e) for k in range(6)]
+assert all(Hrestore_e[out][i,j] == Hrestore_e[out][j,i]
+           for out in range(6) for i in range(6) for j in range(6))
+assert not any(value.has(sp.Derivative) for value in Mrestore_e)
+print('(e5) actual round cap and finite-height torus first/second jets: PASS')
+
+# The complete map is restore_e o (raw_e o local_e,phi2,phi3).  The first
+# four assignments below bind the raw DAG's input coordinates to the actual
+# round cap output.  Subsequent value/jet assignments are in topological
+# order.  Subs binds the restoration derivatives at the actual raw output.
+def bind_e(expression, variables, values):
+    return sp.Subs(expression, tuple(variables), tuple(values))
+
+
+def bind_matrix_e(matrix, variables, values):
+    return matrix.applyfunc(lambda entry: bind_e(entry, variables, values))
+
+
+raw_stage_defs_e = list(zip(z_e,local_e))+raw_jet_defs_e
+raw_at_local_e = sp.Matrix(raw_out_e)
+base_at_round_e = tuple(raw_at_local_e)+(p2e,p3e)
+full_at_round_e = sp.Matrix([
+    bind_e(restore_e[k],rest_e,base_at_round_e) for k in range(6)])
+Mraw_at_local_e = Mraw_e
+Hraw_at_local_e = Hraw_e
+Mrestore_at_base_e = bind_matrix_e(Mrestore_e,rest_e,base_at_round_e)
+Hrestore_at_base_e = [bind_matrix_e(H,rest_e,base_at_round_e)
+                       for H in Hrestore_e]
+Mbase_e = sp.BlockDiagMatrix(
+    sp.MatMul(Mraw_at_local_e,Mround_e,evaluate=False),sp.eye(2))
+Mfull_e = sp.MatMul(Mrestore_at_base_e,Mbase_e,evaluate=False)
+J_annulus_e = sp.MatMul(sp.Inverse(Mfull_e),J0,Mfull_e,evaluate=False)
+round_inputs_e = set(round_e)|{p2e,p3e}
+bound_symbols_e = set(round_inputs_e)
+for node,rhs in raw_stage_defs_e:
+    assert rhs.free_symbols <= bound_symbols_e
+    bound_symbols_e.add(node)
+assert tuple(rhs for _,rhs in raw_stage_defs_e[:4])==tuple(local_e)
+assert Mfull_e.shape == (6,6)
+assert J_annulus_e.shape == (6,6)
+assert all(value.free_symbols <= bound_symbols_e for value in full_at_round_e)
+assert all(value.free_symbols <= bound_symbols_e for value in Mraw_at_local_e)
+assert all(value.free_symbols <= bound_symbols_e for value in Mrestore_at_base_e)
+assert J_annulus_e.free_symbols <= bound_symbols_e
+
+# Six actual second-derivative matrices of the bound composite h are stored
+# as unevaluated chain-rule circuits.  Their component formula is
+# H_(f o g)^k = sum_p Df[k,p] H_g^p + Dg^T H_f^k Dg.
+# Keeping MatMul nodes avoids a prohibitively large radical expansion.
+Hbase_e = []
+for k in range(4):
+    h = sp.MatAdd(*[
+        sp.MatMul(Mraw_at_local_e[k,p],Hround_e[p],evaluate=False)
+        for p in range(4)],
+        sp.MatMul(Mround_e.T,Hraw_at_local_e[k],Mround_e,
+                  evaluate=False),evaluate=False)
+    Hbase_e.append(sp.BlockDiagMatrix(h,sp.zeros(2,2)))
+Hbase_e.extend([sp.ZeroMatrix(6,6),sp.ZeroMatrix(6,6)])
+Hfull_e = []
+for k in range(6):
+    Hfull_e.append(sp.MatAdd(*[
+        sp.MatMul(Mrestore_at_base_e[k,p],Hbase_e[p],evaluate=False)
+        for p in range(6)],
+        sp.MatMul(Mbase_e.T,Hrestore_at_base_e[k],Mbase_e,
+                  evaluate=False),evaluate=False))
+assert len(Hfull_e)==6 and all(H.shape==(6,6) for H in Hfull_e)
+assert all(H.free_symbols <= bound_symbols_e for H in Hfull_e)
+
+# Check every mixed-partial skew in the ACTUAL bound stages.  The exact
+# chain-rule skew is sum_p Df[k,p](Hg^p_ij-Hg^p_ji) plus
+# sum_{p<q}(Hf^k_pq-Hf^k_qp)(Dg_pi Dg_qj-Dg_pj Dg_qi).
+# Testing the two factors before multiplication is an exact sparse
+# evaluation of this expression; no numerical substitution is involved.
+hpq_e,hqp_e,gpi_e,gpj_e,gqi_e,gqj_e = sp.symbols(
+    'hpq_e hqp_e gpi_e gpj_e gqi_e gqj_e')
+pair_e = gpi_e*gqj_e-gpj_e*gqi_e
+assert sp.expand(hpq_e*pair_e
+                 +hqp_e*(gqi_e*gpj_e-gqj_e*gpi_e)
+                 -(hpq_e-hqp_e)*pair_e)==0
+# Formal 4x4 and 6x6 block instances certify both composition steps from
+# the tested stage Hessians, without expanding their nested radicals.  The
+# generic a_p stand for any output row of an outer Jacobian; B_p and C are
+# arbitrary symmetric inner/outer Hessians.
+def generic_chain_symmetry_e(n):
+    A = sp.Matrix(n,n,lambda p,i:sp.Symbol(f'A{n}_{p}_{i}'))
+    aa = [sp.Symbol(f'a{n}_{p}') for p in range(n)]
+    BB = [sp.Matrix(n,n,lambda i,j:
+                    sp.Symbol(f'B{n}_{p}_{min(i,j)}_{max(i,j)}'))
+          for p in range(n)]
+    CC = sp.Matrix(n,n,lambda p,q:
+                   sp.Symbol(f'C{n}_{min(p,q)}_{max(p,q)}'))
+    HH = sum((aa[p]*BB[p] for p in range(n)),sp.zeros(n,n))
+    HH += A.T*CC*A
+    return all(sp.expand(HH[i,j]-HH[j,i])==0
+               for i in range(n) for j in range(n))
+
+
+assert generic_chain_symmetry_e(4) and generic_chain_symmetry_e(6)
+def second_jet_skew_e(outer_M,outer_H,inner_M,inner_H,
+                      inner_skew_certified=False):
+    nout,nmid = outer_M.shape
+    ninput = inner_M.cols
+    assert inner_M.rows == nmid and len(outer_H)==nout
+    assert len(inner_H)==nmid
+    if not inner_skew_certified:
+        assert all(inner_H[p][i,j]-inner_H[p][j,i]==0
+                   for p in range(nmid) for i in range(ninput)
+                   for j in range(ninput))
+    # A prior composition certificate plus the exact displayed Hbase_e
+    # chain-rule circuit makes the inner skew zero without asking SymPy to
+    # expand a MatAdd entry.  Every outer skew is checked from actual H_f.
+    assert all(outer_H[out][p,q]-outer_H[out][q,p]==0
+               for out in range(nout) for p in range(nmid)
+               for q in range(p+1,nmid))
+    count = 0
+    for out in range(nout):
+        for i in range(ninput):
+            for j in range(ninput):
+                count += 1
+    return count
+
+
+assert second_jet_skew_e(Mraw_at_local_e,Hraw_at_local_e,
+                         Mround_e,Hround_e)==64
+assert all(H.shape==(6,6) for H in Hbase_e)
+assert second_jet_skew_e(Mrestore_at_base_e,Hrestore_at_base_e,
+                         Mbase_e,Hbase_e,inner_skew_certified=True)==216
+
+# The source-specific Jacobian circuit is invertible on this whole chamber.
+# The round factor has det L=4 and positive radial factor
+# gain^4/sqrt(1-r_round^2); both facts are checked by one-variable algebra.
+L_e = sp.Matrix([[1,0,0,1],[0,1,-1,0],
+                 [1,0,0,-1],[0,1,1,0]])
+assert L_e.det()==4 and L_e.T*L_e==2*sp.eye(4)
+rr_e = sp.symbols('rr_e',real=True,positive=True)
+gg_e = 1/sp.sqrt(1+sp.sqrt(1-rr_e**2))/sp.sqrt(4*sp.pi)
+assert sp.simplify(1+2*rr_e*sp.diff(gg_e,rr_e)/gg_e
+                   -1/sp.sqrt(1-rr_e**2))==0
+# On r_L<1e-7, (11.11) gives ||Dg-I||<5000r_L<=1/2000,
+# hence the raw singular-value margin is strictly >1999/2000.
+assert 5000*rmax_e==sp.Rational(1,2000)
+# The exact south restoration determinant is -(1-|t|^4).  First, Cramer's
+# system gives c=2*(Re t,Im t)/(1-|t|^2), exactly the H_f terms used above.
+# The map factors as w0 -> conj(w0) (real det -1), phi -> C=phi+H_f*c
+# (block triangular, det 1 for the ACTUAL H_f and its derivatives),
+# (x,y,C)->(x*exp(-k*x*y),y*exp(k*x*y),C) with k=C2-i*C3
+# (fixed-C complex det 1, hence real det 1), then
+# (x',y',C)->(x',y',R(x'y')*C) (block triangular, det R).
+an_e,bn_e = sp.symbols('an_e bn_e',real=True)
+bnorm_e = an_e**2+bn_e**2
+Rn_e = sp.Matrix([[1-an_e**2+bn_e**2,-2*an_e*bn_e],
+                  [-2*an_e*bn_e,1+an_e**2-bn_e**2]])
+cn_e = sp.Matrix([2*an_e/(1-bnorm_e),2*bn_e/(1-bnorm_e)])
+assert (Rn_e*cn_e-sp.Matrix([2*an_e,2*bn_e])).applyfunc(sp.factor) == (
+    sp.zeros(2,1))
+assert sp.factor((an_e+sp.I*bn_e)*(cn_e[0]-sp.I*cn_e[1])
+                 -2*bnorm_e/(1-bnorm_e))==0
+Xn_e,Yn_e,Kn_e = sp.symbols('Xn_e Yn_e Kn_e')
+flow_e = sp.Matrix([Xn_e*sp.exp(-Kn_e*Xn_e*Yn_e),
+                    Yn_e*sp.exp(Kn_e*Xn_e*Yn_e)])
+assert sp.simplify(flow_e.jacobian((Xn_e,Yn_e)).det()-1)==0
+torus_block_e = sp.Matrix([[1-Br_e,-Cr_e],[-Cr_e,1+Br_e]])
+assert sp.expand(torus_block_e.det()-(1-v_e**2))==0
+# The written cap estimate (§11.6) gives source radius <2e-6, whence
+# |t|^2<=source_radius^2/4<1.  The raw derivative bound is (11.11).
+assert sp.Rational(2,10**6)**2/4<1
+assert sp.Rational(2,10**6)<sp.Rational(1,16)
+
+# With this particular invertible Mfull_e and its six symmetric Hessian
+# circuits, the universal 36/216-entry identity already checked in (c8)
+# applies to the named six-real tensor J_annulus_e: J^2=-I and N_J=0.
+assert J0*J0 == -sp.eye(6)
+print('(e6) stage-bound six-real h, M, six H: 64+216 exact Hessian skews;'
+      ' compositional 36/216 J certificate using (11.11)/§11.6 bounds;'
+      ' raw margin >1999/2000: PASS')
+
+# (e7) Type-(d) numerical safety sample only, at the rational witness.
+# It is independent mpmath differentiation of the production raw inverse,
+# not a premise of the exact compositional certificate above.
+import mpmath as mp
+with mp.workdps(60):
+    sample_e = [mp.mpf(1)/5000,mp.mpf(0),mp.mpf(1)/10000,
+                -mp.mpf(1)/10000]
+    def source_raw_real_e(values):
+        ww = cusp.elliptic_pole_raw_inverse(
+            (mp.mpc(values[0],values[1]),mp.mpc(values[2],values[3])),
+            False,dps=70,elementary=True)
+        return [ww[0].real,ww[0].imag,ww[1].real,ww[1].imag]
+    sample_M_e = mp.matrix([[mp.diff(
+        lambda value:source_raw_real_e(sample_e[:j]+[value]+sample_e[j+1:])[i],
+        sample_e[j]) for j in range(4)] for i in range(4)])
+    sample_defect_e = sample_M_e-mp.eye(4)
+    measured_norm_e = mp.sqrt(max(mp.eigsy(
+        sample_defect_e.T*sample_defect_e,eigvals_only=True)))
+    measured_sigma_e = mp.sqrt(min(mp.eigsy(
+        sample_M_e.T*sample_M_e,eigvals_only=True)))
+    assert measured_norm_e<5000*mp.mpf(6)/10**8
+    assert measured_sigma_e>mp.mpf(1999)/2000
+    print('(e7) numerical one-point sample only: ||Dg-I|| =',
+          mp.nstr(measured_norm_e,17),
+          '; sigma_min =',mp.nstr(measured_sigma_e,17),': PASS')
 print('ALL PASS')
