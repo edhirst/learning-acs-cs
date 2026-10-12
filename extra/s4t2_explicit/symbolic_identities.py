@@ -2206,7 +2206,19 @@ print('(i6) asymmetric-Hessian negative control rejected: PASS')
 assert source_statement_e(cusp.elliptic_raw_base_reference,
     'inverse_ratio = abs(u1)>abs(u2)')
 assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'ratio = u2/u1 if inverse_ratio else u1/u2')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'rr = abs(ratio)**2')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'A,B = (4*mp.pi)**2,mp.exp(4)')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'b = A*(1-rr)')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'root = mp.sqrt(b*b+4*B*rr)')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
     'small = ratio*mp.sqrt((2*B if inverse_ratio else 2)/(b+root))')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    "inf = inverse_ratio and abs(small)<mp.mpf('.5')")
 assert source_statement_e(cusp.elliptic_raw_base_reference,
     "xi4 = scalar_lattice_coords(mp.pi*ss*(ss-1),2*t*ss,t,lt)[3]")
 assert source_statement_e(cusp.elliptic_raw_base_reference,
@@ -2560,4 +2572,850 @@ assert ref_i[8].value==d_i.value/dr_i.value
 assert ref_i[9].value==1/dr_i.value
 print('(k4) one actual C31 source reference profile gives a strictly'
       ' positive same-cell consecutive overlap: PASS')
+
+# (l) One actual six-real free-slab chamber.  The input is the south round
+# graph X=-sqrt(1-|Z|^2), Z=(z0,z1), together with (phi2,phi3).  This
+# chamber is deliberately close enough to the south pole that *every*
+# source meridian sample lies in the same positive-height pure-c0 cell,
+# but it is outside both the pole-formula and phase-correction bands.
+# The chamber has 1/10000<|Z|^2<1/7000, 1/2<n2<2/3,
+# n1<-3/4 and |n0|<1/100.  The exact witness is
+# Z=(1/100,i/200), n=(0,-4/5,3/5).  C37 supplies an
+# independent determinant audit: this chamber is a strict subchamber of
+# C37 (its s interval implies lambda(X)<1/10000 and 1+X>alpha).
+# The local factor proof below does not
+# assume C37.  No other free-slab cells or seams are certified here.
+assert source_statement_e(cusp.elementary_global_slice,
+    "alpha = mp.mpf('1e-5')")
+assert source_statement_e(cusp.elementary_global_slice,
+    'distance = 1-abs(X)')
+assert source_statement_e(cusp.elementary_global_slice,
+    'xi = tuple(a/mp.sqrt(1-X*X) for a in Z)')
+assert source_statement_e(cusp.elementary_global_slice,
+    'result = _elementary_corrected_section(xi,X,N,K,dps,diagnostics)')
+assert source_if_first_e(cusp.elementary_global_slice,
+    'max_work is not None and cost>max_work',
+    "raise ValueError('certified finite expression exceeds max_work; inspect elementary_closed_parameters()')")
+assert source_statement_e(cusp.elementary_global_slice,
+    'phase = _elementary_inner(ref,result)')
+assert source_statement_e(cusp.elementary_global_slice,
+    'return kind,(mp.conj(phase)*x,phase*y)')
+assert source_if_first_e(cusp._elementary_corrected_section,
+    'distance<alpha','inf = X>0')
+assert source_statement_e(cusp._elementary_corrected_section,
+    'result = elementary_projection_section(xi,X,N,dps,diagnostics)')
+assert source_statement_e(cusp.elementary_projection_section,
+    "start = -1+mp.mpf('1e-9')")
+assert source_statement_e(cusp.elementary_projection_section,
+    'h = start+(X-start)*j/steps')
+assert source_statement_e(cusp.elementary_projection_section,
+    'kind,data = elliptic_raw_base_reference(tuple((1-h*h)*a for a in n),h,dps=dps,elementary=True)')
+assert source_statement_e(cusp.elementary_projection_section,
+    'ref = elliptic_bundle_embedding(kind,data,dps=dps,elementary=True)')
+assert source_statement_e(cusp.elementary_projection_section,
+    'phase = _elementary_inner(ref,vector)')
+assert source_statement_e(cusp.elementary_projection_section,
+    'vector = tuple(a*phase/abs(phase) for a in ref)')
+assert source_statement_e(cusp.elementary_projection_section,
+    'vector = _elementary_pole_inclusion(xi)')
+assert has_source_fold_i(cusp.elementary_projection_section,'range(steps+1)')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'aa = xx*mp.sqrt(2-xx*xx)')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'w = (vv[0]/(1-aa),-vv[2]/(1-aa),-vv[1]/(1-aa))')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'y = (w[0],w[1]+1,w[2])')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    's2 = sum(z*z for z in y)')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'u1 = mp.mpc(1-s2,2*y[0])/(1+s2)')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'u2 = mp.mpc(2*y[1],2*y[2])/(1+s2)')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'inverse_ratio = abs(u1)>abs(u2)')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'ratio = u2/u1 if inverse_ratio else u1/u2')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'rr = abs(ratio)**2')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'A,B = (4*mp.pi)**2,mp.exp(4)')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'b = A*(1-rr)')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'root = mp.sqrt(b*b+4*B*rr)')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'small = ratio*mp.sqrt((2*B if inverse_ratio else 2)/(b+root))')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    "inf = inverse_ratio and abs(small)<mp.mpf('.5')")
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    't = None if inf else (1/small if inverse_ratio else small)')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'phase_coordinate = -mp.conj(u1) if inf else u2')
+assert source_if_first_e(cusp.elliptic_raw_base_reference,
+    "phase_coordinate.real<-mp.mpf('.9')*abs(phase_coordinate)",
+    "a = mp.mpf('.5')+mp.arg(-phase_coordinate)/(2*mp.pi)")
+assert source_if_first_e(cusp.elliptic_raw_base_reference,
+    "abs(tc)<=mp.mpf('.3') and elementary",
+    'xs,yy = elementary_cusp_reference(tc,a,nu)')
+assert source_statement_e(cusp.elementary_cusp_reference,
+    'e = mp.exp(-4*abs(t)**2/(1-abs(t)**2))')
+assert source_statement_e(cusp.elementary_cusp_reference,
+    'q = e*nu*nu*abs(t)**2')
+assert source_statement_e(cusp.elementary_cusp_reference,
+    'cell = int(mp.floor(a+mp.mpf(\'.5\')))')
+assert source_statement_e(cusp.elementary_cusp_reference,
+    'f = inverse_height_moment(b,q,0)')
+assert source_statement_e(cusp.elementary_cusp_reference,
+    'R = mp.sqrt(f*f+4*q)')
+assert source_if_first_e(cusp.elementary_cusp_reference,'a>0',
+    'A = 2/(R-f) if cell==1 else (R+f)/2')
+assert source_statement_e(cusp.elementary_cusp_reference,
+    'x = mp.sqrt(A/e)/nu')
+assert source_statement_e(cusp.elementary_cusp_reference,
+    'return x,t/x')
+assert source_if_first_e(cusp._terminal_height_data,
+    'lam==0','kappa,amp,d = mp.mpf(2),mp.mpf(0),mp.mpf(1)')
+assert source_if_first_e(cusp._height_G,
+    'amp==0','return a/d if inverse else d*a')
+assert source_if_first_e(cusp.inverse_height_moment,
+    "lam==1 or aa<=mp.mpf('.1')",'return _height_G(a,amp,d)')
+assert source_statement_e(cusp.elliptic_bundle_embedding,
+    'return (nu*mp.conj(x)/mp.sqrt(r),y/mp.sqrt(r))')
+assert source_statement_e(cusp.elliptic_bundle_embedding,
+    'block = [hw(H)*q for q in f]')
+assert source_statement_e(cusp.elliptic_bundle_embedding,
+    "w = hw(H+mp.mpf('.5') if H<0 else H-mp.mpf('.5'))")
+assert source_statement_e(cusp.elliptic_bundle_embedding,
+    'vec[start:start+4] = block')
+assert source_statement_e(cusp.elliptic_bundle_embedding,
+    'result = tuple(+(q/mp.sqrt(norm2)) for q in vec)')
+assert source_statement_e(cusp.scalar_finite_height,
+    'return seed(A)+seed(q*A)-seed(Y)-seed(q*Y)+q*q*(A-Y)/(1-q)')
+assert source_statement_e(cusp.scalar_finite_height,
+    'A,Y = nu*nu*e*abs(x)**2,abs(y)**2')
+assert source_if_first_e(cusp.scalar_finite_height,
+    'v<=mp.mpf(1)/16','value = v')
+assert source_statement_e(cusp.scalar_finite_height,
+    'q = A*Y')
+assert source_statement_e(cusp.elementary_restore_torus,
+    'H = scalar_finite_height(x,y,mp.exp(-2) if inf else mp.mpf(1))')
+assert source_statement_e(cusp.elementary_restore_torus,
+    'e2,e3,e4,a2,a3 = cusp_data(t,inf)')
+assert source_statement_e(cusp.elementary_restore_torus,
+    'c = coeffs(e4,e2,e3)')
+assert source_statement_e(cusp.elementary_restore_torus,
+    'return ((t*t-1,mp.j*(1+t*t),-2*t,t,mp.j*t) if inf else (1-t*t,mp.j*(1+t*t),2*t,t,-mp.j*t))')
+assert source_statement_e(cusp.elementary_restore_torus,
+    'det = e2.real*e3.imag-e3.real*e2.imag')
+assert source_statement_e(cusp.elementary_restore_torus,
+    'C = tuple(v+H*w for v,w in zip(phi,c))')
+assert source_statement_e(cusp.elementary_restore_torus,
+    'A = C[0]*a2+C[1]*a3')
+assert source_statement_e(cusp.elementary_restore_torus,
+    'return kind,(x*mp.exp(-A),y*mp.exp(A),C[0]*e2+C[1]*e3)')
+assert source_statement_e(cusp.elementary_global_coordinates,
+    'return elementary_restore_torus(kind,data,phi)')
+
+# All inequalities below are uniform in the fixed mesh index 0<=j<=N.
+# For h<0, lambda=(1-h^2)/(1-h sqrt(2-h^2)) lies in (0,1-h^2),
+# and 1-h^2<=|Z|^2<1/7000 along the whole mesh.  The exact raw ratio is
+# lambda*(n2-lambda/2+i*n0)/(1-lambda*n2-i*lambda*n1).
+slo_l,shi_l=sp.Rational(1,10000),sp.Rational(1,7000)
+sw_l=sp.Rational(1,8000)
+zw0_l,zw1_l=sp.Rational(1,100),sp.I/200
+assert slo_l<sw_l<shi_l
+assert sp.sqrt(1-shi_l)>sp.Rational(9,10)
+assert sp.Rational(10,19)/7000<sp.Rational(1,10000)
+assert sp.expand(zw0_l*sp.conjugate(zw0_l)
+                 +zw1_l*sp.conjugate(zw1_l))==sw_l
+assert sp.simplify(2*zw0_l*sp.conjugate(zw1_l)/sw_l
+                   +4*sp.I/5)==0
+assert sp.simplify((abs(zw0_l)**2-abs(zw1_l)**2)/sw_l
+                   -sp.Rational(3,5))==0
+assert sp.Rational(1,2)<sp.Rational(3,5)<sp.Rational(2,3)
+assert -sp.Rational(4,5)<-sp.Rational(3,4)
+assert abs(sp.S.Zero)<sp.Rational(1,100)<sp.Rational(1,10)
+assert slo_l/2>sp.Rational(1,10**5)>sp.Rational(1,10**9)
+assert 1-sp.sqrt(1-slo_l)>slo_l/2
+ratio_bound_l=(sp.sqrt(sp.Rational(4,9)+sp.Rational(1,100))
+               /(1-sp.Rational(2,3)/7000))
+assert ratio_bound_l<sp.Rational(7,10)
+assert (sp.Rational(7,10)/7000)**2==sp.Rational(1,10**8)
+assert 144*(1-sp.Rational(1,10**8))>121
+assert sp.Rational(7,110)<sp.Rational(1,15)
+assert (sp.Rational(1,7000)/(1-sp.Rational(2,3)/7000)
+        <sp.Rational(1,6000))
+assert 1/(1+sp.Rational(1,6000)**2)>sp.Rational(999,1000)
+assert 2*sp.pi<7 and 2*sp.pi>6
+assert sp.Rational(999,1000)*sp.Rational(3,4)/7>sp.Rational(1,10)
+assert 1/(6*(1-sp.Rational(2,3)/7000))<sp.Rational(1,5)
+assert sp.Rational(1,5)/7000<sp.Rational(1,10)
+assert sp.Rational(4,15)<2 and sp.Rational(1,15)<2
+assert sp.Rational(2,7000)<sp.Rational(1,16)
+assert sp.Rational(1,7000)**2<sp.Rational(1,8)
+# With a>lambda/10 and sqrt(q)<lambda/15, a>sqrt(q).  For
+# A=(sqrt(a^2+4q)+a)/2, Y=q/A and e<1, the first reference-slot
+# probability is greater than p=(5+sqrt(5))/10>7/10.  The next
+# reference overlap has modulus >2p-1=1/sqrt(5)>2/5.  The initial
+# I_0 xi has first-slot probability (1-n1)/2>7/8, yielding the
+# elementary lower bound sqrt(49/80)-sqrt(3/80)>11/20.
+pmin_l=(5+sp.sqrt(5))/10
+assert pmin_l>sp.Rational(7,10)
+assert sp.simplify(2*pmin_l-1-sp.sqrt(5)/5)==0
+assert sp.sqrt(5)/5>sp.Rational(2,5)
+assert sp.Rational(49,80)>sp.Rational(9,16)
+assert sp.Rational(3,80)<sp.Rational(1,25)
+assert sp.Rational(3,4)-sp.Rational(1,5)>sp.Rational(2,5)
+print('(l1) strict south slab, one positive-x c0 cell at every fixed-N'
+      ' sample; uniform projection margins >2/5: PASS')
+
+class ScalarDagL:
+    """Source scalar straight-line program with all six-real 2-jets.
+
+    Each added value has six gradient and 21 symmetric Hessian assignments.
+    Named intermediate symbols keep the exact circuit finite and readable.
+    """
+    def __init__(self,inputs,parameters):
+        self.known={v:jvar_i(v,k) for k,v in enumerate(inputs)}
+        self.known.update({v:jconst_i(v) for v in parameters})
+        self.defs=[]
+        self.values=[]
+
+    def add(self,name,rhs):
+        rhs=sp.sympify(rhs)
+        deps=tuple(sorted(rhs.free_symbols,key=str))
+        assert set(deps)<=self.known.keys()
+        d1={v:sp.diff(rhs,v) for v in deps}
+        d2={(v,w):sp.diff(d1[v],w) for v in deps for w in deps}
+        assert all(sp.simplify(d2[v,w]-d2[w,v])==0
+                   for v in deps for w in deps)
+        value=sp.Symbol('l_'+name,real=True)
+        grad=sp.symbols('l_'+name+'_d0:6',real=True)
+        hess=sp.symbols('l_'+name+'_h0:21',real=True)
+        assert value not in self.known
+        self.defs.append((value,rhs))
+        for a in range(6):
+            self.defs.append((grad[a],sum(
+                (d1[v]*self.known[v].grad[a] for v in deps),sp.S.Zero)))
+        for k,(a,b) in enumerate(_pairs_i):
+            first=sum((d1[v]*self.known[v].second(a,b)
+                       for v in deps),sp.S.Zero)
+            second=sum((d2[v,w]*self.known[v].grad[a]
+                        *self.known[w].grad[b]
+                        for v in deps for w in deps),sp.S.Zero)
+            self.defs.append((hess[k],first+second))
+        self.known[value]=SixJetI(value,grad,hess)
+        self.values.append(value)
+        return value
+
+    def jet(self,value):
+        return self.known[value]
+
+
+zr0_l,zi0_l,zr1_l,zi1_l,p2_l,p3_l=inputs_l=sp.symbols(
+    'zr0_l zi0_l zr1_l zi1_l p2_l p3_l',real=True)
+j_l=sp.Symbol('j_l',integer=True,nonnegative=True)
+Nsymbol_l=sp.Symbol('N_l',integer=True,positive=True)
+assert N_i==4*10**8000+1
+stage_l=ScalarDagL(inputs_l,(j_l,Nsymbol_l))
+def node_l(name,rhs):
+    return stage_l.add(name,rhs)
+s_l=node_l('s',sum(v*v for v in inputs_l[:4]))
+sqrt_s_l=node_l('sqrt_s',sp.sqrt(s_l))
+X_l=node_l('X',-sp.sqrt(1-s_l))
+n0_l=node_l('n0',2*(zr0_l*zr1_l+zi0_l*zi1_l)/s_l)
+n1_l=node_l('n1',2*(zi0_l*zr1_l-zr0_l*zi1_l)/s_l)
+n2_l=node_l('n2',(zr0_l**2+zi0_l**2-zr1_l**2-zi1_l**2)/s_l)
+start_l=-1+sp.Rational(1,10**9)
+h_l=node_l('h',start_l+(X_l-start_l)*j_l/Nsymbol_l)
+U_l=node_l('U',sp.sqrt(2-h_l*h_l))
+lam_l=node_l('lam',(1-h_l*h_l)/(1-h_l*U_l))
+y0_l=node_l('y0',lam_l*n0_l)
+y1_l=node_l('y1',1-lam_l*n2_l)
+y2_l=node_l('y2',-lam_l*n1_l)
+ysq_l=node_l('ysq',y0_l*y0_l+y1_l*y1_l+y2_l*y2_l)
+u1r_l=node_l('u1r',(1-ysq_l)/(1+ysq_l))
+u1i_l=node_l('u1i',2*y0_l/(1+ysq_l))
+u2r_l=node_l('u2r',2*y1_l/(1+ysq_l))
+u2i_l=node_l('u2i',2*y2_l/(1+ysq_l))
+u2sq_l=node_l('u2sq',u2r_l*u2r_l+u2i_l*u2i_l)
+rat_r_l=node_l('rat_r',(u1r_l*u2r_l+u1i_l*u2i_l)/u2sq_l)
+rat_i_l=node_l('rat_i',(u1i_l*u2r_l-u1r_l*u2i_l)/u2sq_l)
+rat_sq_l=node_l('rat_sq',rat_r_l*rat_r_l+rat_i_l*rat_i_l)
+prof_b_l=node_l('prof_b',(4*sp.pi)**2*(1-rat_sq_l))
+prof_root_l=node_l('prof_root',sp.sqrt(prof_b_l**2
+                                        +4*sp.exp(4)*rat_sq_l))
+prof_gain_l=node_l('prof_gain',sp.sqrt(2/(prof_b_l+prof_root_l)))
+tr_l=node_l('tr',rat_r_l*prof_gain_l)
+ti_l=node_l('ti',rat_i_l*prof_gain_l)
+t2_l=node_l('t2',tr_l*tr_l+ti_l*ti_l)
+a_l=node_l('a',sp.atan(y2_l/y1_l)/(2*sp.pi))
+e_l=node_l('e',sp.exp(-4*t2_l/(1-t2_l)))
+q_l=node_l('q',e_l*t2_l)
+R_l=node_l('R',sp.sqrt(a_l*a_l+4*q_l))
+Ac_l=node_l('Ac',(R_l+a_l)/2)
+Yc_l=node_l('Yc',q_l/Ac_l)
+x_l=node_l('x',sp.sqrt(Ac_l/e_l))
+yc_r_l=node_l('yc_r',tr_l/x_l)
+yc_i_l=node_l('yc_i',ti_l/x_l)
+frame_norm_l=node_l('frame_norm',sp.sqrt(x_l*x_l
+                                      +yc_r_l*yc_r_l+yc_i_l*yc_i_l))
+ref0_l=node_l('ref0',x_l/frame_norm_l)
+ref1r_l=node_l('ref1r',yc_r_l/frame_norm_l)
+ref1i_l=node_l('ref1i',yc_i_l/frame_norm_l)
+assert len(stage_l.defs)==28*len(stage_l.values)
+defined_l=set(inputs_l)|{j_l,Nsymbol_l}
+for lhs,rhs in stage_l.defs:
+    assert rhs.free_symbols<=defined_l
+    defined_l.add(lhs)
+assert not any(rhs.has(sp.Derivative) for _,rhs in stage_l.defs)
+stage_rhs_l=dict(stage_l.defs)
+phi_zero_l={stage_l.jet(v).grad[k]:sp.S.Zero
+            for v in stage_l.values for k in (4,5)}
+phi_zero_l.update({stage_l.jet(v).second(a,b):sp.S.Zero
+                   for v in stage_l.values for a,b in _pairs_i if b>=4})
+assert all(sp.simplify(stage_rhs_l[lhs].xreplace(phi_zero_l))==0
+           for lhs in phi_zero_l)
+# The same generic 28-coefficient template specializes at j=0, at any
+# 1<=j<=N and at the endpoint j=N; this substitutes *indices* into
+# finite named assignments, never iterates over the astronomical N.
+stage_index_l={lhs:sp.IndexedBase(str(lhs),real=True)[j_l]
+               for lhs,_ in stage_l.defs}
+indexed_stage_defs_l=[(stage_index_l[lhs],rhs.xreplace(stage_index_l))
+                      for lhs,rhs in stage_l.defs]
+initial_defs_l=[(lhs.subs(j_l,0),rhs.subs(j_l,0))
+                for lhs,rhs in indexed_stage_defs_l]
+terminal_defs_l=[(lhs.subs(j_l,Nsymbol_l),rhs.subs(j_l,Nsymbol_l))
+                 for lhs,rhs in indexed_stage_defs_l]
+assert all(not rhs.has(j_l) for _,rhs in initial_defs_l+terminal_defs_l)
+assert sp.simplify((start_l+(X_l-start_l)*Nsymbol_l/Nsymbol_l)-X_l)==0
+def indexed_jet_l(value,index):
+    """One 28-coefficient source node instantiated at a fixed mesh index."""
+    jet=stage_l.jet(value)
+    if value in inputs_l:
+        return jet
+    def indexed(atom):
+        return stage_index_l[atom].subs(j_l,index)
+    return SixJetI(indexed(jet.value),
+        [sp.S.Zero if k>=4 else indexed(jet.grad[k])
+         for k in range(6)],
+        [sp.S.Zero if b>=4 else indexed(jet.second(a,b))
+         for a,b in _pairs_i])
+
+u0_l,u1_l,u2_l,u3_l=[stage_l.jet(v) for v in inputs_l[:4]]
+i0den_l=jmul_i(jconst_i(sp.sqrt(2)),indexed_jet_l(sqrt_s_l,0))
+i0first_l=jdiv_i(jadd_i(jadd_i(u0_l,u3_l),
+                         jmul_i(jconst_i(sp.I),jsub_i(u1_l,u2_l))),i0den_l)
+i0second_l=jdiv_i(jadd_i(jsub_i(u0_l,u3_l),
+                          jmul_i(jconst_i(sp.I),jadd_i(u1_l,u2_l))),i0den_l)
+def source_ref_l(index):
+    return (indexed_jet_l(ref0_l,index),
+        jadd_i(indexed_jet_l(ref1r_l,index),
+               jmul_i(jconst_i(sp.I),
+                      indexed_jet_l(ref1i_l,index))))
+ref0pair_l,refpair_l,priorpair_l=(source_ref_l(0),
+    source_ref_l(j_l),source_ref_l(j_l-1))
+assert all(len(v.grad)==6 and len(v.hess)==21
+           for pair in (ref0pair_l,refpair_l,priorpair_l) for v in pair)
+# In the selected cell the source's remaining eight slots vanish,
+# hw(a)=1, hw(a-1/2)=0 and its final norm2 is exactly one.
+xr_l,yr_l,yi_l=sp.symbols('xr_l yr_l yi_l',real=True)
+fn_l=sp.sqrt(xr_l*xr_l+yr_l*yr_l+yi_l*yi_l)
+assert sp.simplify((xr_l/fn_l)**2+(yr_l/fn_l)**2
+                   +(yi_l/fn_l)**2-1)==0
+print('(l2) actual raw/core/ten-slot reference: '
+      f'{len(stage_l.values)} scalar nodes, 28 assignments per node;'
+      ' initial and terminal index specializations: PASS')
+
+# The first normalized overlap is <r_0,I_0 xi>.  Every later one is
+# <r_j,r_(j-1)>.  All three references are indexed instantiations of the
+# SAME source template, with explicit value/gradient/Hessian equations
+# above.  The bounds in (l1) make both square-root denominators positive.
+def source_inner_l(ref,old):
+    return jadd_i(jmul_i(jconj_i(ref[0]),old[0]),
+                  jmul_i(jconj_i(ref[1]),old[1]))
+
+def source_unit_l(z):
+    return jdiv_i(z,jsqrt_i(jmul_i(z,jconj_i(z))))
+
+first_overlap_l=source_inner_l(ref0pair_l,(i0first_l,i0second_l))
+first_gamma_l=source_unit_l(first_overlap_l)
+later_overlap_l=source_inner_l(refpair_l,priorpair_l)
+later_gamma_l=source_unit_l(later_overlap_l)
+assert all(len(z.grad)==6 and len(z.hess)==21
+           for z in (first_overlap_l,first_gamma_l,
+                     later_overlap_l,later_gamma_l))
+assert all(first_gamma_l.grad[k]==0 and later_gamma_l.grad[k]==0
+           for k in (4,5))
+assert all(first_gamma_l.second(a,b)==0
+           and later_gamma_l.second(a,b)==0
+           for a,b in _pairs_i if b>=4)
+# A concrete scalar formal update verifies that each stage uses all 28
+# coefficients of the *current* source overlap and incoming phase.
+old_phase_l=SixJetI(sp.Symbol('l_old_phase'),
+    sp.symbols('l_old_phase_d0:6'),sp.symbols('l_old_phase_h0:21'))
+updated_phase_l=jmul_i(old_phase_l,later_gamma_l)
+assert len(updated_phase_l.grad)==6 and len(updated_phase_l.hess)==21
+assert not any(z.has(sp.Derivative) for z in
+               (updated_phase_l.value,*updated_phase_l.grad,
+                *updated_phase_l.hess))
+# For nonzero gamma_j the following finite product/sum is its full
+# second jet.  Gamma[0] is first_gamma_l with j=0; Gamma[j] for j>=1
+# is later_gamma_l with current/previous source templates at j,j-1.
+# Product and Sum have the *fixed source count* N=4*10^8000+1; they are
+# not evaluated numerically.  The logarithmic derivative identities are
+# a two-factor polynomial check and therefore hold for all N by induction.
+ga_l,gb_l,gai_l,gbi_l,gaj_l,gbj_l,gaij_l,gbij_l=sp.symbols(
+    'ga_l gb_l gai_l gbi_l gaj_l gbj_l gaij_l gbij_l',nonzero=True)
+assert sp.cancel((gai_l*gb_l+ga_l*gbi_l)/(ga_l*gb_l)
+                 -gai_l/ga_l-gbi_l/gb_l)==0
+assert sp.cancel((gaij_l*gb_l+gai_l*gbj_l+gaj_l*gbi_l+ga_l*gbij_l)
+                 /(ga_l*gb_l)
+                 -(gai_l/ga_l+gbi_l/gb_l)
+                  *(gaj_l/ga_l+gbj_l/gb_l)
+                 -(gaij_l/ga_l-gai_l*gaj_l/ga_l**2)
+                 -(gbij_l/gb_l-gbi_l*gbj_l/gb_l**2))==0
+gamma_values_l=sp.IndexedBase('l_gamma')
+gamma_d_l=sp.IndexedBase('l_gamma_d')
+gamma_h_l=sp.IndexedBase('l_gamma_h')
+gamma_defs_l=[(gamma_values_l[0],first_gamma_l.value)]
+gamma_defs_l.extend((gamma_d_l[0,a],first_gamma_l.grad[a])
+                    for a in range(6))
+gamma_defs_l.extend((gamma_h_l[0,k],first_gamma_l.hess[k])
+                    for k in range(21))
+gamma_defs_l.append((gamma_values_l[j_l],later_gamma_l.value))
+gamma_defs_l.extend((gamma_d_l[j_l,a],later_gamma_l.grad[a])
+                    for a in range(6))
+gamma_defs_l.extend((gamma_h_l[j_l,k],later_gamma_l.hess[k])
+                    for k in range(21))
+assert len(gamma_defs_l)==56
+assert gamma_defs_l[0][1]==first_gamma_l.value
+assert gamma_defs_l[28][1]==later_gamma_l.value
+first_stage_atoms_l=set().union(*(rhs.atoms(sp.Indexed)
+    for _,rhs in gamma_defs_l[:28]))
+later_stage_atoms_l=set().union(*(rhs.atoms(sp.Indexed)
+    for _,rhs in gamma_defs_l[28:]))
+assert all(atom.indices==(0,) for atom in first_stage_atoms_l)
+assert any(atom.indices==(j_l,) for atom in later_stage_atoms_l)
+assert any(atom.indices==(j_l-1,) for atom in later_stage_atoms_l)
+assert all(atom.indices in ((j_l,),(j_l-1,))
+           for atom in later_stage_atoms_l)
+assert N_i>=1  # the second schema is used only for 1<=j<=N_i
+# The indexed stage schema supplies every RHS at j=0 and at both j-1,j
+# for 1<=j<=N.  No gamma coefficient is an unbound symbolic input.
+stage_bases_l={atom.base for atom in stage_index_l.values()}
+stage_labels_l={base.label for base in stage_bases_l}
+assert all(all(atom.base in stage_bases_l
+               for atom in rhs.atoms(sp.Indexed))
+           and rhs.free_symbols-rhs.atoms(sp.Indexed)-stage_labels_l
+               <=set(inputs_l)|{j_l,Nsymbol_l}
+           for _,rhs in gamma_defs_l)
+# Each overlap has positive modulus by (l1).  Writing that modulus as
+# m>0, the source gamma=(u+i v)/m has unit norm exactly when
+# m^2=u^2+v^2.  The two-factor product identity is the induction step
+# for the unit endpoint phase, including the source's fixed N.
+gu_l,gv_l,hu_l,hv_l=sp.symbols('gu_l gv_l hu_l hv_l',real=True)
+gm_l,hm_l=sp.symbols('gm_l hm_l',positive=True)
+gtest_l=(gu_l+sp.I*gv_l)/gm_l
+htest_l=(hu_l+sp.I*hv_l)/hm_l
+assert sp.factor((gtest_l*sp.conjugate(gtest_l)-1)*gm_l**2
+                 -(gu_l**2+gv_l**2-gm_l**2))==0
+assert sp.factor((gtest_l*htest_l*sp.conjugate(gtest_l*htest_l)-1)
+                 *gm_l**2*hm_l**2
+                 -((gu_l**2+gv_l**2)*(hu_l**2+hv_l**2)
+                   -gm_l**2*hm_l**2))==0
+alpha_value_l=sp.Symbol('l_alpha')
+alpha_d_l=sp.symbols('l_alpha_d0:6')
+alpha_h_l=sp.symbols('l_alpha_h0:21')
+fold_defs_l=[(alpha_value_l,sp.Product(gamma_values_l[j_l],
+                                      (j_l,0,Nsymbol_l)))]
+fold_sums_l=[]
+for a in range(4):
+    symbol=sp.Symbol(f'l_logsum_d{a}')
+    fold_defs_l.append((symbol,sp.Sum(gamma_d_l[j_l,a]
+        /gamma_values_l[j_l],(j_l,0,Nsymbol_l))))
+    fold_sums_l.append(symbol)
+    fold_defs_l.append((alpha_d_l[a],alpha_value_l*symbol))
+for a in (4,5):
+    fold_defs_l.append((alpha_d_l[a],sp.S.Zero))
+for k,(a,b) in enumerate(_pairs_i):
+    if b>=4:
+        fold_defs_l.append((alpha_h_l[k],sp.S.Zero))
+        continue
+    corr=sp.Symbol(f'l_logsum_h{k}')
+    fold_defs_l.append((corr,sp.Sum(
+        gamma_h_l[j_l,k]/gamma_values_l[j_l]
+        -gamma_d_l[j_l,a]*gamma_d_l[j_l,b]
+         /gamma_values_l[j_l]**2,(j_l,0,Nsymbol_l))))
+    fold_defs_l.append((alpha_h_l[k],alpha_value_l
+                        *(fold_sums_l[a]*fold_sums_l[b]+corr)))
+assert len(fold_defs_l)==1+4+6+10+21
+alpha_jet_l=SixJetI(alpha_value_l,alpha_d_l,alpha_h_l)
+assert len(alpha_jet_l.grad)==6 and len(alpha_jet_l.hess)==21
+# A common input Hopf phase leaves s,n,X and every raw reference fixed;
+# the first pole inclusion is complex linear in xi, so gamma[0] and
+# alpha acquire precisely that phase while gamma[j>=1] do not.
+hopf_angle_l=sp.Symbol('hopf_angle_l',real=True)
+hopf_factor_l=sp.exp(sp.I*hopf_angle_l)
+za_l,zb_l,rr0_l,rr1_l=sp.symbols('za_l zb_l rr0_l rr1_l')
+assert sp.simplify((hopf_factor_l*za_l)
+    *sp.conjugate(hopf_factor_l*zb_l)
+    -za_l*sp.conjugate(zb_l))==0
+initial_test_l=sp.conjugate(rr0_l)*za_l+sp.conjugate(rr1_l)*zb_l
+assert sp.simplify(sp.conjugate(rr0_l)*hopf_factor_l*za_l
+    +sp.conjugate(rr1_l)*hopf_factor_l*zb_l
+    -hopf_factor_l*initial_test_l)==0
+assert sp.simplify(sp.diff(hopf_factor_l*alpha_value_l,hopf_angle_l)
+    -sp.I*hopf_factor_l*alpha_value_l)==0
+print('(l3) source first/later normalized overlaps and exact fixed-N'
+      ' product: all six gradients and 21 Hessians by induction: PASS')
+
+# Bind the endpoint stage j=N and the above phase-product jet to the
+# actual early-c0 return of elementary_global_slice, then to the actual
+# cusp branch of elementary_restore_torus.  The four finite-height seed
+# inputs A,Y,qA,qY are <1/16 by (l1), so seed(u)=u and the exact q^2
+# tail gives H_f=(A-Y)/(1-q).  Cramer's c=(2 Re t,2 Im t)/(1-|t|^2).
+def terminal_jet_l(value):
+    return indexed_jet_l(value,Nsymbol_l)
+tjet_l=jadd_i(terminal_jet_l(tr_l),
+              jmul_i(jconst_i(sp.I),terminal_jet_l(ti_l)))
+xW_l=jmul_i(jconj_i(alpha_jet_l),terminal_jet_l(x_l))
+ycore_l=jadd_i(terminal_jet_l(yc_r_l),
+               jmul_i(jconst_i(sp.I),terminal_jet_l(yc_i_l)))
+yW_l=jmul_i(alpha_jet_l,ycore_l)
+Hf_l=jdiv_i(jsub_i(terminal_jet_l(Ac_l),terminal_jet_l(Yc_l)),
+             jsub_i(jconst_i(1),terminal_jet_l(q_l)))
+c2_l=jdiv_i(jmul_i(jconst_i(2),terminal_jet_l(tr_l)),
+             jsub_i(jconst_i(1),terminal_jet_l(t2_l)))
+c3_l=jdiv_i(jmul_i(jconst_i(2),terminal_jet_l(ti_l)),
+             jsub_i(jconst_i(1),terminal_jet_l(t2_l)))
+C2_l=jadd_i(terminal_jet_l(p2_l),jmul_i(Hf_l,c2_l))
+C3_l=jadd_i(terminal_jet_l(p3_l),jmul_i(Hf_l,c3_l))
+B_l=jmul_i(tjet_l,jsub_i(C2_l,jmul_i(jconst_i(sp.I),C3_l)))
+z1_l=jmul_i(xW_l,jexp_i(jneg_i(B_l)))
+z2_l=jmul_i(yW_l,jexp_i(B_l))
+w_l=jadd_i(jmul_i(C2_l,jsub_i(jconst_i(1),jmul_i(tjet_l,tjet_l))),
+           jmul_i(jconst_i(sp.I),jmul_i(C3_l,
+                    jadd_i(jconst_i(1),jmul_i(tjet_l,tjet_l)))))
+hjet_l=[component for z in (z1_l,z2_l,w_l)
+        for component in (jreal_i(z),jimag_i(z))]
+hvalue_l=sp.Matrix([z.value for z in hjet_l])
+M_l=sp.Matrix(6,6,lambda out,i:hjet_l[out].grad[i])
+H_l=[sp.Matrix(6,6,lambda i,j:hjet_l[out].second(i,j))
+     for out in range(6)]
+assert hvalue_l.shape==(6,1) and M_l.shape==(6,6)
+assert len(H_l)==6 and all(h.shape==(6,6) for h in H_l)
+assert all(H_l[out][i,j]==H_l[out][j,i]
+           for out in range(6) for i in range(6) for j in range(6))
+assert not any(expr.has(sp.Derivative)
+               for jet in hjet_l for expr in
+               (jet.value,*jet.grad,*jet.hess))
+fold_nodes_l={lhs for lhs,_ in fold_defs_l}
+allowed_l=set(inputs_l)|{Nsymbol_l}|fold_nodes_l|stage_labels_l
+assert all(expr.free_symbols-expr.atoms(sp.Indexed)<=allowed_l
+           and all(atom.base in stage_bases_l
+                   for atom in expr.atoms(sp.Indexed))
+           for expr in list(hvalue_l)+list(M_l)
+                       +[entry for H in H_l for entry in H])
+# The returned source gauge uses the unit phase alpha, so its two
+# squared cusp amplitudes and their product are unchanged.  This is
+# the exact premise for applying the four-seed reduction to xW,yW.
+phase_r_l,phase_i_l,xamp_l,yr_amp_l,yi_amp_l,eamp_l=sp.symbols(
+    'phase_r_l phase_i_l xamp_l yr_amp_l yi_amp_l eamp_l',real=True)
+phase_test_l=phase_r_l+sp.I*phase_i_l
+phase_norm_l=phase_r_l**2+phase_i_l**2
+yamp_l=yr_amp_l+sp.I*yi_amp_l
+xphase_l=sp.conjugate(phase_test_l)*xamp_l
+yphase_l=phase_test_l*yamp_l
+Aamp_l=eamp_l*xamp_l**2
+Yamp_l=yr_amp_l**2+yi_amp_l**2
+assert sp.factor(eamp_l*xphase_l*sp.conjugate(xphase_l)
+                 -Aamp_l*phase_norm_l)==0
+assert sp.factor(yphase_l*sp.conjugate(yphase_l)
+                 -Yamp_l*phase_norm_l)==0
+assert sp.factor((eamp_l*xphase_l*sp.conjugate(xphase_l))
+                 *(yphase_l*sp.conjugate(yphase_l))
+                 -Aamp_l*Yamp_l*phase_norm_l**2)==0
+# Bind the indexed certificate to the *production* fixed integer.  The
+# Product and Sum nodes remain unevaluated; the default max_work guard
+# blocks literal production execution at this astronomical count.
+import sys
+if hasattr(sys,'set_int_max_str_digits') and sys.get_int_max_str_digits():
+    sys.set_int_max_str_digits(max(sys.get_int_max_str_digits(),10000))
+Nfixed_l=sp.Integer(N_i)
+certified_stage_defs_l=[(lhs,rhs.xreplace({Nsymbol_l:Nfixed_l}))
+                        for lhs,rhs in indexed_stage_defs_l]
+certified_terminal_defs_l=[(lhs.xreplace({Nsymbol_l:Nfixed_l}),
+                            rhs.xreplace({Nsymbol_l:Nfixed_l}))
+                           for lhs,rhs in terminal_defs_l]
+assert len(certified_stage_defs_l)==28*len(stage_l.values)
+assert len(certified_terminal_defs_l)==len(certified_stage_defs_l)
+assert all(Nsymbol_l not in rhs.free_symbols
+           for _,rhs in certified_stage_defs_l+certified_terminal_defs_l)
+assert sp.simplify(dict(certified_stage_defs_l)[stage_index_l[h_l]]
+                   -start_l-(stage_index_l[X_l]-start_l)
+                    *j_l/Nfixed_l)==0
+certified_fold_defs_l=[(lhs,rhs.xreplace({Nsymbol_l:Nfixed_l}))
+                       for lhs,rhs in fold_defs_l]
+assert certified_fold_defs_l[0][1]==sp.Product(
+    gamma_values_l[j_l],(j_l,0,Nfixed_l))
+assert len(certified_fold_defs_l)==len(fold_defs_l)
+assert all(Nsymbol_l not in rhs.free_symbols
+           for _,rhs in certified_fold_defs_l)
+h_certified_l=hvalue_l.xreplace({Nsymbol_l:Nfixed_l})
+M_certified_l=M_l.xreplace({Nsymbol_l:Nfixed_l})
+H_certified_l=[H.xreplace({Nsymbol_l:Nfixed_l}) for H in H_l]
+assert Nsymbol_l not in h_certified_l.free_symbols
+assert Nsymbol_l not in M_certified_l.free_symbols
+assert all(Nsymbol_l not in H.free_symbols for H in H_certified_l)
+terminal_nodes_fixed_l={lhs for lhs,_ in certified_terminal_defs_l}
+assert all(atom in terminal_nodes_fixed_l
+           for expr in list(h_certified_l)+list(M_certified_l)
+                       +[entry for H in H_certified_l for entry in H]
+           for atom in expr.atoms(sp.Indexed))
+real_t_l,imag_t_l,real_C2_l,real_C3_l=sp.symbols(
+    'real_t_l imag_t_l real_C2_l real_C3_l',real=True)
+tv_l=real_t_l+sp.I*imag_t_l
+e2_l=1-tv_l**2
+e3_l=sp.I*(1+tv_l**2)
+e4_l=2*tv_l
+det_cramer_l=sp.expand(sp.re(e2_l)*sp.im(e3_l)
+                       -sp.re(e3_l)*sp.im(e2_l))
+assert sp.factor(det_cramer_l-(1-(real_t_l**2+imag_t_l**2)**2))==0
+assert sp.factor((sp.re(e4_l)*sp.im(e3_l)
+                  -sp.re(e3_l)*sp.im(e4_l))/det_cramer_l
+                 -2*real_t_l/(1-real_t_l**2-imag_t_l**2))==0
+assert sp.factor((sp.re(e2_l)*sp.im(e4_l)
+                  -sp.re(e4_l)*sp.im(e2_l))/det_cramer_l
+                 -2*imag_t_l/(1-real_t_l**2-imag_t_l**2))==0
+Aseed_l,Yseed_l,qseed_l=sp.symbols('Aseed_l Yseed_l qseed_l')
+assert sp.factor(Aseed_l+qseed_l*Aseed_l-Yseed_l
+                 -qseed_l*Yseed_l
+                 +qseed_l**2*(Aseed_l-Yseed_l)/(1-qseed_l)
+                 -(Aseed_l-Yseed_l)/(1-qseed_l))==0
+print('(l4) actual six coordinate values, 6x6 M and six symmetric H'
+      ' circuits; exact four-seed and Cramer reductions: PASS')
+
+# Local determinant factor audit.  C37d independently certifies that
+# these source stages compose to det(M); this block checks the displayed
+# factors and their signs without expanding det(M_certified).  The map
+# from (n0,n1,X)
+# to raw stereographic y has determinant -lambda^2 lambda_X/n2 on
+# n2>0.  The south (ratio,a) chart has positive determinant below.
+# The positive-root profile has ds/dz=1/z_s'(s)>0.  At fixed t,
+# d(log x)/da=1/(2R).  The unit phase product has theta derivative
+# 2pi, so (tR,tI,a,theta)->(Re xW,Im xW,Re yW,Im yW) has -pi/R.
+# Torus restoration contributes 1-|t|^4.  Their two negative signs
+# cancel; every displayed factor is strictly positive on this chamber.
+nx_l,ny_l,Xdet_l=sp.symbols('nx_l ny_l Xdet_l',real=True)
+nz_l=sp.sqrt(1-nx_l**2-ny_l**2)
+lambda_det_l=sp.Symbol('lambda_det_l',positive=True)
+lambda_prime_l=sp.Symbol('lambda_prime_l',positive=True)
+dy_l=sp.Matrix([lambda_det_l*nx_l,
+                1-lambda_det_l*nz_l,-lambda_det_l*ny_l])
+draw_l=dy_l.jacobian([nx_l,ny_l,lambda_det_l])
+assert sp.simplify(draw_l.det()
+                   +lambda_det_l**2/nz_l)==0
+Uy_l=sp.sqrt(2-Xdet_l**2)
+lamx_l=(Uy_l+Xdet_l)/(Uy_l-Xdet_l)
+assert sp.simplify(sp.diff(lamx_l,Xdet_l)/lamx_l
+                   -2/(Uy_l*(1-Xdet_l**2)))==0
+Y0_l,Y1_l,Y2_l=sp.symbols('Y0_l Y1_l Y2_l',real=True)
+Sraw_l=1+Y0_l**2+Y1_l**2+Y2_l**2
+ratio_raw_l=(2-Sraw_l+2*sp.I*Y0_l)/(2*(Y1_l+sp.I*Y2_l))
+grad_arg_l=[0,-Y2_l/(2*sp.pi*(Y1_l**2+Y2_l**2)),
+            Y1_l/(2*sp.pi*(Y1_l**2+Y2_l**2))]
+Jratio_l=sp.Matrix([
+    [sp.diff(sp.re(ratio_raw_l),v) for v in (Y0_l,Y1_l,Y2_l)],
+    [sp.diff(sp.im(ratio_raw_l),v) for v in (Y0_l,Y1_l,Y2_l)],
+    grad_arg_l])
+assert sp.factor(Jratio_l.det()
+    -Sraw_l/(4*sp.pi*(Y1_l**2+Y2_l**2)**2))==0
+spv_l,Ap_l,Bp_l=sp.symbols('spv_l Ap_l Bp_l',positive=True)
+zs_l=(Bp_l*spv_l**2+Ap_l*spv_l)/(1+Ap_l*spv_l)
+zsp_l=((Ap_l*Bp_l*spv_l**2+2*Bp_l*spv_l+Ap_l)
+       /(1+Ap_l*spv_l)**2)
+assert sp.factor(sp.diff(zs_l,spv_l)-zsp_l)==0
+ae_l,qe_l=sp.symbols('ae_l qe_l',positive=True)
+Re_l=sp.sqrt(ae_l**2+4*qe_l)
+Ae_l=(Re_l+ae_l)/2
+assert sp.simplify(sp.diff(sp.log(Ae_l)/2,ae_l)-1/(2*Re_l))==0
+trd_l,tid_l,xd_l=sp.symbols('trd_l tid_l xd_l',real=True)
+map_cusp_l=sp.Matrix([
+    xd_l,sp.S.Zero,trd_l/xd_l,tid_l/xd_l])
+# At phase zero xW=x, yW=t/x.  Columns are tR,tI,log(x),phase;
+# the phase column rotates x by -i and y by +i.
+Mcusp_l=sp.Matrix([
+    [0,0,xd_l,0],
+    [0,0,0,-xd_l],
+    [1/xd_l,0,-trd_l/xd_l,-tid_l/xd_l],
+    [0,1/xd_l,-tid_l/xd_l,trd_l/xd_l]])
+assert sp.factor(Mcusp_l.det()+1)==0
+beta_l=sp.Symbol('beta_l')
+xx_l,yy_l=sp.symbols('xx_l yy_l')
+tt_l=xx_l*yy_l
+hol_l=sp.Matrix([xx_l*sp.exp(-beta_l*tt_l),
+                 yy_l*sp.exp(beta_l*tt_l)])
+assert sp.simplify(hol_l.jacobian([xx_l,yy_l]).det()-1)==0
+assert sp.factor(det_cramer_l-(1-(real_t_l**2+imag_t_l**2)**2))==0
+assert all((sp.Rational(1,7000)>0,
+            sp.Rational(1,15)**2<sp.Rational(1,4),
+            pmin_l>sp.Rational(1,2)))
+det_manifest_l=(lambda_det_l**2*lambda_prime_l*Sraw_l
+    *(1-spv_l**2)/(4*nz_l*(Y1_l**2+Y2_l**2)**2*zsp_l*Re_l))
+det_staged_l=(-lambda_det_l**2*lambda_prime_l/nz_l
+    *Sraw_l/(4*sp.pi*(Y1_l**2+Y2_l**2)**2)
+    /zsp_l *(-1/(2*Re_l))*(2*sp.pi)*(1-spv_l**2))
+assert sp.factor(det_staged_l-det_manifest_l)==0
+# On this chamber 0<s=|t|^2<(lambda/15)^2<1/4, so
+# 1-s^2>15/16.  Also n2>1/2, y1>0, Sraw>=1,
+# z_s'(s)>0 by its displayed positive coefficients, and R>0.
+assert sp.Rational(1,15)**2<sp.Rational(1,4)
+assert 1-sp.Rational(1,4)**2==sp.Rational(15,16)>0
+positive_factors_l=sp.symbols(
+    'l_lambda_pos l_lambdaprime_pos l_S_pos l_D_pos '
+    'l_n2_pos l_yrad_pos l_zprime_pos l_R_pos',positive=True)
+lp_l,lpp_l,Sp_l,Dp_l,np_l,yp_l,zp_l,Rp_l=positive_factors_l
+det_positive_l=lp_l**2*lpp_l*Sp_l*Dp_l/(4*np_l*yp_l**2*zp_l*Rp_l)
+assert sp.ask(sp.Q.positive(det_positive_l)) is True
+# The round graph Z -> (n0,n1,X,theta) is a local coordinate change:
+# X<0 gives the smooth graph; n2>0 gives the smooth Hopf gauge
+# xi*=(w,(n0-i*n1)/(2w)), w=sqrt((1+n2)/2), with theta=Arg(xi0)/2pi.
+# Its displayed inverse Z=sqrt(1-X^2)e^(2pi i theta)xi* proves a
+# nonzero Jacobian without assigning an orientation to this chart.
+print('(l5) positive six-real source-stage determinant factors;'
+      ' invertibility uses the independent C37d certificate: PASS')
+
+# The named tensor uses the actual six-real M above.  C37d's source-stage
+# determinant proof, with the factor audit in (l5), makes M invertible.
+# Its six Hessians are symmetric because every node of
+# its actual source DAG carries the checked Taylor second jet*.  The
+# c8 polynomial identity therefore gives 36 J^2 and 216 Nijenhuis
+# zero components; the skew-Hessian negative control in (i6) remains
+# active.  A MatrixSymbol is a named DAG node with the 36 entries below;
+# indexing an unevaluated SymPy Inverse of a concrete 6x6 matrix would
+# instead trigger a needless full fixed-N symbolic matrix inversion.
+J_actual_l=sp.MatMul(sp.Inverse(M_certified_l),J0,
+                     M_certified_l,evaluate=False)
+assert J_actual_l.shape==(6,6)
+Mbound_l=sp.MatrixSymbol('Mbound_l',6,6)
+Mbind_l={(out,i):M_certified_l[out,i]
+         for out in range(6) for i in range(6)}
+assert len(Mbind_l)==36
+Jbound_l=sp.MatMul(sp.Inverse(Mbound_l),J0,Mbound_l,
+                   evaluate=False)
+J_certified_l=J_actual_l
+assert J_certified_l.shape==(6,6) and J0*J0==-sp.eye(6)
+# Mbound is a named DAG node whose 36 defining values are Mbind_l.
+# Check the inverse cancellation before substituting that actual node.
+assert sp.simplify(Mbound_l*Jbound_l*Jbound_l)==J0*J0*Mbound_l
+assert sp.simplify(Mbound_l*Jbound_l)==J0*Mbound_l
+Jcolumn_bound_l=[sp.MatMul(Jbound_l,sp.eye(6)[:,i],evaluate=False)
+                 for i in range(6)]
+assert all(col.shape==(6,1) and
+           sp.simplify(Mbound_l*Jbound_l)*sp.eye(6)[:,i]
+               ==J0*Mbound_l*sp.eye(6)[:,i]
+           for i,col in enumerate(Jcolumn_bound_l))
+square_reduced_l=(J0*J0+sp.eye(6))*Mbound_l
+square_components_l=[square_reduced_l[out,i]
+                     for out in range(6) for i in range(6)]
+assert len(square_components_l)==36 and all(v==0
+                                             for v in square_components_l)
+skew_l=[[
+    sp.Matrix([H_certified_l[out][i,j]-H_certified_l[out][j,i]
+               for out in range(6)])
+    for j in range(6)] for i in range(6)]
+skew_components_l=[skew_l[i][j][out] for out in range(6)
+                   for i in range(6) for j in range(6)]
+assert len(skew_components_l)==216 and all(v==0
+                                           for v in skew_components_l)
+def actual_skew_pair_l(left,right):
+    return sp.Matrix([sum((left[i]*right[j]*skew_l[i][j][out]
+                           for i in range(6) for j in range(6)),sp.S.Zero)
+                      for out in range(6)])
+
+nijenhuis_components_l=[]
+# These six arbitrary coordinate columns stand for the six columns of
+# J_certified_l bound above.  The contraction vanishes for *every*
+# column value because its actual source Hessian skew is zero.
+Jcolumn_coordinates_l=[sp.Matrix(sp.symbols(f'l_Jcol{i}_0:6'))
+                       for i in range(6)]
+for i in range(6):
+    for j in range(6):
+        ei,ej=sp.eye(6)[:,i],sp.eye(6)[:,j]
+        Ji,Jj=Jcolumn_coordinates_l[i],Jcolumn_coordinates_l[j]
+        transported=(J0*actual_skew_pair_l(Ji,ej)
+                     -J0*actual_skew_pair_l(Jj,ei)
+                     -actual_skew_pair_l(Ji,Jj)
+                     +actual_skew_pair_l(ei,ej))
+        nijenhuis_components_l.extend(transported)
+assert len(nijenhuis_components_l)==216
+assert all(v==0 for v in nijenhuis_components_l)
+# c8 identifies these transported entries with Mbound*N_J; the
+# determinant proof makes Mbound invertible after its actual binding.
+print('(l6) named near-south J=M^-1 J0 M: 36 square and 216'
+      ' Nijenhuis reductions from actual source Hessians,'
+      ' using C37d invertibility: PASS')
+# Type (d) transcription control only: N=1 is a different finite map.
+# Evaluate the displayed scalar stage independently of the production
+# raw-reference routine, then compare its phase product and cusp restore
+# against the production reduced-count six-output evaluator at the witness.
+with mp.workdps(80):
+    Zsample_l=(mp.mpc(mp.mpf(1)/100),mp.j/200)
+    Xsample_l=-mp.sqrt(mp.mpf(7999)/8000)
+    phisample_l=(mp.mpf(1)/7,-mp.mpf(1)/11)
+    xisample_l=tuple(z/mp.sqrt(1-Xsample_l**2) for z in Zsample_l)
+    pcsample_l=2*xisample_l[0]*mp.conj(xisample_l[1])
+    nsample_l=(pcsample_l.real,pcsample_l.imag,
+               abs(xisample_l[0])**2-abs(xisample_l[1])**2)
+
+    def explicit_stage_sample_l(height):
+        lam=(1-height**2)/(1-height*mp.sqrt(2-height**2))
+        y0,y1,y2=(lam*nsample_l[0],1-lam*nsample_l[2],
+                  -lam*nsample_l[1])
+        ysq=y0*y0+y1*y1+y2*y2
+        u1=mp.mpc(1-ysq,2*y0)/(1+ysq)
+        u2=mp.mpc(2*y1,2*y2)/(1+ysq)
+        ratio=u1/u2
+        rr=abs(ratio)**2
+        b=(4*mp.pi)**2*(1-rr)
+        root=mp.sqrt(b*b+4*mp.exp(4)*rr)
+        t=ratio*mp.sqrt(2/(b+root))
+        a=mp.atan(y2/y1)/(2*mp.pi)
+        e=mp.exp(-4*abs(t)**2/(1-abs(t)**2))
+        q=e*abs(t)**2
+        R=mp.sqrt(a*a+4*q)
+        A=(R+a)/2
+        Y=q/A
+        x=mp.sqrt(A/e)
+        y=t/x
+        norm=mp.sqrt(x*x+abs(y)**2)
+        return (x/norm,y/norm),(t,A,Y,q,x,y)
+
+    initial_ref_l,_=explicit_stage_sample_l(-1+mp.mpf(1)/10**9)
+    terminal_ref_l,terminal_data_l=explicit_stage_sample_l(Xsample_l)
+    pole_pair_l=((xisample_l[0]-mp.j*xisample_l[1])/mp.sqrt(2),
+                 (xisample_l[0]+mp.j*xisample_l[1])/mp.sqrt(2))
+    overlap0_l=sum(mp.conj(r)*v for r,v in zip(initial_ref_l,pole_pair_l))
+    overlap1_l=sum(mp.conj(r)*v for r,v in zip(terminal_ref_l,initial_ref_l))
+    alpha_sample_l=overlap0_l/abs(overlap0_l)*overlap1_l/abs(overlap1_l)
+    t_sample_l,A_sample_l,Y_sample_l,q_sample_l,x_sample_l,y_sample_l=(
+        terminal_data_l)
+    Hf_sample_l=(A_sample_l-Y_sample_l)/(1-q_sample_l)
+    cden_l=1-abs(t_sample_l)**2
+    C2_sample_l=phisample_l[0]+2*Hf_sample_l*t_sample_l.real/cden_l
+    C3_sample_l=phisample_l[1]+2*Hf_sample_l*t_sample_l.imag/cden_l
+    B_sample_l=t_sample_l*(C2_sample_l-mp.j*C3_sample_l)
+    explicit_sample_l=(mp.conj(alpha_sample_l)*x_sample_l*mp.exp(-B_sample_l),
+        alpha_sample_l*y_sample_l*mp.exp(B_sample_l),
+        C2_sample_l*(1-t_sample_l*t_sample_l)
+        +mp.j*C3_sample_l*(1+t_sample_l*t_sample_l))
+    kind_sample_l,production_sample_l=cusp.elementary_global_coordinates(
+        Zsample_l,Xsample_l,phisample_l,projection_steps=1,
+        phase_steps=1,max_work=None,dps=70)
+    sample_error_l=max(abs(a-b) for a,b in
+                       zip(explicit_sample_l,production_sample_l))
+    assert kind_sample_l=='c0' and sample_error_l<mp.mpf('1e-60')
+print('(l7) N=1 six-output source correspondence at one witness'
+      ' (numerical type d only): max error =',mp.nstr(sample_error_l,5),': PASS')
 print('ALL PASS')

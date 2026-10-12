@@ -392,6 +392,15 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   \(a/(1-q)\), and the actual adapted six-real Jacobian has a
   manifest positive factorization. The six Hessians, named tensor,
   other cells and global direct verification remain open.
+  **One complete local free-slab tensor (2026-10-12-TSG-18):**
+  section (l) of symbolic_identities.py follows the actual source
+  through every meridian index on a strict subchamber of C37. It
+  constructs the finite normalized-overlap product, its exact
+  six-variable second jet, the six-real map \(h\), its Jacobian and
+  six Hessians, and the named \(J=(Dh)^{-1}J_0Dh\). C37 proves the
+  determinant nonzero there; the 36 square and 216 Nijenhuis
+  reductions pass. The other source cells and global overlap
+  checks required by T16 remain open.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.

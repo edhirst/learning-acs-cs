@@ -71,6 +71,11 @@
 > compose to a source-linked six-real \(J\) circuit on one strict open
 > radial-transition chamber. Its compositional second-jet and
 > \(J^2/N_J\) checks pass; the rest of the shell and free slab remain open.
+> **All-mesh free-slab audit (2026-10-12-TSG-18):** a strict near-south
+> chamber now has the source's actual fixed-count projection expressed as
+> a finite indexed product, with a six-real value, Jacobian, six Hessians,
+> and named \(J=M^{-1}J_0M\). The local \(J^2\) and Nijenhuis reductions
+> pass. Other free-slab cells and global overlap coverage remain open.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
 > **Resume point: complete T16's exact branch circuit and second-jet checks, then simplify the fixed counts.**
 
@@ -2934,6 +2939,7 @@ derivatives are numerical observations, type (d).
 | symbolic_identities.py (j1–j5), pure-middle negative-real log cut (a,b,d) | On the strict wedge \(1/2<|t|^2<3/4,\ \Re t<0,\ |\Im t|<-\Re t\), the source raw representative has an exact meridian witness and the canonical Cramer coordinate changes by \(\xi_4^+=\xi_4^-+1\) under \(L^+=L^-+2\pi i\). The sole active projector is \(E_{99}\) on both sides, with equal two-jets. Given a common nonzero endpoint vector, the corrected middle \(W\) data agree after the explicit \(e_1+e_4\) deck change: ALL PASS. The Cramer determinant is \(>3/2\). At \(t=-3/4\), its exact excess above \(225/128\) is \(175\log(4/3)/256>0\); the separately labelled one-point numerical value is \(0.196657666715085\). The final \(W\) comparison depends on the finite-fold denominator and endpoint premises; other paths and seams remain open. |
 | symbolic_identities.py (k1–k4), exact finite scalar phase fold (a,b) | For unit source references \(r_j\), the production \(N+1\) rank-one updates give \(E=r_N(c_0/|c_0|)\prod_{j=1}^N(c_j/|c_j|)\), where \(c_0=\langle r_0,I_0\xi\rangle\) and \(c_j=\langle r_j,r_{j-1}\rangle\). Source AST, one-step algebra, induction at the certified exact \(N\), all 28 coefficients of a six-variable scalar-phase second-jet update, variable-reference gauge telescoping, and local argument/deck changes pass: ALL PASS. The actual C31 pure-middle same-cell reference gives one manifest positive adjacent overlap. This formula is conditional on nonzero source overlaps and valid reference jets along the whole path; it does not yet supply the full free-slab \(h\) or \(J\). |
 
+| symbolic_identities.py (l1–l7), one all-mesh south free-slab tensor (a,b,c,d) | On the strict open chamber \(10^{-4}<|Z|^2<1/7000,\ |n_0|<1/100,\ n_1<-3/4,\ 1/2<n_2<2/3,\ X=-\sqrt{1-|Z|^2}\), the actual source meridian remains in one positive-\(x\) cusp cell for every \(0\le j\le N=4\cdot10^{8000}+1\). Forty scalar nodes carry six gradients and 21 symmetric Hessians each. The exact normalized-overlap product, source endpoint gauge, four-seed height, and torus restoration define the six-real \(h,M=Dh,D^2h\) and \(J=M^{-1}J_0M\); its 36 square and 216 Nijenhuis reductions pass: ALL PASS. C37d proves \(\det M\ne0\) on this subchamber. The independent local factor audit gives \(1-|t|^4>15/16\). The \(N=1\) six-output source comparison is a separately labelled one-point numerical transcription check, not a certified-count execution. Other free-slab cells and global gluing remain open. |
 | N8, cap/source comparison (d) | three high-precision inner-cap values per sign: maximum coordinate errors \(1.1\cdot10^{-72}\) south and \(1.1\cdot10^{-75}\) north; these samples guard transcription only |
 | New terminal-cut height, C23d | 132 value/deck/collar cases and 108 seam jets through order three: error 6.4·10⁻⁸⁶; sampled f_a∈[.466903,6.682791] versus proved type-(c) bound (11.13c) |
 | New two-way height and forward evaluator, numerical | 276 cell/seam/axis/node compositions, error 1.0·10⁻⁵⁶; 38 reduced-count cap/free, exact half-cell seam, deck/lattice and independent-source compositions, error 1.2·10⁻⁵⁴ |
@@ -3026,6 +3032,63 @@ These are uniform symbolic bounds at the certified count. The numerical
 sample in the table checks transcription only. The production
 evaluator's default work guard stops a literal run at this count;
 the checker proves the source-defined finite expression by induction.
+
+Section (l) of the symbolic checker composes this source path all the way to
+the specific local tensor. Write \(r=|Z|^2\), \(X=-\sqrt{1-r}\),
+\(\xi=Z/\sqrt r\), and \(n=\operatorname{Hopf}(\xi)\). On its stated open
+subchamber, \(1+X>r/2>1/20000>10^{-5}\), and
+\(\Lambda(X)<r/(1+|X|)<(10/19)/7000<10^{-4}\), so every C37 branch
+and overlap bound applies. With
+\(h_j=-1+10^{-9}+(X+1-10^{-9})j/N\), let \(r_j\) be the normalized
+ten-slot source reference at \(h_j\). Its only nonzero entries are
+\((x_j,t_j/x_j)/\sqrt{x_j^2+|t_j/x_j|^2}\) in slots 0 and 1;
+the forty scalar assignments in (l2) give \(x_j,t_j\) by positive
+roots from the displayed raw \(y\), ratio and cusp height formulas.
+Define
+\[
+ \gamma_0=
+ \frac{\langle r_0,I_0\xi\rangle}{|\langle r_0,I_0\xi\rangle|},
+ \qquad
+ \gamma_j=
+ \frac{\langle r_j,r_{j-1}\rangle}
+      {|\langle r_j,r_{j-1}\rangle|}\quad(1\le j\le N),
+ \qquad \alpha=\prod_{j=0}^{N}\gamma_j .
+\]
+C37 proves the denominators are uniformly \(>3/5\), including at
+the production integer \(N=4\cdot10^{8000}+1\). The checker assigns
+all six first and 21 independent second derivatives to every source
+stage and overlap. In particular, for real input indices \(i,k\),
+\[
+ \alpha_i=\alpha\sum_{j=0}^{N}\frac{\gamma_{j,i}}{\gamma_j},
+ \qquad
+ \alpha_{ik}=\alpha\left[
+  \left(\sum_{j=0}^{N}\frac{\gamma_{j,i}}{\gamma_j}\right)
+  \left(\sum_{j=0}^{N}\frac{\gamma_{j,k}}{\gamma_j}\right)
+  +\sum_{j=0}^{N}\left(
+   \frac{\gamma_{j,ik}}{\gamma_j}
+   -\frac{\gamma_{j,i}\gamma_{j,k}}{\gamma_j^2}\right)\right].
+\]
+At the endpoint put \(x_W=\overline\alpha x_N\),
+\(y_W=\alpha t_N/x_N\), \(t=x_Wy_W=t_N\),
+\(q=e^{-4|t|^2/(1-|t|^2)}|t|^2\), and
+\(H_f=(e^{-4|t|^2/(1-|t|^2)}|x_W|^2-|y_W|^2)/(1-q)\).
+For \(C=\phi+2H_f(\Re t,\Im t)/(1-|t|^2)\) and
+\(B=t(C_2-iC_3)\), the exact source output on this chamber is
+\[
+ h=(x_We^{-B},\,y_We^B,\,
+       C_2(1-t^2)+iC_3(1+t^2)),\qquad
+ J=(Dh)^{-1}J_0Dh .
+\]
+The script constructs \(Dh\) and all six Hessians in the input order
+\((\Re Z_0,\Im Z_0,\Re Z_1,\Im Z_1,\phi_2,\phi_3)\).
+The positive C37 determinant makes the inverse legitimate. Its
+actual symmetric Hessians, the checked 36 square reductions and
+216 transported Nijenhuis reductions give a direct executable
+certificate on this open cell. The one-point \(N=1\) source
+comparison checks transcription only; the exact production-count
+claim is the finite product and its induction, not a literal run
+of the astronomical loop. No global overlap claim follows from
+this local computation.
 
 On the checked south raw-pole annulus, write \(r=|Z_0|^2+|Z_1|^2\) and
 \(z_L=(Z_0-iZ_1,Z_0+iZ_1)/\sqrt{4\pi(1+\sqrt{1-r^2})}\). Let \(w=g_0(z_L)\)
@@ -3130,12 +3193,14 @@ radical expression. N9 identifies the raw cap projector with the source
 reference and verifies the overlap algebra and jets, using the existing
 analytic cap and phase bounds. Thus these scripts do **not** yet constitute a
 direct executable verification of the specific \(J_{\mathrm{cl}}\) on all of
-the round \(S^4\times T^2\). The free-slab reference and embedding, remaining
-height/selector cells, remaining collar seams, and their source-code
-correspondence still need a single exact branch circuit and second-jet audit.
-N10 supplies the nonidentity radial shell's two explicit scalar inverse
-functions and their radial first/second jets; it does not compose them with
-the raw pole inverse and torus restoration or compute a shell \(J\).
+the round \(S^4\times T^2\). Section (l) now supplies the actual complete
+free-slab \(J\) circuit on one strict chamber. The other free-slab
+reference, height and selector cells, remaining collar and source-chart
+seams, and their second-jet correspondence are still open. N10 supplies
+the nonidentity radial shell's two explicit scalar inverse functions
+and their radial first/second jets; (g) and (h) compose them with the
+respective raw pole inverse and torus restoration on one strict
+transition chamber per sign. The remaining shell cells are open.
 The global \(J^2=-I\) and \(N_J=0\) conclusion above continues to use the
 written diffeomorphism/gluing certificate and the generic C10 identity.
 

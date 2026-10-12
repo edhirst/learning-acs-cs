@@ -2036,3 +2036,42 @@ in `AGENTS.md` §5.
 - **Open points:** C37 supplies no six Hessians or named \(J\).
   Other free-slab cells, seams, and the global direct
   \(J_{\mathrm{cl}}\) verification remain open.
+
+### 2026-10-12-TSG-18 — Verify one source-bound all-mesh free-slab tensor
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** d0f1822
+- **Where:** extra/s4t2_explicit/symbolic_identities.py (l),
+  docs/s4t2_symbolic_programme.md status and certificate, and
+  SYMBOLIC_CAMPAIGN.md T16 status. No manuscript or construction
+  file changed.
+- **Change:** composed the actual source meridian reference and
+  fixed \(N=4\cdot10^{8000}+1\) normalized projection product on
+  one strict south free-slab chamber. Forty source scalar nodes
+  have six first and 21 symmetric second-jet assignments each.
+  The initial and later overlap schemas and their exact product
+  induction give the endpoint gauge; the source four-seed height,
+  Cramer correction and torus restoration then give a six-real
+  \(h\), its \(6\times6\) Jacobian \(M\), six Hessians, and the
+  named unevaluated concrete \(J=M^{-1}J_0M\). The 36 square
+  and 216 Nijenhuis reductions use these actual Hessians and
+  the checked c8 algebraic identity. The previously checked
+  C37d determinant proves \(M\) invertible on this subchamber.
+- **Why:** this is a direct executable symbolic check of the
+  specific tensor on an open free-slab cell, including the
+  source's astronomical fixed projection count.
+- **Verification:** symbolic_identities.py (l1–l7): **ALL PASS**
+  on a full run. The independently checked C37a–d source
+  chamber and determinant give the nonzero Jacobian. The
+  separate type-(d) \(N=1\) six-output source comparison has
+  error \(5.6882\cdot10^{-81}\); it is a transcription check
+  of a different finite map, not a certified-count execution.
+  verify_construction.py: all checks passed; sphere_products.py:
+  Dimension 8 check passed; git diff --check: pass. LaTeX:
+  **not run** (latexmk unavailable). Git fetch/pull and push
+  were left to the collaborator as requested.
+- **Open points:** only one strict south free-slab chamber is
+  certified here. Other free-slab cells, chart seams, and the
+  global direct \(J_{\mathrm{cl}}\) verification remain open.
