@@ -2209,3 +2209,57 @@ in `AGENTS.md` §5.
   certificate does not execute the global fixed-count loop.
   Other source seams and global \(J_{\mathrm{cl}}\) coverage
   remain open.
+
+### 2026-10-12-TSG-22 — Check a north flat infinity selector join
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** e38ba92
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (C40a–f),
+  docs/s4t2_symbolic_programme.md status, §11.8 and certificate,
+  and SYMBOLIC_CAMPAIGN.md T16 status. No manuscript or
+  construction file changed.
+- **Change:** checked one north \(|\mathrm{small}|=1/2\)
+  source selector chamber with exact round witnesses at
+  \(s=499/1000,1/2,501/1000\). The infinity-side
+  height and sparse ten-slot projector have matching
+  second jets with the middle side at this flat seam.
+  The terminal-height identity at \(\lambda=1\),
+  source Cramer signs, flat radial and embedding weights,
+  mixed projector jets, local phase cancellation and
+  strict four-seed torus domain are checked. The
+  final phase/restoration join is conditional on matching
+  finite-fold endpoint jets, a nonzero final phase,
+  and nonzero projection denominators. A two-point
+  type-(d) production sample reports margins.
+- **Why:** a global direct tensor certificate needs exact
+  second-jet joins at source selectors, including the
+  normal derivative at flat boundaries.
+- **Verification:** chart_identities.py C40a–f, including
+  c2 and c3: **ALL PASS** on the author's and my
+  independent full runs.
+  An independent referee re-derived the Cramer, height,
+  flat cutoff, projector, phase and torus algebra and
+  audited the conditional scope. Proven bounds are
+  \(q>1/2025\), Cramer \(>30\), torus \(>9/10\),
+  and norm square \(>1/4\). The two-point type-(d)
+  minimum observed excesses are respectively
+  \(0.000709386291679574016\),
+  \(19.9925817884944262\), \(0.036998497999\)
+  and \(0.783279071736023484\); the left strict
+  interior height difference is
+  \(-1.37624625388097242\cdot10^{-87}\) at
+  190 digits. verify_construction.py: all checks passed;
+  sphere_products.py: Dimension 8 check passed;
+  git diff --check: pass. LaTeX: **not run**
+  (latexmk unavailable). Git fetch/pull and push were
+  left to the collaborator as requested.
+- **Open points:** intermediate meridian projector joins
+  and their simultaneous intersections are not covered by
+  C40. The fixed-count global \(J_{\mathrm{cl}}\) direct
+  second-jet certificate remains open. The next unchecked
+  targets recorded in the T16 task list are the cusp/middle
+  \(|t_c|=3/10\) join at both signs, the pure-middle
+  \(|t|=1\) join and its argument-cut corner, and the
+  all-branch guarded six-real circuit.

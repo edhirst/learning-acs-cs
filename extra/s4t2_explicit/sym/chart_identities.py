@@ -4838,5 +4838,583 @@ with mp39.workdps(80):
 rep('C39e one-point production margins (numerical observation, d)',
     sample_ok39)
 
+# C40: the production `inf` selector at |small|=1/2.  This is a FLAT
+# two-jet join, not equality of the two raw formulas on an open overlap.
+# Work in the strict inverse-ratio, north-collar angular chamber
+# Arg(u1)=pi/4, Arg(t)=pi/3, a=Arg(-conj(u1))/(2pi)=3/8.
+# Write s=|small|, t=1/small, r=|t|=1/s and P=log(e^-2 s)-2s^2/(1-s^2).
+# The left source gives rho=elementary_cusp_logradius(a,small,e^-2),
+# while the right source uses the ordinary middle branch.  Source AST
+# guards below bind each formula used in this local certificate.
+terminal_forward_tree40 = source_tree30(cusp30._height_terminal_forward)
+radial_tree40 = source_tree30(cusp30._height_R)
+selector_source40 = (
+    source_collar34 and source_torus35 and project_source30
+    and matching_assignment30(raw_tree31,'inf',
+        "inverse_ratio and abs(small)<mp.mpf('.5')")
+    and matching_assignment30(raw_tree31,'t',
+        'None if inf else (1/small if inverse_ratio else small)')
+    and matching_if_test32(raw_tree31,"inf or abs(t)<mp.mpf('.5')")
+    and matching_assignment30(raw_tree31,'tc','small if inf else t')
+    and matching_assignment30(raw_tree31,'phase_coordinate',
+        '-mp.conj(u1) if inf else u2')
+    and matching_assignment30(raw_tree31,'nu',
+        "mp.exp(-2) if inf else mp.mpf(1)")
+    and matching_statement31(raw_tree31,'if inf:\n    t = 1/tc')
+    and matching_statement31(raw_tree31,
+        'if inf:\n    zm,wm = -mp.j*rho,mp.mpc(0)\n'
+        'else:\n    ss = lt/(2*mp.j*mp.pi)\n'
+        '    zm,wm = -mp.j*rho+mp.pi*ss*(ss-1),2*t*ss')
+    and matching_assignment30(raw_tree31,'lam',
+        "1-scalar_flat_step((r-mp.mpf('1.2'))/mp.mpf('.4'))")
+    and matching_if_test32(raw_tree31,'r<=1')
+    and matching_assignment30(raw_tree31,'a2',
+        '-mp.arg(u1)/(2*mp.pi)+lam*delta+(1-lam)/2')
+    and matching_assignment30(raw_tree31,'four',
+        "-a2-mp.mpf('.5')")
+    and matching_assignment30(logradius_tree34,'P',
+        'mp.log(nu)+mp.log(r)-2*r*r/(1-r*r)')
+    and matching_assignment30(logradius_tree34,'q','mp.exp(2*P)')
+    and matching_assignment30(logradius_tree34,'lam',
+        "scalar_flat_step((r-mp.mpf('.3'))/mp.mpf('.2'))")
+    and exact_if_body37(logradius_tree34,'lam==1',
+        "return +(P*(a+mp.mpf('.5')))")
+    and matching_statement31(flat_tree38,
+        'a,b = mp.exp(-1/u),mp.exp(-1/(1-u))')
+    and exact_if_body37(flat_tree38,'u>=1','return mp.mpf(1)')
+    and returned_expr30(flat_tree38,'a/(a+b)')
+    and matching_assignment30(bundle_tree32,'bi',
+        "1-scalar_flat_step((1/r-mp.mpf('.3'))/mp.mpf('.2'))")
+    and matching_assignment30(bundle_tree32,'bm','1-b0-bi')
+    and matching_assignment30(bundle_tree32,'angle',
+        'mp.arg(t if index==0 else -t)')
+    and matching_assignment30(bundle_tree32,'weight',
+        '1-scalar_flat_step((abs(angle)-mp.pi/2)/(mp.pi/4))')
+    and matching_statement31(bundle_tree32,
+        'vec[8+index]=bm*weight*mp.exp(mp.j*(2*mp.pi*one'
+        '-(angle+centre-lt.imag)*four))')
+    and matching_statement31(restore_tree30,'C = list(phi)')
+    and matching_statement31(restore_tree30,
+        'C = [v+beta*d for v,d in zip(C,D)]')
+    and returned_expr30(slice_tree30,
+        'kind,(t,one+mp.arg(phase)/(2*mp.pi),four,lt)'))
+
+# The inf Cramer right-hand side is (z,w)=(-i*rho,0).  With
+# eta=rho/P and t=x+i*y, its exact coordinates are
+# (eta*phi/(2pi),-2eta*x/(r^2-1),-2eta*y/(r^2-1),-eta).
+xr40,yr40,L40,phi40,eta40 = sp.symbols(
+    'xr40 yr40 L40 phi40 eta40',real=True)
+t40 = xr40+sp.I*yr40
+r2_40 = xr40**2+yr40**2
+lt40 = L40+sp.I*phi40
+P40 = -L40-2*r2_40/(r2_40-1)
+one40 = eta40*phi40/(2*sp.pi)
+c2_40 = -2*eta40*xr40/(r2_40-1)
+c3_40 = -2*eta40*yr40/(r2_40-1)
+four40 = -eta40
+z40 = (2*sp.pi*one40-sp.I*t40*c2_40-t40*c3_40
+       -sp.I*lt40*four40)
+w40 = ((1-t40**2)*c2_40+sp.I*(1+t40**2)*c3_40
+       +2*t40*four40)
+det40 = (1+r2_40)*(L40*(r2_40-1)+2*r2_40)
+ez40 = (-sp.I*t40,-t40,-sp.I*lt40)
+ew40 = (1-t40**2,sp.I*(1+t40**2),2*t40)
+cramer_matrix40 = sp.Matrix((
+    [sp.im(sp.expand(v)) for v in ez40],
+    [sp.re(sp.expand(v)) for v in ew40],
+    [sp.im(sp.expand(v)) for v in ew40]))
+cramer40 = (
+    sp.factor(z40+sp.I*eta40*P40)==0
+    and sp.factor(w40)==0
+    and sp.factor(cramer_matrix40.det()-det40)==0
+    and sp.Rational(1000,501)>sp.Rational(19,10)
+    and 2*(1+sp.Rational(19,10)**2)*sp.Rational(19,10)**2>30
+    and 1-sp.Rational(501,1000)**4>sp.Rational(9,10))
+rep('C40a source inf/middle guards and exact Cramer signs; det>30',
+    selector_source40 and cramer40)
+
+# Exact round witnesses on both strict sides and at the seam.  Put
+# p=s^2, A=(4pi)^2, B=e^4, and
+# kappa^2=p(p+A)/(Ap+B).  For u1=e^(i*pi/4)/sqrt(1+kappa^2),
+# u2=kappa*e^(-i*pi/12)/sqrt(1+kappa^2), the source inverse-ratio
+# positive square root gives small=s*e^(-i*pi/3).  The identity below
+# checks the positive discriminant, not just its square.
+p40,A40,B40 = sp.symbols('p40 A40 B40',positive=True)
+ratio_sq40 = p40*(p40+A40)/(A40*p40+B40)
+bprof40 = A40*(1-ratio_sq40)
+Dprof40 = (A40*B40+A40*p40**2+2*B40*p40)/(A40*p40+B40)
+profile40 = (
+    sp.factor(Dprof40**2-bprof40**2-4*B40*ratio_sq40)==0
+    and sp.factor(ratio_sq40*2*B40/(bprof40+Dprof40)-p40)==0
+    and sp.factor(sp.diff(ratio_sq40,p40)
+        -Dprof40/(A40*p40+B40))==0
+    and sp.factor(sp.diff(ratio_sq40,A40)
+        -p40*(B40-p40**2)/(A40*p40+B40)**2)==0
+    and sp.factor(sp.diff(ratio_sq40,B40)
+        +p40*(p40+A40)/(A40*p40+B40)**2)==0)
+low_ratio40 = ratio_sq40.subs(
+    {p40:sp.Rational(6,25),A40:144,B40:55})
+high_ratio40 = ratio_sq40.subs(
+    {p40:sp.Rational(13,50),A40:160,B40:50})
+# For B<55, sum_{n=0}^4 1/n!=65/24 and the remaining terms obey
+# 1/(5+k)! <= (1/120)6^(-k), with strict inequality for k>=2.
+# Their geometric sum is 1/100, so e<65/24+1/100<68/25.
+elementary_bounds40 = (
+    sp.pi>3 and sp.pi<sp.Rational(22,7)
+    and 144<(4*sp.pi)**2<160
+    and sp.E>sp.Rational(8,3)
+    and sp.Rational(8,3)**4>50
+    and sp.Rational(65,24)+sp.Rational(1,100)<sp.Rational(68,25)
+    and sp.E<sp.Rational(68,25)
+    and sp.Rational(68,25)**4<55
+    and sp.Rational(9,25)<low_ratio40<high_ratio40<sp.Rational(49,100)
+    and 50-sp.Rational(13,50)**2>0
+    and sp.factor(sp.diff(4*p40/(1-p40),p40)
+                  -4/(1-p40)**2)==0
+    and 4*sp.Rational(13,50)/(1-sp.Rational(13,50))
+        ==sp.Rational(52,37)
+    and sp.Rational(6,25)/(3**5*2)==sp.Rational(1,2025)
+    and sp.Rational(52,37)<sp.Rational(3,2)
+    and sp.exp(sp.Rational(11,2))<3**5*2
+    and sp.Rational(1,2025)>sp.Rational(1,2500)
+    and sp.Rational(13,50)/50<sp.Rational(1,8))
+q_profile40 = p40*sp.exp(-4-4*p40/(1-p40))
+height_domain40 = (
+    sp.simplify(sp.exp(2*(-2+sp.log(sp.sqrt(p40))
+                          -2*p40/(1-p40)))-q_profile40)==0
+    and all(sp.Rational(1,2025)
+            <q_profile40.subs(p40,ss40**2)<sp.Rational(1,8)
+            for ss40 in (sp.Rational(499,1000),sp.Rational(1,2),
+                         sp.Rational(501,1000))))
+
+kap40 = sp.Symbol('kap40',positive=True)
+co40 = (sp.sqrt(6)+sp.sqrt(2))/4
+si40 = (sp.sqrt(6)-sp.sqrt(2))/4
+u1_40 = (1+sp.I)/sp.sqrt(2*(1+kap40**2))
+u2_40 = kap40*(co40-sp.I*si40)/sp.sqrt(1+kap40**2)
+d40 = 1+sp.re(u1_40)
+y40 = (sp.im(u1_40)/d40,sp.re(u2_40)/d40,
+       sp.im(u2_40)/d40)
+wy40 = (y40[0],y40[1]-1,y40[2])
+ysq40 = sum(v*v for v in y40)
+R2_40 = sum(v*v for v in wy40)
+n40 = (wy40[0]/sp.sqrt(R2_40),-wy40[2]/sp.sqrt(R2_40),
+       -wy40[1]/sp.sqrt(R2_40))
+Q40 = sp.sqrt(1+kap40**2)
+dc40 = Q40+1/sp.sqrt(2)
+round_witness40 = (
+    sp.simplify(u1_40*sp.conjugate(u1_40)
+                +u2_40*sp.conjugate(u2_40)-1)==0
+    and sp.simplify(u2_40/u1_40
+                    -kap40*(1-sp.I*sp.sqrt(3))/2)==0
+    and sp.simplify((1-ysq40+2*sp.I*y40[0])/(1+ysq40)
+                    -u1_40)==0
+    and sp.simplify(2*(y40[1]+sp.I*y40[2])/(1+ysq40)
+                    -u2_40)==0
+    and sp.cancel(sum(v*v for v in n40)-1)==0
+    and sp.simplify(wy40[0]-1/sp.sqrt(2)/dc40)==0
+    and sp.simplify(y40[1]-kap40*co40/dc40)==0
+    and sp.simplify(y40[2]+kap40*si40/dc40)==0
+    and round_inverse38)
+# For 3/5<kappa<7/10: 23/20<Q<5/4,
+# 7/10<1/sqrt(2)<3/4, hence 37/20<dc<2.
+# These rational chains give 1/3<w0<7/16,
+# 59/100<-w1<4/5, |w2|<1/8, 2/3<R<1, and n2>59/100.
+round_margins40 = (
+    sp.Rational(23,20)**2<1+sp.Rational(3,5)**2
+    and 1+sp.Rational(7,10)**2<sp.Rational(5,4)**2
+    and sp.Rational(7,10)<1/sp.sqrt(2)<sp.Rational(3,4)
+    and sp.Rational(9,10)<co40<1
+    and 0<si40<sp.Rational(3,10)
+    and sp.Rational(7,10)/2>sp.Rational(1,3)
+    and sp.Rational(3,4)/sp.Rational(37,20)<sp.Rational(7,16)
+    and sp.Rational(3,5)*sp.Rational(9,10)/2>sp.Rational(1,5)
+    and sp.Rational(7,10)/sp.Rational(37,20)<sp.Rational(41,100)
+    and sp.Rational(7,10)*sp.Rational(3,10)
+        /sp.Rational(37,20)<sp.Rational(1,8)
+    and 1+sp.Rational(49,100)<sp.Rational(13,10)**2
+    and (1-sp.Rational(7,10))/sp.Rational(13,10)
+        ==sp.Rational(3,13)
+    and sp.Rational(1,3)**2+sp.Rational(59,100)**2
+        >sp.Rational(4,9)
+    and sp.Rational(7,16)**2+sp.Rational(4,5)**2
+        +sp.Rational(1,8)**2<1
+    and sp.Rational(9,10)-1/sp.sqrt(2)>sp.Rational(1,6)
+    and sp.Rational(499,1000)>sp.Rational(3,10)
+    and sp.Rational(1,2)-sp.Rational(501,1000)<0
+    and sp.Rational(499,1000)<sp.Rational(1,2)<sp.Rational(501,1000)
+    and sp.Rational(6,25)<sp.Rational(499,1000)**2
+    and sp.Rational(501,1000)**2<sp.Rational(13,50)
+    and sp.Rational(1000,501)>sp.Rational(8,5)
+    and sp.Rational(3,8)<sp.Rational(2,5)
+    and sp.Rational(3,8)>sp.Rational(1,5))
+# Here |u1|-|u2|>(1-7/10)/(13/10)=3/13;
+# Re(-conj u1)/|u1|=-1/sqrt(2)>-9/10.
+# The source heights have q=e^-4*s^2*exp(-4s^2/(1-s^2)) and
+# 1/2025<q<13/2500<1/8: 4s^2/(1-s^2)<52/37<3/2,
+# e^(11/2)<3^5*2, and e^4>50.  The exact round reconstruction above
+# yields -1/3<X<0, n2>59/100, hence a strict free slab.
+rep('C40b exact round seam and strict selector-side witnesses',
+    profile40 and elementary_bounds40 and height_domain40 and round_witness40
+    and round_margins40)
+
+# On the left let v=1/2-s>0.  The source flat step has
+# u=(s-.3)/.2=1-5v and beta=1-lambda, where
+# beta=exp(-1/(5v))/(exp(-1/(1-5v))+exp(-1/(5v))).
+# Its value and first two derivatives vanish at v=0.  On the right
+# beta=0 exactly.  The same beta is the north embedding weight bi.
+v40 = sp.Symbol('v40',positive=True)
+Ef40 = sp.exp(-1/(5*v40))
+Af40 = sp.exp(-1/(1-5*v40))
+beta_flat40 = Ef40/(Af40+Ef40)
+flat_endpoint40 = (
+    sp.limit(Af40,v40,0,dir='+')==sp.exp(-1)
+    and all(sp.limit(sp.diff(beta_flat40,v40,k),v40,0,dir='+')==0
+            for k in range(3)))
+
+# The terminal interior formula really joins its lam==1 direct branch.
+# At lam=1: kappa=amp=k=-log q, B=C=sqrt(q), z0=0,
+# d=2 sqrt(q) k, Acut=E0, Lambda=mu=1, C0=C1=0.
+# Thus both exact source formulas for the terminal T reduce to T(z)=z.
+k40,cut40,eps40,zterm40 = sp.symbols(
+    'k40 cut40 eps40 zterm40',positive=True)
+qh40 = sp.exp(-k40)
+Bh40 = sp.exp(-k40/2)
+Ch40 = qh40*sp.exp(k40/2)
+dh40 = 2*sp.sqrt(qh40)*k40
+z0h40 = sp.simplify(Bh40-Ch40)
+E0h40 = sp.exp(eps40/cut40)
+Ach40 = sp.exp(eps40/(cut40-z0h40))
+Lamh40 = sp.exp(Ach40-E0h40)
+muh40 = sp.simplify(
+    dh40*(E0h40*eps40/cut40**2)
+    /(k40*(Bh40+Ch40)
+      *(Ach40*eps40/(cut40-z0h40)**2)))
+ellh40 = eps40/(cut40-zterm40)-eps40/cut40
+terminal_identity40 = (
+    z0h40==0 and sp.simplify(Ach40-E0h40)==0
+    and sp.simplify(Lamh40-1)==0
+    and sp.simplify(muh40-1)==0
+    and sp.simplify(1+muh40-2*Lamh40)==0
+    and sp.simplify(Lamh40-muh40)==0
+    and sp.simplify(cut40*ellh40/(eps40/cut40+ellh40)
+                    -zterm40)==0
+    and matching_statement31(terminal_forward_tree40,
+        'C0,C1 = 1+mu-2*Lambda,Lambda-mu')
+    and matching_if_test32(terminal_forward_tree40,'Ez>50')
+    and matching_if_test32(radial_tree40,'value>=c')
+    and matching_statement31(moment_tree36,'u = _height_R(aa)')
+    and matching_statement31(moment_tree36,
+        'v = _height_terminal_forward(delta_z,data)')
+    and exact_if_body37(moment_tree36,
+        "lam==1 or aa<=mp.mpf('.1')",
+        'return _height_G(a,amp,d)'))
+# For a=3/8, R and R^-1 are identity with margin a-1/5=7/40;
+# a<2/5 gives a strict terminal interior point.  All denominators
+# are positive in the q band.  The interior formula is therefore
+# smooth in lambda up to 1 and equals G(a,q,1) there.
+ah40 = sp.Symbol('ah40',positive=True)
+Eh40 = sp.exp(k40*ah40)
+fh40 = sp.sqrt(qh40)*(Eh40-1/Eh40)
+Rh40 = sp.sqrt(qh40)*(Eh40+1/Eh40)
+Yh40 = sp.simplify(2*qh40/(Rh40+fh40))
+height_join40 = (
+    terminal_identity40 and flat_endpoint40
+    and sp.Rational(3,8)-sp.Rational(1,5)==sp.Rational(7,40)
+    and sp.Rational(2,5)-sp.Rational(3,8)==sp.Rational(1,40)
+    and sp.simplify(Rh40**2-fh40**2-4*qh40)==0
+    and sp.simplify(Yh40-sp.exp(-k40*(ah40+sp.Rational(1,2))))==0
+    and sp.simplify(sp.log(Yh40)/2
+        +k40*(ah40+sp.Rational(1,2))/2)==0)
+# Consequently Delta=rho-P(a+1/2) has a zero 2-jet at s=1/2.
+# Since -P=log r+2r^2/(r^2-1)>2 for r>1, eta=rho/P has
+# eta-(a+1/2) flat to the same order.
+rep('C40c terminal height joins exactly; radial weight and Delta are flat',
+    height_join40 and cramer40)
+
+# The lam<1 terminal expression uses its genuine low-Ez interior branch
+# near this seam.  At lam=1 and a=3/8, z0=0 and
+# gap=zcut-delta_z=2 sqrt(q)[sinh((2/5)k)-sinh((3/8)k)].
+# The derivative of sinh(ka) is k cosh(ka), with
+# cosh(ka)-1=2 sinh(ka/2)^2>0.  The mean-value theorem gives
+# gap>sqrt(q) k/20>1/180, since q>1/2025 and
+# k=-log q=16/3+log 4>5.  Source eta=1/100 then gives
+# Ez=exp(eta/gap)<exp(9/5)<e^2<9<50.
+gap_h40 = 2*sp.sqrt(qh40)*(
+    sp.sinh(sp.Rational(2,5)*k40)
+    -sp.sinh(sp.Rational(3,8)*k40))
+aa_h40 = sp.Symbol('aa_h40',positive=True)
+low_terminal40 = (
+    sp.simplify(((Bh40*sp.exp(sp.Rational(2,5)*k40)
+                 -Ch40*sp.exp(-sp.Rational(2,5)*k40))
+                -(Bh40*sp.exp(sp.Rational(3,8)*k40)
+                  -Ch40*sp.exp(-sp.Rational(3,8)*k40))
+                -gap_h40).rewrite(sp.exp))==0
+    and sp.simplify(sp.diff(sp.sinh(k40*aa_h40),aa_h40)
+                    -k40*sp.cosh(k40*aa_h40))==0
+    and sp.simplify(sp.cosh(k40*aa_h40)-1
+                    -2*sp.sinh(k40*aa_h40/2)**2)==0
+    and sp.Rational(2,5)-sp.Rational(3,8)==sp.Rational(1,40)
+    and sp.Rational(1,45)*5/20==sp.Rational(1,180)
+    and sp.Rational(16,3)>5
+    and sp.simplify(-sp.log(sp.exp(-sp.Rational(16,3))/4)
+                    -(sp.Rational(16,3)+sp.log(4)))==0
+    and sp.Rational(1,100)/sp.Rational(1,180)
+        ==sp.Rational(9,5)
+    and sp.exp(sp.Rational(9,5))<9<50
+    and matching_assignment30(terminal_tree36,'eta',
+        "mp.mpf('.01')")
+    and matching_if_test32(terminal_forward_tree40,'delta_z>=gap0')
+    and matching_assignment30(terminal_forward_tree40,'gap0','zcut-z0')
+    and matching_assignment30(terminal_forward_tree40,'gap',
+        'gap0-delta_z')
+    and matching_assignment30(terminal_forward_tree40,'L','eta/gap')
+    and matching_assignment30(terminal_forward_tree40,'Ez','mp.exp(L)')
+    and matching_if_test32(terminal_forward_tree40,'Ez>50'))
+rep('C40c3 strict low-Ez source branch at the terminal seam',
+    low_terminal40 and height_domain40)
+
+# The inf torus correction in elementary_restore_torus calls the four-seed
+# height only on the left, where |tc|<1/2.  At the seam its analytic
+# representative has q=exp(-16/3)/4, A=q^(1/8), Y=q^(7/8).
+# The source guard is rr<=1/4, max(A,Y)<=4, q<1/8.  In fact the
+# seed cases are strict: 1/4<A<15/32<1/2 and
+# 0<Y<1/128, qA<1/16, qY<1/16.  Thus this is an open smooth
+# one-sided germ; the guard rr<=1/4 holds for every left s<1/2.
+finite_height_tree40 = source_tree30(cusp30.scalar_finite_height)
+seed_nodes40 = [node for node in ast.walk(finite_height_tree40)
+                if isinstance(node,ast.FunctionDef) and node.name=='seed']
+q_seam40 = sp.exp(-sp.Rational(16,3))/4
+A_seam40 = q_seam40**sp.Rational(1,8)
+Y_seam40 = q_seam40**sp.Rational(7,8)
+restore_domain40 = (
+    north_reconstruction34
+    and sp.simplify(sp.exp(2*(-sp.Rational(8,3)-sp.log(2)))
+                -q_seam40)==0
+    and sp.simplify(sp.exp(2*(-sp.Rational(8,3)-sp.log(2))
+                            *sp.Rational(7,8))-Y_seam40)==0
+    and sp.simplify(q_seam40/Y_seam40-A_seam40)==0
+    and sp.exp(4)>50
+    and sp.exp(sp.Rational(4,3))
+        >1+sp.Rational(4,3)+sp.Rational(4,3)**2/2
+    and 50*(1+sp.Rational(4,3)+sp.Rational(4,3)**2/2)>128
+    and sp.Rational(1,2500)<q_seam40<sp.Rational(1,512)
+    and sp.Rational(1,2500)>sp.Rational(1,4)**8
+    and sp.Rational(1,512)<sp.Rational(15,32)**8
+    and sp.Rational(1,4)<A_seam40<sp.Rational(15,32)
+    and 0<Y_seam40<sp.Rational(1,128)
+    and q_seam40*A_seam40<sp.Rational(1,16)
+    and q_seam40*Y_seam40<sp.Rational(1,16)
+    and 1-sp.Rational(501,1000)**4>sp.Rational(9,10)
+    and matching_assignment30(finite_height_tree40,'rr','abs(x*y)**2')
+    and matching_statement31(finite_height_tree40,
+        'A,Y = nu*nu*e*abs(x)**2,abs(y)**2')
+    and matching_assignment30(finite_height_tree40,'q','A*Y')
+    and matching_if_test32(finite_height_tree40,
+        "not rr<=mp.mpf('.25') or max(A,Y)>4 or q>=mp.mpf('.125')")
+    and len(seed_nodes40)==1
+    and matching_if_test32(seed_nodes40[0],
+        'v<=mp.mpf(1)/16')
+    and matching_if_test32(seed_nodes40[0],
+        "v>=mp.mpf('.5')")
+    and returned_expr30(finite_height_tree40,
+        'seed(A)+seed(q*A)-seed(Y)-seed(q*Y)+q*q*(A-Y)/(1-q)'))
+rep('C40c2 strict four-seed restore germ and source guard at radial seam',
+    restore_domain40)
+
+# On pi/4<Arg(t)<pi/2, the two angular slots have angles
+# phi and phi-pi.  Their phase brackets are identically zero:
+# phi+0-Im(log t)=0 and (phi-pi)+pi-Im(log t)=0.
+# At phi=pi/3 their weights are 1 and
+# omega=1-flatstep(2/3)=1/(1+exp(3/2)) in (0,1).
+ang40 = sp.Symbol('ang40',real=True)
+omega40 = 1/(1+sp.exp(sp.Rational(3,2)))
+angular40 = (
+    sp.simplify(ang40+(ang40-sp.pi)*0-ang40)==0
+    and sp.simplify((ang40-sp.pi)+sp.pi-ang40)==0
+    and sp.pi/4<sp.pi/3<sp.pi/2
+    and (sp.pi-sp.pi/3)-sp.pi/2==sp.pi/6
+    and 3*sp.pi/4-(sp.pi-sp.pi/3)==sp.pi/12
+    and 0<omega40<1)
+# On the left the unnormalized ten-vector is
+# (beta*c4,...,beta*c7,(1-beta)*g,(1-beta)*omega*g),
+# g=exp(i*eta*phi), with sum|c_j|^2=U in (1,2).
+# On the right beta=0 and g=1.  The angular block of the rank-one
+# projector is independent of g; cusp/cross entries carry beta.
+jetx40,bc40,dc40,wgt40,U40 = sp.symbols(
+    'jetx40 bc40 dc40 wgt40 U40',real=True)
+beta40 = jetx40**3*bc40
+N40 = beta40**2*U40+(1-beta40)**2*(1+wgt40**2)
+angular_diff40 = (1-beta40)**2/N40-1/(1+wgt40**2)
+cross40 = beta40*(1-beta40)/N40
+cusp40 = beta40**2/N40
+projector_jets40 = (
+    sp.factor(angular_diff40
+              +beta40**2*U40/(N40*(1+wgt40**2)))==0
+    and all(sp.simplify(sp.diff(expr,jetx40,k).subs(jetx40,0))==0
+            for expr in (angular_diff40,cross40,cusp40)
+            for k in range(3))
+    and sp.Rational(1,4)<(1-sp.Rational(1,2))**2*(1+omega40**2)
+    and project_source30 and projection_value30 and projection_norm30
+    and generic_projector31)
+# A flat factor in one transverse coordinate has zero value and all
+# first/symmetric second derivatives, including tangential and mixed
+# directions.  This generic check applies to every smooth coefficient
+# of the actual source formulas, without expanding the huge finite fold.
+a_jet40,phi_jet40 = sp.symbols('a_jet40 phi_jet40',real=True)
+Fjet40 = sp.Function('Fjet40')(jetx40,a_jet40,phi_jet40)
+flat_all_directions40 = all(
+    sp.simplify((sp.diff(jetx40**3*Fjet40,*derivs)
+                 if derivs else jetx40**3*Fjet40)
+                .subs(jetx40,0))==0
+    for derivs in ((),(jetx40,),(a_jet40,),(phi_jet40,),
+                   (jetx40,jetx40),(jetx40,a_jet40),
+                   (jetx40,phi_jet40),(a_jet40,a_jet40),
+                   (a_jet40,phi_jet40),(phi_jet40,phi_jet40)))
+rep('C40d sparse ten-slot projector has identical complete flat two-jets',
+    angular40 and projector_jets40 and flat_all_directions40)
+
+# At each finite projection step P_j v/||P_j v|| is smooth wherever
+# ||P_j v||>0.  The preceding P two-jet equality propagates by induction
+# only if every intermediate P_j along the chosen path also has matching
+# two-jets across this source seam and every denominator is nonzero.
+# This local certificate supplies neither condition globally.
+# The inf reference differs from the right angular reference by g,
+# up to a flat beta error.  If p is the right final inner product,
+# the left one has local form conj(g)*(p+jetx^3*h).  The source one
+# equals eta*phi/(2pi), so its exp(i*2pi*one) cancels conj(g).
+# The final p is nonzero when the finite fold exists: its last update
+# is at h=X, giving a unit vector in the final rank-one image.  The
+# witness is outside the pole correction.  Work in any fixed local Arg
+# chart; a constant phase rotation permits Re(p)>0 in the formal model.
+eta_jet40 = a_jet40+sp.Rational(1,2)+jetx40**3*dc40
+gjet40 = sp.exp(sp.I*eta_jet40*phi_jet40)
+pr40 = sp.Symbol('pr40',positive=True)
+pi40,hr40,hi40 = sp.symbols('pi40 hr40 hi40',real=True)
+pjet40 = pr40+sp.I*pi40
+hjet40 = hr40+sp.I*hi40
+phase_inf40 = sp.exp(-sp.I*eta_jet40*phi_jet40)*(
+    pjet40+jetx40**3*hjet40)
+argdiff40 = (sp.atan2(pi40+jetx40**3*hi40,
+                      pr40+jetx40**3*hr40)
+             -sp.atan2(pi40,pr40))
+phase_jets40 = (
+    pr40**2+pi40**2>0
+    and sp.simplify(pjet40*sp.conjugate(pjet40)
+                    -(pr40**2+pi40**2))==0
+    and matching_assignment30(project_tree30,'h',
+        'start+(X-start)*j/steps')
+    and matching_if_test32(correct_tree30,'distance<alpha')
+    and matching_if_test32(slice_tree30,
+        'distance<alpha/2 and not force_slab')
+    and sp.simplify(gjet40*phase_inf40
+                -(pjet40+jetx40**3*hjet40))==0
+    and all(sp.simplify(sp.diff(argdiff40,jetx40,k)
+                        .subs(jetx40,0))==0 for k in range(3))
+    and all(sp.diff(-eta_jet40+a_jet40+sp.Rational(1,2),
+                    jetx40,k).subs(jetx40,0)==0 for k in range(3)))
+# The final source one differs by a flat 2-jet modulo a locally
+# constant integer deck.  The restored mid output has C=phi+beta D
+# on the left and C=phi on the right; inserting one_L=one_R+x^3 u,
+# four_L=four_R-x^3 d, C_L=C_R+x^3 b D gives these exact differences.
+oneR40,fourR40,tt40,ll40,ct240,ct340,uu40,D240,D340 = sp.symbols(
+    'oneR40 fourR40 tt40 ll40 ct240 ct340 uu40 D240 D340')
+oneL40 = oneR40+jetx40**3*uu40
+fourL40 = fourR40-jetx40**3*dc40
+CL240,CL340 = ct240+beta40*D240,ct340+beta40*D340
+zR40 = 2*sp.pi*oneR40-sp.I*ll40*fourR40
+wR40 = 2*tt40*fourR40
+zL40 = 2*sp.pi*oneL40-sp.I*ll40*fourL40
+wL40 = 2*tt40*fourL40
+rest_zR40 = zR40-sp.I*tt40*ct240-tt40*ct340
+rest_wR40 = wR40+(1-tt40**2)*ct240+sp.I*(1+tt40**2)*ct340
+rest_zL40 = zL40-sp.I*tt40*CL240-tt40*CL340
+rest_wL40 = wL40+(1-tt40**2)*CL240+sp.I*(1+tt40**2)*CL340
+rest_zdiff40 = jetx40**3*(2*sp.pi*uu40+sp.I*ll40*dc40
+                         -sp.I*tt40*bc40*D240-tt40*bc40*D340)
+rest_wdiff40 = jetx40**3*(-2*tt40*dc40
+                         +(1-tt40**2)*bc40*D240
+                         +sp.I*(1+tt40**2)*bc40*D340)
+restore_jets40 = (
+    sp.expand(rest_zL40-rest_zR40-rest_zdiff40)==0
+    and sp.expand(rest_wL40-rest_wR40-rest_wdiff40)==0
+    and all(sp.diff(expr,jetx40,k).subs(jetx40,0)==0
+            for expr in (rest_zdiff40,rest_wdiff40) for k in range(3))
+    and sp.simplify(sp.exp(2*sp.pi*sp.I*sp.Symbol('deck40',integer=True))-1)==0
+    and source_torus35 and project_source30 and generic_projector31)
+rep('C40e conditional fold, phase cancellation and restored mid two-jets',
+    phase_jets40 and restore_jets40 and projector_jets40
+    and flat_all_directions40)
+
+# C40f is solely a reproducible numerical observation (d), sample size
+# two.  It tests the actual mpmath branches under the opt-in formula
+# mode and prints margins beside the proved local constants.  It is not
+# used to prove C40a--e or any global nonzero projection denominator.
+mp40 = mp39
+sample_ok40 = True
+sample_rows40 = []
+with mp40.workdps(190), cusp30.elementary_formula_branches():
+    A_sample40,B_sample40 = (4*mp40.pi)**2,mp40.exp(4)
+    for ss40 in (mp40.mpf(499)/1000,mp40.mpf(501)/1000):
+        kap_sample40 = mp40.sqrt(
+            ss40**2*(ss40**2+A_sample40)
+            /(A_sample40*ss40**2+B_sample40))
+        u1_sample40 = mp40.exp(mp40.j*mp40.pi/4)/mp40.sqrt(
+            1+kap_sample40**2)
+        u2_sample40 = (kap_sample40*mp40.exp(-mp40.j*mp40.pi/12)
+                       /mp40.sqrt(1+kap_sample40**2))
+        ds40 = 1+u1_sample40.real
+        ws40 = (u1_sample40.imag/ds40,
+                u2_sample40.real/ds40-1,
+                u2_sample40.imag/ds40)
+        Rs40 = mp40.sqrt(sum(v*v for v in ws40))
+        Xs40 = (Rs40-1)/mp40.sqrt(1+Rs40**2)
+        ns40 = (ws40[0]/Rs40,-ws40[2]/Rs40,-ws40[1]/Rs40)
+        kind_s40,data_s40 = cusp30.elliptic_raw_base_reference(
+            tuple((1-Xs40**2)*v for v in ns40),Xs40,
+            dps=180,elementary=True)
+        _,norm_s40 = cusp30.elliptic_bundle_embedding(
+            kind_s40,data_s40,dps=180,with_norm=True,elementary=True)
+        ts40 = data_s40[0]
+        rs40 = abs(ts40)
+        qs40 = ss40**2*mp40.exp(-4-4*ss40**2/(1-ss40**2))
+        dets40 = (1+rs40**2)*(
+            mp40.log(rs40)*(rs40**2-1)+2*rs40**2)
+        torus_s40 = 1-ss40**4
+        dom_s40 = abs(u1_sample40)-abs(u2_sample40)
+        sample_rows40.append((ss40,qs40,dets40,torus_s40,
+                              norm_s40,dom_s40))
+        sample_ok40 &= (
+            kind_s40=='mid' and -mp40.mpf(1)/3<Xs40<0
+            and ns40[2]>mp40.mpf(59)/100
+            and abs(ts40-mp40.exp(mp40.j*mp40.pi/3)/ss40)
+                <mp40.mpf('1e-130')
+            and qs40>mp40.mpf(1)/2025 and dets40>30
+            and torus_s40>mp40.mpf(9)/10
+            and norm_s40>mp40.mpf(1)/4
+            and dom_s40>mp40.mpf(3)/13
+            and (len(data_s40)==5 if ss40<mp40.mpf('.5')
+                 else len(data_s40)==4))
+    ss_left40 = mp40.mpf(499)/1000
+    tc_left40 = ss_left40*mp40.exp(-mp40.j*mp40.pi/3)
+    P_left40 = (-2+mp40.log(ss_left40)
+                -2*ss_left40**2/(1-ss_left40**2))
+    Delta_left40 = (cusp30.elementary_cusp_logradius(
+        mp40.mpf(3)/8,tc_left40,mp40.exp(-2),dps=180)
+        -P_left40*mp40.mpf(7)/8)
+    sample_ok40 &= Delta_left40<0 and abs(Delta_left40)>mp40.mpf('1e-100')
+    print('C40f production margins (d), sample size 2:'
+          ' min(q-1/2025)=',mp40.nstr(min(row[1]-mp40.mpf(1)/2025
+                                        for row in sample_rows40),18),
+          ' min(det-30)=',mp40.nstr(min(row[2]-30
+                                      for row in sample_rows40),18),
+          ' min(torus-9/10)=',mp40.nstr(min(row[3]-mp40.mpf(9)/10
+                                            for row in sample_rows40),18),
+          ' min(norm2-1/4)=',mp40.nstr(min(row[4]-mp40.mpf(1)/4
+                                            for row in sample_rows40),18),
+          ' left Delta=',mp40.nstr(Delta_left40,18))
+rep('C40f two production branch margins (numerical observation, d)',
+    sample_ok40)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

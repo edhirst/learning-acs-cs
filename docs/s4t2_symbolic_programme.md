@@ -92,6 +92,14 @@
 > \(t\), source reference, projector and restored output through
 > second order. Exact round witnesses lie on both selector sides;
 > other source seams and global T16 coverage remain open.
+> **North flat-selector join (2026-10-12-TSG-22):** C40 checks
+> one north angular/height chamber at the source
+> \(|\mathrm{small}|=1/2\) selector. The infinity-side radial
+> and embedding weights are flat there. The final
+> phase/restoration formulas have matching second jets
+> modulo deck conditional on matching finite-fold endpoint
+> jets and nonzero phase. The intermediate projector joins
+> and nonzero projection denominators remain premises.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
 > **Resume point: complete T16's exact branch circuit and second-jet checks, then simplify the fixed counts.**
 
@@ -2966,6 +2974,7 @@ derivatives are numerical observations, type (d).
 | N8, actual inner-pole charts (a) | both signs: the six real outputs of (11.17)–(11.18), including the four-seed \(H_f\), are differentiated to a 6×6 Jacobian and six Hessians; all 90 mixed-partial pairs per sign, the nonzero pole determinant, and 216 normal-frame \(N_J\) entries: ALL PASS |
 | C38a–e, pure-cusp argument-selector overlap (a,b,c,d) | At both cusps, exact round witnesses and \(\pm1/1000\) angular perturbations lie on opposite sides of the source selector inside valid open cusp charts. In the lower wedge, the principal and half-centred heights differ by one deck unit; the two normalized ten-slot references, their projectors, and all first/second jets agree openly. The four-seed height shifts by one, and torus restoration gives a holomorphic cusp deck transition with complex determinant \(1\): ALL PASS. The exact bound is \(|t_c|<1/10\); separate numerical lower-wedge samples give \(|t_c|\approx0.0039838456\) south and \(0.0294368583\) north, measured gaps \(0.0960161544\) and \(0.0705631417\). Fold propagation assumes the already certified nonzero projection overlaps; other selectors and global \(J\) coverage remain open. |
 | C39a–e, dominant-coordinate selector overlap (a,b,c,d) | On \(99/100<|u_1/u_2|^2<101/100,\ |\Arg(u_1/u_2)|<\pi/5,\ |\Arg u_2|<\pi/5\), both source positive-root formulas give the same effective \(t\) and all its real first and second jets. Explicit profile bounds place \(3/10<|t|<1/2\), \(1/100<q<1/8\), with Cramer determinant \(>981/5000\), torus determinant \(>15/16\), and raw-reference norm square \(\ge1/2\). Both branches select the same south active collar, middle data, ten-slot reference, projector and restored output on this open cell: ALL PASS. Exact round witnesses at \(\lambda=2-\sqrt2\) and \(\lambda\pm1/10000\) meet the selector and both sides. C39e is a separate one-point type-(d) source observation at the seam; measured gaps to the displayed bounds are \(0.0623622466\) and \(0.0526377534\) for \(q\), \(1.0927862054\) for Cramer, \(0.0441843611\) for torus, and \(0.1888800593\) for reference norm square. Other selector seams and global \(J\) coverage remain open. |
+| C40a–f, north infinity/middle flat selector (a,b,c,d) | At the exact round witness \(|\mathrm{small}|=1/2,\ a=3/8,\ \Arg t=\pi/3\), and in a small open angular/height neighborhood, the source height and sparse projector have matching complete second jets across the selector. Conditional on matching finite-fold endpoint jets, a nonzero final phase, and nonzero fold denominators, the phase-corrected and restored middle formulas match through second order modulo local integer deck. C40a–e check source guards, exact Cramer and terminal-height identities, flat cutoff derivatives, all mixed projector jets, and phase cancellation: ALL PASS. Exact round witnesses at \(s=499/1000,1/2,501/1000\) lie on and strictly across the selector. Proven local bounds are \(q>1/2025\), Cramer \(>30\), torus \(>9/10\), reference norm square \(>1/4\); C40f's separate two-point type-(d) source sample has measured minimum gaps \(0.000709386291679574016\), \(19.9925817884944262\), \(0.036998497999\), and \(0.783279071736023484\), respectively, with a nonzero left interior height difference \(\Delta=-1.37624625388097242\cdot10^{-87}\) at 190 digits. Intermediate projector joins remain open; this is one seam chamber, not global \(J\) coverage. |
 | m1–m3, formula-branch source audit and observations (d) | The checker identifies and gates all six working-precision identity returns, and checks nested/exception restoration: ALL PASS. Two strict interior type-(d) samples have exact-formula value gaps \(9.0129315017\cdot10^{-99}\) (pole radial) and \(3.23193414504\cdot10^{-92}\) (height radial) from the default identity returns, evaluated at 240 digits. Sample size two; m3 reproduces the observations. This does not evaluate the fixed-count global tensor. |
 | N9a–i, cap/slab overlap (a,c) | for both signs, exact phase telescoping, source-linked raw-reference/projector identification, matching cusp inputs, torus restoration and first/second jets: ALL PASS, conditional on the written §11.3, §11.5 and §10.6 bounds; the post-raw radial margin is checked in N9b |
 | N10a–d, radial shell (a,b) | source-linked finite elementary \(S,S^{-1}\) nodes, exact scalar inverse and derivative identities, 16 first and 64 second entries for each radial direction, and \(\det DD=S(r)S'(r)/r>0\) on \(10^{-8}<r<1.5\cdot10^{-8}\): ALL PASS; the raw pole and torus stages are not composed here |
@@ -3246,6 +3255,112 @@ propagates through each finite meridian step wherever its
 projection denominator is nonzero. C39e reports a separate
 one-point numerical source comparison and the measured margins
 listed in §11.8; it does not supply a global bound.
+
+C40 treats the infinity/middle source selector
+\(|\mathrm{small}|=1/2\) in one north angular/height
+chamber. This is a **flat boundary join**, rather than
+equality of the two raw formulas on an open overlap. Set
+\(s=|\mathrm{small}|\), \(t=1/\mathrm{small}\),
+\(r=|t|=1/s\), and \(\phi=\Arg t\). At the exact
+seam witness choose \(\Arg u_1=\pi/4\), \(\phi=\pi/3\);
+the infinity-side argument is \(a=3/8\).
+C40b constructs actual round witnesses for
+\(s=499/1000,1/2,501/1000\) from
+\[
+ p=s^2,\qquad
+ \kappa^2=\frac{p(p+A)}{Ap+B},\qquad
+ u_1=\frac{e^{i\pi/4}}{\sqrt{1+\kappa^2}},\quad
+ u_2=\frac{\kappa e^{-i\pi/12}}{\sqrt{1+\kappa^2}},
+ \qquad A=(4\pi)^2,\ B=e^4 .
+\]
+The inverse stereographic formulas recover this spinor from
+the resulting round \((Z,X)\), and the source positive root
+recovers \(\mathrm{small}=s e^{-i\pi/3}\).
+The two strict side witnesses select different branches.
+Explicit bounds give \(9/25<\kappa^2<49/100\),
+\(-1/3<X<0\), \(n_2>59/100\), and
+\(1/2025<q<13/2500<1/8\).
+For the bound \(B=e^4<55\), the exponential series
+through degree four is \(65/24\), while its tail from
+degree five is
+\(<(1/120)\sum_{j\ge0}6^{-j}=1/100\).
+Hence \(e<65/24+1/100<68/25\) and
+\((68/25)^4<55\).
+The Cramer determinant exceeds \(30\), and the north torus
+determinant exceeds \(9/10\) for
+\(499/1000<s<501/1000\) at these fixed angular inputs.
+All inequalities are strict, so this witness has a small
+open angular/height neighborhood (explicit-constant
+inequalities, type (c)).
+
+On the infinity side let
+\(P=\log(e^{-2}s)-2s^2/(1-s^2)<0\) and
+\(\eta=\rho/P\). The source Cramer coordinates are
+\[
+ (\mathrm{one},\mathrm{two},\mathrm{three},\mathrm{four})
+ =\left(\frac{\eta\phi}{2\pi},
+ -\frac{2\eta\Re t}{r^2-1},
+ -\frac{2\eta\Im t}{r^2-1},-\eta\right).
+\]
+At \(s=1/2\), the inverse-first height has
+\(\lambda=1\), \(k=-\log q=-2P\), and
+\(f(a)=2\sqrt q\sinh(ka)\).
+Its positive root is \(Y=\sqrt q e^{-ka}\), giving
+\(\rho=P(a+1/2)\) and \(\eta=a+1/2=7/8\).
+The terminal-cut parameters satisfy
+\(z_0=0,\ \Lambda=\mu=1,\ C_0=C_1=0\), so the
+interior terminal formula is the identity at this parameter
+value. Since \(1/5<a=3/8<2/5\), both radial maps
+in that interior composition are on identity branches.
+Moreover, \(z_{\rm cut}-\Delta z
+=2\sqrt q[\sinh(2k/5)-\sinh(3k/8)]
+>\sqrt q\,k/20>1/180\), using
+\(q>1/2025\) and \(k>5\).
+Consequently its source \(E_z\) satisfies
+\(E_z<e^{9/5}<9<50\), selecting the low-\(E_z\)
+terminal formula on a neighborhood of the seam.
+C40a and C40c–c3 check these source signs and identities
+(identity type (a)).
+
+For \(s<1/2\), the north embedding weight
+\(\beta=1-\operatorname{flatstep}((s-3/10)/(1/5))\)
+and \(\Delta=\rho-P(a+1/2)\) have zero value,
+first and second derivatives at \(s=1/2\);
+on the other side \(\beta=0\).
+C40c checks the flat-step derivative limits.
+In the angular sector \(\pi/4<\phi<\pi/2\),
+both surviving angular phase brackets reduce identically
+to zero. The infinity-side reference is therefore,
+through order two, \(e^{i\eta\phi}\) times the
+right-side angular reference. Its cusp block and all
+cusp/angular cross-projector entries have zero two-jet;
+the angular projector block agrees. Here \(s>499/1000>2/5\)
+gives \(\beta<1/2\) by monotonicity of the flat step,
+so the unnormalized norm square is
+\(\beta^2U+(1-\beta)^2(1+\omega^2)>1/4\), where
+\(U\ge0\) is the cusp-block norm square and
+\(0<\omega<1\) is the second angular weight.
+C40d checks all
+transverse, tangential and mixed second-jet entries using
+a generic flat factor \(x^3b\) (identity type (a)).
+
+If the finite-fold endpoint jets match, the final inner
+product is nonzero, and one local argument branch is fixed,
+the source phase correction cancels
+\(e^{i\eta\phi}\). The corrected middle
+\(\mathrm{one}\) coordinates then agree through order two
+modulo an integer deck shift. At the seam,
+\(q=e^{-16/3}/4\), and the four-seed torus inputs are
+\(A_f=q^{1/8}\), \(Y_f=q^{7/8}\).
+The strict \(1/2500<q<1/256\) implies
+\(1/16<A_f<1/2,\ Y_f<1/16\), and
+\(qA_f,qY_f<1/16\). Hence their source branches
+and the torus correction are smooth locally; the restored
+middle output has the same second jet (C40e).
+Propagation through the full finite meridian fold is
+conditional on all intermediate projectors having matching
+two-jets and nonzero projection denominators.
+C40 does not certify those premises along every global path.
 
 On the checked south raw-pole annulus, write \(r=|Z_0|^2+|Z_1|^2\) and
 \(z_L=(Z_0-iZ_1,Z_0+iZ_1)/\sqrt{4\pi(1+\sqrt{1-r^2})}\). Let \(w=g_0(z_L)\)

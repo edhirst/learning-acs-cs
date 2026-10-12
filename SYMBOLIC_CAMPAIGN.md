@@ -425,6 +425,23 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   output agree there; exact round witnesses meet both selector
   sides. The other source seams and global T16 coverage remain
   open.
+  **North flat selector (2026-10-12-TSG-22):** C40 checks
+  the source \(|\mathrm{small}|=1/2\) join in one strict
+  north angular/height chamber. Its radial and embedding
+  weights have zero complete second jets at the join.
+  The final phase and torus-restoration formulas match
+  through second order modulo deck conditional on matching
+  finite-fold endpoint jets, a nonzero final phase and
+  nonzero projection denominators. Intermediate projector
+  joins and other source seams remain open.
+  **Next unchecked T16 tasks:** certify the cusp/middle
+  \(|t_c|=3/10\) source join at both signs, including
+  the restored holomorphic chart transition; certify the
+  pure-middle \(|t|=1\) radial selector and its negative-real
+  argument-cut intersection; then bind a guarded six-real
+  second-jet circuit to every remaining production source
+  branch and the global determinant/overlap bounds. The
+  listed joins are research targets, not certificates.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.
