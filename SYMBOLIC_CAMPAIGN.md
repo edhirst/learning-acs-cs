@@ -368,6 +368,12 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   and phase-corrected middle \(W\) two-jets modulo the explicit deck
   change, conditional on a common nonzero finite-fold endpoint.
   Other seam cells and the global direct check remain open.
+  **Active height completion (2026-10-12-TSG-14):** N14
+  continues the N12 strict active cell through the source
+  \(G^{-1}\), \(R^{-1}\), \(G\), positive \(Y\), and \(\rho\) stages,
+  with exact three-input second jets and rational interval branch
+  guards. Other height cells and the full free-slab \(J\) circuit
+  remain open.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.

@@ -1917,5 +1917,335 @@ with mp.workdps(50):
           mp.nstr(mp.mpf(str(det_s13.evalf(50)))-mp.mpf(5)/8,10),
           mp.nstr(mp.mpf(str(det_i13.evalf(50)))-40,10))
 
+# ---------------------------------------------------------------- N14: finish the same strict N12 inverse-first height cell.
+# The independent inputs remain (b,q,lambda), with b=3/20,
+# q=(4/25)exp(-16/21), lambda=1/2.  The new circuit carries N12's
+# terminal v through G^-1, R^-1, G, the positive quadratic Y, and rho.
+# It does not cover other height cells or the six-real tensor.
+def has_ifexp_test14(function,test):
+    tree = ast.parse(inspect.getsource(function))
+    expected = ast.dump(ast.parse(test,mode='eval').body,
+                        include_attributes=False)
+    return any(isinstance(node,ast.IfExp)
+               and ast.dump(node.test,include_attributes=False)==expected
+               for node in ast.walk(tree))
+
+height_source14 = (
+    ordered_block12(cusp8._height_G,
+        'return mp.asinh(amp*a/d)/amp if inverse else d*mp.sinh(amp*a)/amp')
+    and ordered_block12(cusp8._height_R,'''\
+if inverse:
+    y = mp.e*mp.expm1(value/(c-value))
+    L = y+mp.log1p(-mp.exp(-y)) if y>1 else mp.log(mp.expm1(y))
+    x = (2/(mp.sqrt(L*L+4)-L) if L<0 else
+         (L+mp.sqrt(L*L+4))/2)
+    ell = mp.log1p(x/mp.exp(2))
+    return delta+c*ell/(2*(2+ell))
+''')
+    and all(has_if_test9(cusp8._height_R,test)
+            for test in ('value<=0','value>=c',
+                         'c/(c-value)>(mp.mp.dps+10)*mp.log(10)'))
+    and has_ifexp_test14(cusp8._height_R,'y>1')
+    and has_ifexp_test14(cusp8._height_R,'L<0')
+    and ordered_block12(cusp8.elementary_cusp_logradius,'''\
+f = inverse_height_moment(b,q,lam)
+root = mp.sqrt(f*f+4*q)
+Y = 2*q/(root+f) if f>=0 else (root-f)/2
+return +(n*P+mp.log(Y)/2)
+''')
+    and has_statement9(cusp8.inverse_height_moment,
+        'return mp.sign(a)*_height_G(_height_R(_height_G(v,amp,d,inverse=True),inverse=True),amp,d)'))
+rep('N14a ordered source G^-1/R^-1/G and positive-Y/log-radius path',
+    height_source14)
+
+# An exact outward rational interval calculator supplies branch guards.
+# Q=10^30 is a fixed rational grid; every operation rounds its lower
+# endpoint downward and upper endpoint upward.  exp uses a positive
+# Taylor sum through n=50 with geometric remainder
+# t_51/(1-x/52) after range reduction to 0<=x<=1.  log uses
+# log m=2 sum_(n=0)^50 z^(2n+1)/(2n+1), z=(m-1)/(m+1)
+# in [0,1/3], with tail <=2 z^103/(103(1-z^2)); powers of two
+# reduce any positive argument to 1<=m<=2.  sqrt uses integer
+# square-root floors.  These are rigorous rational bounds, not
+# floating-point samples.
+from fractions import Fraction as Q14
+from math import isqrt as isqrt14
+
+grid14 = 10**30
+def down14(value):
+    v = Q14(value)*grid14
+    return Q14(v.numerator//v.denominator,grid14)
+def up14(value):
+    return -down14(-Q14(value))
+
+class RationalInterval14:
+    __slots__ = ('lo','hi')
+    def __init__(self,lo,hi=None):
+        lo,hi = Q14(lo),Q14(lo if hi is None else hi)
+        if lo>hi:
+            raise ValueError('reversed rational interval')
+        self.lo,self.hi = down14(lo),up14(hi)
+    def __add__(self,other):
+        other = interval14(other)
+        return RationalInterval14(self.lo+other.lo,self.hi+other.hi)
+    __radd__ = __add__
+    def __neg__(self):
+        return RationalInterval14(-self.hi,-self.lo)
+    def __sub__(self,other):
+        return self+(-interval14(other))
+    def __rsub__(self,other):
+        return interval14(other)+(-self)
+    def __mul__(self,other):
+        other = interval14(other)
+        products = (self.lo*other.lo,self.lo*other.hi,
+                    self.hi*other.lo,self.hi*other.hi)
+        return RationalInterval14(min(products),max(products))
+    __rmul__ = __mul__
+    def reciprocal(self):
+        if self.lo<=0<=self.hi:
+            raise ValueError('interval denominator touches zero')
+        return RationalInterval14(1/self.hi,1/self.lo)
+    def __truediv__(self,other):
+        return self*interval14(other).reciprocal()
+    def __rtruediv__(self,other):
+        return interval14(other)*self.reciprocal()
+    def __pow__(self,n):
+        if not isinstance(n,int):
+            raise TypeError('only integer interval powers are used')
+        if n<0:
+            return (self**(-n)).reciprocal()
+        out,base = interval14(1),self
+        while n:
+            if n&1:
+                out = out*base
+            base = base*base
+            n >>= 1
+        return out
+    def inside(self,lo,hi):
+        return Q14(lo)<self.lo<=self.hi<Q14(hi)
+
+def interval14(value):
+    return value if isinstance(value,RationalInterval14) else RationalInterval14(value)
+
+def exp_point14(x):
+    x = Q14(x)
+    if x<0:
+        return exp_point14(-x).reciprocal()
+    count = 1
+    while x>count:
+        count *= 2
+    y = x/count
+    term,total = Q14(1),Q14(1)
+    for n in range(1,51):
+        term *= y/n
+        total += term
+    first_omitted = term*y/51
+    tail = first_omitted/(1-y/52)
+    result = RationalInterval14(total,total+tail)
+    while count>1:
+        result = result*result
+        count //= 2
+    return result
+
+def exp14(arg):
+    arg = interval14(arg)
+    return RationalInterval14(exp_point14(arg.lo).lo,
+                              exp_point14(arg.hi).hi)
+
+def log_unit14(x):
+    # Exact rational bounds for log x on 1<=x<=2.
+    assert 1<=x<=2
+    z = (x-1)/(x+1)
+    term,total = z,Q14(0)
+    for n in range(51):
+        total += 2*term/(2*n+1)
+        term *= z*z
+    tail = 2*term/(103*(1-z*z))
+    return RationalInterval14(total,total+tail)
+
+log_two14 = log_unit14(Q14(2))
+def log_point14(x):
+    x = Q14(x)
+    if x<=0:
+        raise ValueError('log interval requires positive input')
+    k,m = 0,x
+    while m<1:
+        m *= 2
+        k -= 1
+    while m>2:
+        m /= 2
+        k += 1
+    return log_unit14(m)+k*log_two14
+
+def log14(arg):
+    arg = interval14(arg)
+    if arg.lo<=0:
+        raise ValueError('log interval touches zero')
+    return RationalInterval14(log_point14(arg.lo).lo,
+                              log_point14(arg.hi).hi)
+
+def sqrt_point14(x):
+    x = Q14(x)
+    if x<0:
+        raise ValueError('sqrt interval requires nonnegative input')
+    scaled = x.numerator*grid14**2
+    floor_root = isqrt14(scaled//x.denominator)
+    lo = Q14(floor_root,grid14)
+    hi = lo if floor_root**2*x.denominator==scaled else Q14(floor_root+1,grid14)
+    return RationalInterval14(lo,hi)
+
+def sqrt14(arg):
+    arg = interval14(arg)
+    if arg.lo<0:
+        raise ValueError('sqrt interval touches negative values')
+    return RationalInterval14(sqrt_point14(arg.lo).lo,
+                              sqrt_point14(arg.hi).hi)
+
+e14 = exp14(interval14(1))
+def eval_interval14(expr,environment):
+    if expr in environment:
+        return environment[expr]
+    if expr.is_Rational:
+        return interval14(Q14(int(expr.p),int(expr.q)))
+    if expr==sp.E:
+        return e14
+    if expr.func==sp.Add:
+        return sum((eval_interval14(arg,environment) for arg in expr.args),
+                   interval14(0))
+    if expr.func==sp.Mul:
+        result = interval14(1)
+        for arg in expr.args:
+            result *= eval_interval14(arg,environment)
+        return result
+    if expr.func==sp.Pow:
+        base = eval_interval14(expr.base,environment)
+        power = expr.exp
+        if power==sp.Rational(1,2):
+            return sqrt14(base)
+        if power.is_Integer:
+            return base**int(power)
+    if expr.func==sp.exp:
+        return exp14(eval_interval14(expr.args[0],environment))
+    if expr.func==sp.log:
+        return log14(eval_interval14(expr.args[0],environment))
+    if expr.func==sp.sinh:
+        value = eval_interval14(expr.args[0],environment)
+        return (exp14(value)-exp14(-value))/2
+    if expr.func==sp.asinh:
+        value = eval_interval14(expr.args[0],environment)
+        return log14(value+sqrt14(1+value**2))
+    raise ValueError('unregistered interval primitive: '+str(expr.func))
+
+# These ten scalar nodes follow the exact selected source branch.  The
+# terminal v and every other parameter come from N12's ordered 30 nodes.
+(hg14,hy14,hL14,hx14,hell14,hR14,hf14,hroot14,hY14,hrho14) = (
+    sp.symbols('hn14_0:10',real=True))
+height_nodes14 = [
+    (hg14,sp.asinh(hamp12*hv12/hd12)/hamp12),
+    (hy14,sp.E*(sp.exp(hg14/(c12-hg14))-1)),
+    (hL14,hy14+sp.log(1-sp.exp(-hy14))),
+    (hx14,(hL14+sp.sqrt(hL14**2+4))/2),
+    (hell14,sp.log(1+hx14/sp.exp(2))),
+    (hR14,delta12+c12*hell14/(2*(2+hell14))),
+    (hf14,hd12*sp.sinh(hamp12*hR14)/hamp12),
+    (hroot14,sp.sqrt(hf14**2+4*hq12)),
+    (hY14,2*hq12/(hroot14+hf14)),
+    (hrho14,sp.log(hY14)/2)]
+
+interval_values14 = {
+    hb12:interval14(Q14(3,20)),
+    hq12:Q14(4,25)*exp14(interval14(-Q14(16,21))),
+    hl12:interval14(Q14(1,2))}
+for node14,rhs14 in height_nodes12+height_nodes14:
+    interval_values14[node14] = eval_interval14(rhs14,interval_values14)
+branch_interval14 = (
+    interval_values14[hq12].inside(Q14(1,2500),Q14(1,8))
+    and interval_values14[hamp12].inside(1,2)
+    and interval_values14[hd12].inside(Q14(11,10),Q14(7,5))
+    and interval_values14[hv12].inside(Q14(19,100),Q14(21,100))
+    and interval_values14[hg14].inside(Q14(1,10),Q14(19,100))
+    and interval_values14[hy14].lo>1
+    and interval_values14[hL14].lo>0
+    and interval_values14[hx14].lo>0
+    and interval_values14[hR14].inside(Q14(1,10),Q14(1,5))
+    and interval_values14[hf14].inside(Q14(19,100),Q14(21,100))
+    and interval_values14[hY14].inside(Q14(1,10),Q14(1,4))
+    and interval_values14[hrho14].inside(-1,-Q14(1,2))
+    and Q14(1,5)/(Q14(1,5)-Q14(19,100))==20
+    and 20<22 and Q14(11,4)**2<10)
+# The source inverse-R shortcut compares c/(c-g) against
+# (mp.dps+10)log(10).  The certified g<19/100 makes the former <20;
+# e<11/4 implies log(10)>2, and mp.dps>=1 makes the latter >22.
+# g>1/10 gives g/(c-g)>1, whence y=e(expm1(...))>e(e-1)>1.
+# For y>1, L=log(exp(y)-1)>0, fixing both source branches.
+# f>0 selects Y=2q/(sqrt(f^2+4q)+f), whose denominator is positive.
+rep('N14b rational interval guards for inverse R, positive Y and rho',
+    height_branch12 and branch_interval14)
+
+# Continue the exact three-input symmetric second-jet chain without
+# expanding the terminal DAG.  Each new RHS has only already-bound
+# scalar nodes; local derivatives are finite elementary expressions.
+height_jet14 = dict(height_jet12)
+height_circuit14 = []
+height_topology14 = True
+for out14,rhs14 in height_nodes14:
+    deps14 = sorted(rhs14.free_symbols,key=str)
+    if out14 in height_jet14 or any(dep not in height_jet14 for dep in deps14):
+        height_topology14 = False
+        break
+    d114 = {dep:sp.diff(rhs14,dep) for dep in deps14}
+    d214 = {(p,w):sp.diff(d114[p],w) for p in deps14 for w in deps14}
+    grad14 = tuple(sum((d114[p]*height_jet14[p][0][i]
+                        for p in deps14),sp.Integer(0)) for i in range(3))
+    hess14 = tuple(tuple(
+        sum((d114[p]*height_jet14[p][1][i][j]
+             for p in deps14),sp.Integer(0))
+        +sum((d214[p,w]*height_jet14[p][0][i]*height_jet14[w][0][j]
+              for p in deps14 for w in deps14),sp.Integer(0))
+        for j in range(3)) for i in range(3))
+    if (any(item.has(sp.Derivative)
+            for item in (rhs14,*d114.values(),*d214.values()))
+            or any(sp.simplify(d214[p,w]-d214[w,p])!=0
+                   for p in deps14 for w in deps14)
+            or any(sp.simplify(hess14[i][j]-hess14[j][i])!=0
+                   for i in range(3) for j in range(3))):
+        height_topology14 = False
+        break
+    height_jet14[out14] = grad14,hess14
+    height_circuit14.append((out14,rhs14,grad14,hess14))
+rep('N14c 40-node source-bound rho circuit: 3 first and 6 second jets',
+    height_topology14 and len(height_circuit14)==10
+    and len(height_circuit12)+len(height_circuit14)==40
+    and height_circuit14[-1][0]==hrho14
+    and all(not item.has(sp.Derivative)
+            for _,rhs,grad,hess in height_circuit14
+            for item in (rhs,*grad,*(entry for row in hess for entry in row))))
+
+# Type (d): one-point source comparison.  The interval proof above, not
+# these decimals, chooses the branches and supplies the denominators.
+with mp.workdps(100):
+    source_rho14 = cusp8.elementary_cusp_logradius(
+        mp.mpf(3)/20,mp.mpf(2)/5,1,dps=90)
+    numeric_values14 = dict(sample_values12)
+    for node14,rhs14 in height_nodes14:
+        numeric_values14[node14] = rhs14.subs(numeric_values14).evalf(105)
+    circuit_rho14 = mp.mpf(str(numeric_values14[hrho14].evalf(90)))
+    error_rho14 = abs(circuit_rho14-source_rho14)
+    assert error_rho14<mp.mpf('1e-75')
+    sample_g14 = mp.mpf(str(numeric_values14[hg14].evalf(70)))
+    sample_R14 = mp.mpf(str(numeric_values14[hR14].evalf(70)))
+    sample_Y14 = mp.mpf(str(numeric_values14[hY14].evalf(70)))
+    print('N14d one-point numerical source check only:'
+          ' |rho_DAG-rho_source|=',mp.nstr(error_rho14,5),
+          '; g in (1/10,19/100) sample margins =',
+          mp.nstr(sample_g14-mp.mpf(1)/10,10),
+          mp.nstr(mp.mpf(19)/100-sample_g14,10),
+          '; R^-1(g)<1/5 sample margin =',
+          mp.nstr(mp.mpf(1)/5-sample_R14,10),
+          '; Y in (1/10,1/4) sample margins =',
+          mp.nstr(sample_Y14-mp.mpf(1)/10,10),
+          mp.nstr(mp.mpf(1)/4-sample_Y14,10),
+          ': PASS')
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A symbolic identity, constant bound, or numerical check failed'

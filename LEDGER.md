@@ -1877,3 +1877,46 @@ in `AGENTS.md` §5.
   projection denominators and a common endpoint vector. Other
   source paths and log seams, the full free-slab circuit, and
   direct global \(J_{\mathrm{cl}}\) verification remain open.
+
+### 2026-10-12-TSG-14 — Complete one active height log-radius circuit
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** 84ec2ae
+- **Where:** extra/s4t2_explicit/sym/node_remainder.py (N14),
+  docs/s4t2_symbolic_programme.md status, and
+  SYMBOLIC_CAMPAIGN.md T16 status. No manuscript or construction
+  file changed.
+- **Change:** extended the strict N12 active south height witness
+  through the production \(G^{-1}\), \(R^{-1}\), \(G\), positive
+  quadratic \(Y\), and log-radius \(\rho\) branches. The full
+  40-node circuit has a value, three first, and six independent
+  second partials in \((b,q,\lambda)\), without unevaluated
+  derivatives. Exact outward rational intervals certify the
+  branch guards and positive denominators.
+- **Why:** the previous source-bound circuit stopped at the
+  terminal-forward value. A direct free-slab tensor needs the
+  height derivative through \(\rho\), including the inverse
+  \(R\) branch.
+- **Verification:** node_remainder.py N14a–d: **ALL PASS** on
+  an independent full run. The type-(c) rational interval
+  certificate uses a \(10^{-30}\) grid, exponential Taylor
+  degree 50 with an explicit geometric tail, logarithm odd
+  degree 101 with an explicit tail, and exact integer square-root
+  floors. It proves \(G^{-1}(v)\in(1/10,19/100)\),
+  \(R^{-1}G^{-1}(v)\in(1/10,1/5)\),
+  \(Y\in(1/10,1/4)\), and \(\rho\in(-1,-1/2)\).
+  The separately labelled one-point numerical comparison (d)
+  has \(|\rho_{\rm DAG}-\rho_{\rm source}|=3.1109\cdot10^{-91}\);
+  measured \(G^{-1}\) lower/upper margins
+  \(0.06316123157/0.02683876843\), \(R^{-1}<1/5\)
+  margin \(0.03670151219\), and \(Y\) lower/upper margins
+  \(0.09136272386/0.05863727614\).
+  verify_construction.py: all checks passed; sphere_products.py:
+  Dimension 8 check passed; git diff --check: pass. LaTeX:
+  **not run** (latexmk unavailable). Git fetch/pull and push were
+  left to the collaborator as requested.
+- **Open points:** this is one strict active south height cell.
+  Other heights, full six-real free-slab composition, and global
+  direct \(J_{\mathrm{cl}}\) verification remain open.
