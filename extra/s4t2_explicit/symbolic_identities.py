@@ -21,6 +21,8 @@
       second-jet circuit and compositional 36/216 coefficient checks.
   (g) one south nonidentity radial-transition chamber includes both radial
       conjugations, the actual raw inverse, round cap, and torus restoration.
+  (h) the corresponding north transition chamber has a separately bound
+      six-real-coordinate J circuit and compositional 36/216 checks.
 Run from the repo root."""
 import sympy as sp
 
@@ -1605,4 +1607,187 @@ with mp.workdps(80):
           mp.nstr(patch_error_g,5),'; raw ||Dg-I|| =',
           mp.nstr(measured_norm_g,17),'vs bound',mp.nstr(raw_bound_g,17),
           '; raw sigma_min =',mp.nstr(measured_sigma_g,17),': PASS')
+
+# (h) The north nonidentity radial-transition chamber.  The source radial
+# branches and their domain inequalities were checked in (g1); (f1) checks
+# the distinct north raw branch, and (e1) the common cap/source dispatch.
+# We clone the two scalar DAGs so every north jet node has a separate
+# topological binding; no south value or derivative is imported as data.
+assert source_statement_e(cusp.elementary_global_slice,'inf = X>0')
+assert source_statement_e(cusp.elementary_pole_patch,
+    'raw = elliptic_pole_raw_inverse(compressed,infinity,dps=dps,elementary=True)')
+assert source_statement_e(cusp.elliptic_pole_raw_inverse,
+    'nu = mp.exp(-2) if infinity else mp.mpf(1)')
+assert grmin<grw<grmax and gp3w>0 and sp.im(gpcw)>0
+assert 8*grmax/(1-8*grmax)<sp.Rational(1,2)
+# aa=pi*p3>0, bb=-pi*Re(pc), cc=pi*Im(pc)>0, so -u1 has positive
+# real and negative imaginary parts.  Thus 0<height<1/12<1/10;
+# u2 has positive imaginary part and u1!=0, giving tc=u2/u1!=0.
+# The raw positive-root bounds in (f1) hold since S(r)<r<grmax<rmax_e.
+assert grmax<rmax_e and grmax<sp.Rational(1,10**4)
+assert 4*grmax+(4*grmax)**2/2<sp.Rational(1,2*10**5)
+print('(h1) strict north transition chamber and shared source-branch'
+      ' bounds: PASS')
+
+
+def clone_scalar_nodes_h(base,nodes):
+    symbols = (base,)+tuple(node for node,_ in nodes)
+    renamed = {node:sp.Symbol('h_'+str(node),positive=True)
+               for node in symbols}
+    return renamed[base],[(renamed[node],rhs.xreplace(renamed))
+                          for node,rhs in nodes],renamed
+
+
+hr,S_nodes_h,S_names_h = clone_scalar_nodes_h(gr,S_nodes_g)
+hs,R_nodes_h,R_names_h = clone_scalar_nodes_h(gs,R_nodes_g)
+S_jet_defs_h,S_known_h = scalar_jet_dag_g(hr,S_nodes_h)
+R_jet_defs_h,R_known_h = scalar_jet_dag_g(hs,R_nodes_h)
+assert len(S_jet_defs_h)==3*len(S_nodes_h)==18
+assert len(R_jet_defs_h)==3*len(R_nodes_h)==18
+assert set(S_names_h.values()).isdisjoint(set(R_names_h.values()))
+assert set(S_names_h.values()).isdisjoint(set(S_names_h.keys()))
+assert set(R_names_h.values()).isdisjoint(set(R_names_h.keys()))
+hz_in = sp.symbols('hz_in0:4',real=True)
+hw_in = sp.symbols('hw_in0:4',real=True)
+D_value_h,M_D_h,H_D_h = radial_jets_g(
+    hz_in,S_names_h[gDgain],*S_known_h[S_names_h[gDgain]])
+I_value_h,M_I_h,H_I_h = radial_jets_g(
+    hw_in,R_names_h[gIgain],*R_known_h[R_names_h[gIgain]])
+assert all(not entry.has(sp.Derivative) for entry in M_D_h)
+assert all(not entry.has(sp.Derivative) for entry in M_I_h)
+print('(h2) separate north S/S^-1 scalar and four-real radial'
+      ' value/first/second-jet circuits: PASS')
+
+# Actual stage order: north local round input, D, the 28-node north raw
+# inverse (including its source parameters), D^-1 at that raw output,
+# then north finite-height cusp restoration with the same torus inputs.
+stage_defs_h = list(zip(hz_in,local_f))
+stage_defs_h.append((hr,sum(z*z for z in hz_in)))
+stage_defs_h.extend(S_jet_defs_h)
+stage_defs_h.extend(zip(z_f,D_value_h))
+stage_defs_h.extend(raw_input_defs_f)
+stage_defs_h.extend(raw_jet_defs_f)
+stage_defs_h.extend(zip(hw_in,raw_out_f))
+stage_defs_h.append((hs,sum(w*w for w in hw_in)))
+stage_defs_h.extend(R_jet_defs_h)
+stage_inputs_h = set(round_f)|{fp2,fp3}
+stage_bound_h = set(stage_inputs_h)
+for node,rhs in stage_defs_h:
+    assert rhs.free_symbols <= stage_bound_h
+    stage_bound_h.add(node)
+assert tuple(rhs for _,rhs in stage_defs_h[:4])==tuple(local_f)
+assert all(value.free_symbols <= stage_bound_h for value in I_value_h)
+
+M_D_at_round_h = bind_matrix_e(M_D_h,hz_in,local_f)
+H_D_at_round_h = [bind_matrix_e(H,hz_in,local_f) for H in H_D_h]
+M_raw_at_D_h = bind_matrix_e(Mraw_f,z_f,D_value_h)
+H_raw_at_D_h = [bind_matrix_e(H,z_f,D_value_h) for H in Hraw_f]
+M_I_at_raw_h = bind_matrix_e(M_I_h,hw_in,raw_out_f)
+H_I_at_raw_h = [bind_matrix_e(H,hw_in,raw_out_f) for H in H_I_h]
+M_Dround_h,H_Dround_h = compose_jets_g(
+    M_D_at_round_h,H_D_at_round_h,Mround_f,Hround_f)
+M_rawround_h,H_rawround_h = compose_jets_g(
+    M_raw_at_D_h,H_raw_at_D_h,M_Dround_h,H_Dround_h)
+M_patch4_h,H_patch4_h = compose_jets_g(
+    M_I_at_raw_h,H_I_at_raw_h,M_rawround_h,H_rawround_h)
+M_patch6_h = sp.BlockDiagMatrix(M_patch4_h,sp.eye(2))
+H_patch6_h = [sp.BlockDiagMatrix(H,sp.zeros(2,2))
+              for H in H_patch4_h]
+H_patch6_h.extend([sp.ZeroMatrix(6,6),sp.ZeroMatrix(6,6)])
+rest_input_h = tuple(I_value_h)+(fp2,fp3)
+full_value_h = sp.Matrix([
+    bind_e(restore_f[k],rest_f,rest_input_h) for k in range(6)])
+M_rest_at_patch_h = bind_matrix_e(Mrestore_f,rest_f,rest_input_h)
+H_rest_at_patch_h = [bind_matrix_e(H,rest_f,rest_input_h)
+                     for H in Hrestore_f]
+Mfull_h,Hfull_h = compose_jets_g(
+    M_rest_at_patch_h,H_rest_at_patch_h,M_patch6_h,H_patch6_h)
+J_transition_h = sp.MatMul(sp.Inverse(Mfull_h),J0,Mfull_h,
+                            evaluate=False)
+assert Mfull_h.shape==(6,6) and J_transition_h.shape==(6,6)
+assert len(Hfull_h)==6 and all(H.shape==(6,6) for H in Hfull_h)
+assert all(value.free_symbols <= stage_bound_h for value in full_value_h)
+assert Mfull_h.free_symbols <= stage_bound_h
+assert all(H.free_symbols <= stage_bound_h for H in Hfull_h)
+assert J_transition_h.free_symbols <= stage_bound_h
+print('(h3) actual stage-bound north transition h, 6x6 M, and six'
+      ' second-jet circuits: PASS')
+
+assert second_jet_skew_e(M_D_at_round_h,H_D_at_round_h,
+                         Mround_f,Hround_f)==64
+assert second_jet_skew_e(M_raw_at_D_h,H_raw_at_D_h,
+                         M_Dround_h,H_Dround_h,
+                         inner_skew_certified=True)==64
+assert second_jet_skew_e(M_I_at_raw_h,H_I_at_raw_h,
+                         M_rawround_h,H_rawround_h,
+                         inner_skew_certified=True)==64
+assert second_jet_skew_e(M_rest_at_patch_h,H_rest_at_patch_h,
+                         M_patch6_h,H_patch6_h,
+                         inner_skew_certified=True)==216
+# N10d gives det D,det D^-1>0; (11.11) gives raw sigma_min>0.99993.
+# The north round factor has det L_f=4 and positive radial gain.  Its
+# inverse uses h=pi*r and rho=2h/(1+h²), with
+# r=rho/[pi*(1+sqrt(1-rho²))].  North restoration has determinant
+# +(1-|t|⁴)/nu² by (f5), nonzero under the §11.6 radius bound.
+hh = sp.Symbol('hh',positive=True)
+hrho = 2*hh/(1+hh**2)
+hroot_rho = (1-hh**2)/(1+hh**2)
+assert sp.factor(hrho**2+hroot_rho**2-1)==0
+assert sp.cancel(hrho/(sp.pi*(1+hroot_rho))-hh/sp.pi)==0
+assert 4*grmax<1 and 4*grmax+(4*grmax)**2/2<sp.Rational(1,2*10**5)
+assert 1-5000*grmax==sp.Rational(99993,100000)
+assert (sp.Rational(2,10**6)*9/2)**2<1
+assert J0*J0==-sp.eye(6)
+print('(h4) 3x64+216 compositional skews and 36/216 north J certificate;'
+      ' raw margin >99993/100000, using N10/(11.11)/§11.6: PASS')
+
+# (h5) Type-(d) one-point source comparison and measured raw margin only.
+with mp.workdps(80):
+    numerical_h = dict(zip(hz_in,[sp.Rational(1,10000),sp.S.Zero,
+                                   sp.Rational(5,100000),
+                                   -sp.Rational(3,100000)]))
+    numerical_h[hr] = sum(value*value for value in numerical_h.values())
+    for node,rhs in S_nodes_h:
+        assert rhs.free_symbols <= numerical_h.keys()
+        numerical_h[node] = rhs.subs(numerical_h).evalf(90)
+    compressed_h = [mp.mpf(str(rhs.subs(numerical_h).evalf(80)))
+                    for rhs in D_value_h]
+    for node,rhs in zip(z_f,D_value_h):
+        numerical_h[node] = rhs.subs(numerical_h).evalf(90)
+    for node,rhs in raw_input_defs_f+raw_node_defs_f:
+        assert rhs.free_symbols <= numerical_h.keys()
+        numerical_h[node] = rhs.subs(numerical_h).evalf(90)
+    raw_value_h = [rhs.subs(numerical_h).evalf(90) for rhs in raw_out_f]
+    numerical_h.update(zip(hw_in,raw_value_h))
+    numerical_h[hs] = sum(value*value for value in raw_value_h)
+    for node,rhs in R_nodes_h:
+        assert rhs.free_symbols <= numerical_h.keys()
+        numerical_h[node] = rhs.subs(numerical_h).evalf(90)
+    symbolic_patch_h = [mp.mpf(str(rhs.subs(numerical_h).evalf(80)))
+                        for rhs in I_value_h]
+    source_patch_h = cusp.elementary_pole_patch(
+        (mp.mpc(mp.mpf(1)/10000),
+         mp.mpc(mp.mpf(5)/100000,-mp.mpf(3)/100000)),
+        True,dps=80)
+    source_patch_real_h = [source_patch_h[0].real,source_patch_h[0].imag,
+                           source_patch_h[1].real,source_patch_h[1].imag]
+    patch_error_h = max(abs(a-b) for a,b in
+                        zip(symbolic_patch_h,source_patch_real_h))
+    assert patch_error_h<mp.mpf('1e-55')
+    sample_M_h = mp.matrix([[mp.diff(
+        lambda value:source_raw_real_f(compressed_h[:j]+[value]
+                                       +compressed_h[j+1:])[i],
+        compressed_h[j]) for j in range(4)] for i in range(4)])
+    measured_defect_h = sample_M_h-mp.eye(4)
+    measured_norm_h = mp.sqrt(max(mp.eigsy(
+        measured_defect_h.T*measured_defect_h,eigvals_only=True)))
+    measured_sigma_h = mp.sqrt(min(mp.eigsy(
+        sample_M_h.T*sample_M_h,eigvals_only=True)))
+    raw_bound_h = 5000*sum(value*value for value in compressed_h)
+    assert measured_norm_h<raw_bound_h<5000*mp.mpf(14)/10**9
+    assert measured_sigma_h>mp.mpf(99993)/100000
+    print('(h5) numerical one-point sample only: full patch value error =',
+          mp.nstr(patch_error_h,5),'; raw ||Dg-I|| =',
+          mp.nstr(measured_norm_h,17),'vs bound',mp.nstr(raw_bound_h,17),
+          '; raw sigma_min =',mp.nstr(measured_sigma_h,17),': PASS')
 print('ALL PASS')

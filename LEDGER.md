@@ -1685,3 +1685,44 @@ in `AGENTS.md` §5.
 - **Open points:** this circuit stops before the subsequent
   \(G^{-1}/R^{-1}/G\) height chain, \(Y\), \(\rho\), the other height
   cells, and the global six-real \(J_{\mathrm{cl}}\) circuit.
+
+### 2026-10-12-TSG-9 — Verify one north nonidentity radial-shell tensor
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** 3c628fc
+- **Where:** extra/s4t2_explicit/symbolic_identities.py (h),
+  docs/s4t2_symbolic_programme.md status, and
+  SYMBOLIC_CAMPAIGN.md T16 status. No manuscript or construction
+  file changed.
+- **Change:** added a separate source-linked north six-real
+  second-jet circuit on one open radial-transition chamber. It
+  composes the actual round cap, nonidentity \(D\), north raw
+  inverse, nonidentity \(D^{-1}\), and finite torus restoration;
+  stores the value, \(6\times6\) Jacobian, six Hessian circuits,
+  and \(J=M^{-1}J_0M\). Three 64-entry four-dimensional and one
+  216-entry six-dimensional Hessian-skew checks pass. The previously
+  checked (c8) identity reduces all 36 square and 216 Nijenhuis
+  components for this bound circuit.
+- **Why:** the north profile and cusp signs differ from the checked
+  south transition. The strict domain bounds fix both radial calls
+  to nonidentity branches, exclude working-precision shortcuts,
+  and give uniform raw singular-value margin
+  \(>99993/100000\). The written N10, (11.11), and §11.6
+  bounds make the local Jacobian invertible.
+- **Verification:** symbolic_identities.py (h1–h5): **ALL PASS**
+  on an independent full run; verify_construction.py: all checks
+  passed; sphere_products.py: Dimension 8 check passed;
+  git diff --check: pass. The separately labelled numerical
+  observation (d), sample size one, has patch-value error
+  \(3.6645\cdot10^{-84}\), raw
+  \(\|Dg-I\|_{\mathrm{op}}=8.7626736\cdot10^{-8}\) against its
+  pointwise bound \(6.6998742\cdot10^{-5}\), and sampled
+  \(\sigma_{\min}=1.0000000019\). LaTeX: **not run**
+  (latexmk unavailable). Git fetch/pull and push were left to the
+  collaborator as requested.
+- **Open points:** as in the south check, the 216 Nijenhuis
+  reduction is compositional and uses the source-specific Hessian
+  symmetries with the generic identity (c8). It covers one north
+  chamber, not the whole shell, free slab, or global \(J_{\mathrm{cl}}\).

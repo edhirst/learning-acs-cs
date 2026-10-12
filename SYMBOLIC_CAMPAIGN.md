@@ -342,6 +342,11 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   (2026-10-12-TSG-8):** N12 gives a source-linked 30-node second-jet
   circuit through one strict active terminal-forward height cell.
   It stops before the remaining height inverse and the global \(J\).
+  **North transition (2026-10-12-TSG-9):** section (h) of
+  symbolic_identities.py independently composes the north raw inverse
+  between two nonidentity radial maps, the round cap and torus
+  restoration. Both signs now have one checked transition chamber;
+  the full radial shells and free slab remain open.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.
