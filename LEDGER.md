@@ -1841,3 +1841,39 @@ in `AGENTS.md` §5.
   the other projector cells, seams, and denominator premises.
   This does not execute the full free-slab map or directly verify
   the global \(J_{\mathrm{cl}}\).
+
+### 2026-10-12-TSG-13 — Check one pure-middle negative-real log seam
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** da9e9a6
+- **Where:** extra/s4t2_explicit/symbolic_identities.py (j),
+  docs/s4t2_symbolic_programme.md status, and
+  SYMBOLIC_CAMPAIGN.md T16 status. No manuscript or construction
+  file changed.
+- **Change:** added a source-linked strict pure-middle
+  negative-real-axis log-cut check. The positive-root raw profile
+  admits an exact round-meridian witness. The canonical Cramer
+  coordinate shifts by one when the local log increases by
+  \(2\pi i\), while the ten-slot projector is \(E_{99}\) on both
+  sides. For a common nonzero endpoint vector, the phase-corrected
+  middle \(W\) representatives differ by the explicit
+  \(e_1+e_4\) deck vector, so their local two-jets match.
+- **Why:** well-definedness of a directly differentiated tensor
+  requires checking argument-cut transitions in source coordinates.
+  This pure-middle seam is distinct from the previously checked
+  active-collar cut.
+- **Verification:** symbolic_identities.py (j1–j5): **ALL PASS**
+  on an independent full run. The exact Cramer determinant is
+  \(>3/2\) on the strict wedge; at \(t=-3/4\) its excess above
+  \(225/128\) is \(175\log(4/3)/256>0\). The separately labelled
+  one-point numerical value is \(0.196657666715085\).
+  verify_construction.py: all checks passed; sphere_products.py:
+  Dimension 8 check passed; git diff --check: pass. LaTeX:
+  **not run** (latexmk unavailable). Git fetch/pull and push were
+  left to the collaborator as requested.
+- **Open points:** the endpoint comparison presumes the finite
+  projection denominators and a common endpoint vector. Other
+  source paths and log seams, the full free-slab circuit, and
+  direct global \(J_{\mathrm{cl}}\) verification remain open.

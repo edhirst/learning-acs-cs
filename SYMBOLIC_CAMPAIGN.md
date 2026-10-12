@@ -362,6 +362,12 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   increment. Induction reaches the specified \(N,K\) counts only
   conditionally on the remaining source cells and seams; the full
   free-slab \(J\) circuit remains open.
+  **Pure-middle log cut (2026-10-12-TSG-13):** section (j) of
+  symbolic_identities.py checks one strict negative-real-axis seam:
+  the canonical Cramer \(\xi_4\) shift, constant ten-slot projector,
+  and phase-corrected middle \(W\) two-jets modulo the explicit deck
+  change, conditional on a common nonzero finite-fold endpoint.
+  Other seam cells and the global direct check remain open.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.

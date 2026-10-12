@@ -2195,4 +2195,237 @@ except ValueError:
     skew_rejected_i = True
 assert skew_rejected_i
 print('(i6) asymmetric-Hessian negative control rejected: PASS')
+
+# (j) A pure-middle negative-real-axis log-cut seam, away from both
+# collars.  This is distinct from the collar/pure-middle radial seams
+# and from the active-collar log-cut calculation.  Work in the open
+# wedge 1/2<|t|^2<3/4, Re(t)<0, |Im(t)|<-Re(t), with seam t=-3/4.
+# The two sides have principal log arguments near +pi and -pi.
+# No terminal-height or cusp frame is active.  This checks the
+# projector and corrected W representative, not the free-slab fold.
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'inverse_ratio = abs(u1)>abs(u2)')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'small = ratio*mp.sqrt((2*B if inverse_ratio else 2)/(b+root))')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    "xi4 = scalar_lattice_coords(mp.pi*ss*(ss-1),2*t*ss,t,lt)[3]")
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    "four = mp.arg(u2)/(2*mp.pi)+xi4+mp.mpf('.5')")
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    "return ('mid',(t,mp.mpf(0),four,lt))")
+assert source_statement_e(cusp.scalar_lattice_coords,
+    'rows = [[v.imag for v in ez],[v.real for v in ew],[v.imag for v in ew]]')
+assert source_statement_e(cusp.elliptic_bundle_embedding,
+    "b0 = 1-scalar_flat_step((r-mp.mpf('.3'))/mp.mpf('.2'))")
+assert source_statement_e(cusp.elliptic_bundle_embedding,
+    "bi = 1-scalar_flat_step((1/r-mp.mpf('.3'))/mp.mpf('.2'))")
+assert source_statement_e(cusp.elliptic_bundle_embedding,
+    'vec[8+index] = bm*weight*mp.exp(mp.j*(2*mp.pi*one-(angle+centre-lt.imag)*four))')
+assert source_statement_e(cusp.elementary_global_slice,
+    'phase = _elementary_inner(ref,result)')
+assert source_statement_e(cusp.elementary_global_slice,
+    'return kind,(t,one+mp.arg(phase)/(2*mp.pi),four,lt)')
+
+# The witness is an actual raw-meridian input.  Set u2 positive and
+# u1=t*sqrt(Q)*u2, Q=(A+B|t|^2)/(1+A|t|^2), A=(4pi)^2,
+# B=e^4.  Their squared moduli sum to one.  In the whole wedge
+# B|t|^4>16/4>1, so |u1|>|u2|.  The unique positive source root
+# then gives small=1/t, inf=False and the pure-middle return.
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'aa = xx*mp.sqrt(2-xx*xx)')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'w = (vv[0]/(1-aa),-vv[2]/(1-aa),-vv[1]/(1-aa))')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'y = (w[0],w[1]+1,w[2])')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'u1 = mp.mpc(1-s2,2*y[0])/(1+s2)')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    'u2 = mp.mpc(2*y[1],2*y[2])/(1+s2)')
+z_j,A_j,B_j=sp.symbols('z_j A_j B_j',positive=True)
+Q_j=(A_j+B_j*z_j)/(1+A_j*z_j)
+T2_j=1/(z_j*Q_j)
+D_j=2*B_j/Q_j
+assert sp.cancel(z_j*Q_j-1-(B_j*z_j**2-1)/(1+A_j*z_j))==0
+assert sp.cancel(D_j**2-2*A_j*(1-T2_j)*D_j-4*B_j*T2_j)==0
+assert sp.cancel(2*B_j/D_j-Q_j)==0
+assert sp.Rational(1,2)<sp.Rational(145,256)<sp.Rational(3,4)
+assert sp.Rational(1,16)<sp.Rational(3,4)
+assert bool(sp.E>2) and 16*sp.Rational(1,2)**2>1
+t0_j=-sp.Rational(3,4)
+tp_j=t0_j+sp.I/16
+tm_j=t0_j-sp.I/16
+assert all(sp.simplify(tt*sp.conjugate(tt)-sp.Rational(145,256))==0
+           for tt in (tp_j,tm_j))
+q0_j=Q_j.subs({z_j:sp.Rational(9,16),
+                A_j:(4*sp.pi)**2,B_j:sp.exp(4)})
+u2_j=1/sp.sqrt(1+sp.Rational(9,16)*q0_j)
+u1_j=t0_j*sp.sqrt(q0_j)*u2_j
+assert sp.simplify(u1_j*sp.conjugate(u1_j)+u2_j**2-1)==0
+# Since u2>0, |u1|<1 and 1+Re(u1)>0, put
+# k=sqrt(|t|^2 Q)>0 and h=sqrt(1+k^2)+k-1>0.  The exact
+# round-meridian input X=(h-1)/sqrt(h^2+1),
+# v=(0,0,-(1-X^2)) has |v|+X^2=1 and |X|<1.  Its source
+# stereographic w is (0,h,0), hence its u1,u2 are the chosen
+# S3 coordinates.  The positive root in aa is fixed by h+1>0.
+k_j=sp.symbols('k_j',positive=True)
+assert sp.simplify(
+    1/(sp.sqrt(1+k_j**2)-k_j)-(sp.sqrt(1+k_j**2)+k_j))==0
+assert sp.ask(sp.Q.positive(k_j)) is True
+assert sp.ask(sp.Q.positive(k_j**2)) is True
+h_j=sp.sqrt(1+k_j**2)+k_j-1
+H_j=sp.symbols('H_j',positive=True)
+X_j=(H_j-1)/sp.sqrt(H_j**2+1)
+root_j=(H_j+1)/sp.sqrt(H_j**2+1)
+aa_j=(H_j**2-1)/(H_j**2+1)
+assert sp.simplify(root_j**2-(2-X_j**2))==0
+assert sp.ask(sp.Q.positive(root_j)) is True
+assert sp.simplify(X_j*root_j-aa_j)==0
+assert sp.simplify((1-X_j**2)/(1-aa_j)-H_j)==0
+assert sp.simplify(1-X_j**2-2*H_j/(H_j**2+1))==0
+Y_j=h_j+1
+assert sp.simplify((1-Y_j**2)/(1+Y_j**2)
+                   +k_j/sp.sqrt(1+k_j**2))==0
+assert sp.simplify(2*Y_j/(1+Y_j**2)
+                   -1/sp.sqrt(1+k_j**2))==0
+print('(j1) source pure-middle selector and strict round-meridian'
+      ' negative-axis witness: PASS')
+
+# Two analytic local logarithms satisfy L_plus=L_minus+2*pi*i.
+# For the canonical pure-middle point s=L/(2*pi*i),
+# z=pi*s(s-1), w=2*t*s, the changes are exactly the old
+# fourth lattice vector e4=(-iL,2t).  The new e4=e4_old+e1,
+# e1=(2*pi,0).  These identities hold on the whole overlap,
+# so every partial derivative through order two agrees.
+x_j,y_j,lr_j,th_j=sp.symbols('x_j y_j lr_j th_j',real=True)
+tt_j=x_j+sp.I*y_j
+L_j=lr_j+sp.I*th_j
+s_j=L_j/(2*sp.pi*sp.I)
+Lplus_j=L_j+2*sp.pi*sp.I
+splus_j=Lplus_j/(2*sp.pi*sp.I)
+zc_j,wc_j=sp.pi*s_j*(s_j-1),2*tt_j*s_j
+zp_j,wp_j=sp.pi*splus_j*(splus_j-1),2*tt_j*splus_j
+e1_j=(2*sp.pi,sp.S.Zero)
+e2_j=(-sp.I*tt_j,1-tt_j**2)
+e3_j=(-tt_j,sp.I*(1+tt_j**2))
+e4_j=(-sp.I*L_j,2*tt_j)
+e4p_j=(-sp.I*Lplus_j,2*tt_j)
+assert all(sp.simplify(v)==0 for v in
+           (zp_j-zc_j-e4_j[0],wp_j-wc_j-e4_j[1],
+            e4p_j[0]-e4_j[0]-e1_j[0],
+            e4p_j[1]-e4_j[1]-e1_j[1]))
+def cramer_rows_j(e2,e3,e4):
+    basis=(e2,e3,e4)
+    return sp.Matrix([
+        [sp.im(sp.expand(v[0])) for v in basis],
+        [sp.re(sp.expand(v[1])) for v in basis],
+        [sp.im(sp.expand(v[1])) for v in basis]])
+mat_j=cramer_rows_j(e2_j,e3_j,e4_j)
+matp_j=cramer_rows_j(e2_j,e3_j,e4p_j)
+rhs_j=sp.Matrix([sp.im(sp.expand(zc_j)),
+                 sp.re(sp.expand(wc_j)),sp.im(sp.expand(wc_j))])
+rhsp_j=sp.Matrix([sp.im(sp.expand(zp_j)),
+                  sp.re(sp.expand(wp_j)),sp.im(sp.expand(wp_j))])
+assert matp_j==mat_j
+assert all(sp.simplify(v)==0 for v in
+           rhsp_j-rhs_j-mat_j[:,2])
+r2_j=x_j*x_j+y_j*y_j
+det_j=(1+r2_j)*(lr_j*(r2_j-1)+2*r2_j)
+assert sp.factor(mat_j.det()-det_j)==0
+# On 1/2<r^2<3/4, log r<0 and r^2-1<0;
+# det>(1+r^2)2r^2>3/2.  At t=-3/4 the measured
+# excess over the sharper bound 225/128 is printed below.
+assert sp.simplify(
+    det_j.subs({x_j:-sp.Rational(3,4),y_j:0,
+                lr_j:-sp.log(sp.Rational(4,3))})
+    -sp.Rational(225,128)
+    -sp.Rational(175,256)*sp.log(sp.Rational(4,3)))==0
+assert 2*sp.Rational(1,2)*(1+sp.Rational(1,2))==sp.Rational(3,2)
+# Since the same invertible Cramer matrix acts on both sides,
+# xi4_plus=xi4_minus+1; xi2,xi3 are unchanged.  The real
+# first-coordinate formula gives xi1_plus=xi1_minus-xi4_minus-1.
+c2_j,c3_j,c4_j=sp.symbols('c2_j c3_j c4_j',real=True)
+co_j=sp.Matrix([c2_j,c3_j,c4_j])
+one_j=(sp.re(sp.expand(zc_j))
+       -sum(co_j[k]*sp.re(sp.expand(v[0]))
+            for k,v in enumerate((e2_j,e3_j,e4_j))))/(2*sp.pi)
+cop_j=co_j+sp.Matrix([0,0,1])
+onep_j=(sp.re(sp.expand(zp_j))
+        -sum(cop_j[k]*sp.re(sp.expand(v[0]))
+             for k,v in enumerate((e2_j,e3_j,e4p_j))))/(2*sp.pi)
+assert sp.simplify(onep_j-one_j+c4_j+1)==0
+print('(j2) actual Cramer log-branch transition, value and all'
+      ' first/second jets; strict determinant: PASS')
+
+# In this wedge the two cusp weights are exactly zero and the
+# middle weight is one.  For upper principal Arg(t) near +pi,
+# Arg(-t)=Arg(t)-pi and angular slot 9 has phase 1.
+# For lower Arg(t) near -pi, Arg(-t)=Arg(t)+pi and slot 9 has
+# phase exp(-2*pi*i*four_minus).  Slot 8 is zero since
+# |Arg(t)|>3pi/4; slot 9 has weight one since
+# |Arg(-t)|<pi/4.  The pure raw four coordinates differ by one.
+F_j=sp.symbols('F_j',real=True)
+refp_j=sp.zeros(10,1)
+refm_j=sp.zeros(10,1)
+refp_j[9]=1
+refm_j[9]=sp.exp(-2*sp.pi*sp.I*F_j)
+Pp_j=refp_j*refp_j.conjugate().T
+Pm_j=refm_j*refm_j.conjugate().T
+expect_j=sp.zeros(10)
+expect_j[9,9]=1
+assert Pp_j==expect_j
+assert sp.simplify(Pm_j-expect_j)==sp.zeros(10)
+assert all(sp.simplify(sp.diff(Pm_j[i,k],F_j,n))==0
+           for i in range(10) for k in range(10) for n in (1,2))
+assert sp.simplify(refp_j[9]
+                   -sp.exp(2*sp.pi*sp.I*F_j)*refm_j[9])==0
+print('(j3) actual pure-middle ten-slot projector matches across'
+      ' the cut with all first/second jets: PASS')
+
+# The finite projection product and any cap phase correction produce
+# a unit vector E in the endpoint projector line whenever their
+# denominators are nonzero.  Write E_9=gamma, |gamma|=1.
+# The source final phase is <ref,E>, hence phase_plus=gamma,
+# phase_minus=exp(2*pi*i*F_minus)*gamma, both of modulus one.
+# To compare final W data, take the upper log to the lower log:
+# one increases by four_plus=F_minus+1; then apply g4^-1.
+# The resulting exponentiated one equals the lower corrected one.
+assert source_statement_e(cusp.elementary_projection_section,
+    'vector = tuple(a*phase/abs(phase) for a in ref)')
+assert has_source_fold_i(cusp.elementary_projection_section,
+                         'range(steps+1)')
+assert source_statement_e(cusp._elementary_corrected_section,
+    'result = tuple(a*mp.exp(-mp.j*weight*theta) for a in result)')
+gamma_j=sp.symbols('gamma_j',complex=True,nonzero=True)
+phasep_j=sp.conjugate(refp_j[9])*gamma_j
+phasem_j=sp.conjugate(refm_j[9])*gamma_j
+assert sp.simplify(phasem_j
+                   -sp.exp(2*sp.pi*sp.I*F_j)*phasep_j)==0
+assert sp.simplify(
+    sp.exp(2*sp.pi*sp.I*(F_j+1))*phasep_j/abs(phasep_j)
+    -phasem_j/abs(phasem_j))==0
+assert sp.simplify(
+    phasep_j*sp.conjugate(phasep_j)
+    -phasem_j*sp.conjugate(phasem_j))==0
+# Choose a coherent argument alpha for phase_plus.  The source's
+# principal Arg for phase_minus differs from alpha+F by an integer;
+# that changes z by e1 only.  With these coherent representatives,
+# compare the actual middle W coordinates z=2*pi*one-i*L*four,
+# w=2*t*four.  Their upper-minus-lower difference is e1+e4_old.
+alpha_j=sp.symbols('alpha_j',real=True)
+zup_j=2*sp.pi*alpha_j-sp.I*Lplus_j*(F_j+1)
+wup_j=2*tt_j*(F_j+1)
+zlow_j=2*sp.pi*(alpha_j+F_j)-sp.I*L_j*F_j
+wlow_j=2*tt_j*F_j
+assert sp.simplify(zup_j-zlow_j-e1_j[0]-e4_j[0])==0
+assert sp.simplify(wup_j-wlow_j-e1_j[1]-e4_j[1])==0
+assert sp.simplify(
+    sp.exp(2*sp.pi*sp.I*(alpha_j+F_j))
+    -sp.exp(2*sp.pi*sp.I*alpha_j)*phasem_j/phasep_j)==0
+print('(j4) final phase correction and middle W data match'
+      ' modulo the log and g4 deck changes: PASS')
+
+# Type-(d) witness margin only; the open-cell proof is j1-j4.
+margin_j=sp.Rational(175,256)*sp.log(sp.Rational(4,3))
+print('(j5) one-point numerical Cramer margin above 225/128 =',
+      margin_j.evalf(15),'; proved positive from log(4/3)>0: PASS')
 print('ALL PASS')
