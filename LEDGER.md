@@ -1764,3 +1764,43 @@ in `AGENTS.md` §5.
   does not expand all 10×10 Hessian expressions. Other projector
   cells, the fixed-count free-slab composition, and the direct
   global \(J_{\mathrm{cl}}\) check remain open.
+
+### 2026-10-12-TSG-11 — Check selected outer collar seam jets
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** da111ab
+- **Where:** extra/s4t2_explicit/sym/node_remainder.py (N13),
+  docs/s4t2_symbolic_programme.md status, and
+  SYMBOLIC_CAMPAIGN.md T16 status. No manuscript or construction file
+  changed.
+- **Change:** added source-linked exact checks for one lower-angular
+  collar/pure-middle seam cell at each cusp, with
+  \(\Arg t=-2\pi/3\), south \(|t|=1/2,\ a=1/20\), and north
+  \(|t|=2,\ a=9/20\). The positive-root profiles and source Cramer
+  solutions select genuine raw round-meridian inputs. The
+  \(\lambda=1\) height and flat endpoint give matching first and
+  second jets. The ten-slot projector and final phase-corrected
+  middle \(W\) coordinate agree modulo deck, even though the raw
+  reference tuples differ by a scalar gauge.
+- **Why:** direct well-definedness of the free-slab tensor needs
+  source-chart seam jets, and equality of raw reference tuples is a
+  false test. The exact Cramer determinants exceed \(5/8\) south
+  and \(40\) north, and both height \(q\) values lie in
+  \((1/2500,1/8)\).
+- **Verification:** node_remainder.py N13a–j: **ALL PASS** on an
+  independent full run. The separately labelled numerical
+  observations (d), sample size two, give Cramer lower-bound
+  margins \(0.6498254818,10.39720771\) and lower/upper \(q\)
+  margins \(0.0654992845/0.0591007155\) south and
+  \(0.0008069875/0.1237930125\) north. The exact source
+  phase modulus and all stated first/second seam identities pass.
+  verify_construction.py: all checks passed; sphere_products.py:
+  Dimension 8 check passed; git diff --check: pass. LaTeX:
+  **not run** (latexmk unavailable). Git fetch/pull and push were
+  left to the collaborator as requested.
+- **Open points:** this is one strict angular and height cell at
+  each outer collar seam. The other seam cells, the complete
+  free-slab branch circuit, and direct global \(J_{\mathrm{cl}}\)
+  verification remain open.

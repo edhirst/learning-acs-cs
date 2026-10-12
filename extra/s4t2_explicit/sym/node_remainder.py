@@ -1542,5 +1542,380 @@ with mp.workdps(90):
           '; eta/gap upper margin =',
           mp.nstr(mp.mpf(9)/40-sample_L12,12),': PASS')
 
+# ---------------------------------------------------------------- N13: one strict off-cut collar/pure-middle seam cell.
+# The raw tuples can differ by a smooth scalar gauge.  We compare the
+# rank-one ten-slot projectors and the phase-corrected middle W slice.
+seam_source13 = (
+    has_if_test9(cusp8.elliptic_raw_base_reference,
+                 "inf or abs(t)<mp.mpf('.5')")
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       "phase_coordinate = -mp.conj(u1) if inf else u2")
+    and has_if_test9(cusp8.elliptic_raw_base_reference,
+                     "phase_coordinate.real<-mp.mpf('.9')*abs(phase_coordinate)")
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       "a = mp.mpf('.5')+mp.arg(-phase_coordinate)/(2*mp.pi)")
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       "a = mp.arg(phase_coordinate)/(2*mp.pi)")
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       "rho = (elementary_cusp_logradius if elementary else elliptic_cusp_logradius)(a,tc,nu,dps=dps)")
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       "lattice = scalar_lattice_coords(zm,wm,t,lt)")
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       "zm,wm = -mp.j*rho,mp.mpc(0)")
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       "zm,wm = -mp.j*rho+mp.pi*ss*(ss-1),2*t*ss")
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       "xi4 = scalar_lattice_coords(mp.pi*ss*(ss-1),2*t*ss,t,lt)[3]")
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       "four = mp.arg(u2)/(2*mp.pi)+xi4+mp.mpf('.5')")
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       "four = -a2-mp.mpf('.5')")
+    and has_if_test9(cusp8.elliptic_raw_base_reference,"r<=1")
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       "lam = 1-scalar_flat_step((r-mp.mpf('1.2'))/mp.mpf('.4'))")
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       "a2 = -mp.arg(u1)/(2*mp.pi)+lam*delta+(1-lam)/2")
+    and has_statement9(cusp8.elliptic_raw_base_reference,
+                       "small = ratio*mp.sqrt((2*B if inverse_ratio else 2)/(b+root))")
+    and has_statement9(cusp8._elementary_raw_orbit,
+                       "ratio = tc*mp.sqrt((abs(tc)**2+A)/(A*abs(tc)**2+B))")
+    and has_statement9(cusp8._elementary_raw_orbit,
+                       "ratio = tc*mp.sqrt((A+B*abs(tc)**2)/(1+A*abs(tc)**2))")
+    and ordered_block12(cusp8.elementary_cusp_logradius,'''\
+lam = scalar_flat_step((r-mp.mpf('.3'))/mp.mpf('.2'))
+if lam==1:
+    return +(P*(a+mp.mpf('.5')))
+f = inverse_height_moment(b,q,lam)
+''')
+    and has_statement9(cusp8.elementary_cusp_logradius,
+                       "P = mp.log(nu)+mp.log(r)-2*r*r/(1-r*r)")
+    and has_statement9(cusp8.elementary_cusp_logradius,
+                       "Y = 2*q/(root+f) if f>=0 else (root-f)/2")
+    and has_statement9(cusp8.elementary_cusp_logradius,
+                       "return +(n*P+mp.log(Y)/2)")
+    and ordered_block12(cusp8.elliptic_bundle_embedding,'''\
+b0 = 1-scalar_flat_step((r-mp.mpf('.3'))/mp.mpf('.2'))
+bi = 1-scalar_flat_step((1/r-mp.mpf('.3'))/mp.mpf('.2'))
+bm = 1-b0-bi
+z,w = 2*mp.pi*one-mp.j*lt*four,2*t*four
+''')
+    and has_statement9(cusp8.elliptic_bundle_embedding,
+                       "weight = 1-scalar_flat_step((abs(angle)-mp.pi/2)/(mp.pi/4))")
+    and has_statement9(cusp8.elliptic_bundle_embedding,
+                       "vec[8+index] = bm*weight*mp.exp(mp.j*(2*mp.pi*one-(angle+centre-lt.imag)*four))")
+    and has_statement9(cusp8.elementary_projection_section,
+                       "vector = tuple(a*phase/abs(phase) for a in ref)")
+    and has_statement9(cusp8.elementary_global_slice,
+                       "return kind,(t,one+mp.arg(phase)/(2*mp.pi),four,lt)"))
+rep('N13a ordered production selectors, endpoint, embedding and phase correction',
+    seam_source13)
+
+# Inverse-ratio profile at z=|tc|^2, A=(4*pi)^2, B=e^4.
+# South u1/u2=tc*sqrt(Qs), Qs=(A+Bz)/(1+Az);
+# north u2/u1=tc*sqrt(Qi), Qi=(z+A)/(Az+B).
+# The rational D below is the unique positive source-root denominator.
+sz13,A13,B13 = sp.symbols('sz13 A13 B13',positive=True)
+Qs13=(A13+B13*sz13)/(1+A13*sz13)
+Qi13=(sz13+A13)/(A13*sz13+B13)
+zs13=1/(sz13*Qs13)
+zi13=sz13*Qi13
+Ds13=2*B13/Qs13
+Di13=2*B13*Qi13
+profile_seam13 = (
+    sp.cancel(Ds13**2-2*A13*(1-zs13)*Ds13-4*B13*zs13)==0
+    and sp.cancel(Di13**2-2*A13*(1-zi13)*Di13-4*B13*zi13)==0
+    and sp.cancel(2*B13/Ds13-Qs13)==0
+    and sp.cancel(2*B13/Di13-1/Qi13)==0
+    and sp.cancel((sz13*Qs13-1).subs(sz13,sp.Rational(1,4))
+                  -(B13-16)/(4*(A13+4)))==0
+    and sp.cancel((1-zi13).subs(sz13,sp.Rational(1,4))
+                  -(16*B13-1)/(4*(A13+4*B13)))==0
+    and bool(sp.E>2) and bool(sp.exp(4)>16))
+rep('N13b both positive-root profiles and strict seam-side selectors',
+    profile_seam13)
+
+# Pick arg(t)=-2*pi/3, strictly inside (-3*pi/4,-pi/2).
+# South arg(u2)=pi/10 gives a=1/20; north arg(u1)=pi/10
+# gives a=9/20 in the half-centred chart of -conj(u1).
+# Both normalized phase pairs are genuine S3 inputs; inverse
+# stereographic projection gives raw round-meridian inputs with |X|<1.
+theta13=-2*sp.pi/3
+as13,an13=sp.Rational(1,20),sp.Rational(9,20)
+phase_guards13 = (
+    -3*sp.pi/4<theta13<-sp.pi/2
+    and 0<as13<sp.Rational(1,10)
+    and sp.Rational(2,5)<an13<sp.Rational(1,2)
+    and sp.floor(as13+sp.Rational(1,2))==0
+    and sp.floor(an13+sp.Rational(1,2))==0
+    and sp.Rational(1,2)-sp.Rational(1,20)==an13
+    and bool(sp.cos(sp.pi/10)>sp.Rational(9,10))
+    and 0<sp.Rational(2,3)<1
+    and bool(sp.E<sp.Rational(11,4))
+    and sp.Rational(16,3)<6
+    and (sp.Rational(11,4))**6<625
+    and sp.Rational(1,4)/(sp.Rational(11,4))**6
+        >sp.Rational(1,2500)
+    and sp.simplify(sp.exp(2*(-sp.log(2)-sp.Rational(2,3)))
+                    -sp.exp(-sp.Rational(4,3))/4)==0
+    and sp.simplify(sp.exp(2*(-2-sp.log(2)-sp.Rational(2,3)))
+                    -sp.exp(-sp.Rational(16,3))/4)==0)
+# Thus q_s=e^(-4/3)/4 and q_i=e^(-16/3)/4 lie strictly
+# between 1/2500 and 1/8: e>2 proves the upper bounds;
+# e<11/4, 16/3<6 and (11/4)^6<625 prove the north lower
+# bound, which is the smaller q.
+rep('N13c strict lower-half-plane and argument-chart witnesses',
+    phase_guards13)
+
+# These are actual source S3 phases, not freely chosen collar data.
+# Both denominator norms are 1+|tc|^2 Q>1.  The inverse
+# stereographic y and w=y-(0,1,0) give |w|^2>0 because
+# Im(u2)>0 at both witnesses.  With a_X=(|w|^2-1)/(|w|^2+1),
+# the unique X in (-1,1) satisfying X*sqrt(2-X^2)=a_X
+# gives v=(1-a_X)(w0,-w2,-w1) and |v|+X^2=1.
+zfix13=sp.Rational(1,4)
+tcs13=sp.exp(-2*sp.pi*sp.I/3)/2
+tci13=sp.exp(2*sp.pi*sp.I/3)/2
+phase13=sp.exp(sp.pi*sp.I/10)
+qsw13=Qs13.subs({sz13:zfix13,A13:(4*sp.pi)**2,B13:sp.exp(4)})
+qiw13=Qi13.subs({sz13:zfix13,A13:(4*sp.pi)**2,B13:sp.exp(4)})
+u2s13=phase13/sp.sqrt(1+zfix13*qsw13)
+u1s13=tcs13*sp.sqrt(qsw13)*u2s13
+u1i13=phase13/sp.sqrt(1+zfix13*qiw13)
+u2i13=tci13*sp.sqrt(qiw13)*u1i13
+Rw13=sp.symbols('Rw13',positive=True)
+ax13=(Rw13-1)/(Rw13+1)
+actual_meridian13=(
+    sp.simplify(tcs13*sp.conjugate(tcs13)-zfix13)==0
+    and sp.simplify(tci13*sp.conjugate(tci13)-zfix13)==0
+    and all(sp.simplify(
+        uu1*sp.conjugate(uu1)+uu2*sp.conjugate(uu2)-1)==0
+        for uu1,uu2 in ((u1s13,u2s13),(u1i13,u2i13)))
+    and sp.Rational(0)<sp.Rational(23,30)<1
+    and sp.simplify((1-ax13)**2*Rw13-(1-ax13**2))==0
+    and sp.simplify(1-ax13**2-4*Rw13/(1+Rw13)**2)==0)
+rep('N13c2 normalized phases lift to genuine raw round-meridian inputs',
+    actual_meridian13)
+
+# Add (-i*rho,0) to a middle W point and run the actual real Cramer
+# system.  South: (Delta one,Delta four)=
+# (-theta*rho/(2*pi*P0),rho/P0).  North Pinf=-P0 and the
+# same formula becomes (+theta*rho/(2*pi*Pinf),-rho/Pinf).
+cr13,ci13,lr13,li13,rho13=sp.symbols(
+    'cr13 ci13 lr13 li13 rho13',real=True)
+t13=cr13+sp.I*ci13
+lt13=lr13+sp.I*li13
+e13=((-sp.I*t13,1-t13**2),(-t13,sp.I*(1+t13**2)),
+     (-sp.I*lt13,2*t13))
+mat13=sp.Matrix([
+    [sp.im(sp.expand(v[0])) for v in e13],
+    [sp.re(sp.expand(v[1])) for v in e13],
+    [sp.im(sp.expand(v[1])) for v in e13]])
+corr13=mat13.inv()*sp.Matrix([-rho13,0,0])
+onecorr13=sp.factor(
+    -sum(corr13[j]*sp.re(sp.expand(e13[j][0]))
+         for j in range(3))/(2*sp.pi))
+r213=cr13**2+ci13**2
+P013=lr13-2*r213/(1-r213)
+Pinf13=-P013
+cramer_seam13=(
+    sp.factor(mat13.det()
+              -(1+r213)*(lr13*(r213-1)+2*r213))==0
+    and sp.cancel(corr13[2]-rho13/P013)==0
+    and sp.cancel(onecorr13+li13*rho13/(2*sp.pi*P013))==0
+    and sp.cancel(corr13[2]+rho13/Pinf13)==0
+    and sp.cancel(onecorr13-li13*rho13/(2*sp.pi*Pinf13))==0
+    and has_statement9(cusp8.scalar_lattice_coords,
+                       "rows = [[v.imag for v in ez],[v.real for v in ew],[v.imag for v in ew]]"))
+rep('N13d source Cramer gauge correction at both seams',cramer_seam13)
+det_s13=sp.Rational(5,4)*(sp.Rational(3,4)*sp.log(2)
+                           +sp.Rational(1,2))
+det_i13=5*(3*sp.log(2)+8)
+rep('N13d2 strict Cramer denominators: south >5/8, north >40',
+    sp.simplify(mat13.det().subs({
+        cr13:-sp.Rational(1,4),ci13:-sp.sqrt(3)/4,
+        lr13:-sp.log(2)})-det_s13)==0
+    and sp.simplify(mat13.det().subs({
+        cr13:-1,ci13:-sp.sqrt(3),lr13:sp.log(2)})
+        -det_i13)==0
+    and bool(sp.log(2)>0)
+    and det_s13>sp.Rational(5,8)
+    and det_i13>40)
+
+# The source flat step has s(1)=1 and zero first/second left jets.
+# Consequently the collar weights and height blend have zero two-jets
+# at r=1/2 south and r=2 north.
+flat_u13=sp.symbols('flat_u13',real=True)
+flat_s13=sp.exp(-1/flat_u13)/(
+    sp.exp(-1/flat_u13)+sp.exp(-1/(1-flat_u13)))
+flat_jets13=(
+    [sp.limit(sp.diff(flat_s13,flat_u13,k),flat_u13,1,dir='-')
+     for k in range(3)]==[1,0,0]
+    and has_statement9(cusp8.scalar_flat_step,
+                       "a,b = mp.exp(-1/u),mp.exp(-1/(1-u))"))
+rep('N13e flat endpoint value and first/second jets',flat_jets13)
+
+# The selected open moment cells are analytic for q>0 and lambda near
+# one.  At lambda=1 their source expressions are both
+# f=2*sqrt(q)*sinh(k*a), k=-log q.  The positive root is
+# 2*sqrt(q)*cosh(k*a), whence Y=q^(a+1/2) and
+# rho=P*(a+1/2), P=-k/2.  All tangential two-jets agree; every
+# transverse lambda derivative is multiplied by a flat endpoint jet.
+k13,a13,lam13=sp.symbols('k13 a13 lam13',positive=True)
+q13=sp.exp(-k13)
+amp13=lam13*k13
+d13=1-lam13+2*lam13*sp.sqrt(q13)*k13
+fs13=d13*sp.sinh(amp13*a13)/amp13
+kap13=2+lam13*(k13-2)
+fn13=sp.exp(-kap13/2)*sp.exp(kap13*a13)-(
+    q13*sp.exp(kap13/2))*sp.exp(-kap13*a13)
+fend13=2*sp.exp(-k13/2)*sp.sinh(k13*a13)
+Yend13=sp.exp(-k13*(a13+sp.Rational(1,2)))
+height_endpoint13=(
+    sp.simplify(fs13.subs(lam13,1)-fend13)==0
+    and sp.simplify(sp.expand(
+        fn13.subs(lam13,1)-fend13.rewrite(sp.exp)))==0
+    and sp.simplify(
+        2*q13/(2*sp.exp(-k13/2)*sp.cosh(k13*a13)+fend13)
+        -Yend13)==0
+    and all(sp.simplify(sp.diff(
+        sp.log(Yend13)/2
+        +k13*(a13+sp.Rational(1,2))/2,
+        k13,i,a13,j))==0
+        for i in range(3) for j in range(3-i))
+    and has_statement9(cusp8.inverse_height_moment,
+                       "return _height_G(a,amp,d)")
+    and has_statement9(cusp8.inverse_height_moment,
+                       "return mp.sign(a)*(B*mp.exp(kappa*aa)-C*mp.exp(-kappa*aa))")
+    and has_if_test9(cusp8.inverse_height_moment,
+                     "lam==1 or aa<=mp.mpf('.1')")
+    and has_if_test9(cusp8.inverse_height_moment,
+                     "aa>=mp.mpf('.4')"))
+rep('N13f selected height cells: rho/P and all tangential two-jets',
+    height_endpoint13)
+
+# Pure south four=a+xi4+1/2; collar four=xi4+rho/P0.
+# Pure north four=-a-1/2 because its outer blend is zero;
+# collar four=-rho/Pinf.  Thus four has the same two-jet on
+# both sides.  The one coordinates need not agree.  In the chosen
+# lower-half-plane angular cell the two middle slots have a common
+# phase exp(2*pi*i*one), and relative phase exp(-2*pi*i*four).
+W13,F13,O13=sp.symbols('W13 F13 O13',real=True)
+v13=sp.Matrix([W13*sp.exp(2*sp.pi*sp.I*O13),
+               sp.exp(2*sp.pi*sp.I*(O13-F13))])
+P13=v13*v13.conjugate().T/(1+W13**2)
+targetP13=sp.Matrix([
+    [W13**2,W13*sp.exp(2*sp.pi*sp.I*F13)],
+    [W13*sp.exp(-2*sp.pi*sp.I*F13),1]])/(1+W13**2)
+projector13=(
+    all(sp.simplify(P13[i,j]-targetP13[i,j])==0
+        for i in range(2) for j in range(2))
+    and all(sp.simplify(sp.diff(P13[i,j],O13,k))==0
+            for i in range(2) for j in range(2) for k in (1,2))
+    and sp.simplify(targetP13*targetP13-targetP13)==sp.zeros(2,2))
+rep('N13g both surviving middle slots: common phase cancels in P',
+    projector13)
+
+# b=O(h^3) is either collar weight; a four discrepancy
+# delta=O(h^3) follows from the height and Cramer checks above.
+# The 2-jet of every ten-slot block agrees with the pure-middle
+# projector: cusp/cusp entries are O(b^2), cusp/middle entries O(b),
+# and the middle normalization differs only by O(b^2).
+h13,Bh13,Dh13,C13=sp.symbols('h13 Bh13 Dh13 C13',real=True)
+bh13=Bh13*h13**3
+dh13=Dh13*h13**3
+den13=bh13**2*C13+(1-bh13)**2*(1+W13**2)
+jet_projector13=(
+    all(sp.simplify(sp.diff(
+        (1-bh13)**2/den13-1/(1+W13**2),h13,k
+    ).subs(h13,0))==0 for k in range(3))
+    and all(sp.simplify(sp.diff(bh13*(1-bh13)/den13,h13,k)
+                        .subs(h13,0))==0 for k in range(3))
+    and all(sp.simplify(sp.diff(bh13**2/den13,h13,k)
+                        .subs(h13,0))==0 for k in range(3))
+    and all(sp.simplify(sp.diff(
+        sp.exp(2*sp.pi*sp.I*(F13+dh13))
+        -sp.exp(2*sp.pi*sp.I*F13),h13,k
+    ).subs(h13,0))==0 for k in range(3)))
+rep('N13h both ten-slot projector references have equal local two-jets',
+    jet_projector13)
+
+# The projection update e*(e^*v)/|e^*v| equals P*v/sqrt(v^*P*v).
+# Thus it depends only on P when the overlap is nonzero.  At the
+# local witness v=e the overlap is one and remains positive nearby.
+# The final middle return exponentiates one+Arg(phase)/(2*pi).
+# Under e_c=exp(2*pi*i*d)e_p, phase_c=exp(-2*pi*i*d)phase_p,
+# so the corrected coordinate agrees modulo an integer deck change.
+er13,ei13,vr13,vi13,dr13=sp.symbols(
+    'er13 ei13 vr13 vi13 dr13',real=True)
+ephase13=er13+sp.I*ei13
+vphase13=vr13+sp.I*vi13
+gauge13=sp.exp(2*sp.pi*sp.I*dr13)
+inner13=sp.conjugate(ephase13)*vphase13
+inner_g13=sp.conjugate(gauge13*ephase13)*vphase13
+slice13=(
+    sp.simplify(inner_g13-sp.conjugate(gauge13)*inner13)==0
+    and sp.simplify(
+        gauge13*ephase13*inner_g13-ephase13*inner13)==0
+    and sp.simplify(gauge13*inner_g13-inner13)==0
+    and has_statement9(cusp8.elementary_global_slice,
+                       "phase = _elementary_inner(ref,result)")
+    and has_statement9(cusp8.elliptic_meridian_projector,
+                       "return mp.matrix([[a*mp.conj(b) for b in e] for a in e])"))
+rep('N13i projection and corrected middle W slice cancel the gauge',
+    slice13)
+
+# The actual final phase denominator is one in modulus whenever the
+# finite projection product returns.  Its last j=steps iteration uses
+# h=X, so the section is a unit scalar multiple of the same endpoint
+# reference re-evaluated by elementary_global_slice.  The cap
+# correction only multiplies this result by another unit scalar.
+# Thus the final inner product has modulus one on either gauge.
+pa13,pb13,pc13,pd13,ga13,gb13=sp.symbols(
+    'pa13 pb13 pc13 pd13 ga13 gb13',real=True)
+radius13=sp.symbols('radius13',positive=True)
+eref13=sp.Matrix([pa13+sp.I*pb13,pc13+sp.I*pd13])
+enorm13=sum(sp.conjugate(v)*v for v in eref13)
+unitref13=eref13/radius13
+section13=sp.exp(sp.I*(ga13+gb13))*unitref13
+finalphase13=(unitref13.conjugate().T*section13)[0]
+phase_unit13=(
+    sp.simplify(
+        sp.expand((finalphase13-sp.exp(sp.I*(ga13+gb13)))
+                  *radius13**2).subs(radius13**2,enorm13))==0
+    and sp.simplify(
+        sp.expand((finalphase13*sp.conjugate(finalphase13)-1)
+                  *radius13**4).subs(radius13**4,enorm13**2))==0
+    and has_statement9(cusp8.elementary_projection_section,
+                       "h = start+(X-start)*j/steps")
+    and has_statement9(cusp8.elementary_projection_section,
+                       "vector = tuple(a*phase/abs(phase) for a in ref)")
+    and has_statement9(cusp8._elementary_corrected_section,
+                       "result = elementary_projection_section(xi,X,N,dps,diagnostics)")
+    and has_statement9(cusp8._elementary_corrected_section,
+                       "result = tuple(a*mp.exp(-mp.j*weight*theta) for a in result)")
+    and has_statement9(cusp8.elementary_global_slice,
+                       "ref = elliptic_bundle_embedding(kind,data,dps=dps,elementary=True)"))
+rep('N13i2 source final phase denominator has exact unit modulus',
+    phase_unit13)
+
+# Type-(d) numbers only; N13b/c/e/f give the exact branch proof.
+with mp.workdps(50):
+    qsn13=mp.exp(-mp.mpf(4)/3)/4
+    qin13=mp.exp(-mp.mpf(16)/3)/4
+    step13=cusp8.scalar_flat_step(mp.mpf(2)/3)
+    norm_mid13=1+(1-step13)**2
+    print('N13j one-point numerical margins only: '
+          'q_s lower/upper =',mp.nstr(qsn13-mp.mpf(1)/2500,10),
+          mp.nstr(mp.mpf(1)/8-qsn13,10),
+          '; q_i lower/upper =',
+          mp.nstr(qin13-mp.mpf(1)/2500,10),
+          mp.nstr(mp.mpf(1)/8-qin13,10),
+          '; half-chart =',
+          mp.nstr(mp.cos(mp.pi/10)-mp.mpf(9)/10,10),
+          '; middle norm2 =',mp.nstr(norm_mid13,10),
+          '; Cramer lower-bound margins =',
+          mp.nstr(mp.mpf(str(det_s13.evalf(50)))-mp.mpf(5)/8,10),
+          mp.nstr(mp.mpf(str(det_i13.evalf(50)))-40,10))
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A symbolic identity, constant bound, or numerical check failed'
