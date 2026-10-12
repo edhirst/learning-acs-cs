@@ -346,7 +346,12 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   symbolic_identities.py independently composes the north raw inverse
   between two nonidentity radial maps, the round cap and torus
   restoration. Both signs now have one checked transition chamber;
-  the full radial shells and free slab remain open.
+  the full radial shells and free slab remain open. **Active mixed
+  projector (2026-10-12-TSG-10):** C35 checks one strict upper
+  negative-axis active-collar ten-slot projector cell at both cusp signs,
+  including source branches, exact nonempty witnesses, positive
+  normalization, and five-variable second jets. Other projector cells,
+  the full free-slab composition, and global \(J_{\mathrm{cl}}\) remain open.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.

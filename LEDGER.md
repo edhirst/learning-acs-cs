@@ -1726,3 +1726,41 @@ in `AGENTS.md` §5.
   reduction is compositional and uses the source-specific Hessian
   symmetries with the generic identity (c8). It covers one north
   chamber, not the whole shell, free slab, or global \(J_{\mathrm{cl}}\).
+
+### 2026-10-12-TSG-10 — Check an active ten-slot collar projector
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** 00f2b8e
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (C35),
+  docs/s4t2_symbolic_programme.md status, and
+  SYMBOLIC_CAMPAIGN.md T16 status. No manuscript or construction file
+  changed.
+- **Change:** added an ordered source-path certificate for one strict
+  active upper-negative-axis middle-collar projector cell at both
+  cusps. The normalized ten-slot source frame has exactly three
+  nonzero entries, with south support \((0,1,9)\) and north support
+  \((4,5,9)\). Its projector is rank one. The source flat weight,
+  cusp frame, normalization, and projector have exact value, first,
+  and second-jet circuits in \((\Re t_c,\Im t_c,\rho,\mathrm{one},H)\);
+  the height is on an open constant-weight plateau.
+- **Why:** prior checks covered pure-middle and pure-cusp projectors
+  but no strict cell in which a cusp pair and an angular middle slot
+  coexist. The source frame has \(R_f>0\) and the manifest norm bound
+  \(D=(1-s)^2+s^2\ge1/2\). Exact south and north round-meridian
+  witnesses certify that the selected source branches are nonempty.
+- **Verification:** chart_identities.py C35a–c: **ALL PASS** on an
+  independent full run. The separately labelled numerical observations
+  (d), sample size two, give \(D=0.9773063821\) south and
+  \(0.6619583826\) north, measured margins \(0.4773063821\) and
+  \(0.1619583826\) to the proved \(1/2\) bound.
+  verify_construction.py: all checks passed; sphere_products.py:
+  Dimension 8 check passed; git diff --check: pass. LaTeX:
+  **not run** (latexmk unavailable). Git fetch/pull and push were
+  left to the collaborator as requested.
+- **Open points:** the 3-slot Hessian circuit uses exact generic
+  Taylor product rules and source-specific scalar primitives; it
+  does not expand all 10×10 Hessian expressions. Other projector
+  cells, the fixed-count free-slab composition, and the direct
+  global \(J_{\mathrm{cl}}\) check remain open.

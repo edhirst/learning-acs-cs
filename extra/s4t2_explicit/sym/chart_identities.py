@@ -2895,5 +2895,456 @@ rep('C34f index-1 angular and cusp-zz first/second seam jets agree',
     and angular_value_jets34
     and zz_jets34 and south_reconstruction34 and north_reconstruction34)
 
+# C35: the complete ten-slot projector on one active-collar upper sector.
+# Use the open cell 3/10<|tc|<1/2, 3pi/4<Arg(t_middle)<pi and |H|<1/10.
+# C34e reconstructs zz=exp(rho); the centre-0 torus pair has shift zero,
+# weight one, and frame(tc/zz,zz,nu).  The centre-1 pair is zero.  The
+# index-0 angular slot is zero, while index 1 is bm*exp(2pi*i*one).
+# The south support is (0,1,9), the north support is (4,5,9).  This is one
+# strict local source circuit, not a claim about the whole closed projector.
+torus_nodes35 = [node for node in ast.walk(bundle_tree32)
+                 if isinstance(node,ast.FunctionDef)
+                 and node.name=='torus_pair']
+frame_nodes35 = [node for node in ast.walk(bundle_tree32)
+                 if isinstance(node,ast.FunctionDef) and node.name=='frame']
+hw_nodes35 = [node for node in ast.walk(bundle_tree32)
+              if isinstance(node,ast.FunctionDef) and node.name=='hw']
+expected_hw_body35 = ast.parse('''
+return 1-scalar_flat_step((abs(h)-mp.mpf('.25'))/mp.mpf('.15'))
+''').body
+expected_torus_body35 = ast.parse('''
+rr = abs(t)**2
+m = nu*mp.exp(-2*rr/(1-rr))
+P = mp.log(m*abs(t))
+H = known_height if elementary else elliptic_height(mp.log(abs(z)),P,dps=dps)
+if H is None:
+    raise ValueError('elementary projector requires the known inverse-first height')
+out = []
+for centre in (mp.mpf(0),mp.mpf('.5')):
+    shift = mp.floor(centre+mp.mpf('.5')-H)
+    w = hw(H+shift-centre)
+    if w == 0:
+        out.extend([mp.mpc(0),mp.mpc(0)])
+    else:
+        yy = z*(m*t)**int(shift)
+        out.extend(w*q for q in frame(t/yy,yy,nu))
+return out
+''').body
+expected_frame_body35 = ast.parse('''
+r = nu*nu*abs(x)**2+abs(y)**2
+if not r>0:
+    raise ValueError('the bundle embedding excludes the fixed points')
+return (nu*mp.conj(x)/mp.sqrt(r),y/mp.sqrt(r))
+''').body
+source_torus35 = (
+    source_collar34 and source_branch33 and len(torus_nodes35)==1
+    and len(frame_nodes35)==1 and len(hw_nodes35)==1
+    and [ast.dump(node,include_attributes=False)
+         for node in hw_nodes35[0].body]
+        ==[ast.dump(node,include_attributes=False)
+           for node in expected_hw_body35]
+    and [ast.dump(node,include_attributes=False)
+         for node in torus_nodes35[0].body]
+        ==[ast.dump(node,include_attributes=False)
+           for node in expected_torus_body35]
+    and [ast.dump(node,include_attributes=False)
+         for node in frame_nodes35[0].body]
+        ==[ast.dump(node,include_attributes=False)
+           for node in expected_frame_body35]
+    and matching_statement31(bundle_tree32,
+        "return 1-scalar_flat_step((abs(h)-mp.mpf('.25'))/mp.mpf('.15'))")
+    and matching_assignment30(bundle_tree32,'norm2',
+        'sum(abs(q)**2 for q in vec)')
+    and matching_assignment30(bundle_tree32,'result',
+        'tuple(+(q/mp.sqrt(norm2)) for q in vec)'))
+
+# Exact off-cut round witnesses.  Take a stereographic y=(1/100,Y,0),
+# with Y=12/5 south or Y=4 north.  Set R=|y-(0,1,0)|,
+# X=(R-1)/sqrt(R^2+1), n=(y0/R,0,(1-Y)/R).  Then |n|=1,
+# X*sqrt(2-X^2)=(R^2-1)/(R^2+1), and the source factor
+# (1-X^2)/(1-X*sqrt(2-X^2)) equals R, recovering this y exactly.
+y0_w35 = sp.Rational(1,100)
+def round_witness35(Y):
+    radius = sp.sqrt(y0_w35**2+(Y-1)**2)
+    X = (radius-1)/sp.sqrt(radius**2+1)
+    n = (y0_w35/radius,sp.Integer(0),(1-Y)/radius)
+    aa = (radius**2-1)/(radius**2+1)
+    radius_ok = (bool(radius>1)
+        and sp.simplify(sum(z*z for z in n)-1)==0
+        and sp.simplify(X*sp.sqrt(2-X**2)-aa)==0
+        and sp.simplify((1-X**2)/(1-aa)-radius)==0)
+    ysq = y0_w35**2+Y**2
+    u1 = (1-ysq+2*sp.I*y0_w35)/(1+ysq)
+    u2 = 2*Y/(1+ysq)
+    return radius_ok,u1,u2
+south_w35,u1s35,u2s35 = round_witness35(sp.Rational(12,5))
+north_w35,u1n35,u2n35 = round_witness35(sp.Integer(4))
+z_s35 = sp.simplify(u1s35*sp.conjugate(u1s35)/u2s35**2)
+z_n35 = sp.simplify(u2n35**2/(u1n35*sp.conjugate(u1n35)))
+lo35,hi35 = sp.Rational(9,100),sp.Rational(1,4)
+# The same 144<A=(4pi)^2<160 and 50<B=e^4<64 bounds as C34a
+# bracket the south positive root of B*s^2+A(1-z)*s-z and the north
+# positive root of s^2+A(1-z)*s-B*z between lo=9/100 and hi=1/4.
+root_cell35 = (
+    south_w35 and north_w35 and 0<z_s35<1 and 0<z_n35<1
+    and 64*lo35**2+160*(1-z_s35)*lo35-z_s35<0
+    and 50*hi35**2-z_s35>0
+    and lo35**2+160*(1-z_n35)*lo35-50*z_n35<0
+    and hi35**2+144*(1-z_n35)*hi35-64*z_n35>0)
+# Both u1/u2 ratios have negative real and positive imaginary parts.
+# The ratio of imaginary to the magnitude of real part is
+# 2*y0/(y0^2+Y^2-1)<1.  Thus the middle t lies strictly in the upper
+# sector 3pi/4<Arg(t)<pi; neither argument cut is touched.  South H=0.
+# North H=Arg(-conj(u1))/(2pi), and 0<H<1/10 follows from
+# arctan(v)<v, v<1/100<pi/5.  The derivative of arctan is
+# 1/(1+v^2)<1 for v>0, giving the stated elementary inequality.
+angles35 = [2*y0_w35/(y0_w35**2+Y**2-1)
+            for Y in (sp.Rational(12,5),sp.Integer(4))]
+height_cell35 = (
+    all(0<v<1 for v in angles35)
+    and angles35[1]<sp.Rational(1,100)
+    and sp.Rational(1,100)<sp.pi/5
+    and sp.re(u2s35)>0 and sp.re(-sp.conjugate(u1n35))>0
+    and sp.im(u1s35/u2s35)>0
+    and sp.im(u1n35/u2n35)>0)
+# For |H|<1/10 the centre-0 shift is zero and hw(H)=1; the
+# centre-1 offset has magnitude >2/5, so hw=0.  The angular weights
+# follow from 3pi/4<Arg(t)<pi: index 0 is zero, index 1 is one.
+branch_margin35 = (
+    sp.Rational(1,10)<sp.Rational(1,4)
+    and (sp.Rational(2,5)-sp.Rational(1,4))/sp.Rational(3,20)==1
+    and (sp.Rational(3,4)-sp.Rational(1,2))/sp.Rational(1,4)==1
+    and sp.Rational(1,4)<sp.Rational(1,2))
+rep('C35a source torus-pair circuit and exact off-cut south/north witnesses',
+    source_torus35 and root_cell35 and height_cell35 and branch_margin35)
+
+# In either cusp let tc=a+i*b, zz=e^rho, nu=1 (south) or e^-2 (north).
+# The source frame is (nu*exp(-rho)*conj(tc),exp(rho))/sqrt(Rf).
+# Put c=1-s(q), d=s(q), q=5|tc|-3/2.  The active source norm is
+# D=c^2+d^2=1/2+2(d-1/2)^2>=1/2, with Rf>0 manifest.
+ar35,ai35,rho35,one35,H35 = sp.symbols(
+    'ar35 ai35 rho35 one35 H35',real=True)
+nu35 = sp.Symbol('nu35',positive=True)
+tc35 = ar35+sp.I*ai35
+rsq35 = ar35**2+ai35**2
+r35 = sp.sqrt(rsq35)
+q35 = 5*r35-sp.Rational(3,2)
+flat35 = sp.exp(-1/q35)/(
+    sp.exp(-1/q35)+sp.exp(-1/(1-q35)))
+c35,d35 = 1-flat35,flat35
+Rf35 = nu35**2*sp.exp(-2*rho35)*rsq35+sp.exp(2*rho35)
+D35 = c35**2+d35**2
+phase35 = sp.exp(2*sp.pi*sp.I*one35)
+V35 = sp.Matrix([c35*nu35*sp.exp(-rho35)*sp.conjugate(tc35)
+                 /sp.sqrt(Rf35),
+                 c35*sp.exp(rho35)/sp.sqrt(Rf35),
+                 d35*phase35])/sp.sqrt(D35)
+# Check normalization first with a real symbolic weight and positive
+# formal frame radius/denominator, avoiding any hidden sign choice of a
+# square root when SymPy conjugates an unsimplified positive sum of squares.
+weight35 = sp.Symbol('weight35',real=True)
+Rformal35 = sp.Symbol('Rformal35',positive=True)
+Dpositive35 = sp.Symbol('Dpositive35',positive=True)
+Dformal35 = (1-weight35)**2+weight35**2
+zformal35 = sp.Matrix([
+    nu35*sp.exp(-rho35)*sp.conjugate(tc35),sp.exp(rho35)])
+Vformal35 = sp.Matrix([
+    (1-weight35)*zformal35[0]/sp.sqrt(Rformal35),
+    (1-weight35)*zformal35[1]/sp.sqrt(Rformal35),
+    weight35*phase35])/sp.sqrt(Dpositive35)
+formal_norm35 = (Vformal35.conjugate().T*Vformal35)[0]
+Pformal35 = Vformal35*Vformal35.conjugate().T
+P35 = Pformal35.subs({Rformal35:Rf35,Dpositive35:D35,
+                     weight35:flat35})
+norm35 = (
+    sp.simplify((zformal35.conjugate().T*zformal35)[0]-Rf35)==0
+    and sp.simplify(formal_norm35
+       -((1-weight35)**2*Rf35/Rformal35+weight35**2)/Dpositive35)==0
+    and sp.simplify(formal_norm35.subs(
+        {Rformal35:Rf35,Dpositive35:Dformal35})-1)==0
+    and sp.simplify(Dformal35
+                    -(sp.Rational(1,2)
+                      +2*(weight35-sp.Rational(1,2))**2))==0
+    and Vformal35.subs({Rformal35:Rf35,Dpositive35:D35,
+                        weight35:flat35})==V35
+    and sp.simplify(sp.trace(Pformal35)-formal_norm35)==0)
+# Embed the three nonzero components in the ten source slots.  Thus the
+# 10x10 projector and every derivative have exactly the corresponding
+# 3x3 active block; all other entries vanish identically.
+Es35 = sp.zeros(10,3)
+En35 = sp.zeros(10,3)
+for E35,indices35 in ((Es35,(0,1,9)),(En35,(4,5,9))):
+    for j35,idx35 in enumerate(indices35):
+        E35[idx35,j35] = 1
+V10s35,V10n35 = Es35*V35,En35*V35
+P10s35,P10n35 = Es35*P35*Es35.T,En35*P35*En35.T
+v_rank35 = sp.Matrix(sp.symbols('v0_35 v1_35 v2_35'))
+b_rank35 = sp.Matrix(sp.symbols('b0_35 b1_35 b2_35'))
+Q_rank35 = v_rank35*b_rank35.T
+support35 = (
+    (Es35*Vformal35)*(Es35*Vformal35).conjugate().T
+        ==Es35*Pformal35*Es35.T
+    and (En35*Vformal35)*(En35*Vformal35).conjugate().T
+        ==En35*Pformal35*En35.T
+    and Es35.T*Es35==sp.eye(3)
+    and En35.T*En35==sp.eye(3)
+    and P10s35==Es35*P35*Es35.T
+    and P10n35==En35*P35*En35.T
+    and sp.simplify(sp.trace(P35)-1)==0
+    and all(sp.expand(entry)==0 for entry in
+            Q_rank35**2-(b_rank35.T*v_rank35)[0]*Q_rank35))
+rep('C35b source ten-slot collar projector has positive norm and rank one',
+    norm35 and support35)
+
+# Type (d): two one-point observations at the exact round witnesses in
+# C35a.  These measured values are separate from the proof D>=1/2 above.
+import math
+def measured_norm35(z,north):
+    z=float(z)
+    A=(4*math.pi)**2
+    B=math.exp(4)
+    aa=A*(1-z)
+    if north:
+        s=(-aa+math.sqrt(aa*aa+4*B*z))/2
+    else:
+        s=(-aa+math.sqrt(aa*aa+4*B*z))/(2*B)
+    q=5*math.sqrt(s)-1.5
+    weight=math.exp(-1/q)/(
+        math.exp(-1/q)+math.exp(-1/(1-q)))
+    return (1-weight)**2+weight**2
+measured_s35 = measured_norm35(z_s35,False)
+measured_n35 = measured_norm35(z_n35,True)
+rep('C35b2 two one-point source norm margins (numerical observation, d)',
+    abs(measured_s35-0.9773063821066781)<1e-12
+    and abs(measured_n35-0.6619583826095533)<1e-12
+    and measured_s35>0.5 and measured_n35>0.5)
+print('C35b2 south/north D and measured margins to 1/2:',
+      measured_s35,measured_n35,
+      measured_s35-0.5,measured_n35-0.5)
+
+# Independently assemble the full second jet from the elementary source
+# nodes.  In particular, the flat step is differentiated through its
+# logistic exponent L=-1/q+1/(1-q); no unnamed derivative of a weight is
+# left in the certificate.  The fifth variable H has zero jets throughout
+# this plateau, as established by the strict guards in C35a.  Constants
+# nu=1 and nu=e^-2 are covered by the same positive-symbol identities.
+vars35 = (ar35,ai35,rho35,one35,H35)
+zero_g35 = [sp.Integer(0)]*5
+zero_h35 = [[sp.Integer(0)]*5 for _ in range(5)]
+def jet35(value,gradient,hessian):
+    return value,gradient,hessian
+def product35(A,B):
+    av,ag,ah=A; bv,bg,bh=B
+    return jet35(av*bv,
+        [ag[i]*bv+av*bg[i] for i in range(5)],
+        [[ah[i][j]*bv+ag[i]*bg[j]+ag[j]*bg[i]+av*bh[i][j]
+          for j in range(5)] for i in range(5)])
+def invroot35(A):
+    av,ag,ah=A
+    return jet35(1/sp.sqrt(av),
+        [-ag[i]/(2*av**sp.Rational(3,2)) for i in range(5)],
+        [[3*ag[i]*ag[j]/(4*av**sp.Rational(5,2))
+          -ah[i][j]/(2*av**sp.Rational(3,2))
+          for j in range(5)] for i in range(5)])
+def same_jet35(A,B):
+    av,ag,ah=A; bv,bg,bh=B
+    return (sp.simplify(av-bv)==0
+        and all(sp.simplify(ag[i]-bg[i])==0 for i in range(5))
+        and all(sp.simplify(ah[i][j]-bh[i][j])==0
+                for i in range(5) for j in range(i,5)))
+def direct_jet35(expr):
+    return jet35(expr,[expr.diff(v) for v in vars35],
+        [[expr.diff(vi,vj) for vj in vars35] for vi in vars35])
+
+qg35 = [5*ar35/r35,5*ai35/r35,0,0,0]
+qh35 = [[5*ai35**2/r35**3,-5*ar35*ai35/r35**3,0,0,0],
+        [-5*ar35*ai35/r35**3,5*ar35**2/r35**3,0,0,0],
+        *[zero_g35[:] for _ in range(3)]]
+Lprime35 = 1/q35**2+1/(1-q35)**2
+Lsecond35 = -2/q35**3+2/(1-q35)**3
+sg35 = [flat35*(1-flat35)*Lprime35*qg35[i]
+        for i in range(5)]
+sh35 = [[flat35*(1-flat35)*(
+           ((1-2*flat35)*Lprime35**2+Lsecond35)
+               *qg35[i]*qg35[j]+Lprime35*qh35[i][j])
+         for j in range(5)] for i in range(5)]
+sjet35 = jet35(flat35,sg35,sh35)
+cjet35 = jet35(1-flat35,[-v for v in sg35],
+               [[-v for v in row] for row in sh35])
+Rg35 = [2*nu35**2*sp.exp(-2*rho35)*ar35,
+        2*nu35**2*sp.exp(-2*rho35)*ai35,
+        -2*nu35**2*sp.exp(-2*rho35)*rsq35
+           +2*sp.exp(2*rho35),0,0]
+Rh35 = [
+    [2*nu35**2*sp.exp(-2*rho35),0,
+     -4*nu35**2*sp.exp(-2*rho35)*ar35,0,0],
+    [0,2*nu35**2*sp.exp(-2*rho35),
+     -4*nu35**2*sp.exp(-2*rho35)*ai35,0,0],
+    [-4*nu35**2*sp.exp(-2*rho35)*ar35,
+     -4*nu35**2*sp.exp(-2*rho35)*ai35,
+     4*nu35**2*sp.exp(-2*rho35)*rsq35
+       +4*sp.exp(2*rho35),0,0],
+    zero_g35[:],zero_g35[:]]
+Rjet35 = jet35(Rf35,Rg35,Rh35)
+z1jet35 = jet35(zformal35[0],
+    [nu35*sp.exp(-rho35),-sp.I*nu35*sp.exp(-rho35),
+     -zformal35[0],0,0],
+    [[0,0,-nu35*sp.exp(-rho35),0,0],
+     [0,0,sp.I*nu35*sp.exp(-rho35),0,0],
+     [-nu35*sp.exp(-rho35),sp.I*nu35*sp.exp(-rho35),
+      zformal35[0],0,0],zero_g35[:],zero_g35[:]])
+z2jet35 = jet35(zformal35[1],
+    [0,0,zformal35[1],0,0],
+    [[0]*5,[0]*5,[0,0,zformal35[1],0,0],
+     zero_g35[:],zero_g35[:]])
+phasejet35 = jet35(phase35,
+    [0,0,0,2*sp.pi*sp.I*phase35,0],
+    [[0]*5,[0]*5,[0]*5,
+     [0,0,0,-4*sp.pi**2*phase35,0],zero_g35[:]])
+Djet35 = jet35(D35,
+    [2*(2*flat35-1)*sg35[i] for i in range(5)],
+    [[4*sg35[i]*sg35[j]+2*(2*flat35-1)*sh35[i][j]
+      for j in range(5)] for i in range(5)])
+q_scalar35 = sp.Symbol('q_scalar35',positive=True)
+s_scalar35 = sp.exp(-1/q_scalar35)/(
+    sp.exp(-1/q_scalar35)+sp.exp(-1/(1-q_scalar35)))
+Lp_scalar35 = 1/q_scalar35**2+1/(1-q_scalar35)**2
+Lpp_scalar35 = -2/q_scalar35**3+2/(1-q_scalar35)**3
+flat_scalar_jets35 = (
+    sp.simplify(sp.diff(s_scalar35,q_scalar35)
+        -s_scalar35*(1-s_scalar35)*Lp_scalar35)==0
+    and sp.simplify(sp.diff(s_scalar35,q_scalar35,2)
+        -s_scalar35*(1-s_scalar35)*(
+          (1-2*s_scalar35)*Lp_scalar35**2+Lpp_scalar35))==0)
+# The q and source-frame jets are checked directly; the one-variable
+# flat rule and the scalar composition rule supply all 25 flat entries.
+primitive_jets35 = (flat_scalar_jets35
+    and all(same_jet35(J,direct_jet35(expr))
+       for J,expr in ((jet35(q35,qg35,qh35),q35),
+                      (Rjet35,Rf35),
+                      (z1jet35,zformal35[0]),
+                      (z2jet35,zformal35[1]),
+                      (phasejet35,phase35)))
+    and sp.simplify(D35-(1-2*flat35+2*flat35**2))==0)
+radial_jet35 = invroot35(Rjet35)
+norm_jet35 = invroot35(Djet35)
+Vjets35 = [product35(product35(cjet35,
+                 product35(zjet,radial_jet35)),norm_jet35)
+           for zjet in (z1jet35,z2jet35)]
+Vjets35.append(product35(product35(sjet35,phasejet35),norm_jet35))
+V_first35 = [V35.diff(v) for v in vars35]
+V_second35 = [[V35.diff(vi,vj) for vj in vars35]
+              for vi in vars35]
+# Verify the two generic algebra rules on arbitrary second-order Taylor
+# data in two independent real directions.  Relabelling the directions
+# gives every one of the 5x5 index pairs without expanded expressions.
+uu35,vv35 = sp.symbols('uu35 vv35',real=True)
+a0g35 = sp.Symbol('a0g35',positive=True)
+aug35,avg35,auug35,auvg35,avvg35 = sp.symbols(
+    'aug35 avg35 auug35 auvg35 avvg35',real=True)
+b0g35,bug35,bvg35,buug35,buvg35,bvvg35 = sp.symbols(
+    'b0g35 bug35 bvg35 buug35 buvg35 bvvg35')
+Ap35 = (a0g35+aug35*uu35+avg35*vv35
+    +auug35*uu35**2/2+auvg35*uu35*vv35+avvg35*vv35**2/2)
+Bp35 = (b0g35+bug35*uu35+bvg35*vv35
+    +buug35*uu35**2/2+buvg35*uu35*vv35+bvvg35*vv35**2/2)
+Ag35 = jet35(a0g35,[aug35,avg35,0,0,0],
+    [[auug35,auvg35,0,0,0],[auvg35,avvg35,0,0,0],
+     *[zero_g35[:] for _ in range(3)]])
+Bg35 = jet35(b0g35,[bug35,bvg35,0,0,0],
+    [[buug35,buvg35,0,0,0],[buvg35,bvvg35,0,0,0],
+     *[zero_g35[:] for _ in range(3)]])
+def generic_rule35(jet,expression):
+    value,grad,hess=jet
+    at_zero={uu35:0,vv35:0}
+    directions=(uu35,vv35)
+    return (sp.simplify(value-expression.subs(at_zero))==0
+      and all(sp.simplify(grad[i]-sp.diff(expression,directions[i])
+                           .subs(at_zero))==0 for i in range(2))
+      and all(sp.simplify(hess[i][j]
+          -sp.diff(expression,directions[i],directions[j])
+            .subs(at_zero))==0
+          for i in range(2) for j in range(i,2)))
+generic_chain35 = (
+    generic_rule35(product35(Ag35,Bg35),Ap35*Bp35)
+    and generic_rule35(invroot35(Ag35),1/sp.sqrt(Ap35)))
+f0g35,f1g35,f2g35 = sp.symbols('f0g35 f1g35 f2g35')
+generic_composite35 = (f0g35+f1g35*(Ap35-a0g35)
+                      +f2g35*(Ap35-a0g35)**2/2)
+generic_chain35 &= generic_rule35(jet35(f0g35,
+    [f1g35*x for x in Ag35[1]],
+    [[f2g35*Ag35[1][i]*Ag35[1][j]+f1g35*Ag35[2][i][j]
+      for j in range(5)] for i in range(5)]),generic_composite35)
+V_chain35 = (generic_chain35
+    and all(sp.simplify(Vjets35[k][0]-V35[k])==0
+            for k in range(3))
+    and all(len(J[1])==5 and len(J[2])==5
+            and all(len(row)==5 for row in J[2])
+            for J in Vjets35))
+# For arbitrary complex component functions, the following is the exact
+# second-order product rule for P_ij=V_i*conj(V_j).  The three independently
+# checked V-jets above therefore determine every one of the 10x10 projector
+# jets by sparse insertion; no new chart assumptions enter this step.
+P_jet_formula35 = [[jet35(
+    Vjets35[i][0]*sp.conjugate(Vjets35[j][0]),
+    [Vjets35[i][1][k]*sp.conjugate(Vjets35[j][0])
+      +Vjets35[i][0]*sp.conjugate(Vjets35[j][1][k])
+      for k in range(5)],
+    [[Vjets35[i][2][k][ell]*sp.conjugate(Vjets35[j][0])
+      +Vjets35[i][1][k]*sp.conjugate(Vjets35[j][1][ell])
+      +Vjets35[i][1][ell]*sp.conjugate(Vjets35[j][1][k])
+      +Vjets35[i][0]*sp.conjugate(Vjets35[j][2][k][ell])
+      for ell in range(5)] for k in range(5)])
+      for j in range(3)] for i in range(3)]
+P_chain35 = (
+    generic_rule35(product35(Ag35,
+        jet35(sp.conjugate(b0g35),
+          [sp.conjugate(x) for x in Bg35[1]],
+          [[sp.conjugate(x) for x in row] for row in Bg35[2]])),
+          Ap35*sp.conjugate(Bp35))
+    and len(P_jet_formula35)==3
+    and all(len(row)==3 for row in P_jet_formula35)
+    and all(len(J[1])==5 and len(J[2])==5
+            and all(len(row)==5 for row in J[2])
+            for row in P_jet_formula35 for J in row)
+    # C35b proves the formal source value identity before substituting the
+    # positive radicands.  The generic conjugate-product rule gives every
+    # indexed derivative, so no expanded 10x10 Hessian is required.
+    and Pformal35==Vformal35*Vformal35.conjugate().T
+    and P35==Pformal35.subs({Rformal35:Rf35,
+                              Dpositive35:D35,weight35:flat35})
+    and all(P_jet_formula35[i][j][0]
+            ==Vjets35[i][0]*sp.conjugate(Vjets35[j][0])
+            for i in range(3) for j in range(3)))
+wrong_mixed35 = (auvg35*sp.conjugate(b0g35)
+    +avg35*sp.conjugate(bug35)
+    +a0g35*sp.conjugate(buvg35))
+negative_control35 = (
+    sp.simplify(sp.diff(Ap35*sp.conjugate(Bp35),uu35,vv35)
+      .subs({uu35:0,vv35:0})-wrong_mixed35
+      -aug35*sp.conjugate(bvg35))==0
+    and aug35*sp.conjugate(bvg35)!=0)
+full_jets35 = (
+    primitive_jets35 and V_chain35 and P_chain35
+    and negative_control35
+    and all(V_second35[i][j]==V_second35[j][i]
+        for i in range(5) for j in range(5))
+    and V_first35[4]==sp.zeros(3,1)
+    and all(V_second35[4][j]==sp.zeros(3,1)
+            for j in range(5))
+    and all(P_jet_formula35[i][j][1][4]==0
+            and all(P_jet_formula35[i][j][2][4][k]==0
+                    for k in range(5))
+            for i in range(3) for j in range(3))
+    and any(V_first35[0][k]!=0 for k in range(3))
+    and any(V_first35[2][k]!=0 for k in range(3))
+    and any(V_first35[3][k]!=0 for k in range(3))
+    and any(P_jet_formula35[i][j][1][0]!=0
+            for i in range(3) for j in range(3))
+    and any(P_jet_formula35[i][j][2][0][3]!=0
+            for i in range(3) for j in range(3)))
+rep('C35c actual collar V/P: all five-variable first and second jets',
+    full_jets35)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'
