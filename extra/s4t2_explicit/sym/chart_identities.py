@@ -3346,5 +3346,321 @@ full_jets35 = (
 rep('C35c actual collar V/P: all five-variable first and second jets',
     full_jets35)
 
+# C36: a signed six-real determinant on the two strict C35 neighborhoods.
+# Source order is (n0,n1,X,theta,phi2,phi3), with n2<0 and
+# Z=sqrt(1-X^2)*exp(2pi*i*theta)*((n0+i*n1)/(2c),c),
+# c=sqrt((1-n2)/2).  Target order is (Re t,Im t,Re z,Im z,Re w,Im w).
+# The auxiliary W/torus order is (Re t,Im t,x4,x1,phi2,phi3).
+# This is a local determinant, not a global free-slab certificate.
+height_inverse_tree36 = source_tree30(cusp30.elementary_cusp_logradius)
+moment_tree36 = source_tree30(cusp30.inverse_height_moment)
+terminal_tree36 = source_tree30(cusp30._terminal_height_data)
+height_G_tree36 = source_tree30(cusp30._height_G)
+inner_tree36 = source_tree30(cusp30._elementary_inner)
+inclusion_tree36 = source_tree30(cusp30._elementary_pole_inclusion)
+source_det36 = (
+    source_counts30 and project_source30 and source_collar34 and source_torus35
+    and matching_assignment30(raw_tree31,'u1',
+        'mp.mpc(1-s2,2*y[0])/(1+s2)')
+    and matching_assignment30(raw_tree31,'u2',
+        'mp.mpc(2*y[1],2*y[2])/(1+s2)')
+    and matching_assignment30(raw_tree31,'inverse_ratio','abs(u1)>abs(u2)')
+    and matching_assignment30(raw_tree31,'ratio',
+        'u2/u1 if inverse_ratio else u1/u2')
+    and matching_assignment30(raw_tree31,'root',
+        'mp.sqrt(b*b+4*B*rr)')
+    and matching_statement31(raw_tree31,
+        'A,B = (4*mp.pi)**2,mp.exp(4)')
+    and matching_assignment30(raw_tree31,'b','A*(1-rr)')
+    and matching_assignment30(raw_tree31,'small',
+        'ratio*mp.sqrt((2*B if inverse_ratio else 2)/(b+root))')
+    and matching_assignment30(raw_tree31,'rho',
+        '(elementary_cusp_logradius if elementary else '
+        'elliptic_cusp_logradius)(a,tc,nu,dps=dps)')
+    and matching_assignment30(height_inverse_tree36,'P',
+        'mp.log(nu)+mp.log(r)-2*r*r/(1-r*r)')
+    and matching_assignment30(height_inverse_tree36,'q','mp.exp(2*P)')
+    and matching_assignment30(height_inverse_tree36,'n',
+        "mp.floor(a+mp.mpf('.5'))")
+    and matching_assignment30(height_inverse_tree36,'b','a-n')
+    and matching_assignment30(height_inverse_tree36,'lam',
+        "scalar_flat_step((r-mp.mpf('.3'))/mp.mpf('.2'))")
+    and matching_assignment30(height_inverse_tree36,'f',
+        'inverse_height_moment(b,q,lam)')
+    and matching_assignment30(height_inverse_tree36,'root',
+        'mp.sqrt(f*f+4*q)')
+    and matching_assignment30(height_inverse_tree36,'Y',
+        '2*q/(root+f) if f>=0 else (root-f)/2')
+    and returned_expr30(height_inverse_tree36,
+        '+(n*P+mp.log(Y)/2)')
+    and matching_assignment30(moment_tree36,'aa','abs(a)')
+    and matching_statement31(moment_tree36,
+        "if lam==1 or aa<=mp.mpf('.1'):\n    return _height_G(a,amp,d)")
+    and matching_if_test32(terminal_tree36,'lam==0')
+    and matching_assignment30(terminal_tree36,'k','-mp.log(q)')
+    and matching_assignment30(terminal_tree36,'amp','lam*k')
+    and matching_assignment30(terminal_tree36,'d',
+        '1-lam+2*lam*mp.sqrt(q)*k')
+    and returned_expr30(height_G_tree36,
+        'mp.asinh(amp*a/d)/amp if inverse else d*mp.sinh(amp*a)/amp')
+    and returned_expr30(inner_tree36,
+        'sum(mp.conj(a)*b for a,b in zip(u,v))')
+    and matching_assignment30(project_tree30,'vector',
+        '_elementary_pole_inclusion(xi)')
+    and matching_assignment30(project_tree30,'pc',
+        '2*xi[0]*mp.conj(xi[1])')
+    and matching_assignment30(project_tree30,'n',
+        '(pc.real,pc.imag,abs(xi[0])**2-abs(xi[1])**2)')
+    and matching_assignment30(slice_tree30,'xi',
+        'tuple(a/mp.sqrt(1-X*X) for a in Z)')
+    and matching_assignment30(slice_tree30,'phase',
+        '_elementary_inner(ref,result)')
+    and matching_if_test32(correct_tree30,'distance<alpha')
+    and matching_if_test32(slice_tree30,
+        'distance<alpha/2 and not force_slab')
+    and returned_expr30(slice_tree30,
+        'kind,(t,one+mp.arg(phase)/(2*mp.pi),four,lt)')
+    and matching_assignment30(restore_tree30,'C','list(phi)')
+    and matching_statement31(restore_tree30,
+        't,one,four,lt = data[:4]')
+    and matching_statement31(restore_tree30,
+        'C = [v+beta*d for v,d in zip(C,D)]')
+    and returned_expr30(restore_tree30,
+        "'mid',(z-mp.j*t*C[0]-t*C[1],"
+        "w+(1-t*t)*C[0]+mp.j*(1+t*t)*C[1],t)"))
+d_assignments36 = [node.value for node in ast.walk(restore_tree30)
+                   if isinstance(node,ast.Assign)
+                   and any(isinstance(target,ast.Name) and target.id=='D'
+                           for target in node.targets)]
+source_det36 &= (len(d_assignments36)==2
+    and all(not any(isinstance(sub,ast.Name) and sub.id in ('C','phi')
+                    for sub in ast.walk(expr))
+            for expr in d_assignments36))
+
+# Both exact witnesses lie outside the phase-correction and pole bands:
+# south 1<R<3/2, north 3<R<31/10, and X(R) increases for R>0.
+Rs36 = sp.sqrt(y0_w35**2+(sp.Rational(12,5)-1)**2)
+Rn36 = sp.sqrt(y0_w35**2+(sp.Integer(4)-1)**2)
+Rvar36 = sp.Symbol('Rvar36',positive=True)
+X_of_R36 = (Rvar36-1)/sp.sqrt(1+Rvar36**2)
+slab_witness36 = (
+    root_cell35 and height_cell35 and branch_margin35
+    and 1<Rs36<sp.Rational(3,2)
+    and 3<Rn36<sp.Rational(31,10)
+    and sp.simplify(sp.diff(X_of_R36,Rvar36)
+        -(Rvar36+1)/(1+Rvar36**2)**sp.Rational(3,2))==0
+    and X_of_R36.subs(Rvar36,sp.Rational(3,2))<sp.Rational(1,2)
+    and X_of_R36.subs(Rvar36,sp.Rational(31,10))<sp.Rational(3,4)
+    and sp.Rational(1,4)>sp.Rational(1,100000)
+    and matching_assignment30(slice_tree30,'alpha',"mp.mpf('1e-5')")
+    and matching_assignment30(correct_tree30,'alpha',"mp.mpf('1e-5')"))
+
+# The projection fold preserves the input scalar phase at every one of its
+# certified N steps: each projector depends on (n,h), and a unit scalar p
+# takes vector to p*vector and its inner product to p*phase.  The final
+# source middle one-coordinate adds Arg(phase)/(2pi), hence has derivative
+# +1 in the local theta chart.  The correction is inactive at these X.
+th36 = sp.Symbol('th36',real=True)
+p36 = sp.exp(2*sp.pi*sp.I*th36)
+v036,v136,r036,r136 = sp.symbols('v036 v136 r036 r136')
+xi036,xi136 = sp.symbols('xi036 xi136')
+inner36 = sp.conjugate(r036)*v036+sp.conjugate(r136)*v136
+phase_fold36 = (
+    sp.simplify(2*(p36*xi036)*sp.conjugate(p36*xi136)
+                -2*xi036*sp.conjugate(xi136))==0
+    and sp.simplify(sp.conjugate(p36*xi036)*(p36*xi036)
+                    -sp.conjugate(xi036)*xi036)==0
+    and sp.simplify(sp.conjugate(p36*xi136)*(p36*xi136)
+                    -sp.conjugate(xi136)*xi136)==0
+    and sp.simplify(sp.conjugate(r036)*(p36*v036)
+        +sp.conjugate(r136)*(p36*v136)-p36*inner36)==0
+    and sp.simplify(abs(p36*inner36)-abs(inner36))==0
+    and all(sp.simplify(z)==0 for z in (
+        p36*(xi036-sp.I*xi136)/sp.sqrt(2)
+          -(p36*xi036-sp.I*p36*xi136)/sp.sqrt(2),
+        p36*(xi036+xi136)/sp.sqrt(2)
+          -(p36*xi036+p36*xi136)/sp.sqrt(2)))
+    and matching_assignment30(inclusion_tree36,'pair',
+        '((a+b)/mp.sqrt(2),(a-b)/mp.sqrt(2)) if infinity else '
+        '((a-mp.j*b)/mp.sqrt(2),(a+mp.j*b)/mp.sqrt(2))'))
+rep('C36a source path, strict slab witnesses and finite-fold fibre derivative +1',
+    source_det36 and slab_witness36 and phase_fold36)
+
+# The raw quotient map is a positive radial scale followed by a signed
+# permutation and a translation: y=(lambda*n0,1-lambda*n2,-lambda*n1).
+# In the n2<0 chart, det D y / D(n0,n1,X)=-lambda^2 lambda'/n2>0.
+X36 = sp.Symbol('X36',real=True)
+U36 = sp.sqrt(2-X36**2)
+lambda36 = (1-X36**2)/(1-X36*U36)
+lambda_alt36 = (U36+X36)/(U36-X36)
+lambda_logprime36 = 2/(U36*(1-X36**2))
+n036,n136 = sp.symbols('n036 n136',real=True)
+n236 = -sp.sqrt(1-n036**2-n136**2)
+L36,Lp36 = sp.symbols('L36 Lp36',positive=True)
+dy36 = sp.Matrix([
+    [L36,0,Lp36*n036],
+    [-L36*sp.diff(n236,n036),-L36*sp.diff(n236,n136),-Lp36*n236],
+    [0,-L36,-Lp36*n136]])
+radial_base36 = (
+    sp.simplify(lambda36-lambda_alt36)==0
+    and sp.simplify(sp.diff(lambda_alt36,X36)/lambda_alt36
+                    -lambda_logprime36)==0
+    and sp.simplify(dy36.det()+L36**2*Lp36/n236)==0)
+
+# At y=(y0,Y,0), S=1+y0^2+Y^2.  The ratio/height charts are rational
+# except for the phase differential d Arg z=Im(dz/z), which is written
+# as an explicit real one-form.  Their signed Jacobians have opposite
+# signs in the two cusp choices.
+y036,Y36,y236 = sp.symbols('y036 Y36 y236',real=True)
+S36 = 1+y036**2+Y36**2+y236**2
+rs36 = (2-S36+2*sp.I*y036)/(2*(Y36+sp.I*y236))
+rn36 = 2*(Y36+sp.I*y236)/(2-S36+2*sp.I*y036)
+as_grad36 = [sp.Integer(0),
+             -y236/(2*sp.pi*(Y36**2+y236**2)),
+             Y36/(2*sp.pi*(Y36**2+y236**2))]
+Un36,Vn36 = S36-2,2*y036
+an_grad36 = [(Un36*sp.diff(Vn36,v)-Vn36*sp.diff(Un36,v))
+              /(2*sp.pi*(Un36**2+Vn36**2))
+             for v in (y036,Y36,y236)]
+def ratio_jac36(ratio,phase_gradient):
+    return sp.Matrix([
+        [sp.diff(sp.re(ratio),v) for v in (y036,Y36,y236)],
+        [sp.diff(sp.im(ratio),v) for v in (y036,Y36,y236)],
+        phase_gradient]).det().subs(y236,0)
+Saxis36 = 1+y036**2+Y36**2
+Qaxis36 = (1-y036**2-Y36**2)**2+4*y036**2
+ratio_s36 = ratio_jac36(rs36,as_grad36)
+ratio_n36 = ratio_jac36(rn36,an_grad36)
+ratio_det36 = (
+    sp.simplify(ratio_s36-Saxis36/(4*sp.pi*Y36**4))==0
+    and sp.simplify(ratio_n36+4*Saxis36/(sp.pi*Qaxis36**2))==0)
+
+# Source small=ratio*sqrt(s/z), s=|tc|^2, z=|ratio|^2.  For any
+# positive radial factor g(z), det_R D[ratio*g(z)]=d(z*g(z)^2)/dz.
+# The north t=1/tc adds the positive holomorphic inversion factor 1/s^2.
+s36,A36,B36 = sp.symbols('s36 A36 B36',positive=True)
+zs36 = (B36*s36**2+A36*s36)/(A36*s36+1)
+zn36 = (s36**2+A36*s36)/(A36*s36+B36)
+zps36 = (A36*B36*s36**2+2*B36*s36+A36)/(A36*s36+1)**2
+zpn36 = (A36*s36**2+2*B36*s36+A36*B36)/(A36*s36+B36)**2
+zrad36 = sp.Symbol('zrad36',positive=True)
+ru36,rv36 = sp.symbols('ru36 rv36',real=True)
+gfunc36 = sp.Function('gfunc36')
+radial_argument36 = ru36**2+rv36**2
+radial_map36 = sp.Matrix([
+    ru36*gfunc36(radial_argument36),
+    rv36*gfunc36(radial_argument36)])
+inversion_map36 = sp.Matrix([
+    ru36/radial_argument36,-rv36/radial_argument36])
+radial_profile36 = (
+    sp.simplify(sp.diff(zs36,s36)-zps36)==0
+    and sp.simplify(sp.diff(zn36,s36)-zpn36)==0
+    and sp.simplify(radial_map36.jacobian([ru36,rv36]).det()
+        -sp.diff(zrad36*gfunc36(zrad36)**2,zrad36)
+          .subs(zrad36,radial_argument36))==0
+    and sp.simplify(inversion_map36.jacobian([ru36,rv36]).det()
+                    -1/radial_argument36**2)==0)
+
+# On |a|<1/10, the source terminal-cut moment uses exactly
+# f=d*sinh(amp*a)/amp.  Here q=e^(2P) in (0,1), k=-log q>0,
+# lambda_flat in (0,1), amp=lambda_flat*k>0, and
+# d=(1-lambda_flat)+2 lambda_flat sqrt(q) k>0.  Thus f_a>0.
+a36 = sp.Symbol('a36',real=True)
+amp36,d36,q36 = sp.symbols('amp36 d36 q36',positive=True)
+f36 = d36*sp.sinh(amp36*a36)/amp36
+Delta36 = sp.sqrt(f36**2+4*q36)
+Yheight36 = (Delta36-f36)/2
+fa36 = d36*sp.cosh(amp36*a36)
+Eflat36,Fflat36,kpos36 = sp.symbols(
+    'Eflat36 Fflat36 kpos36',positive=True)
+lam_manifest36 = Eflat36/(Eflat36+Fflat36)
+amp_manifest36 = lam_manifest36*kpos36
+d_manifest36 = 1-lam_manifest36+2*lam_manifest36*sp.sqrt(q36)*kpos36
+d_manifest_positive36 = ((Fflat36+2*Eflat36*sp.sqrt(q36)*kpos36)
+                         /(Eflat36+Fflat36))
+local_height36 = (
+    sp.simplify(sp.diff(f36,a36)-fa36)==0
+    and sp.simplify(sp.diff(sp.log(Yheight36)/2,a36)
+                    +fa36/(2*Delta36))==0
+    and sp.simplify(2*q36/(Delta36+f36)-Yheight36)==0
+    and sp.ask(sp.Q.positive(amp_manifest36))
+    and sp.simplify(d_manifest36-d_manifest_positive36)==0
+    and sp.ask(sp.Q.positive(d_manifest_positive36))
+    and sp.ask(sp.Q.positive(fa36))
+    and sp.Rational(1,10)<sp.Rational(1,2)
+    and sp.Rational(9,100)>0
+    and sp.Rational(1,4)<1)
+# Cramer's x4 is the third coordinate of R^{-1}rhs; rho enters only as
+# -rho in the first right-hand entry.  Therefore x4_rho is the negative
+# (3,1) inverse entry, and x4_a has sign + south / - north.
+r2_36 = ar34**2+ai34**2
+cramer_factor36 = (
+    sp.factor(R34.cofactor(0,2)-(1-r2_36**2))==0
+    and sp.simplify(R34.inv()[2,0]
+                    -(1-r2_36**2)/R34.det())==0
+    and sp.simplify(R34.det()-det_expected34)==0)
+rep('C36b positive raw/profile/height factors and signed ratio/Cramer Jacobians',
+    radial_base36 and ratio_det36 and radial_profile36
+    and local_height36 and cramer_factor36)
+
+# The following are the two *manifest* positive base determinants in the
+# fixed order.  Let m=-n2>0 and let Dr be det R>0.  The profile roots lie
+# in 9/100<s<1/4, so 1-s^2>0.  All remaining factors are positive.
+m36,lambda_p36,Spos36,Ypos36,Qpos36 = sp.symbols(
+    'm36 lambda_p36 Spos36 Ypos36 Qpos36',positive=True)
+zps_pos36,zpn_pos36,fa_pos36,Delta_pos36,Dr_pos36 = sp.symbols(
+    'zps_pos36 zpn_pos36 fa_pos36 Delta_pos36 Dr_pos36',positive=True)
+south_base36 = (L36**2*lambda_p36/m36
+    *Spos36/(4*sp.pi*Ypos36**4)
+    /zps_pos36
+    *(1-s36**2)*fa_pos36/(2*Delta_pos36*Dr_pos36))
+north_base36 = (L36**2*lambda_p36/m36
+    *(-4*Spos36/(sp.pi*Qpos36**2))
+    /(s36**2*zpn_pos36)
+    *(1-1/s36**2)*fa_pos36/(2*Delta_pos36*Dr_pos36))
+signed_base36 = (
+    sp.simplify(south_base36
+        -L36**2*lambda_p36*Spos36*(1-s36**2)*fa_pos36
+         /(8*sp.pi*m36*Ypos36**4*zps_pos36
+           *Delta_pos36*Dr_pos36))==0
+    and sp.simplify(north_base36
+        -2*L36**2*lambda_p36*Spos36*(1-s36**2)*fa_pos36
+         /(sp.pi*m36*Qpos36**2*s36**4*zpn_pos36
+           *Delta_pos36*Dr_pos36))==0)
+strict_base_margin36 = (root_cell35
+    and 1-sp.Rational(1,4)**2==sp.Rational(15,16)
+    and sp.Rational(15,16)>0
+    and bool(sp.ask(sp.Q.positive(zps36)))
+    and bool(sp.ask(sp.Q.positive(zpn36))))
+
+# T^2 restoration adds C=phi+D(base), so its phi block is I_2.  In the
+# source middle formula, the remaining (one,four,C2,C3)->(Re z,Im z,
+# Re w,Im w) determinant is +2pi det R.  The auxiliary order above uses
+# (four,one), one transposition, so its restoration factor is negative.
+t36 = ar34+sp.I*ai34
+Mrestore36 = sp.Matrix([
+    [2*sp.pi,sp.re(-sp.I*L34),sp.re(-sp.I*t36),sp.re(-t36)],
+    [0,sp.im(-sp.I*L34),sp.im(-sp.I*t36),sp.im(-t36)],
+    [0,sp.re(2*t36),sp.re(1-t36**2),sp.re(sp.I*(1+t36**2))],
+    [0,sp.im(2*t36),sp.im(1-t36**2),sp.im(sp.I*(1+t36**2))]])
+restoration_det36 = sp.simplify(Mrestore36.det()
+                                 -2*sp.pi*det_expected34)==0
+full_south36 = -2*sp.pi*Dr_pos36*south_base36
+full_north36 = -2*sp.pi*Dr_pos36*north_base36
+full_signed36 = (
+    sp.simplify(full_south36
+        +L36**2*lambda_p36*Spos36*(1-s36**2)*fa_pos36
+         /(4*m36*Ypos36**4*zps_pos36*Delta_pos36))==0
+    and sp.simplify(full_north36
+        +4*L36**2*lambda_p36*Spos36*(1-s36**2)*fa_pos36
+         /(m36*Qpos36**2*s36**4*zpn_pos36*Delta_pos36))==0)
+rep('C36c two strict-cell full determinants: positive adapted base, '
+    'negative fixed-order Y chart',
+    source_det36 and slab_witness36 and phase_fold36
+    and signed_base36 and strict_base_margin36
+    and restoration_det36 and full_signed36
+    and bool(sp.Rational(1,4)<1)
+    and bool(sp.pi>0))
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

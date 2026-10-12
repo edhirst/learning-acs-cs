@@ -2915,6 +2915,7 @@ derivatives are numerical observations, type (d).
 | C33a–d, negative-height cusp projector cell (a,b) | on \(-1/4<H<-1/10\), \(|xy|<3/10\), \(y\ne0\), both cusp signs: the source deck-shifted frame has the same product \(xy\), its four-slot projector is unit rank one, and the source weight/deck exponential have exact two-jets; all 80 first and 400 second entries in the five independent variables \((\Re x,\Im x,\Re y,\Im y,H)\) obey the checked product rule: ALL PASS. A strict south round-meridian witness has \(t=1/10,H=-1/6\). |
 | C34a–f, negative-real-log active-collar seam (a,b,c,d) | on \(3/10<|t_c|<1/2\), with south \(t=t_c\) and north \(t=1/t_c\): exact source Cramer solves reconstruct \(e^\rho\) in each cusp slot; deck changes preserve the surviving middle angular phase. The surviving angular entry and reconstructed cusp input have matching value/first/second jets in \((\Re t,\Im t,\rho,H,\mathrm{one},\mathrm{four})\); strict target witnesses and angular perturbations show nonempty seam sectors: ALL PASS. Manifest determinant bounds are \(>981/5000\) south and \(>40\) north; the separately labelled two numerical samples are 1.2640336891 and 125.5013159820. The source formulas imply projector agreement on this seam; they do not differentiate the earlier round-meridian map or cover other chart seams. |
 | C35a–c, active upper-negative-axis collar projector (a,b,d) | On \(3/10<|t_c|<1/2\), \(3\pi/4<\Arg t<\pi\), and \(|H|<1/10\), the ordered source branches give a three-slot rank-one frame in the ten-slot embedding, supported on \((0,1,9)\) south and \((4,5,9)\) north. Its two positive normalization factors satisfy \(R_f>0\) and \(D=(1-s)^2+s^2\ge1/2\). Exact round-meridian witnesses and the five-variable value/first/second jet product rules pass: ALL PASS. Two separately labelled one-point numerical observations give \(D=0.9773063821\) south and \(0.6619583826\) north, margins \(0.4773063821\) and \(0.1619583826\) to the proved \(1/2\) bound. This is one projector cell, not the full meridian or free-slab tensor. |
+| C36a–c, two active-collar free-slab determinant cells (a,b) | At the two strict C35 round witnesses, the source path from \((n_0,n_1,X,\theta,\phi_2,\phi_3)\) to the six real middle-\(W\) coordinates has a factored nonzero determinant: ALL PASS. The raw radial, ratio/profile, height/Cramer, finite-fold fibre, and torus-restoration factors are checked against the production branches. In the fixed target order \((\Re t,\Im t,\Re z,\Im z,\Re w,\Im w)\), the determinant is strictly negative in both cells; the adapted base determinant is positive. The manifest factor \(1-s^2\) is \(>15/16\) for \(9/100<s=|t_c|^2<1/4\). This uses the existing finite-projection nonvanishing bound and proves local invertibility only in these two neighborhoods; it does not supply their full Hessians or \(N_J\). |
 | N8, actual inner-pole charts (a) | both signs: the six real outputs of (11.17)–(11.18), including the four-seed \(H_f\), are differentiated to a 6×6 Jacobian and six Hessians; all 90 mixed-partial pairs per sign, the nonzero pole determinant, and 216 normal-frame \(N_J\) entries: ALL PASS |
 | N9a–i, cap/slab overlap (a,c) | for both signs, exact phase telescoping, source-linked raw-reference/projector identification, matching cusp inputs, torus restoration and first/second jets: ALL PASS, conditional on the written §11.3, §11.5 and §10.6 bounds; the post-raw radial margin is checked in N9b |
 | N10a–d, radial shell (a,b) | source-linked finite elementary \(S,S^{-1}\) nodes, exact scalar inverse and derivative identities, 16 first and 64 second entries for each radial direction, and \(\det DD=S(r)S'(r)/r>0\) on \(10^{-8}<r<1.5\cdot10^{-8}\): ALL PASS; the raw pole and torus stages are not composed here |
@@ -2965,6 +2966,33 @@ by interval inclusion, not by the one-point comparison. In particular
 \((1/5)/(1/5-G^{-1}(v))<20\), below the source precision-shortcut
 threshold \(>(1+10)\log 10>22\); the certified inverse-\(R\)
 intermediates satisfy \(y>1\) and \(L>0\).
+
+For C36, write \(y=(u,v,0)\), \(S=1+u^2+v^2\),
+\(Q=(1-u^2-v^2)^2+4u^2\), \(m=-n_2>0\), and
+\(\Lambda=(1-X^2)/(1-X\sqrt{2-X^2})\). Let
+\(s=|t_c|^2\), \(\Delta=\sqrt{f^2+4q}\), and \(f_a>0\) be
+the selected source height derivative. The positive profile derivatives
+are
+\(z_s'=(A+2Bs+ABs^2)/(1+As)^2\) and
+\(z_n'=(As^2+2Bs+AB)/(As+B)^2\), where
+\(A=(4\pi)^2,\ B=e^4\). In the stated coordinate orders, the two
+source-linked determinant factorizations are
+\[
+ \det Dh_s=
+ -\frac{\Lambda^2\Lambda_X S(1-s^2)f_a}
+ {4mv^4z_s'\Delta},\qquad
+ \det Dh_n=
+ -\frac{4\Lambda^2\Lambda_X S(1-s^2)f_a}
+ {mQ^2s^4z_n'\Delta}.
+\]
+Here \(\Lambda_X/\Lambda=
+2/(\sqrt{2-X^2}(1-X^2))>0\).
+The source witnesses have \(u=1/100\) and \(v=12/5\) or \(4\);
+their strict branch inequalities and all other denominator signs
+are checked in C35–C36. The fibre phase has derivative \(+1\)
+under the source finite projection recurrence, and the torus
+restoration has identity \((\phi_2,\phi_3)\) block. These give the
+remaining factors in the displayed full determinants.
 
 On the checked south raw-pole annulus, write \(r=|Z_0|^2+|Z_1|^2\) and
 \(z_L=(Z_0-iZ_1,Z_0+iZ_1)/\sqrt{4\pi(1+\sqrt{1-r^2})}\). Let \(w=g_0(z_L)\)

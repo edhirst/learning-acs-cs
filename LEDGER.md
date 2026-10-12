@@ -1920,3 +1920,40 @@ in `AGENTS.md` §5.
 - **Open points:** this is one strict active south height cell.
   Other heights, full six-real free-slab composition, and global
   direct \(J_{\mathrm{cl}}\) verification remain open.
+
+### 2026-10-12-TSG-15 — Factor two local free-slab Jacobians
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** a9d8092
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (C36),
+  docs/s4t2_symbolic_programme.md status, and
+  SYMBOLIC_CAMPAIGN.md T16 status. No manuscript or construction
+  file changed.
+- **Change:** factored the six-real Jacobian of the source-linked
+  round-to-middle-\(W\) map on strict neighborhoods of both C35
+  witnesses. The proof follows the raw quotient, rational profile,
+  active height, Cramer, finite-projection fibre phase, and torus
+  restoration branches. In the fixed target order
+  \((\Re t,\Im t,\Re z,\Im z,\Re w,\Im w)\), both determinants have
+  the explicit negative factorizations recorded in the programme;
+  every remaining factor is manifestly positive.
+- **Why:** direct verification of \(J=M^{-1}J_0M\) requires a
+  nonzero actual source Jacobian, including the free slab. This
+  gives the first source-linked six-real determinant cells there.
+- **Verification:** chart_identities.py C36a–c: **ALL PASS**
+  on an independent full run. SymPy checks the raw signed Jacobian,
+  both ratio/Cramer signs, the positive rational-profile
+  derivatives, height derivative, source-path AST, fibre
+  equivariance, torus-restoration determinant, and the two
+  factorizations. The exact \(1-s^2\) factor exceeds \(15/16\)
+  on \(9/100<s<1/4\); C35 provides the strict source witnesses.
+  verify_construction.py: all checks passed; sphere_products.py:
+  Dimension 8 check passed; git diff --check: pass. LaTeX:
+  **not run** (latexmk unavailable). Git fetch/pull and push were
+  left to the collaborator as requested.
+- **Open points:** this uses the prior finite-projection
+  nonvanishing bound and covers only two free-slab neighborhoods.
+  Their full second-jet \(J\) circuits, other cells and seams,
+  and global direct \(J_{\mathrm{cl}}\) verification remain open.
