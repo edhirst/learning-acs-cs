@@ -2075,3 +2075,47 @@ in `AGENTS.md` §5.
 - **Open points:** only one strict south free-slab chamber is
   certified here. Other free-slab cells, chart seams, and the
   global direct \(J_{\mathrm{cl}}\) verification remain open.
+
+### 2026-10-12-TSG-19 — Check the pure-cusp argument-selector overlap
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** a18964d
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (C38),
+  docs/s4t2_symbolic_programme.md status and certificate, and
+  SYMBOLIC_CAMPAIGN.md T16 status. No manuscript or construction
+  file changed.
+- **Change:** proved an open source argument-selector overlap
+  in both pure cusp charts. Exact round witnesses and strict
+  perturbations meet both selector sides. On the lower wedge
+  the source heights differ by one deck unit, but the resulting
+  ten-slot reference and projector agree with all first and
+  second jets. The four-seed height shifts by one; after torus
+  restoration, the deck transition is
+  \((z_1,z_2,z_3)\mapsto(1/(\nu z_2),\nu z_1z_2^2,
+  z_3+2\sigma z_1z_2)\), with \(\sigma=1\) south and
+  \(-1\) north and complex determinant \(1\). The upper
+  wedge has identical source argument values. The projector
+  equality propagates through any fixed-count meridian step
+  with nonzero projection denominator.
+- **Why:** equality on an open overlap checks the normal as
+  well as tangential jets of this artificial selector, which
+  a seam-value comparison alone would not establish.
+- **Verification:** chart_identities.py C38a–e: **ALL PASS**
+  on the author's full run, an independent full run, and a
+  separate referee run. The source AST, exact round inverse,
+  deck relation, height shift, frame/projector two-jets and
+  holomorphic transition were independently checked. The
+  proved \(|t_c|<1/10\) guard has separately labelled
+  type-(d) lower-wedge samples \(0.0039838456\) south and
+  \(0.0294368583\) north, with measured gaps \(0.0960161544\)
+  and \(0.0705631417\). verify_construction.py: all checks
+  passed; sphere_products.py: Dimension 8 check passed;
+  git diff --check: pass. LaTeX: **not run** (latexmk
+  unavailable). Git fetch/pull and push were left to the
+  collaborator as requested.
+- **Open points:** fold propagation uses the established
+  nonzero-overlap premise for other meridian cells. Other
+  selectors and the global direct \(J_{\mathrm{cl}}\)
+  verification remain open.

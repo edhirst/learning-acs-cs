@@ -401,6 +401,14 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   determinant nonzero there; the 36 square and 216 Nijenhuis
   reductions pass. The other source cells and global overlap
   checks required by T16 remain open.
+  **Pure-cusp argument selector (2026-10-12-TSG-19):** C38
+  proves on open overlaps at both cusps that the source's two
+  argument charts give the same ten-slot reference and
+  projector, including second jets. Their four-seed heights
+  differ by one deck unit, and the restored coordinate change
+  is an explicit holomorphic deck map. This propagates through
+  any fixed-count projection step with nonzero denominator;
+  the remaining selectors and global T16 coverage are open.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.

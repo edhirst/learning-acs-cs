@@ -4160,5 +4160,359 @@ det_certificate37 = (
 rep('C37d actual near-south free-slab six-real determinant is positive',
     det_certificate37)
 
+# C38: the artificial argument-chart selector in the raw reference has an
+# exact OPEN overlap in both pure cusp charts.  Its lower negative-real
+# sector is the nontrivial case: the two height values differ by one deck
+# unit, yet the normalized ten-slot reference, not just its projector,
+# agrees.  This is a parameter-wise identity and applies at any meridian
+# index for which this source branch is active; it does not assert that all
+# other meridian branches or seams have been covered.
+arg_selector38 = [node for node in ast.walk(raw_tree31)
+                  if isinstance(node,ast.If)
+                  and ast.dump(node.test,include_attributes=False)
+                  ==ast.dump(ast.parse(
+                      "phase_coordinate.real<-mp.mpf('.9')*abs(phase_coordinate)",
+                      mode='eval').body,include_attributes=False)]
+core_sign38 = [node for node in ast.walk(core_tree37)
+               if isinstance(node,ast.If)
+               and ast.dump(node.test,include_attributes=False)
+               ==ast.dump(ast.parse('a>0',mode='eval').body,
+                           include_attributes=False)]
+hw_nodes38 = [node for node in ast.walk(bundle_tree32)
+              if isinstance(node,ast.FunctionDef) and node.name=='hw']
+frame_nodes38 = [node for node in ast.walk(bundle_tree32)
+                 if isinstance(node,ast.FunctionDef) and node.name=='frame']
+seed_nodes38 = [node for node in ast.walk(finite_height_tree37)
+                if isinstance(node,ast.FunctionDef) and node.name=='seed']
+flat_tree38 = source_tree30(cusp30.scalar_flat_step)
+arg_source38 = (
+    source_path37 and len(arg_selector38)==1
+    and [ast.dump(node,include_attributes=False)
+         for node in arg_selector38[0].body]
+        ==[ast.dump(node,include_attributes=False) for node in ast.parse('''
+a = mp.mpf('.5')+mp.arg(-phase_coordinate)/(2*mp.pi)
+''').body]
+    and [ast.dump(node,include_attributes=False)
+         for node in arg_selector38[0].orelse]
+        ==[ast.dump(node,include_attributes=False) for node in ast.parse('''
+a = mp.arg(phase_coordinate)/(2*mp.pi)
+''').body]
+    and len(core_sign38)==1
+    and ordered_nodes37(core_tree37.body,[
+        '''Y = 2/(R+f) if cell==-1 else (R-f)/2''',
+        'y = mp.sqrt(Y)',
+        '''
+if y==0:
+    raise ValueError('the core reference excludes the node')
+''',
+        'return t/y,y'])
+    and exact_if_body37(core_tree37,'a>0','''
+A = 2/(R-f) if cell==1 else (R+f)/2
+x = mp.sqrt(A/e)/nu
+return x,t/x
+''')
+    and ordered_nodes37(core_tree37.body,[
+        'f = inverse_height_moment(b,q,0)',
+        'R = mp.sqrt(f*f+4*q)'])
+    and [ast.dump(node,include_attributes=False)
+         for node in core_sign38[0].body]
+        ==[ast.dump(node,include_attributes=False) for node in ast.parse('''
+A = 2/(R-f) if cell==1 else (R+f)/2
+x = mp.sqrt(A/e)/nu
+return x,t/x
+''').body]
+    and ordered_nodes37(core_tree37.body,[
+        '''
+Y = 2/(R+f) if cell==-1 else (R-f)/2
+''',
+        'return t/y,y'])
+    and exact_if_body37(moment_tree37,"aa>=mp.mpf('.4')",
+        'return mp.sign(a)*(B*mp.exp(kappa*aa)-C*mp.exp(-kappa*aa))')
+    and len(hw_nodes38)==len(frame_nodes38)==len(seed_nodes38)==1
+    and returned_expr30(hw_nodes38[0],
+        "1-scalar_flat_step((abs(h)-mp.mpf('.25'))/mp.mpf('.15'))")
+    and returned_expr30(frame_nodes38[0],
+        '(nu*mp.conj(x)/mp.sqrt(r),y/mp.sqrt(r))')
+    and matching_assignment30(frame_nodes38[0],'r',
+        'nu*nu*abs(x)**2+abs(y)**2')
+    and matching_assignment30(seed_nodes38[0],'reciprocal','u>2')
+    and exact_if_body37(seed_nodes38[0],
+        "v<=mp.mpf(1)/16",'value = v')
+    and exact_if_body37(seed_nodes38[0],
+        "v>=mp.mpf('.5')",'value = v/(1+v)')
+    and returned_expr30(seed_nodes38[0],
+        '1-value if reciprocal else value')
+    and exact_if_body37(flat_tree38,'u<=0','return mp.mpf(0)')
+    and exact_if_body37(flat_tree38,'u>=1','return mp.mpf(1)')
+    and matching_assignment30(raw_tree31,'w',
+        '(vv[0]/(1-aa),-vv[2]/(1-aa),-vv[1]/(1-aa))')
+    and matching_assignment30(raw_tree31,'y',
+        '(w[0],w[1]+1,w[2])')
+    and matching_assignment30(raw_tree31,'u1',
+        'mp.mpc(1-s2,2*y[0])/(1+s2)')
+    and matching_assignment30(raw_tree31,'u2',
+        'mp.mpc(2*y[1],2*y[2])/(1+s2)')
+    and matching_assignment30(raw_tree31,'inverse_ratio',
+        'abs(u1)>abs(u2)')
+    and matching_assignment30(raw_tree31,'inf',
+        "inverse_ratio and abs(small)<mp.mpf('.5')")
+    and matching_assignment30(raw_tree31,'ratio',
+        'u2/u1 if inverse_ratio else u1/u2')
+    and matching_assignment30(raw_tree31,'phase_coordinate',
+        '-mp.conj(u1) if inf else u2')
+    and matching_assignment30(raw_tree31,'nu',
+        "mp.exp(-2) if inf else mp.mpf(1)")
+    and returned_expr30(bundle_tree32,
+        '(result,+norm2) if with_norm else result'))
+
+# On the lower wedge -pi<arg(p)<-5pi/6, the principal chart has
+# a0 in (-1/2,-5/12), whereas the half-centred chart has a1=a0+1
+# in (1/2,7/12).  Both charts are valid: 7/12<3/5.  The source
+# selector cos(arg p)=-9/10 lies strictly inside this open wedge.
+# The upper wedge 5pi/6<arg(p)<pi has a1=a0 instead.
+angle38 = sp.Symbol('angle38',real=True)
+open_wedges38 = (
+    sp.simplify(sp.Rational(1,2)
+                +(angle38+sp.pi)/(2*sp.pi)
+                -angle38/(2*sp.pi)-1)==0
+    and sp.simplify(sp.Rational(1,2)
+                    +(angle38-sp.pi)/(2*sp.pi)
+                    -angle38/(2*sp.pi))==0
+    and sp.Rational(9,10)**2>sp.Rational(3,4)
+    and sp.Rational(5,12)>sp.Rational(2,5)
+    and sp.Rational(7,12)<sp.Rational(3,5)
+    and sp.Rational(1,12)<sp.Rational(1,4)
+    and sp.floor(-sp.Rational(5,12)+sp.Rational(1,2))==0
+    and sp.floor(sp.Rational(7,12)+sp.Rational(1,2))==1)
+
+# Exact source-round witnesses at the selector are obtained from
+# p=(-9-i sqrt(19))/10 and ratio=1/20.  For c0 take u2=p/sqrt(1+r^2),
+# u1=r*u2; for ci take u1=-conj(p)/sqrt(1+r^2), u2=r*u1.
+# Their conjugates witness the upper wedge.  Inverse stereographic
+# coordinates w=(Im u1/d, Re u2/d-1, Im u2/d), d=1+Re u1, give
+# R^2=|w|^2, X=(R-1)/sqrt(1+R^2), n=(w0,-w2,-w1)/R.
+# Then v=(1-X^2)n and the production raw map recovers u1,u2.
+rw38 = sp.Rational(1,20)
+raw_witness38 = True
+for sign_im38 in (-1,1):
+    for perturb38 in (-sp.Rational(1,1000),sp.Integer(0),
+                      sp.Rational(1,1000)):
+        pr38 = -sp.Rational(9,10)+perturb38
+        pw38 = pr38+sign_im38*sp.I*sp.sqrt(1-pr38**2)
+        for inf38 in (False,True):
+            u238 = pw38/sp.sqrt(1+rw38**2) if not inf38 else None
+            u138 = rw38*u238 if not inf38 else (
+                -sp.conjugate(pw38)/sp.sqrt(1+rw38**2))
+            u238 = u238 if not inf38 else rw38*u138
+            phase_w38 = -sp.conjugate(u138) if inf38 else u238
+            d_w38 = 1+sp.re(u138)
+            w_w38 = (sp.im(u138)/d_w38,sp.re(u238)/d_w38-1,
+                     sp.im(u238)/d_w38)
+            R2_w38 = sp.simplify(sum(v*v for v in w_w38))
+            y_w38 = (w_w38[0],w_w38[1]+1,w_w38[2])
+            Sy_w38 = 1+sum(v*v for v in y_w38)
+            u1_recovered38 = (
+                1-sum(v*v for v in y_w38)+2*sp.I*y_w38[0])/Sy_w38
+            u2_recovered38 = (
+                2*(y_w38[1]+sp.I*y_w38[2]))/Sy_w38
+            phase_abs38 = sp.sqrt(sp.simplify(
+                phase_w38*sp.conjugate(phase_w38)))
+            selector_side38 = bool(
+                sp.simplify(sp.re(phase_w38)
+                            +sp.Rational(9,10)*phase_abs38)<0)
+            raw_witness38 = raw_witness38 and (
+                sp.simplify(u138*sp.conjugate(u138)
+                            +u238*sp.conjugate(u238)-1)==0
+                and sp.simplify(u1_recovered38-u138)==0
+                and sp.simplify(u2_recovered38-u238)==0
+                and sp.re(pw38)<-sp.sqrt(3)/2
+                and bool(sp.im(phase_w38)>0)==(sign_im38==1)
+                and selector_side38==(perturb38<0)
+                and d_w38>0
+                and w_w38[1]<0
+                and sp.Rational(1,4)<R2_w38<9
+                and (sp.simplify(u238/u138-rw38)==0 if inf38 else
+                     sp.simplify(u138/u238-rw38)==0))
+# At perturb=0 the selector equality is exact; the two rational
+# perturbations lie on its opposite sides, while all other strict
+# cusp/slab inequalities persist.  Continuity supplies actual open
+# source neighborhoods on both sides of the selector.
+w038,w138,w238 = sp.symbols('w038 w138 w238',real=True)
+R38_w = sp.Symbol('R38_w',positive=True)
+X38_w = (R38_w-1)/sp.sqrt(1+R38_w**2)
+n38_w = sp.Matrix((w038,-w238,-w138))/R38_w
+v38_w = (1-X38_w**2)*n38_w
+a38_w = (R38_w**2-1)/(1+R38_w**2)
+round_inverse38 = (
+    sp.simplify((1-X38_w**2)-2*R38_w/(1+R38_w**2))==0
+    and sp.simplify((2-X38_w**2)
+                    -(R38_w+1)**2/(1+R38_w**2))==0
+    and R38_w+1>0
+    and sp.simplify(v38_w[0]/(1-a38_w)-w038)==0
+    and sp.simplify(-v38_w[2]/(1-a38_w)-w138)==0
+    and sp.simplify(-v38_w[1]/(1-a38_w)-w238)==0
+    and sp.simplify((1-X38_w**2)/(1-a38_w)-R38_w)==0
+    and sp.simplify(sum(n38_w[i]**2 for i in range(3))
+                    -(w038**2+w138**2+w238**2)/R38_w**2)==0)
+# The profile-root denominator exceeds 2b, where
+# b=A(1-r^2)>143>B; the earlier C34a series bound gives
+# B=e^4<64.  Hence |tc|<r in ci and
+# |tc|<r/sqrt(143) in c0.  In both cases |tc|<1/10.
+witness_domain38 = (
+    raw_witness38 and round_inverse38
+    and sp.Rational(144)*(
+        1-sp.Rational(1,400))>143
+    and sp.exp(4)<64<143
+    and rw38<sp.Rational(1,10)
+    and rw38/sp.sqrt(143)<sp.Rational(1,10)
+    and 2/sp.sqrt(10)<sp.Rational(2,3)
+    and 1/sp.sqrt(5)<sp.Rational(2,3)
+    and sp.Rational(1,3)>sp.Rational(1,10**5))
+rep('C38a both raw cusp argument-selector seams have exact round witnesses',
+    arg_source38 and open_wedges38 and witness_domain38)
+
+# In the lower wedge the source outer-core formula has
+# b=a0 in (-1/2,-5/12), E=exp(-2b-1) in (e^-1/6,1),
+# q=e*nu^2*|tc|^2<1/100 and f=-E+q/E.  The positive
+# discriminant is R=E+q/E, so the negative gauge has
+# (x0,y0)=(tc/sqrt(E),sqrt(E)), whereas the shifted positive
+# gauge has (x1,y1)=(1/(nu sqrt(e) sqrt(E)),tc/x1).
+# These are exactly the source deck coordinates psi_hat(x0,y0).
+E38,q38,eps38,nu38 = sp.symbols(
+    'E38 q38 eps38 nu38',positive=True)
+tr38,ti38 = sp.symbols('tr38 ti38',real=True)
+t38 = tr38+sp.I*ti38
+f38 = -E38+q38/E38
+R38 = E38+q38/E38
+x038,y038 = t38/sp.sqrt(E38),sp.sqrt(E38)
+m38 = nu38*sp.sqrt(eps38)
+x1deck38,y1deck38 = 1/(m38*y038),m38*x038*y038**2
+x1core38 = sp.sqrt(1/(E38*eps38))/nu38
+y1core38 = t38/x1core38
+core_deck38 = (
+    sp.simplify(R38**2-f38**2-4*q38)==0
+    and sp.simplify((R38-f38)/2-E38)==0
+    and sp.simplify(2/(R38-f38)-1/E38)==0
+    and sp.simplify(x1deck38-x1core38)==0
+    and sp.simplify(y1deck38-y1core38)==0
+    and sp.exp(-sp.Rational(1,6))>sp.Rational(5,6)
+    and sp.Rational(1,100)/(sp.Rational(5,6))
+        <sp.Rational(1,16)
+    and sp.Rational(1,100)**2/(sp.Rational(5,6))
+        <sp.Rational(1,16))
+
+# For both representatives the first height weight is zero and the
+# second is one: |a0|,a1>5/12>2/5, while
+# |a0+1/2|=|a1-1/2|<1/12<1/4.  The negative branch applies
+# psi_hat before its second frame.  Thus the two ten-vectors have
+# exactly the same sole active pair, in slots 2:4 (c0) or 6:8 (ci).
+def frame38(x,y):
+    radius = nu38**2*x*sp.conjugate(x)+y*sp.conjugate(y)
+    return sp.Matrix((nu38*sp.conjugate(x)/sp.sqrt(radius),
+                      y/sp.sqrt(radius)))
+
+
+left_frame38 = frame38(x1deck38,y1deck38)
+right_frame38 = frame38(x1core38,y1core38)
+frame_diff38 = left_frame38-right_frame38
+Pleft38 = left_frame38*left_frame38.conjugate().T
+Pright38 = right_frame38*right_frame38.conjugate().T
+jet_vars38 = (tr38,ti38,E38,nu38,eps38)
+twojets38 = (
+    all(sp.simplify(entry)==0 for entry in frame_diff38)
+    and all(sp.simplify(sp.diff(entry,v))==0
+            for entry in frame_diff38 for v in jet_vars38)
+    and all(sp.simplify(sp.diff(entry,v,w))==0
+            for entry in frame_diff38 for v in jet_vars38
+            for w in jet_vars38)
+    and all(sp.simplify(entry)==0 for entry in Pleft38-Pright38)
+    and all(sp.simplify(sp.diff(entry,v))==0
+            for entry in Pleft38-Pright38 for v in jet_vars38)
+    and all(sp.simplify(sp.diff(entry,v,w))==0
+            for entry in Pleft38-Pright38 for v in jet_vars38
+            for w in jet_vars38))
+rep('C38b lower selector references, projectors and two-jets agree openly',
+    arg_source38 and core_deck38 and open_wedges38 and twojets38)
+
+# The four-seed height has its exact deck shift on this open wedge.
+# Original (A,Y)=(q/E,E); shifted (A,Y)=(1/E,qE).
+# Here E,1/E are in the v>=1/2 seed branch, while q/E,
+# q^2/E, qE, q^2 E lie in the v<=1/16 branch.  Both
+# representatives satisfy the source assertion A,Y<4, q<1/8.
+Hleft38 = (q38/E38+q38**2/E38-E38/(1+E38)-q38*E38
+           +q38**2*(q38/E38-E38)/(1-q38))
+Hright38 = (1/(1+E38)+q38/E38-q38*E38-q38**2*E38
+            +q38**2*(1/E38-q38*E38)/(1-q38))
+height_deck38 = (
+    sp.factor(Hright38-Hleft38-1)==0
+    and sp.Rational(5,6)>sp.Rational(1,2)
+    and sp.Rational(6,5)<2
+    and sp.Rational(6,5)<4
+    and sp.Rational(1,100)<sp.Rational(1,8)
+    and sp.Rational(1,100)<sp.Rational(1,4)
+    and source_path37 and arg_source38)
+rep('C38c source four-seed height shifts by one on the lower overlap',
+    height_deck38)
+
+# On either cusp, write sigma=+1 for c0 and -1 for ci.
+# The real Cramer coefficients of e4 in the e2,e3 basis are
+# c2=2 Re(t)/(1-|t|^2), c3=sigma*2 Im(t)/(1-|t|^2).
+# With a2=t, a3=-sigma*i*t one has c2*a2+c3*a3=d
+# =2|t|^2/(1-|t|^2), and m=nu*exp(-d).  The deck action
+# (x,y,C)->(1/(my),mxy^2,C+c) therefore restores to the
+# holomorphic transition
+# T(z1,z2,z3)=(1/(nu*z2),nu*z1*z2^2,z3+sigma*2*z1*z2).
+# Its complex determinant is one and its displayed inverse is
+# holomorphic wherever z2 is nonzero, as it is on this overlap.
+s38 = tr38**2+ti38**2
+z138,z238,z338,sigma38 = sp.symbols(
+    'z138 z238 z338 sigma38')
+deck_T38 = sp.Matrix((1/(nu38*z238),
+                      nu38*z138*z238**2,
+                      z338+2*sigma38*z138*z238))
+deck_T_inv38 = sp.Matrix((nu38*z138**2*z238,
+                          1/(nu38*z138),
+                          z338-2*sigma38*z138*z238))
+holomorphic_deck38 = (
+    sp.simplify(deck_T38.jacobian((z138,z238,z338)).det()-1)==0
+    and sp.simplify(deck_T_inv38.subs(
+        {z138:deck_T38[0],z238:deck_T38[1],
+         z338:deck_T38[2]},simultaneous=True)
+        -sp.Matrix((z138,z238,z338)))==sp.zeros(3,1))
+for sign38 in (1,-1):
+    e238 = sign38*(1-t38**2)
+    e338 = sp.I*(1+t38**2)
+    e438 = sign38*2*t38
+    c238 = 2*tr38/(1-s38)
+    c338 = sign38*2*ti38/(1-s38)
+    a338 = -sign38*sp.I*t38
+    holomorphic_deck38 = holomorphic_deck38 and (
+        sp.simplify(c238*e238+c338*e338-e438)==0
+        and sp.simplify(c238*t38+c338*a338
+                        -2*s38/(1-s38))==0)
+rep('C38d both restored cusp deck transitions are holomorphic',
+    arg_source38 and height_deck38 and holomorphic_deck38)
+
+# Generic normalized-projector recurrence.  Since P and its first two
+# jets agree on the open overlap and all projection denominators are
+# nonzero at the certified count, the update P_j v/||P_j v||
+# has the same first two jets on both sides, by induction in j.
+# The final cusp representatives are deck related because the
+# phase correction commutes with psi_hat.  Hence the restored
+# holomorphic charts have the displayed T transition and their
+# pulled-back J agrees through the selector.  This checks this
+# selector family only; no other branch or seam is inferred.
+ang38 = sp.symbols('ang38',real=True)
+unit38 = sp.exp(sp.I*ang38)
+phase_deck38 = (
+    sp.simplify(1/(m38*(unit38*y038))
+                -sp.conjugate(unit38)*x1deck38)==0
+    and sp.simplify(m38*(sp.conjugate(unit38)*x038)
+                    *(unit38*y038)**2-unit38*y1deck38)==0
+    and project_source30 and projection_norm30
+    and source_path37 and twojets38)
+rep('C38e finite projector recurrence respects this selector at every index',
+    phase_deck38)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'
