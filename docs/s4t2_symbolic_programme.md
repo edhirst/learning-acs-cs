@@ -48,6 +48,11 @@
 > formulas, all 16 first and 64 second derivatives in each direction, and
 > the positive Jacobian factor on the nonidentity pole shell. The full
 > shell map and its six-dimensional tensor remain to be composed and checked.
+> **North annulus audit (2026-10-12-TSG-4):** the north raw pole inverse,
+> round cap and finite torus restoration give a second source-linked local
+> six-real \(J\) circuit, with exact value, first and second derivative
+> nodes. Its compositional square and Nijenhuis checks pass on the stated
+> annulus; the radial shell and global free slab remain open.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
 > **Resume point: complete T16's exact branch circuit and second-jet checks, then simplify the fixed counts.**
 
@@ -2892,6 +2897,7 @@ derivatives are numerical observations, type (d).
 | N8, actual inner-pole charts (a) | both signs: the six real outputs of (11.17)–(11.18), including the four-seed \(H_f\), are differentiated to a 6×6 Jacobian and six Hessians; all 90 mixed-partial pairs per sign, the nonzero pole determinant, and 216 normal-frame \(N_J\) entries: ALL PASS |
 | N9a–i, cap/slab overlap (a,c) | for both signs, exact phase telescoping, source-linked raw-reference/projector identification, matching cusp inputs, torus restoration and first/second jets: ALL PASS, conditional on the written §11.3, §11.5 and §10.6 bounds; the post-raw radial margin is checked in N9b |
 | N10a–d, radial shell (a,b) | source-linked finite elementary \(S,S^{-1}\) nodes, exact scalar inverse and derivative identities, 16 first and 64 second entries for each radial direction, and \(\det DD=S(r)S'(r)/r>0\) on \(10^{-8}<r<1.5\cdot10^{-8}\): ALL PASS; the raw pole and torus stages are not composed here |
+| North raw-pole annulus, f1–f6 (a,b,c,d) | on \(3\cdot10^{-8}<|z_L|^2<10^{-7}\), \(1+2\beta>0\), \(0<\mathrm{height}<1/10\), \(t_c\ne0\): ordered north source guards, 28-node scalar 2-jet circuit, actual round and torus stages, 64+216 compositional Hessian skews, and named \(J=M^{-1}J_0M\): ALL PASS using the written (11.11) and §11.6 bounds. Proven raw singular-value margin \(>1999/2000\); one separately labelled numerical witness gives \(\|Dg-I\|_{\mathrm{op}}=3.9588551\cdot10^{-7}\) versus its bound \(3\cdot10^{-4}\), \(\sigma_{\min}=1.0000000086\), and source-value error \(3.53\cdot10^{-64}\). |
 | `symbolic_identities.py`, pure middle (a,b) | actual six-coordinate \(\tau_f^{-1}\) on \(1/2\le |t|\le2\): explicit Jacobian, positive determinant \(2\pi(1+|t|^2)((|t|^2-1)\log|t|+2|t|^2)\), \(J^2=-I\), and all 216 \(N_J\) entries: ALL PASS; \((|t|^2-1)\log|t|\ge0\) is manifest |
 | `symbolic_identities.py`, one active south collar chamber (a,b,c,d) | exact Cramer formulas, finite four-seed height and torus correction on \(3/10<|t|<1/2\), \(1/16<A,Y<1/2\); compositional 216-entry Hessian-skew check and positive determinant: ALL PASS; one 60-digit production comparison has error \(3.93\cdot10^{-61}\) and is numerical only |
 | `symbolic_identities.py`, south raw-pole annulus (a,b,c,d) | on \(3\cdot10^{-8}<|z_L|^2<10^{-7}\), \(\Re u_2>0\), \(0<\mathrm{height}<1/10\), \(t_c\ne0\): source-linked raw inverse, round cap, and finite torus restoration form an explicit 43-node scalar second-jet circuit and a named six-real \(J=M^{-1}J_0M\); its 36 square and 216 Nijenhuis entries vanish by the checked compositional skew identity, using the written (11.11) and §11.6 bounds: ALL PASS. The proven raw singular-value margin is \(>1999/2000\); at one rational witness the separately labelled numerical values are \(\|Dg-I\|_{\mathrm{op}}=5.4871\cdot10^{-7}\) versus its bound \(3\cdot10^{-4}\), and \(\sigma_{\min}=0.9999999270\). |
@@ -2933,6 +2939,53 @@ throughout this one annulus chamber.
 The rational local witness is \(z_L=(1/5000,(1-i)/10000)\), with
 \(|z_L|^2=6\cdot10^{-8}\); the positive round-cap radial factor gives it a
 round input.
+
+The corresponding north raw-pole annulus has a separate concrete circuit.
+For \(z_L=(z_0,z_1)\), put
+\(p=2z_0\overline z_1\), \(p_3=|z_0|^2-|z_1|^2\),
+\((\alpha,\beta,\gamma)=\pi(p_3,-\Re p,\Im p)\), and
+\(d=1+2\beta+2(\alpha^2+\beta^2+\gamma^2)\). The north stereographic
+coordinates are
+\[
+u_1=(-1-2\beta+2i\alpha)/d,\qquad
+u_2=2(\beta+\alpha^2+\beta^2+\gamma^2+i\gamma)/d.
+\]
+With \(\nu=e^{-2}\), \(q=|u_2/u_1|^2\), \(A=(4\pi)^2\),
+\(B=e^4\), and \(D=A(1-q)+\sqrt{A^2(1-q)^2+4Bq}\), set
+\(t_c=(u_2/u_1)\sqrt{2B/D}\) and
+\(h=-\arg(-u_1)/(2\pi)\). The raw inverse is the explicit
+four-real formula \(w=\sqrt{s/|V|^2}V\), where
+\[
+E=e^{-4|t_c|^2/(1-|t_c|^2)},\quad
+R=\sqrt{h^2+4E\nu^2|t_c|^2},\quad
+U=(R+h)/(2E),\quad Y=(R-h)/2,\quad s=U+Y,
+\]
+\[
+V=(Uz_0+\nu\overline{t_c}z_1,\ \nu t_c z_0+Yz_1).
+\]
+The north round cap feeds this formula with
+\(z_L=(Z_0+Z_1,Z_0-Z_1)/
+\sqrt{2\pi(1+\sqrt{1-|Z|^4})}\).
+For \(x=\overline w_0/\nu\), \(y=w_1\), \(t=xy\), the final
+torus stage uses \(E_t=e^{-4|t|^2/(1-|t|^2)}\),
+\(H_f=(E_t|w_0|^2-|w_1|^2)/
+(1-E_t|w_0|^2|w_1|^2)\),
+\(c=2(\Re t,-\Im t)/(1-|t|^2)\),
+\(C=\phi+H_fc\), and
+\[
+h_{\infty}=(x e^{-t(C_2+iC_3)},\
+y e^{t(C_2+iC_3)},\
+C_2(t^2-1)+iC_3(1+t^2)).
+\]
+The code binds the first and second derivatives of this specific
+composition, forms \(J=M^{-1}J_0M\), and checks its Hessian skews;
+the 36 square and 216 Nijenhuis entries then vanish by the checked
+compositional identity. The round factor has positive determinant,
+(11.11) gives \(\sigma_{\min}(Dg_\infty)>1999/2000\), and the
+restoration factor has determinant \((1-|t|^4)/\nu^2>0\).
+The same rational witness \(z_L=(1/5000,(1-i)/10000)\) lies in this
+north chamber. This is a local annulus check, not a check of the
+radial transition or the free slab.
 
 The new second-jet checks are exact on their stated domains. The pole check
 uses the identity piece \(H_j(z_L)=z_L\) for \(|z_L|^2\le10^{-8}\), and its

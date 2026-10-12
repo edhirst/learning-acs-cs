@@ -1503,3 +1503,41 @@ in `AGENTS.md` §5.
   recorded in the previous entry remain open; the north raw annulus,
   remaining projector branches, and free-slab path are being audited
   separately. Human review remains necessary for the global conclusion.
+
+### 2026-10-12-TSG-4 — Verify the north raw-pole annulus tensor
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** 0cbc16c
+- **Where:** extra/s4t2_explicit/symbolic_identities.py (f) and
+  docs/s4t2_symbolic_programme.md status and §11.8. No manuscript or
+  construction file changed.
+- **Change:** added a source-linked north raw-pole annulus circuit for
+  the actual six-real map from round coordinates through the north raw
+  inverse and finite torus restoration. It defines \(J=M^{-1}J_0M\)
+  from a 28-node scalar second-jet program, checks 64 raw/round and
+  216 torus/composite Hessian skews, and applies the previously checked
+  36/216-component identity to this named tensor. The programme now
+  displays the full local formula and states its annulus scope.
+- **Why:** the north Hopf rotation, dominant ratio, \(\nu=e^{-2}\)
+  normalization, Cramer orientation and torus frame differ from the
+  south annulus. The ordered source guards and exact algebraic nodes
+  check those signs. The round factor is nonsingular, (11.11) supplies
+  \(\sigma_{\min}(Dg_\infty)>1999/2000\), and the north restoration
+  determinant is \((1-|t|^4)/\nu^2>0\) on this chamber.
+- **Verification:** symbolic_identities.py (f1–f6): **ALL PASS**.
+  The separately labelled numerical witness has
+  \(\|Dg-I\|_{\mathrm{op}}=3.9588550449509324\cdot10^{-7}\)
+  versus its proved pointwise bound \(3\cdot10^{-4}\),
+  sampled \(\sigma_{\min}=1.0000000085917364\) versus the proved
+  uniform bound \(0.9995\), and production raw-value error
+  \(3.5284\cdot10^{-64}\). verify_construction.py: all checks passed;
+  sphere_products.py: Dimension 8 check passed; git diff --check: pass.
+  LaTeX: **not run** (latexmk unavailable). Git fetch/pull and push were
+  left to the collaborator as requested.
+- **Open points:** this certificate covers one open north raw annulus,
+  not the nonidentity radial shell, selector seams, or the free-slab
+  round-to-W circuit. The complete direct verification of the specific
+  global \(J_{\mathrm{cl}}\) remains open, and the global statement
+  still requires human review.

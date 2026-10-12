@@ -17,6 +17,8 @@
       and cusp torus restoration give a source-linked six-real-coordinate
       second-jet circuit and J.  Its compositional 36/216 coefficient checks
       use the written cap and derivative bounds; other chambers remain open.
+  (f) the corresponding north raw-pole annulus has a separate source-linked
+      second-jet circuit and compositional 36/216 coefficient checks.
 Run from the repo root."""
 import sympy as sp
 
@@ -607,8 +609,10 @@ for k,variable in enumerate(z_e):
     raw_known_e[variable] = (sp.eye(4)[:,k],sp.zeros(4,4))
 
 
-def raw_local_jet_e(rhs):
-    deps = tuple(sorted(rhs.free_symbols & raw_known_e.keys(),key=str))
+def raw_local_jet_e(rhs, known=None):
+    if known is None:
+        known = raw_known_e
+    deps = tuple(sorted(rhs.free_symbols & known.keys(),key=str))
     assert rhs.free_symbols <= set(deps)
     d1 = {dep:sp.diff(rhs,dep) for dep in deps}
     d2 = {(dep,other):sp.diff(d1[dep],other)
@@ -616,14 +620,14 @@ def raw_local_jet_e(rhs):
     assert all(sp.simplify(d2[p,q]-d2[q,p])==0
                for p in deps for q in deps)
     grad = sp.Matrix([
-        sum((d1[p]*raw_known_e[p][0][i] for p in deps),sp.S.Zero)
+        sum((d1[p]*known[p][0][i] for p in deps),sp.S.Zero)
         for i in range(4)])
     hess = sp.zeros(4,4)
     for i in range(4):
         for j in range(i,4):
-            value = sum((d1[p]*raw_known_e[p][1][i,j] for p in deps),
+            value = sum((d1[p]*known[p][1][i,j] for p in deps),
                         sp.S.Zero)
-            value += sum((d2[p,q]*raw_known_e[p][0][i]*raw_known_e[q][0][j]
+            value += sum((d2[p,q]*known[p][0][i]*known[q][0][j]
                           for p in deps for q in deps),sp.S.Zero)
             hess[i,j]=hess[j,i]=value
     return grad,hess
@@ -891,4 +895,347 @@ with mp.workdps(60):
     print('(e7) numerical one-point sample only: ||Dg-I|| =',
           mp.nstr(measured_norm_e,17),
           '; sigma_min =',mp.nstr(measured_sigma_e,17),': PASS')
+
+# (f) The corresponding north raw-pole annulus.  Its source branch has a
+# different Hopf rotation, inverse stereographic ratio, cusp normalization
+# nu=exp(-2), and torus-frame orientation.  The finite annulus and torus
+# coordinates are independent of (e); this is a second open six-real cell.
+def source_if_prefix_f(function, condition, body):
+    """Match the ordered initial statements of a specified source if branch."""
+    tree = ast.parse(inspect.getsource(function))
+    indented = '\n'.join('    '+line for line in body.splitlines())
+    expected = ast.parse('if '+condition+':\n'+indented).body[0]
+    wanted = [ast.dump(node, include_attributes=False)
+              for node in expected.body]
+    return any(isinstance(node, ast.If) and
+               ast.dump(node.test, include_attributes=False) ==
+               ast.dump(expected.test, include_attributes=False) and
+               len(node.body) >= len(wanted) and
+               [ast.dump(item, include_attributes=False)
+                for item in node.body[:len(wanted)]] == wanted
+               for node in ast.walk(tree))
+
+
+assert source_if_prefix_f(cusp.elliptic_pole_raw_inverse,'infinity',
+    's2 = aa*aa+bb*bb+cc*cc\n'
+    'den = 1+2*bb+2*s2\n'
+    'u1 = mp.mpc(-1-2*bb,2*aa)/den\n'
+    'u2 = mp.mpc(2*(bb+s2),2*cc)/den\n'
+    'ratio = u2/u1\n'
+    'height = -mp.arg(-u1)/(2*mp.pi)')
+assert source_if_prefix_f(cusp.elliptic_pole_raw_inverse,'elementary',
+    "if abs(height)>=mp.mpf('.1'):\n"
+    "    raise ValueError('elementary pole inverse left its certified height region')\n"
+    'e = mp.exp(-4*abs(tc)**2/(1-abs(tc)**2))\n'
+    'q = e*nu*nu*abs(tc)**2\n'
+    'R = mp.sqrt(height*height+4*q)\n'
+    'AA = 2*q/(R-height) if height<0 else (R+height)/2\n'
+    'yy = 2*q/(R+height) if height>=0 else (R-height)/2\n'
+    'xx = AA/e\n'
+    'moment,source_radius = xx-yy,xx+yy')
+for statement in (
+    's2 = aa*aa+bb*bb+cc*cc',
+    'den = 1+2*bb+2*s2',
+    'u1 = mp.mpc(-1-2*bb,2*aa)/den',
+    'u2 = mp.mpc(2*(bb+s2),2*cc)/den',
+    'ratio = u2/u1',
+    'height = -mp.arg(-u1)/(2*mp.pi)',
+):
+    assert source_statement_e(cusp.elliptic_pole_raw_inverse,statement),statement
+assert source_statement_e(cusp._elementary_pole_inclusion,
+    'pair = ((a+b)/mp.sqrt(2),(a-b)/mp.sqrt(2)) if infinity else '
+    '((a-mp.j*b)/mp.sqrt(2),(a+mp.j*b)/mp.sqrt(2))')
+# The cap radius h=pi*r_L, so the south rational hmax bound is stronger.
+# 1+2*beta>0 gives the principal atan branch of -arg(-u1), and the rational
+# witness from (e2) has positive north height and nonzero ratio.
+assert 4*rmax_e < hmax_e and hmax_e+hmax_e**2/2 < sp.Rational(1,2*10**5)
+assert 1-8*rmax_e>0
+r_witness_f = sp.expand(zw0_e*sp.conjugate(zw0_e)
+                        +zw1_e*sp.conjugate(zw1_e))
+assert sp.Rational(3,10**8)<r_witness_f<rmax_e
+assert sp.re(pcw_e)>0 and sp.im(pcw_e)>0 and p3w_e>0
+assert 8*p3w_e/(1-8*sp.re(pcw_e)) < sp.Rational(1,2)
+# Q=|u2/u1|^2<1 uniformly here: |u1 numerator|>=1-8r,
+# |u2 numerator|^2<=4((4r+16r^2)^2+(4r)^2) for r<1e-7.
+Qtop_f = 4*((4*rmax_e+16*rmax_e**2)**2+(4*rmax_e)**2)
+Qbottom_f = (1-8*rmax_e)**2
+assert Qtop_f/Qbottom_f<sp.Rational(1,4)
+assert sp.E<3 and sp.pi>3
+# D>2A(1-Q); with B=e^4<81 and A=(4pi)^2>144 this gives
+# |t_c|^2 < (81/(144*(3/4))) Q < 3Q/4 < 1 on this chamber.
+assert sp.Rational(81,144)*sp.Rational(4,3)==sp.Rational(3,4)
+assert sp.Rational(3,4)*Qtop_f/Qbottom_f<1
+print('(f1) exact north source branch, open witness, positive-root domain: PASS')
+
+f0r,f0i,f1r,f1i = z_f = sp.symbols(
+    'f0r f0i f1r f1i',real=True)
+pr_f = 2*(f0r*f1r+f0i*f1i)
+pi_f = 2*(f0i*f1r-f0r*f1i)
+p3_f = f0r*f0r+f0i*f0i-f1r*f1r-f1i*f1i
+radius_f = f0r*f0r+f0i*f0i+f1r*f1r+f1i*f1i
+assert sp.expand(pr_f**2+pi_f**2+p3_f**2-radius_f**2)==0
+# Keep the source Hopf/scale outputs as explicit bound DAG nodes.  Expanding
+# them through all nested radicals before CSE creates a 480-kB expression.
+aa_f,bb_f,cc_f = sp.symbols('aa_f bb_f cc_f',real=True)
+nu_f,Aprof_f,Bprof_f = sp.symbols(
+    'nu_f Aprof_f Bprof_f',positive=True)
+raw_input_defs_f = [(aa_f,sp.pi*p3_f),(bb_f,-sp.pi*pr_f),
+                    (cc_f,sp.pi*pi_f),(nu_f,sp.exp(-2)),
+                    (Aprof_f,(4*sp.pi)**2),(Bprof_f,sp.exp(4))]
+Ur,Ui,Vr,Vi = sp.symbols('Ur Ui Vr Vi',real=True)
+assert sp.factor(((Vr*Ur+Vi*Ui)**2+(Vi*Ur-Vr*Ui)**2)
+                 -(Vr*Vr+Vi*Vi)*(Ur*Ur+Ui*Ui))==0
+assert sp.cancel((Vr+sp.I*Vi)/(Ur+sp.I*Ui)
+                 -((Vr*Ur+Vi*Ui)+sp.I*(Vi*Ur-Vr*Ui))
+                  /(Ur*Ur+Ui*Ui))==0
+# Each named scalar below is assigned an exact source expression in order.
+# The shared u1/u2 stereographic denominator cancels in the ratio, leaving
+# n1,n2.  This manual straight-line form prevents SymPy from expanding
+# nested radicals into a 160-kB expression before differentiating.
+(s2_f,n1r_f,n1i_f,n2r_f,n2i_f,ratio_den_f,Tr_f,Ti_f,Q_f,
+ height_f,D_f,tgain_f,tr_f,ti_f,te2_f,E_f,q_f,R_f,AA_f,YY_f,
+ uu_f,ss_f,V0r_f,V0i_f,V1r_f,V1i_f,Vnorm_f,factor_f) = sp.symbols(
+    's2_f n1r_f n1i_f n2r_f n2i_f ratio_den_f Tr_f Ti_f Q_f '
+    'height_f D_f tgain_f tr_f ti_f te2_f E_f q_f R_f AA_f YY_f '
+    'uu_f ss_f V0r_f V0i_f V1r_f V1i_f Vnorm_f factor_f',real=True)
+raw_node_defs_f = [
+    (s2_f,aa_f**2+bb_f**2+cc_f**2),
+    (n1r_f,-1-2*bb_f),(n1i_f,2*aa_f),
+    (n2r_f,2*(bb_f+s2_f)),(n2i_f,2*cc_f),
+    (ratio_den_f,n1r_f**2+n1i_f**2),
+    (Tr_f,(n2r_f*n1r_f+n2i_f*n1i_f)/ratio_den_f),
+    (Ti_f,(n2i_f*n1r_f-n2r_f*n1i_f)/ratio_den_f),
+    (Q_f,(n2r_f**2+n2i_f**2)/ratio_den_f),
+    (height_f,sp.atan(2*aa_f/(1+2*bb_f))/(2*sp.pi)),
+    (D_f,Aprof_f*(1-Q_f)+sp.sqrt(Aprof_f**2*(1-Q_f)**2
+                                    +4*Bprof_f*Q_f)),
+    (tgain_f,sp.sqrt(2*Bprof_f/D_f)),
+    (tr_f,Tr_f*tgain_f),(ti_f,Ti_f*tgain_f),
+    (te2_f,tr_f**2+ti_f**2),
+    (E_f,sp.exp(-4*te2_f/(1-te2_f))),
+    (q_f,E_f*nu_f**2*te2_f),
+    (R_f,sp.sqrt(height_f**2+4*q_f)),
+    (AA_f,(R_f+height_f)/2),(YY_f,(R_f-height_f)/2),
+    (uu_f,AA_f/E_f),(ss_f,uu_f+YY_f),
+    (V0r_f,uu_f*f0r+nu_f*(tr_f*f1r+ti_f*f1i)),
+    (V0i_f,uu_f*f0i+nu_f*(tr_f*f1i-ti_f*f1r)),
+    (V1r_f,nu_f*(tr_f*f0r-ti_f*f0i)+YY_f*f1r),
+    (V1i_f,nu_f*(tr_f*f0i+ti_f*f0r)+YY_f*f1i),
+    (Vnorm_f,V0r_f**2+V0i_f**2+V1r_f**2+V1i_f**2),
+    (factor_f,sp.sqrt(ss_f/Vnorm_f))]
+# (R+h)(R-h)=4q proves yy=2q/(R+h); uu*yy=nu^2|t_c|^2.
+assert sp.expand((rnode_e-rh_e)*(rnode_e+rh_e)-4*qe_e)==0
+assert dict(raw_node_defs_f)[q_f]==E_f*nu_f**2*te2_f
+raw_out_f = [factor_f*V0r_f,factor_f*V0i_f,
+             factor_f*V1r_f,factor_f*V1i_f]
+raw_f = sp.Matrix(raw_out_f)
+# Check the source moment/projector normalization independently with small
+# algebraic nodes.  In source notation m=u-Y, s=u+Y, source_pc=2*nu*conj(t),
+# so s*(w0,w1)=V.  The final positive-root factor then gives sqrt(s/Vnorm)*V.
+ug,yg,ng,tg,ig,z0rg,z0ig,z1rg,z1ig = sp.symbols(
+    'ug yg ng tg ig z0rg z0ig z1rg z1ig',real=True)
+sg,mg = ug+yg,ug-yg
+Vgeneric_f = sp.Matrix([
+    ug*z0rg+ng*(tg*z1rg+ig*z1ig),
+    ug*z0ig+ng*(tg*z1ig-ig*z1rg),
+    ng*(tg*z0rg-ig*z0ig)+yg*z1rg,
+    ng*(tg*z0ig+ig*z0rg)+yg*z1ig])
+Vactual_rhs_f = dict(raw_node_defs_f)
+Vgeneric_bound_f = Vgeneric_f.subs({ug:uu_f,yg:YY_f,ng:nu_f,
+    tg:tr_f,ig:ti_f,z0rg:f0r,z0ig:f0i,z1rg:f1r,z1ig:f1i})
+assert all(sp.expand(Vgeneric_bound_f[k]-Vactual_rhs_f[node])==0
+           for k,node in enumerate((V0r_f,V0i_f,V1r_f,V1i_f)))
+source_projected_f = sp.Matrix([
+    ((sg+mg)*z0rg+2*ng*(tg*z1rg+ig*z1ig))/(2*sg),
+    ((sg+mg)*z0ig+2*ng*(tg*z1ig-ig*z1rg))/(2*sg),
+    (2*ng*(tg*z0rg-ig*z0ig)+(sg-mg)*z1rg)/(2*sg),
+    (2*ng*(tg*z0ig+ig*z0rg)+(sg-mg)*z1ig)/(2*sg)])
+assert all(sp.cancel(sg*source_projected_f[k]-Vgeneric_f[k])==0
+           for k in range(4))
+sgp,vnp = sp.symbols('sgp vnp',positive=True)
+assert sp.simplify((sp.sqrt(sgp)/sp.sqrt(vnp/sgp**2)/sgp)**2
+                   -sgp/vnp)==0
+print('(f2) actual north raw inverse in four real pole variables: PASS')
+
+raw_jet_defs_f = []
+raw_known_f = {}
+for k,variable in enumerate(z_f):
+    raw_known_f[variable]=(sp.eye(4)[:,k],sp.zeros(4,4))
+for node,rhs in raw_input_defs_f:
+    raw_known_f[node]=(sp.Matrix([sp.diff(rhs,v) for v in z_f]),
+                       sp.hessian(rhs,z_f))
+for node,rhs in raw_node_defs_f:
+    grad_rhs,hess_rhs = raw_local_jet_e(rhs,raw_known_f)
+    raw_jet_defs_f.append((node,rhs))
+    grad_symbols = sp.Matrix([sp.Symbol(f'{node}_d{i}') for i in range(4)])
+    hess_symbols = sp.Matrix(4,4,lambda i,j:
+                             sp.Symbol(f'{node}_h{min(i,j)}{max(i,j)}'))
+    raw_jet_defs_f.extend((grad_symbols[i],grad_rhs[i]) for i in range(4))
+    raw_jet_defs_f.extend((hess_symbols[i,j],hess_rhs[i,j])
+                          for i in range(4) for j in range(i,4))
+    raw_known_f[node]=(grad_symbols,hess_symbols)
+raw_output_jets_f = [raw_local_jet_e(rhs,raw_known_f) for rhs in raw_out_f]
+Mraw_f = sp.Matrix(4,4,lambda k,i:raw_output_jets_f[k][0][i])
+Hraw_f = [raw_output_jets_f[k][1] for k in range(4)]
+assert Mraw_f.shape==(4,4) and len(Hraw_f)==4
+assert all(Hraw_f[k][i,j]==Hraw_f[k][j,i]
+           for k in range(4) for i in range(4) for j in range(4))
+assert not any(value.has(sp.Derivative) for value in Mraw_f)
+assert len(raw_jet_defs_f)==15*len(raw_node_defs_f)
+raw_defined_f = set(z_f)|{node for node,_ in raw_input_defs_f}
+for node,rhs in raw_jet_defs_f:
+    assert rhs.free_symbols <= raw_defined_f
+    raw_defined_f.add(node)
+assert all(rhs.free_symbols <= raw_defined_f for rhs in raw_out_f)
+print('(f3) actual north raw inverse 4x4 Jacobian and four symmetric'
+      f' Hessian circuits via {len(raw_node_defs_f)} exact scalar 2-jet nodes: PASS')
+
+fr0,fi0,fr1,fi1 = round_f = sp.symbols(
+    'fr0 fi0 fr1 fi1',real=True)
+round_r_f = sum(value*value for value in round_f)
+round_gain_f = 1/sp.sqrt(1+sp.sqrt(1-round_r_f**2))/sp.sqrt(2*sp.pi)
+local_f = sp.Matrix([round_gain_f*(fr0+fr1),
+                     round_gain_f*(fi0+fi1),
+                     round_gain_f*(fr0-fr1),
+                     round_gain_f*(fi0-fi1)])
+Mround_f = local_f.jacobian(round_f)
+Hround_f = [sp.hessian(local_f[k],round_f) for k in range(4)]
+assert all(Hround_f[k][i,j]==Hround_f[k][j,i]
+           for k in range(4) for i in range(4) for j in range(4))
+
+fw0r,fw0i,fw1r,fw1i,fp2,fp3 = rest_f = sp.symbols(
+    'fw0r fw0i fw1r fw1i fp2 fp3',real=True)
+tR_f = (fw0r*fw1r+fw0i*fw1i)/nu_f
+tI_f = (fw0r*fw1i-fw0i*fw1r)/nu_f
+v_f = tR_f**2+tI_f**2
+Ee_f = sp.exp(-4*v_f/(1-v_f))
+Ae_f,Ye_f = Ee_f*(fw0r*fw0r+fw0i*fw0i),fw1r*fw1r+fw1i*fw1i
+Hf_f = (Ae_f-Ye_f)/(1-Ae_f*Ye_f)
+ar_f = tR_f*fp2-tI_f*fp3+2*Hf_f*v_f/(1-v_f)
+ai_f = tI_f*fp2+tR_f*fp3
+co_f,si_f,ea_f = sp.cos(ai_f),sp.sin(ai_f),sp.exp(ar_f)
+Br_f,Cr_f = tR_f*tR_f-tI_f*tI_f,2*tR_f*tI_f
+restore_f = sp.Matrix([
+    (fw0r*co_f-fw0i*si_f)/(nu_f*ea_f),
+    (-fw0r*si_f-fw0i*co_f)/(nu_f*ea_f),
+    ea_f*(fw1r*co_f-fw1i*si_f),
+    ea_f*(fw1r*si_f+fw1i*co_f),
+    fp2*(Br_f-1)-fp3*Cr_f-2*Hf_f*tR_f,
+    fp2*Cr_f+fp3*(1+Br_f)-2*Hf_f*tI_f])
+Mrestore_f = restore_f.jacobian(rest_f)
+Hrestore_f = [sp.hessian(restore_f[k],rest_f) for k in range(6)]
+assert Mrestore_f.shape==(6,6) and len(Hrestore_f)==6
+assert all(Hrestore_f[k][i,j]==Hrestore_f[k][j,i]
+           for k in range(6) for i in range(6) for j in range(6))
+assert not any(value.has(sp.Derivative) for value in Mrestore_f)
+print('(f4) actual north round cap and finite-height torus first/second jets: PASS')
+
+raw_stage_defs_f = list(zip(z_f,local_f))+raw_input_defs_f+raw_jet_defs_f
+raw_at_local_f = sp.Matrix(raw_out_f)
+base_at_round_f = tuple(raw_at_local_f)+(fp2,fp3)
+full_at_round_f = sp.Matrix([
+    bind_e(restore_f[k],rest_f,base_at_round_f) for k in range(6)])
+Mrestore_at_base_f = bind_matrix_e(Mrestore_f,rest_f,base_at_round_f)
+Hrestore_at_base_f = [bind_matrix_e(H,rest_f,base_at_round_f)
+                      for H in Hrestore_f]
+Mbase_f = sp.BlockDiagMatrix(
+    sp.MatMul(Mraw_f,Mround_f,evaluate=False),sp.eye(2))
+Mfull_f = sp.MatMul(Mrestore_at_base_f,Mbase_f,evaluate=False)
+J_annulus_f = sp.MatMul(sp.Inverse(Mfull_f),J0,Mfull_f,evaluate=False)
+round_inputs_f = set(round_f)|{fp2,fp3}
+bound_symbols_f = set(round_inputs_f)
+for node,rhs in raw_stage_defs_f:
+    assert rhs.free_symbols <= bound_symbols_f
+    bound_symbols_f.add(node)
+assert tuple(rhs for _,rhs in raw_stage_defs_f[:4])==tuple(local_f)
+assert Mfull_f.shape==(6,6) and J_annulus_f.shape==(6,6)
+assert all(value.free_symbols <= bound_symbols_f for value in full_at_round_f)
+assert all(value.free_symbols <= bound_symbols_f for value in Mraw_f)
+assert all(value.free_symbols <= bound_symbols_f for value in Mrestore_at_base_f)
+assert J_annulus_f.free_symbols <= bound_symbols_f
+Hbase_f = []
+for k in range(4):
+    h = sp.MatAdd(*[
+        sp.MatMul(Mraw_f[k,p],Hround_f[p],evaluate=False)
+        for p in range(4)],
+        sp.MatMul(Mround_f.T,Hraw_f[k],Mround_f,evaluate=False),
+        evaluate=False)
+    Hbase_f.append(sp.BlockDiagMatrix(h,sp.zeros(2,2)))
+Hbase_f.extend([sp.ZeroMatrix(6,6),sp.ZeroMatrix(6,6)])
+Hfull_f = []
+for k in range(6):
+    Hfull_f.append(sp.MatAdd(*[
+        sp.MatMul(Mrestore_at_base_f[k,p],Hbase_f[p],evaluate=False)
+        for p in range(6)],
+        sp.MatMul(Mbase_f.T,Hrestore_at_base_f[k],Mbase_f,evaluate=False),
+        evaluate=False))
+assert len(Hfull_f)==6 and all(H.shape==(6,6) for H in Hfull_f)
+assert all(H.free_symbols <= bound_symbols_f for H in Hfull_f)
+assert second_jet_skew_e(Mraw_f,Hraw_f,Mround_f,Hround_f)==64
+assert second_jet_skew_e(Mrestore_at_base_f,Hrestore_at_base_f,
+                         Mbase_f,Hbase_f,inner_skew_certified=True)==216
+
+# Round local gain has the same radial derivative identity as (e), with
+# north L^T L=2I and det L=4.  The imported (11.11) bound gives raw
+# sigma_min>1999/2000 on this annulus.  The north Cramer system has
+# determinant -(1-|t|^4); conjugation/scaling w0->conj(w0)/nu contributes
+# -nu^-2, while the H_f shear and holomorphic flow each have determinant 1.
+L_f = sp.Matrix([[1,0,1,0],[0,1,0,1],
+                 [1,0,-1,0],[0,1,0,-1]])
+assert L_f.det()==4 and L_f.T*L_f==2*sp.eye(4)
+assert sp.simplify(1+2*rr_e*sp.diff(gg_e,rr_e)/gg_e
+                   -1/sp.sqrt(1-rr_e**2))==0
+assert 5000*rmax_e==sp.Rational(1,2000)
+af,bf = sp.symbols('af bf',real=True)
+vf = af*af+bf*bf
+Rf = sp.Matrix([[af*af-bf*bf-1,-2*af*bf],
+                [2*af*bf,1+af*af-bf*bf]])
+cf = sp.Matrix([2*af/(1-vf),-2*bf/(1-vf)])
+assert (Rf*cf-sp.Matrix([-2*af,-2*bf])).applyfunc(sp.factor)==sp.zeros(2,1)
+assert sp.expand(Rf.det()+(1-vf**2))==0
+pf2,pf3,hf = sp.symbols('pf2 pf3 hf',real=True)
+C2n,C3n = pf2+hf*cf[0],pf3+hf*cf[1]
+An = (af+sp.I*bf)*(C2n+sp.I*C3n)
+assert sp.factor(sp.re(An)-(af*pf2-bf*pf3+2*hf*vf/(1-vf)))==0
+assert sp.factor(sp.im(An)-(bf*pf2+af*pf3))==0
+assert sp.Rational(2,10**6)*9/2<1
+assert (sp.Rational(2,10**6)*9/2)**2<1
+assert J0*J0==-sp.eye(6)
+print('(f5) stage-bound north six-real h, M, six H: 64+216 compositional'
+      ' skews; 36/216 J certificate using (11.11)/§11.6 bounds;'
+      ' raw margin >1999/2000: PASS')
+
+# (f6) Type-(d) one-point numerical source derivative sample only.
+with mp.workdps(60):
+    sample_f = [mp.mpf(1)/5000,mp.mpf(0),mp.mpf(1)/10000,
+                -mp.mpf(1)/10000]
+    def source_raw_real_f(values):
+        ww = cusp.elliptic_pole_raw_inverse(
+            (mp.mpc(values[0],values[1]),mp.mpc(values[2],values[3])),
+            True,dps=70,elementary=True)
+        return [ww[0].real,ww[0].imag,ww[1].real,ww[1].imag]
+    numerical_nodes_f = dict(zip(z_f,[sp.Rational(1,5000),sp.Integer(0),
+                                      sp.Rational(1,10000),-sp.Rational(1,10000)]))
+    for node,rhs in raw_input_defs_f+raw_node_defs_f:
+        numerical_nodes_f[node]=rhs.subs(numerical_nodes_f).evalf(70)
+    symbolic_sample_f = [mp.mpf(str(value.subs(numerical_nodes_f).evalf(60)))
+                         for value in raw_f]
+    production_sample_f = source_raw_real_f(sample_f)
+    source_error_f = max(abs(x-y) for x,y in
+                         zip(symbolic_sample_f,production_sample_f))
+    assert source_error_f < mp.mpf('1e-48')
+    sample_M_f = mp.matrix([[mp.diff(
+        lambda value:source_raw_real_f(sample_f[:j]+[value]+sample_f[j+1:])[i],
+        sample_f[j]) for j in range(4)] for i in range(4)])
+    sample_defect_f = sample_M_f-mp.eye(4)
+    measured_norm_f = mp.sqrt(max(mp.eigsy(
+        sample_defect_f.T*sample_defect_f,eigvals_only=True)))
+    measured_sigma_f = mp.sqrt(min(mp.eigsy(
+        sample_M_f.T*sample_M_f,eigvals_only=True)))
+    assert measured_norm_f<5000*mp.mpf(6)/10**8
+    assert measured_sigma_f>mp.mpf(1999)/2000
+    print('(f6) numerical one-point sample only: ||Dg-I|| =',
+          mp.nstr(measured_norm_f,17),
+          '; sigma_min =',mp.nstr(measured_sigma_f,17),
+          '; source value error =',mp.nstr(source_error_f,5),': PASS')
 print('ALL PASS')
