@@ -238,5 +238,161 @@ for label,a0f in (('0',1.),('inf',math.exp(-4))):
     rep(f"N7 elliptic cusp {label}: remainder<38 and corrected slope>13/25",
         erem.max()<38 and eslope.min()>13/25)
 
+# ---------------------------------------------------------------- N8: the actual two-way construction on the exact inner pole caps.
+# On |z_L|^2 <= 10^-8 the pole conjugation H_j is the identity.  The four
+# inputs of scalar_finite_height are then all < 1/16, so its four seed branches
+# are their identity pieces.  This check includes the resulting H_f in tau_f^-1;
+# the earlier height-free torus gauge of programme 9 is a different map.
+round_r8 = sp.symbols('round_r8', nonnegative=True)
+# On the cap 0<=r<1, both square roots are nonnegative; their equal squares
+# therefore identify the positive branches used in (11.17).
+rep('N8a0 round-cap gain: |X|sqrt(2-X^2)=sqrt(1-r^2), r=|Z|^2<1',
+    sp.expand((1-round_r8)*(1+round_r8)-(1-round_r8**2)) == 0)
+eps8 = sp.Rational(1,10**8)
+rep('N8a00 inner cap: A,Y <= epsilon and qA,qY <= epsilon^3 < 1/16',
+    eps8 < sp.Rational(1,16) and eps8**3 < sp.Rational(1,16))
+Ah8, Yh8 = sp.symbols('Ah8 Yh8', nonnegative=True)
+qh8 = Ah8 * Yh8
+four_seed8 = Ah8 + qh8*Ah8 - Yh8 - qh8*Yh8 + qh8**2*(Ah8-Yh8)/(1-qh8)
+rep('N8a inner-cap four-seed torus height H_f=(A-Y)/(1-AY)',
+    sp.cancel(four_seed8-(Ah8-Yh8)/(1-qh8)) == 0)
+
+tr8, ti8, h8, ph28, ph38 = sp.symbols('tr8 ti8 h8 ph28 ph38', real=True)
+t8 = tr8 + sp.I*ti8
+v8 = tr8**2 + ti8**2
+for sigma8 in (1, -1):
+    W8 = ph28 - sp.I*sigma8*ph38
+    C28 = ph28 + h8*2*tr8/(1-v8)
+    C38 = ph38 + h8*2*sigma8*ti8/(1-v8)
+    A_direct8 = t8*(C28-sp.I*sigma8*C38)
+    w_direct8 = C28*sigma8*(1-t8**2)+C38*sp.I*(1+t8**2)
+    A_compact8 = t8*W8+h8*2*v8/(1-v8)
+    w_compact8 = sigma8*(sp.conjugate(W8)-W8*t8**2+2*h8*t8)
+    rep(f'N8b sigma={sigma8}: compact cap exponent and third holomorphic coordinate',
+        sp.cancel(A_direct8-A_compact8) == 0
+        and sp.cancel(w_direct8-w_compact8) == 0)
+
+# The Jacobian and all six Hessians below are differentiated from the specific
+# six-real-coordinate map h=(Re x,Im x,Re y,Im y,Re w,Im w).  Complex real/imag
+# parts are expanded by hand before differentiation to keep SymPy's expression
+# DAG small.  The normal-frame reduction after this loop never substitutes
+# sampled values or assumes that an arbitrary matrix field is a Jacobian.
+z8 = sp.symbols('z8_0:4', real=True)
+phi28, phi38 = sp.symbols('phi28 phi38', real=True)
+u8 = (*z8,phi28,phi38)
+J08 = sp.diag(*([sp.Matrix([[0,-1],[1,0]])]*3))
+dim8 = 6
+T8 = [[[sp.Symbol(f'T8_{out}_{min(i,k)}{max(i,k)}') for k in range(dim8)]
+       for i in range(dim8)] for out in range(dim8)]
+dJ8 = []
+for k in range(dim8):
+    Hk8 = sp.Matrix(dim8,dim8,lambda out,i: T8[out][i][k])
+    # J=M^-1 J0 M, so at a point in a frame with M=I, dJ=[J0,Hk].
+    dJ8.append(J08*Hk8-Hk8*J08)
+square8 = J08*J08+sp.eye(dim8)
+N8 = [sp.expand(sum(J08[p,i]*dJ8[p][out,j]
+                    -J08[p,j]*dJ8[p][out,i]
+                    -J08[out,p]*(dJ8[i][p,j]-dJ8[j][p,i])
+                    for p in range(dim8)))
+      for out in range(dim8) for i in range(dim8) for j in range(dim8)]
+rep('N8c normal-frame algebra: all 36 J^2 and 216 N entries vanish',
+    len(square8) == 36 and all(x == 0 for x in square8)
+    and len(N8) == 216 and all(x == 0 for x in N8))
+
+import sys
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[3]))
+
+for sigma8, scale8, nu8 in ((1,2*sp.pi,sp.Integer(1)),
+                            (-1,sp.pi,sp.exp(-2))):
+    a8,b8,c8,d8 = z8
+    r8 = sum(v*v for v in z8)
+    s8 = sp.sqrt(1-r8*r8)
+    gain8 = 1/sp.sqrt(1+s8)
+    den8 = sp.sqrt(2*scale8)
+    if sigma8 == 1:
+        p8,q8 = gain8*(a8+d8)/den8,gain8*(b8-c8)/den8
+        m8,n8 = gain8*(a8-d8)/den8,gain8*(b8+c8)/den8
+    else:
+        p8,q8 = gain8*(a8+c8)/den8,gain8*(b8+d8)/den8
+        m8,n8 = gain8*(a8-c8)/den8,gain8*(b8-d8)/den8
+    # p+iq and m+in are U_j^*Z/sqrt(s_j(1+s)); x_s=(p-iq)/nu.
+    tr_actual8 = (p8*m8+q8*n8)/nu8
+    ti_actual8 = (p8*n8-q8*m8)/nu8
+    v_actual8 = tr_actual8**2+ti_actual8**2
+    e_actual8 = sp.exp(-4*v_actual8/(1-v_actual8))
+    A_actual8 = e_actual8*(p8*p8+q8*q8)
+    Y_actual8 = m8*m8+n8*n8
+    q_actual8 = A_actual8*Y_actual8
+    H_actual8 = (A_actual8-Y_actual8)/(1-q_actual8)
+    f_actual8 = 2*v_actual8/(1-v_actual8)
+    ar8 = tr_actual8*phi28+sigma8*ti_actual8*phi38+H_actual8*f_actual8
+    ai8 = ti_actual8*phi28-sigma8*tr_actual8*phi38
+    co8,si8 = sp.cos(ai8),sp.sin(ai8)
+    ea8 = sp.exp(ar8)
+    B8 = tr_actual8**2-ti_actual8**2
+    C8 = 2*tr_actual8*ti_actual8
+    h_actual8 = sp.Matrix([
+        (p8*co8-q8*si8)/(nu8*ea8),
+        (-p8*si8-q8*co8)/(nu8*ea8),
+        ea8*(m8*co8-n8*si8),
+        ea8*(m8*si8+n8*co8),
+        sigma8*phi28*(1-B8)-phi38*C8+2*sigma8*H_actual8*tr_actual8,
+        phi38*(1+B8)-sigma8*phi28*C8+2*sigma8*H_actual8*ti_actual8])
+    M_actual8 = h_actual8.jacobian(u8)
+    Hess_actual8 = [sp.hessian(h_actual8[out],u8) for out in range(dim8)]
+    rep(f'N8d sigma={sigma8}: actual cap 6x6 Jacobian and all 90 Hessian symmetries',
+        M_actual8.shape == (6,6) and len(Hess_actual8) == 6
+        and not any(x.has(sp.Derivative) for x in M_actual8)
+        and not any(x.has(sp.Derivative) for Hx in Hess_actual8 for x in Hx)
+        and all(Hx[i,j] == Hx[j,i] for Hx in Hess_actual8
+                for i in range(dim8) for j in range(i+1,dim8)))
+    # These actual Hessians, after the invertible linear normalization M=I,
+    # belong to the symmetric T8 family checked in N8c.  The determinant is
+    # certified by the radial, linear-spinor, torus-shear and slice factors;
+    # the direct pole value is an independent exact check of their signs.
+    M_pole8 = M_actual8.subs(dict.fromkeys(z8,0))
+    expected_pole8 = -sigma8/(4*scale8**2*nu8**2)
+    rep(f'N8e sigma={sigma8}: actual pole Jacobian determinant',
+        sp.simplify(M_pole8.det()-expected_pole8) == 0)
+    # Numerical cross-check only: evaluate the independently differentiated
+    # SymPy formula against the production cap and torus restoration at the
+    # exact pole and two interior points.  It does not certify the continuum.
+    import mpmath as mp
+    from extra.s4t2_explicit import cusp as cusp8
+    h_eval8 = sp.lambdify(u8,h_actual8,'mpmath',cse=True)
+    samples8 = ((mp.mpf(0),)*4,
+                tuple(map(mp.mpf,('1e-5','2e-5','-1e-5','3e-5'))),
+                tuple(map(mp.mpf,('-2e-5','1e-5','3e-5','-4e-5'))))
+    worst8 = mp.mpf(0)
+    with mp.workdps(70):
+        angles8 = (mp.mpf('.123'),mp.mpf('-.279'))
+        for vals8 in samples8:
+            X8 = -sigma8*mp.sqrt(1-sum(v*v for v in vals8))
+            kind8,production8 = cusp8.elementary_global_coordinates(
+                (mp.mpc(vals8[0],vals8[1]),mp.mpc(vals8[2],vals8[3])),
+                X8,angles8,dps=65)
+            direct8 = h_eval8(*vals8,*angles8)
+            target8 = mp.matrix([part for z in production8
+                                 for part in (z.real,z.imag)])
+            worst8 = max(worst8,mp.norm(direct8-target8))
+            assert kind8 == ('c0' if sigma8 == 1 else 'ci')
+    rep(f'N8e2 sigma={sigma8}: 3 production inner-cap samples (numerical), '
+        f'max error {float(worst8):.1e}',worst8 < mp.mpf('1e-55'))
+
+rad8 = sp.symbols('rad8',positive=True)
+gr8 = 1/sp.sqrt(1+sp.sqrt(1-rad8**2))
+rep('N8f radial 4x4 determinant factor g^4/sqrt(1-r^2)',
+    sp.simplify(gr8+2*rad8*sp.diff(gr8,rad8)
+                -gr8/sp.sqrt(1-rad8**2)) == 0)
+bad8 = [sp.zeros(dim8) for _ in range(dim8)]
+bad8[2][0,0] = 1
+bad_dJ8 = [J08*B-B*J08 for B in bad8]
+bad_N8 = sp.expand(sum(J08[p,0]*bad_dJ8[p][1,3]
+                       -J08[p,3]*bad_dJ8[p][1,0]
+                       -J08[1,p]*(bad_dJ8[0][p,3]-bad_dJ8[3][p,0])
+                       for p in range(dim8)))
+rep('N8g non-Jacobian-frame control: N^1_(0,3)=+1',bad_N8 == 1)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A symbolic identity, constant bound, or numerical check failed'

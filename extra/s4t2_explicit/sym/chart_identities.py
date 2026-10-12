@@ -1426,5 +1426,454 @@ rep(f'C29i 1999 radial-derivative samples (numerical): max '
     f'{float(radial_max29):.6f} at a={float(radial_arg29):.7f}; '
     f'margin to 200 is {float(200-radial_max29):.6f}', radial_max29<200)
 
+# C30: second-jet calculus for the fixed-count projection and phase recurrences.
+# These are local derivative identities and an induction step for any fixed
+# positive counts. They do not identify the resulting jets with every branch of
+# the specific global G_cl evaluator; that source correspondence and the chart
+# seams require their own checks.
+from extra.s4t2_explicit.cusp import elementary_closed_parameters
+counts30 = elementary_closed_parameters()
+L30 = counts30['projector_bound']
+N30 = counts30['projection_steps']
+Lg30 = counts30['phase_bound']
+K30 = counts30['phase_steps']
+count_ok30 = (L30 == 10**8000 and N30 == 4*L30+1
+              and Lg30 == 32*(N30+1)*L30 and K30 == 8*Lg30+1
+              and N30 > 0 and K30 > 0)
+rep('C30a exact certified counts for the two fixed-count folds', count_ok30)
+
+s30,t30 = sp.symbols('s30 t30', real=True)
+u30 = sp.Symbol('u30', positive=True)
+ui30,uj30,uij30 = sp.symbols('ui30 uj30 uij30', real=True)
+lift30 = u30+ui30*s30+uj30*t30+uij30*s30*t30
+unary30 = [
+    (1/u30, -1/u30**2, 2/u30**3),
+    (sp.sqrt(u30), 1/(2*sp.sqrt(u30)), -1/(4*u30**sp.Rational(3,2))),
+    (sp.exp(u30), sp.exp(u30), sp.exp(u30)),
+    (sp.log(u30), 1/u30, -1/u30**2),
+    (sp.sin(u30), sp.cos(u30), -sp.sin(u30)),
+    (sp.cos(u30), -sp.sin(u30), -sp.cos(u30)),
+    (sp.atan(u30), 1/(1+u30**2), -2*u30/(1+u30**2)**2),
+]
+unary_ok30 = all(
+    sp.simplify(sp.diff(f.subs(u30,lift30),s30).subs({s30:0,t30:0})-fp*ui30)==0
+    and sp.simplify(sp.diff(f.subs(u30,lift30),s30,t30).subs({s30:0,t30:0})
+                    -fp*uij30-fpp*ui30*uj30)==0
+    for f,fp,fpp in unary30)
+flat30 = sp.exp(-1/u30)/(sp.exp(-1/u30)+sp.exp(-1/(1-u30)))
+flat_slope30 = flat30*(1-flat30)*(1/u30**2+1/(1-u30)**2)
+flat_curvature30 = flat30*(1-flat30)*(
+    (1-2*flat30)*(1/u30**2+1/(1-u30)**2)**2
+    -2/u30**3+2/(1-u30)**3)
+flat_ok30 = (sp.simplify(sp.diff(flat30,u30)-flat_slope30)==0
+             and sp.simplify(sp.diff(flat30,u30,2)-flat_curvature30)==0)
+rep('C30b elementary and open flat-step second-jet rules',
+    unary_ok30 and flat_ok30)
+
+# Complex conjugation is componentwise real differentiation. The one-component
+# modulus identity below sums immediately over the ten embedding components.
+a30,b30,ai30,bi30,aj30,bj30,aij30,bij30 = sp.symbols(
+    'a30 b30 ai30 bi30 aj30 bj30 aij30 bij30', real=True)
+z30 = a30+ai30*s30+aj30*t30+aij30*s30*t30 + sp.I*(
+    b30+bi30*s30+bj30*t30+bij30*s30*t30)
+z030,z_i30,z_j30,z_ij30 = (
+    a30+sp.I*b30, ai30+sp.I*bi30,
+    aj30+sp.I*bj30, aij30+sp.I*bij30)
+r30 = sp.expand(z30*sp.conjugate(z30))
+modulus_ok30 = (
+    sp.expand(sp.diff(r30,s30).subs({s30:0,t30:0})
+              -2*sp.re(sp.conjugate(z030)*z_i30))==0
+    and sp.expand(sp.diff(r30,s30,t30).subs({s30:0,t30:0})
+                  -2*sp.re(sp.conjugate(z_j30)*z_i30
+                           +sp.conjugate(z030)*z_ij30))==0)
+p30,pi30,pj30,pij30,ri30,rj30,rij30 = sp.symbols(
+    'p30 pi30 pj30 pij30 ri30 rj30 rij30', real=True)
+r030 = sp.Symbol('r030', positive=True)
+p_lift30 = p30+pi30*s30+pj30*t30+pij30*s30*t30
+r_lift30 = r030+ri30*s30+rj30*t30+rij30*s30*t30
+normal_mixed30 = (pij30/sp.sqrt(r030)
+    -(pi30*rj30+pj30*ri30+p30*rij30)/(2*r030**sp.Rational(3,2))
+    +3*p30*ri30*rj30/(4*r030**sp.Rational(5,2)))
+normal_ok30 = sp.simplify(
+    sp.diff(p_lift30/sp.sqrt(r_lift30),s30,t30).subs({s30:0,t30:0})
+    -normal_mixed30)==0
+rep('C30c complex modulus and nonzero normalized-projection second jets',
+    modulus_ok30 and normal_ok30)
+
+# One matrix-vector entry of p_j=P_j e_(j-1); matrix multiplication is a sum
+# of these entries. The normalized p_j rule above therefore preserves symmetric
+# second jets at every projection step, by induction for the exact N30 count.
+P30,Pi30,Pj30,Pij30,e30,ei30,ej30,eij30 = sp.symbols(
+    'P30 Pi30 Pj30 Pij30 e30 ei30 ej30 eij30', real=True)
+P_lift30 = P30+Pi30*s30+Pj30*t30+Pij30*s30*t30
+e_lift30 = e30+ei30*s30+ej30*t30+eij30*s30*t30
+project_mixed30 = Pij30*e30+Pi30*ej30+Pj30*ei30+P30*eij30
+project_ok30 = sp.expand(
+    sp.diff(P_lift30*e_lift30,s30,t30).subs({s30:0,t30:0})
+    -project_mixed30)==0
+
+# The phase increment is atan(Im R/Re R), R=g_l conjugate(g_(l-1)).
+# Its right-half-plane denominator is certified separately in (11.14)--(11.16).
+ar30,br30,ari30,bri30,arj30,brj30,arij30,brij30 = sp.symbols(
+    'ar30 br30 ari30 bri30 arj30 brj30 arij30 brij30', real=True)
+Rreal30 = ar30+ari30*s30+arj30*t30+arij30*s30*t30
+Rimag30 = br30+bri30*s30+brj30*t30+brij30*s30*t30
+den30 = ar30**2+br30**2
+num_i30 = ar30*bri30-br30*ari30
+arg_mixed30 = ((arj30*bri30+ar30*brij30-brj30*ari30-br30*arij30)/den30
+    -2*num_i30*(ar30*arj30+br30*brj30)/den30**2)
+arg_ok30 = sp.factor(
+    sp.diff(sp.atan(Rimag30/Rreal30),s30,t30).subs({s30:0,t30:0})
+    -arg_mixed30)==0
+arg_symmetric30 = sp.factor(
+    arg_mixed30-arg_mixed30.xreplace({
+        ari30:arj30, arj30:ari30, bri30:brj30, brj30:bri30}))==0
+rep('C30d each projection and phase step preserves symmetric second jets',
+    project_ok30 and normal_ok30 and arg_ok30 and arg_symmetric30)
+
+# Negative control: an arbitrary invertible frame still squares to -Id but
+# need not have zero Nijenhuis tensor. This prevents interpreting C30's
+# symmetric-coordinate-jet induction as a claim about arbitrary frame fields.
+q30 = sp.Symbol('q30', real=True)
+E0030 = sp.zeros(dim)
+E0030[0,0] = 1
+frame30 = sp.eye(dim)+q30*E0030
+frame_J30 = frame30*J6*frame30.inv()
+frame_square30 = sp.simplify(frame_J30*frame_J30+sp.eye(dim))==sp.zeros(dim)
+frame_dJ30 = [sp.zeros(dim) for _ in range(dim)]
+frame_dJ30[2] = frame_J30.diff(q30).subs(q30,0)
+frame_N30 = sp.expand(sum(
+    J6[p,0]*frame_dJ30[p][1,3]-J6[p,3]*frame_dJ30[p][1,0]
+    -J6[1,p]*(frame_dJ30[0][p,3]-frame_dJ30[3][p,0])
+    for p in range(dim)))
+rep('C30e non-coordinate-frame control: J^2=-Id yet N^1_(0,3)=-1',
+    frame_square30 and frame_N30 == -1)
+
+# Bind the recurrence checks above to the actual two large loop sites in the
+# scalar evaluator. This is a source-level correspondence check for those sites,
+# not a symbolic execution of the entire G_cl call graph or its chart seams.
+import ast
+import inspect
+from extra.s4t2_explicit import cusp as cusp30
+
+
+def source_tree30(function):
+    return ast.parse(inspect.getsource(function)).body[0]
+
+
+def matching_assignment30(tree,name,expression):
+    expected = ast.dump(ast.parse(expression,mode='eval').body,
+                        include_attributes=False)
+    return any(isinstance(node,ast.Assign)
+               and any(isinstance(target,ast.Name) and target.id==name
+                       for target in node.targets)
+               and ast.dump(node.value,include_attributes=False)==expected
+               for node in ast.walk(tree))
+
+
+def matching_call30(tree,expression):
+    expected = ast.dump(ast.parse(expression,mode='eval').body,
+                        include_attributes=False)
+    return any(isinstance(node,ast.Call)
+               and ast.dump(node,include_attributes=False)==expected
+               for node in ast.walk(tree))
+
+
+global_tree30 = source_tree30(cusp30.elementary_global_coordinates)
+slice_tree30 = source_tree30(cusp30.elementary_global_slice)
+correct_tree30 = source_tree30(cusp30._elementary_corrected_section)
+project_tree30 = source_tree30(cusp30.elementary_projection_section)
+phase_tree30 = source_tree30(cusp30.elementary_phase_family)
+# The global function unpacks the slice return, so inspect that assignment
+# separately rather than treating the tuple target as a scalar name.
+source_counts30 = (
+    matching_call30(global_tree30,'elementary_global_slice(Z,X,**kwargs)')
+    and matching_call30(global_tree30,'elementary_restore_torus(kind,data,phi)')
+    and matching_assignment30(slice_tree30,'params','elementary_closed_parameters()')
+    and matching_assignment30(slice_tree30,'N',
+        "params['projection_steps'] if projection_steps is None else projection_steps")
+    and matching_assignment30(slice_tree30,'K',
+        "params['phase_steps'] if phase_steps is None else phase_steps")
+    and matching_call30(slice_tree30,
+        '_elementary_corrected_section(xi,X,N,K,dps,diagnostics)')
+    and matching_call30(correct_tree30,
+        'elementary_projection_section(xi,X,N,dps,diagnostics)')
+    and matching_call30(correct_tree30,
+        'elementary_phase_family(mismatch,n,X,anchor,K,diagnostics=diagnostics)')
+    and matching_call30(correct_tree30,
+        'elementary_projection_section(xx,h,N,dps,diagnostics)')
+    and count_ok30)
+rep('C30f exact default counts reach both source recurrence sites',source_counts30)
+
+project_loop30 = any(
+    isinstance(node,ast.For)
+    and ast.dump(node.iter,include_attributes=False)
+        ==ast.dump(ast.parse('range(steps+1)',mode='eval').body,
+                    include_attributes=False)
+    for node in ast.walk(project_tree30))
+project_source30 = (
+    project_loop30
+    and matching_assignment30(project_tree30,'phase','_elementary_inner(ref,vector)')
+    and matching_assignment30(project_tree30,'vector',
+                              'tuple(a*phase/abs(phase) for a in ref)')
+    and matching_call30(project_tree30,
+        'elliptic_raw_base_reference(tuple((1-h*h)*a for a in n),h,dps=dps,elementary=True)')
+    and matching_call30(project_tree30,
+        'elliptic_bundle_embedding(kind,data,dps=dps,elementary=True)'))
+phase_loop30 = any(
+    isinstance(node,(ast.For,ast.comprehension))
+    and ast.dump(node.iter,include_attributes=False)
+        ==ast.dump(ast.parse('range(steps+1)',mode='eval').body,
+                    include_attributes=False)
+    for node in ast.walk(phase_tree30))
+phase_source30 = (
+    phase_loop30
+    and matching_assignment30(phase_tree30,'ratio','value*mp.conj(previous)')
+    and matching_call30(phase_tree30,'mp.atan(ratio.imag/ratio.real)'))
+rep('C30g source projection/phase updates match the checked jet primitives',
+    project_source30 and phase_source30)
+
+# If ref is unit and phase=ref*vector, P=ref ref* gives
+# P vector=ref phase and |P vector|=|phase|. The source update above is
+# therefore exactly normalized projection, not an unrelated phase recurrence.
+ar1,ai1,ar2,ai2,vr1,vi1,vr2,vi2 = sp.symbols(
+    'ar1 ai1 ar2 ai2 vr1 vi1 vr2 vi2', real=True)
+ref30 = sp.Matrix([ar1+sp.I*ai1,ar2+sp.I*ai2])
+vec30 = sp.Matrix([vr1+sp.I*vi1,vr2+sp.I*vi2])
+phase_value30 = (ref30.conjugate().T*vec30)[0]
+Pvec30 = ref30*ref30.conjugate().T*vec30
+projection_value30 = all(sp.expand(Pvec30[i]-ref30[i]*phase_value30)==0
+                         for i in range(2))
+projection_norm30 = sp.expand(
+    (Pvec30.conjugate().T*Pvec30)[0]
+    -sp.conjugate(phase_value30)*phase_value30
+     *(ref30.conjugate().T*ref30)[0])==0
+right30 = sp.Symbol('right30', positive=True)
+imag30 = sp.Symbol('imag30', real=True)
+angle30 = sp.atan(imag30/right30)
+argument_value30 = (
+    sp.simplify(sp.cos(angle30)-right30/sp.sqrt(right30**2+imag30**2))==0
+    and sp.simplify(sp.sin(angle30)-imag30/sp.sqrt(right30**2+imag30**2))==0
+    and sp.simplify(sp.diff(angle30,right30)
+                    +imag30/(right30**2+imag30**2))==0
+    and sp.simplify(sp.diff(angle30,imag30)
+                    -right30/(right30**2+imag30**2))==0)
+rep('C30h actual projection and right-half-plane phase values/derivatives',
+    projection_value30 and projection_norm30 and argument_value30)
+
+# Here h is the inverse-direction coordinate map G_cl and M=Dh. Thus
+# J=M^{-1} J0 M, in contrast with C10's forward-map convention. Using
+# D(M^{-1})=-M^{-1}(DM)M^{-1} gives, for H_k=partial_k M,
+# D_k J=M^{-1}(J0 H_k-H_k J). A constant linear change of the *domain*
+# coordinates normalizes M to Id at a point without changing the Nijenhuis
+# equations; the holomorphic target coordinates retain their standard J0.
+# For a coordinate map H^a_{ij}=H^a_{ji}; test all 36 square entries and
+# all 216 N components in this inverse convention.
+dJ_inverse30 = [J6*sp.Matrix(dim,dim,lambda out,i:Hjet[out][i][k])
+                -sp.Matrix(dim,dim,lambda out,i:Hjet[out][i][k])*J6
+                for k in range(dim)]
+square_inverse30 = all(value==0 for value in J6*J6+sp.eye(dim))
+dsquare_inverse30 = all(
+    sp.expand(value)==0
+    for DJ in dJ_inverse30 for value in DJ*J6+J6*DJ)
+N_inverse30 = [sp.expand(sum(
+    J6[p,i]*dJ_inverse30[p][out,j]
+    -J6[p,j]*dJ_inverse30[p][out,i]
+    -J6[out,p]*(dJ_inverse30[i][p,j]-dJ_inverse30[j][p,i])
+    for p in range(dim)))
+    for out in range(dim) for i in range(dim) for j in range(dim)]
+rep('C30i inverse-map convention: 36 J^2 and 216 N components vanish',
+    square_inverse30 and dsquare_inverse30
+    and len(N_inverse30)==216 and all(value==0 for value in N_inverse30))
+
+# The cusp part of tau_f^{-1} is a fixed-size block. Check that the actual
+# restore and source-recovery functions use the same two cusp bases, Cramer
+# formula, finite H_f and exponential coordinates. The source reduction is a
+# separate deck-chart transition; these identities are in one open deck cell.
+def returned_expr30(tree,expression):
+    expected = ast.dump(ast.parse(expression,mode='eval').body,
+                        include_attributes=False)
+    return any(isinstance(node,ast.Return)
+               and ast.dump(node.value,include_attributes=False)==expected
+               for node in ast.walk(tree))
+
+
+restore_tree30 = source_tree30(cusp30.elementary_restore_torus)
+source_tree_cusp30 = source_tree30(cusp30._elementary_source_coordinates)
+basis_tree30 = source_tree30(cusp30._elementary_cusp_basis)
+coeff_tree30 = source_tree30(cusp30._elementary_real_coeffs)
+height_tree30 = source_tree30(cusp30.scalar_finite_height)
+restore_basis30 = next(node for node in ast.walk(restore_tree30)
+                       if isinstance(node,ast.FunctionDef) and node.name=='cusp_data')
+restore_coeff30 = next(node for node in ast.walk(restore_tree30)
+                       if isinstance(node,ast.FunctionDef) and node.name=='coeffs')
+source_cusp_ok30 = (
+    ast.dump(restore_basis30.body[-1].value,include_attributes=False)
+        ==ast.dump(basis_tree30.body[-1].value,include_attributes=False)
+    and ast.dump(restore_coeff30.body[-1].value,include_attributes=False)
+        ==ast.dump(coeff_tree30.body[-1].value,include_attributes=False)
+    and matching_assignment30(restore_tree30,'H',
+        'scalar_finite_height(x,y,mp.exp(-2) if inf else mp.mpf(1))')
+    and matching_assignment30(restore_tree30,'C',
+        'tuple(v+H*w for v,w in zip(phi,c))')
+    and matching_assignment30(restore_tree30,'A','C[0]*a2+C[1]*a3')
+    and returned_expr30(restore_tree30,
+        'kind,(x*mp.exp(-A),y*mp.exp(A),C[0]*e2+C[1]*e3)')
+    and matching_assignment30(source_tree_cusp30,'C',
+        '_elementary_real_coeffs(w,e2,e3)')
+    and matching_assignment30(source_tree_cusp30,'H',
+        'scalar_finite_height(x0,y0,nu)+deck')
+    and matching_assignment30(source_tree_cusp30,'phi',
+        'tuple(C[j]-H*c[j] for j in range(2))'))
+rep('C30j both cusp signs share the exact source/restore finite-height block',
+    source_cusp_ok30)
+
+tc_r30,tc_i30,C2_30,C3_30,Hc30 = sp.symbols(
+    'tc_r30 tc_i30 C2_30 C3_30 Hc30',real=True)
+tc30 = tc_r30+sp.I*tc_i30
+qrad30 = tc_r30**2+tc_i30**2
+basis_ok30 = True
+for inf30 in (False,True):
+    E2_30,E3_30,E4_30,A2_30,A3_30 = (
+        (tc30**2-1,sp.I*(1+tc30**2),-2*tc30,tc30,sp.I*tc30)
+        if inf30 else
+        (1-tc30**2,sp.I*(1+tc30**2),2*tc30,tc30,-sp.I*tc30))
+    det_c30 = sp.expand(sp.re(E2_30)*sp.im(E3_30)
+                         -sp.re(E3_30)*sp.im(E2_30))
+    sign_c30 = -1 if inf30 else 1
+    W_c30 = C2_30*E2_30+C3_30*E3_30
+    def cramer30(value):
+        return ((sp.re(value)*sp.im(E3_30)-sp.re(E3_30)*sp.im(value))/det_c30,
+                (sp.re(E2_30)*sp.im(value)-sp.re(value)*sp.im(E2_30))/det_c30)
+    recovered30 = cramer30(W_c30)
+    coeff_c30 = cramer30(E4_30)
+    basis_ok30 &= (
+        sp.factor(det_c30-sign_c30*(1-qrad30**2))==0
+        and all(sp.cancel(recovered30[j]-C)==0
+                for j,C in enumerate((C2_30,C3_30)))
+        and sp.simplify(E4_30-coeff_c30[0]*E2_30-coeff_c30[1]*E3_30)==0)
+    ph_c30 = (C2_30-Hc30*coeff_c30[0],
+              C3_30-Hc30*coeff_c30[1])
+    A_c30 = C2_30*A2_30+C3_30*A3_30
+    xc30,yc30 = sp.symbols('xc30 yc30')
+    basis_ok30 &= (
+        all(sp.cancel(ph_c30[j]+Hc30*coeff_c30[j]-C)==0
+                for j,C in enumerate((C2_30,C3_30)))
+        and sp.simplify((xc30*sp.exp(-A_c30))
+                        *(yc30*sp.exp(A_c30))-xc30*yc30)==0
+        and sp.simplify(xc30*sp.exp(-A_c30)*sp.exp(A_c30)-xc30)==0
+        and sp.simplify(yc30*sp.exp(A_c30)*sp.exp(-A_c30)-yc30)==0)
+rep('C30k both cusp Cramer determinants and torus maps reverse exactly',
+    basis_ok30)
+
+# One genuinely noncap open branch of the actual four-seed H_f. If
+# 1/16<A<1/2, 0<Y<1/16, q=AY, then qA<1/64 and qY<1/512; no seed is
+# reciprocal, the A seed uses the flat interpolation, and the other three
+# seeds are in their specified linear branch. It is outside the pole cap:
+# nu^2|x|^2+|y|^2 >= A > 1/16. Explicit interior witnesses with Y=1/100
+# are |x|^2=1/8 at zero and |x|^2=8 at infinity. Their respective |xy|^2
+# are 1/800 and 2/25, both below the cusp-chart cutoff 9/100. For the first,
+# A=(1/8)exp(-4/799) lies between (1/8)(1-4/799) and 1/8. For the second,
+# A=8exp(-4-8/23) lies between 32/385 and 128/625, using e^4<55,
+# 5/2<e<3, and exp(8/23)<sqrt(e)<7/4. Both intervals lie in (1/16,1/2).
+seed_source30 = (
+    matching_assignment30(height_tree30,'q','A*Y')
+    and matching_assignment30(height_tree30,'weight',
+        'scalar_flat_step(mp.log(16*v)/mp.log(8))')
+    and matching_assignment30(height_tree30,'value',
+        'v+weight*(v/(1+v)-v)')
+    and returned_expr30(height_tree30,
+        'seed(A)+seed(q*A)-seed(Y)-seed(q*Y)+q*q*(A-Y)/(1-q)'))
+Ah30,Yh30 = sp.symbols('Ah30 Yh30',positive=True)
+qh30 = Ah30*Yh30
+uh30 = sp.log(16*Ah30)/sp.log(8)
+step_h30 = sp.exp(-1/uh30)/(sp.exp(-1/uh30)+sp.exp(-1/(1-uh30)))
+seed_A30 = Ah30+step_h30*(Ah30/(1+Ah30)-Ah30)
+tail_h30 = qh30*Ah30-Yh30-qh30*Yh30+qh30**2*(Ah30-Yh30)/(1-qh30)
+height_branch30 = seed_A30+tail_h30
+height_jet30 = (sp.diff(height_branch30,Ah30,Yh30)
+                -sp.diff(height_branch30,Yh30,Ah30))
+height_ok30 = (seed_source30 and sp.simplify(height_jet30)==0
+               and sp.simplify(sp.diff(height_branch30,Ah30,Yh30)
+                               -sp.diff(tail_h30,Ah30,Yh30))==0
+               and sp.Rational(1,2)**2*sp.Rational(1,16)<sp.Rational(1,16)
+               and sp.Rational(1,2)*sp.Rational(1,16)**2<sp.Rational(1,16)
+               and sp.Rational(1,8)*(1-sp.Rational(4,799))>sp.Rational(1,16)
+               and sp.Rational(32,385)>sp.Rational(1,16)
+               and sp.Rational(128,625)<sp.Rational(1,2))
+rep('C30l source four-seed H_f: explicit noncap branch has symmetric Hessian',
+    height_ok30)
+
+# Mixed jets of the exact cusp restoration, for arbitrary symmetric jets of
+# its inputs. Each complex identity covers its real and imaginary components.
+# The Cramer denominator above is nonzero on |t|<1; hence its coefficients
+# have such jets, as does the fixed open branch of H_f just checked.
+def lift2_30(name):
+    v,vs,vt,vst = sp.symbols(f'{name} {name}s {name}t {name}st')
+    return v+vs*s30+vt*t30+vst*s30*t30
+
+
+def at0_30(expr):
+    return expr.subs({s30:0,t30:0})
+
+
+xj30,yj30,Hj30,ph2j30,ph3j30 = (
+    lift2_30(name) for name in ('xj30','yj30','Hj30','ph2j30','ph3j30'))
+c2j30,c3j30,a2j30,a3j30,e2j30,e3j30 = (
+    lift2_30(name) for name in
+    ('c2j30','c3j30','a2j30','a3j30','e2j30','e3j30'))
+C2j30,C3j30 = ph2j30+Hj30*c2j30,ph3j30+Hj30*c3j30
+Aj30 = C2j30*a2j30+C3j30*a3j30
+Z1j30,Z2j30,Wj30 = (xj30*sp.exp(-Aj30),yj30*sp.exp(Aj30),
+                     C2j30*e2j30+C3j30*e3j30)
+def jet_mixed30(expr):
+    return at0_30(sp.diff(expr,s30,t30))
+
+
+def jet_first30(expr,direction):
+    return at0_30(sp.diff(expr,direction))
+
+
+def product_mixed30(left,right):
+    return (jet_mixed30(left)*at0_30(right)
+            +jet_first30(left,s30)*jet_first30(right,t30)
+            +jet_first30(left,t30)*jet_first30(right,s30)
+            +at0_30(left)*jet_mixed30(right))
+
+
+C2_mixed30 = (jet_mixed30(ph2j30)+product_mixed30(Hj30,c2j30))
+C3_mixed30 = (jet_mixed30(ph3j30)+product_mixed30(Hj30,c3j30))
+structural_c30 = (
+    sp.expand(jet_mixed30(C2j30)-C2_mixed30)==0
+    and sp.expand(jet_mixed30(C3j30)-C3_mixed30)==0
+    and sp.expand(jet_mixed30(Aj30)
+                  -product_mixed30(C2j30,a2j30)
+                  -product_mixed30(C3j30,a3j30))==0)
+A0j30,Asj30,Atj30,Astj30 = (
+    at0_30(Aj30),jet_first30(Aj30,s30),
+    jet_first30(Aj30,t30),jet_mixed30(Aj30))
+Z1_mixed30 = sp.exp(-A0j30)*(
+    jet_mixed30(xj30)-jet_first30(xj30,s30)*Atj30
+    -jet_first30(xj30,t30)*Asj30
+    +at0_30(xj30)*(Asj30*Atj30-Astj30))
+Z2_mixed30 = sp.exp(A0j30)*(
+    jet_mixed30(yj30)+jet_first30(yj30,s30)*Atj30
+    +jet_first30(yj30,t30)*Asj30
+    +at0_30(yj30)*(Asj30*Atj30+Astj30))
+structural_c30 &= (
+    sp.simplify(jet_mixed30(Z1j30)-Z1_mixed30)==0
+    and sp.simplify(jet_mixed30(Z2j30)-Z2_mixed30)==0
+    and sp.expand(jet_mixed30(Wj30)
+                  -product_mixed30(C2j30,e2j30)
+                  -product_mixed30(C3j30,e3j30))==0
+    and all(sp.simplify(sp.diff(expr,s30,t30)
+                        -sp.diff(expr,t30,s30))==0
+            for expr in (Z1j30,Z2j30,Wj30)))
+rep('C30m cusp restoration has explicit symmetric second jets in all six outputs',
+    structural_c30 and height_ok30 and basis_ok30)
+rep('C30n cusp-restoration J^2/N via its coordinate Hessian (round-to-W separate)',
+    source_cusp_ok30 and basis_ok30 and height_ok30 and structural_c30
+    and square_inverse30 and all(value==0 for value in N_inverse30))
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

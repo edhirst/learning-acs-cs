@@ -304,6 +304,21 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   certificate has been independently audited. Human review of the statement
   and a shorter, practical expression remain.
 
+* **T16 (code+paper). Direct executable second-jet check of the specific \(J_{\mathrm{cl}}\).**
+  Input: the exact local branches (11.18)–(11.19), including their scalar
+  reference and embedding formulas, the fixed projection and phase counts, and
+  the cap/slab and source-chart transitions. Deliverable: a terminating exact
+  branch-circuit checker that computes the six-coordinate Jacobian and symmetric
+  second jet of each actual branch, reduces all 36 \(J^2+I\) and 216 Nijenhuis
+  entries to zero, and checks source correspondence and overlap jets. It may
+  use induction on the fixed-count folds; reduced-count samples alone do not
+  meet the acceptance criterion. **Partial (2026-10-12-TSG-1):** C30 checks
+  source-linked second-jet rules at the two count loops and the cusp
+  restoration; N8 differentiates the exact inner-pole map at both signs; the
+  pure-middle check differentiates \(\tau_f^{-1}\) and computes its tensor.
+  The free round-to-\(W\) map, other scalar cells, selectors, and seams still
+  need the exact branch circuit. The complete direct check remains open.
+
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.
 

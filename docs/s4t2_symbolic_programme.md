@@ -29,8 +29,13 @@
 > The finite elementary inverse-pair certificate is complete, subject to human
 > review. Its enormous fixed products have not been numerically executed.
 > Legacy I3–I5/T14 remain flags for the old evaluator.
+> **Direct second-jet audit (2026-10-12-TSG-1):** C30 checks exact-count
+> projection/phase derivative steps and cusp restoration; N8 differentiates the
+> actual map on both inner pole caps, and the pure-middle check computes its
+> actual local tensor. All pass. The exact free-slab and seam branch circuit
+> needed for a direct check of the specific global \(J_{\mathrm{cl}}\) is open.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
-> **Resume point: simplify the fixed projection and phase counts while preserving §11's certificate.**
+> **Resume point: complete T16's exact branch circuit and second-jet checks, then simplify the fixed counts.**
 
 ## 0. What is being built, in one paragraph
 
@@ -2867,6 +2872,10 @@ derivatives are numerical observations, type (d).
 | C28a–d,h–i | elementary radial inverse, seam identities, raw-collar and cap-domain margins, rational north stereographic inversion and forward-cap identity: ALL PASS |
 | C29a–h, new height | quadratic F inverse/derivative, convex tail, tuned endpoint derivative, positive quadratic root/open seam, one-soft b_R′ and its inverse coordinates, unit-phase/Hopf recovery, and cusp torus reversal: ALL PASS |
 | C29i, numerical | 1999 fixed radial-derivative samples; max \|b_R′\|=3.301394, measured margin 196.698606 to the proved bound 200 |
+| C30a–n, exact local second jets (a) | elementary, projection and phase second-jet identities; source checks that the certified counts reach the two recurrence sites; both cusp Cramer/torus-restoration signs and one open noncap branch of the four-seed height; inverse-map-convention \(J^2\) (36 entries) and \(N_J\) (216 entries): ALL PASS |
+| N8, actual inner-pole charts (a) | both signs: the six real outputs of (11.17)–(11.18), including the four-seed \(H_f\), are differentiated to a 6×6 Jacobian and six Hessians; all 90 mixed-partial pairs per sign, the nonzero pole determinant, and 216 normal-frame \(N_J\) entries: ALL PASS |
+| `symbolic_identities.py`, pure middle (a,b) | actual six-coordinate \(\tau_f^{-1}\) on \(1/2\le |t|\le2\): explicit Jacobian, positive determinant \(2\pi(1+|t|^2)((|t|^2-1)\log|t|+2|t|^2)\), \(J^2=-I\), and all 216 \(N_J\) entries: ALL PASS; \((|t|^2-1)\log|t|\ge0\) is manifest |
+| N8, cap/source comparison (d) | three high-precision inner-cap values per sign: maximum coordinate errors \(1.1\cdot10^{-72}\) south and \(1.1\cdot10^{-75}\) north; these samples guard transcription only |
 | New terminal-cut height, C23d | 132 value/deck/collar cases and 108 seam jets through order three: error 6.4·10⁻⁸⁶; sampled f_a∈[.466903,6.682791] versus proved type-(c) bound (11.13c) |
 | New two-way height and forward evaluator, numerical | 276 cell/seam/axis/node compositions, error 1.0·10⁻⁵⁶; 38 reduced-count cap/free, exact half-cell seam, deck/lattice and independent-source compositions, error 1.2·10⁻⁵⁴ |
 | C28e, numerical | 120 two-cap patch/inverse compositions, relative error <2·10⁻⁶⁸; sampled raw-collar residual zero at 85-digit working precision; phase-equivariance error <2·10⁻⁸⁶; sampled source squared radius <1.701·10⁻⁶ versus proved <2·10⁻⁶ |
@@ -2886,6 +2895,23 @@ derivatives are numerical observations, type (d).
 | New local tensors | six pole/round-axis points and a free point with N=512; nonzero DG, J²=−I, independent sphere-chart change and integer torus changes pass; free-point \|det DG\|=2217.99 |
 | Central-circle tensors | both a=1/2 circles, including transverse derivatives in the open axis charts; \|det DG\|=2.67101 and .0900846; J²=−I passes |
 | Independent new-tensor finite-difference N | two caps and one free N=512 point, h=2·10⁻⁷ and 10⁻⁷; normalized residuals fall by a factor of four, maxima 4.73·10⁻¹⁰ and 1.18·10⁻¹⁰; nonintegrable controls .566/.0255 |
+
+The new second-jet checks are exact on their stated domains. The pole check
+uses the identity piece \(H_j(z_L)=z_L\) for \(|z_L|^2\le10^{-8}\), and its
+four-seed height simplifies there to \(H_f=(A-Y)/(1-AY)\). The pure-middle
+check starts after the round-to-\(W\) map, in local coordinates
+\((\Re t,\Im t,x_1,x_4,\phi_2,\phi_3)\), where both cusp collar weights vanish.
+The checks distinguish a coordinate Hessian from an arbitrary frame: their
+noncoordinate controls have \(J^2=-I\) but nonzero \(N_J\). C30 proves the
+second-jet step identities for the exact finite projection and phase counts,
+and checks the relevant source call sites; it does not symbolically execute all
+scalar branches of (11.18). Thus these scripts do **not** yet constitute a
+direct executable verification of the specific \(J_{\mathrm{cl}}\) on all of
+the round \(S^4\times T^2\). The free-slab reference and embedding, remaining
+height/selector cells, cap/slab and collar seams, and their source-code
+correspondence still need a single exact branch circuit and second-jet audit.
+The global \(J^2=-I\) and \(N_J=0\) conclusion above continues to use the
+written diffeomorphism/gluing certificate and the generic C10 identity.
 
 Run the new implementation checks with
 `python3 extra/s4t2_explicit/check_inverse.py --closed` and

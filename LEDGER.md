@@ -1370,3 +1370,47 @@ in `AGENTS.md` §5.
   **not run** (this entry changes no construction or proof).
 - **Open points:** a human collaborator should reconcile the §0 category
   list with AGENTS.md §8.2 or explicitly authorize an edit there.
+
+### 2026-10-12-TSG-1 — Direct second-jet checks on the exact pole and middle charts
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** 2e16096
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (C30),
+  extra/s4t2_explicit/sym/node_remainder.py (N8),
+  extra/s4t2_explicit/symbolic_identities.py (pure-middle check),
+  docs/s4t2_symbolic_programme.md status and §11.8,
+  SYMBOLIC_CAMPAIGN.md task T16. No manuscript or construction file changed.
+- **Change:** added executable exact second-jet checks for the certified
+  projection/phase loop steps and cusp torus restoration; differentiated the
+  actual six-coordinate inverse map on both inner pole caps, including the
+  finite torus height; and computed the actual middle-chart Jacobian, tensor
+  square and all 216 Nijenhuis entries. Added an explicit task and scope record
+  for the still-open global source-linked verification.
+- **Why:** the previous C10 verified naturality for an arbitrary coordinate
+  map, but did not differentiate the specific map in (11.18). On the inner
+  caps the pole patch is exactly the identity and the four-seed height reduces
+  to (A-Y)/(1-AY); N8 constructs and differentiates this actual map. On the
+  pure middle, the displayed torus-restoration formula has determinant
+  2π(1+|t|²)((|t|²-1)log|t|+2|t|²)>0, since the logarithmic product is
+  nonnegative. In both checks, the actual Hessian is symmetric. The executable
+  216-component inverse-map identity then gives N=0; a nonsymmetric-frame
+  control produces a nonzero component. C30 verifies the exact source loop
+  update identities and the one-step second-jet rules, so the fixed enormous
+  counts are handled by induction rather than numerical execution.
+- **Verification:** chart_identities.py (C30a–n), node_remainder.py (N8),
+  symbolic_identities.py (middle c1–c8), lemmas_1d.py and i2_margins.py:
+  **ALL PASS**. N8's six production-value comparisons are numerical only
+  (maximum errors 1.1e-72 and 1.1e-75). check_inverse.py --closed and
+  --closed-nijenhuis: **ALL PASS** before these edits; their construction
+  inputs were not changed. verify_construction.py: all checks passed;
+  sphere_products.py: Dimension 8 check passed; git diff --check: pass.
+  LaTeX: **not run** (latexmk unavailable). Git fetch/pull and push were
+  left to the collaborator as requested.
+- **Open points:** these checks do not yet give a direct executable audit of
+  the exact free-slab round-to-W map, all scalar/height cells, selector and
+  deck transitions, or cap/slab and collar seams. T16 records the remaining
+  exact branch-circuit work. The previously stated global theorem still rests
+  on the written inverse/gluing certificate and generic naturality, and still
+  requires human review.
