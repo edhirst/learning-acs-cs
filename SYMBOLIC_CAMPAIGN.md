@@ -356,6 +356,12 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   and corrected middle-\(W\) two-jets across one strict off-cut angular
   cell at each of \(|t|=1/2\) and \(2\), using the exact endpoint height,
   source Cramer solve, and gauge cancellation. Other seam cells remain open.
+  **One fixed-count fold (2026-10-12-TSG-12):** section (i) of
+  symbolic_identities.py gives a six-variable, 28-coefficient second-jet
+  state for one source-linked pure-middle ten-slot projection and phase
+  increment. Induction reaches the specified \(N,K\) counts only
+  conditionally on the remaining source cells and seams; the full
+  free-slab \(J\) circuit remains open.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.

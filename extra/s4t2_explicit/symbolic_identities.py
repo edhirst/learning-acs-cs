@@ -1790,4 +1790,409 @@ with mp.workdps(80):
           mp.nstr(patch_error_h,5),'; raw ||Dg-I|| =',
           mp.nstr(measured_norm_h,17),'vs bound',mp.nstr(raw_bound_h,17),
           '; raw sigma_min =',mp.nstr(measured_sigma_h,17),': PASS')
+# (i) A six-variable, second-order state for one *actual* free-slab
+# projector cell.  C30 checks a generic two-direction update.  Here the
+# state carries all 6 first and 21 independent second coefficients, and
+# the projector is the source's ten-slot pure-middle cell C31.  The
+# astronomical fold is certified only conditionally on its still-open
+# projector-cell and seam premises; this section does not certify G_cl.
+_pairs_i = tuple((a,b) for a in range(6) for b in range(a,6))
+_index_i = {pair:k for k,pair in enumerate(_pairs_i)}
+
+
+class SixJetI:
+    """Value, six first and 21 symmetric second partials at one point."""
+    __slots__ = ('value','grad','hess')
+
+    def __init__(self,value,grad=None,hess=None):
+        self.value = sp.sympify(value)
+        self.grad = tuple(sp.sympify(v) for v in (
+            (0,)*6 if grad is None else grad))
+        self.hess = tuple(sp.sympify(v) for v in (
+            (0,)*21 if hess is None else hess))
+        if len(self.grad)!=6 or len(self.hess)!=21:
+            raise ValueError('a six-jet needs 6 first and 21 second entries')
+
+    @classmethod
+    def from_full(cls,value,grad,full):
+        if len(full)!=6 or any(len(row)!=6 for row in full):
+            raise ValueError('the Hessian must be 6 by 6')
+        if any(sp.simplify(full[a][b]-full[b][a])!=0
+               for a in range(6) for b in range(a+1,6)):
+            raise ValueError('a coordinate Hessian must be symmetric')
+        return cls(value,grad,[full[a][b] for a,b in _pairs_i])
+
+    def second(self,a,b):
+        return self.hess[_index_i[tuple(sorted((a,b)))]]
+
+
+def jconst_i(value):
+    return SixJetI(value)
+
+
+def jvar_i(value,index):
+    grad = [sp.S.Zero]*6
+    grad[index] = sp.S.One
+    return SixJetI(value,grad)
+
+
+def jadd_i(A,B):
+    return SixJetI(A.value+B.value,
+                   [a+b for a,b in zip(A.grad,B.grad)],
+                   [a+b for a,b in zip(A.hess,B.hess)])
+
+
+def jneg_i(A):
+    return SixJetI(-A.value,[-v for v in A.grad],
+                   [-v for v in A.hess])
+
+
+def jmul_i(A,B):
+    return SixJetI(A.value*B.value,
+        [A.grad[a]*B.value+A.value*B.grad[a] for a in range(6)],
+        [A.second(a,b)*B.value+A.grad[a]*B.grad[b]
+         +A.grad[b]*B.grad[a]+A.value*B.second(a,b)
+         for a,b in _pairs_i])
+
+
+def juni_i(A,value,slope,curvature):
+    return SixJetI(value,[slope*g for g in A.grad],
+        [slope*A.second(a,b)+curvature*A.grad[a]*A.grad[b]
+         for a,b in _pairs_i])
+
+
+def jinv_i(A):
+    v = A.value
+    return juni_i(A,1/v,-1/v**2,2/v**3)
+
+
+def jsqrt_i(A):
+    v = A.value
+    return juni_i(A,sp.sqrt(v),1/(2*sp.sqrt(v)),
+                  -1/(4*v**sp.Rational(3,2)))
+
+
+def jexp_i(A):
+    v = sp.exp(A.value)
+    return juni_i(A,v,v,v)
+
+
+def jatan_i(A):
+    v = A.value
+    return juni_i(A,sp.atan(v),1/(1+v*v),
+                  -2*v/(1+v*v)**2)
+
+
+def jconj_i(A):
+    return SixJetI(sp.conjugate(A.value),
+                   [sp.conjugate(v) for v in A.grad],
+                   [sp.conjugate(v) for v in A.hess])
+
+
+def jreal_i(A):
+    return jmul_i(jconst_i(sp.Rational(1,2)),
+                  jadd_i(A,jconj_i(A)))
+
+
+def jimag_i(A):
+    return jmul_i(jconst_i(1/(2*sp.I)),
+                  jadd_i(A,jneg_i(jconj_i(A))))
+
+
+def jdiv_i(A,B):
+    return jmul_i(A,jinv_i(B))
+
+
+def jzero_i(A):
+    return (sp.simplify(A.value)==0
+            and all(sp.simplify(v)==0 for v in A.grad)
+            and all(sp.simplify(v)==0 for v in A.hess))
+
+
+def jsub_i(A,B):
+    return jadd_i(A,jneg_i(B))
+
+
+def projection_update_i(reference,previous):
+    """One exact source recurrence, with the source's normalized phase."""
+    if len(reference)!=10 or len(previous)!=10:
+        raise ValueError('the projection recurrence has ten slots')
+    phase = jconst_i(0)
+    for ref,old in zip(reference,previous):
+        phase = jadd_i(phase,jmul_i(jconj_i(ref),old))
+    magnitude = jsqrt_i(jmul_i(jconj_i(phase),phase))
+    return [jdiv_i(jmul_i(ref,phase),magnitude)
+            for ref in reference]
+
+
+def phase_increment_i(previous,current):
+    """One exact right-half-plane source increment."""
+    ratio = jmul_i(current,jconj_i(previous))
+    return ratio,jatan_i(jdiv_i(jimag_i(ratio),jreal_i(ratio)))
+
+
+# The complete two-jet product is the degree-at-most-two Taylor product.
+# The coefficient test has independent generic data in every one of the
+# 28 slots, so the checked rule applies to each of the N+1 source steps.
+eps_i = sp.symbols('eps_i0:6')
+aval_i, bval_i = sp.symbols('aval_i bval_i')
+ag_i = sp.symbols('ag_i0:6')
+bg_i = sp.symbols('bg_i0:6')
+ah_i = sp.symbols('ah_i0:21')
+bh_i = sp.symbols('bh_i0:21')
+Ajet_i,Bjet_i = SixJetI(aval_i,ag_i,ah_i),SixJetI(bval_i,bg_i,bh_i)
+def taylor_i(A):
+    return (A.value+sum(A.grad[a]*eps_i[a] for a in range(6))
+            +sum(A.second(a,b)*eps_i[a]*eps_i[b]
+                 /(2 if a==b else 1) for a,b in _pairs_i))
+poly_i = sp.Poly(taylor_i(Ajet_i)*taylor_i(Bjet_i),*eps_i)
+AB_i = jmul_i(Ajet_i,Bjet_i)
+assert sp.expand(poly_i.coeff_monomial(1)-AB_i.value)==0
+assert all(sp.expand(poly_i.coeff_monomial(eps_i[a])
+                     -AB_i.grad[a])==0 for a in range(6))
+assert all(sp.expand(poly_i.coeff_monomial(
+              eps_i[a]*eps_i[b])-
+              AB_i.second(a,b)/(2 if a==b else 1))==0
+           for a,b in _pairs_i)
+F0_i,F1_i,F2_i = sp.symbols('F0_i F1_i F2_i')
+delta_i = taylor_i(Ajet_i)-Ajet_i.value
+unary_poly_i = sp.Poly(F0_i+F1_i*delta_i+F2_i*delta_i**2/2,
+                       *eps_i)
+unary_jet_i = juni_i(Ajet_i,F0_i,F1_i,F2_i)
+assert sp.expand(unary_poly_i.coeff_monomial(1)
+                 -unary_jet_i.value)==0
+assert all(sp.expand(unary_poly_i.coeff_monomial(eps_i[a])
+                     -unary_jet_i.grad[a])==0 for a in range(6))
+assert all(sp.expand(unary_poly_i.coeff_monomial(
+              eps_i[a]*eps_i[b])-
+              unary_jet_i.second(a,b)/(2 if a==b else 1))==0
+           for a,b in _pairs_i)
+unary_variable_i = sp.Symbol('unary_variable_i',positive=True)
+unary_rules_i = [
+    (1/unary_variable_i,-1/unary_variable_i**2,
+     2/unary_variable_i**3),
+    (sp.sqrt(unary_variable_i),1/(2*sp.sqrt(unary_variable_i)),
+     -1/(4*unary_variable_i**sp.Rational(3,2))),
+    (sp.exp(unary_variable_i),sp.exp(unary_variable_i),
+     sp.exp(unary_variable_i)),
+    (sp.atan(unary_variable_i),1/(1+unary_variable_i**2),
+     -2*unary_variable_i/(1+unary_variable_i**2)**2)]
+assert all(sp.simplify(sp.diff(f,unary_variable_i)-fp)==0
+           and sp.simplify(sp.diff(f,unary_variable_i,2)-fpp)==0
+           for f,fp,fpp in unary_rules_i)
+print('(i1) six-variable Taylor ring: 6 gradients and 21 symmetric'
+      ' Hessians, exact product/unary coefficients: PASS')
+
+# The source's pure-middle cell has 1/2<|t|<1 and
+# pi/2<Arg(t)<3pi/4.  Only slots 8,9 survive, with a common phase.
+# Their unnormalized weights are (d,1), where
+# d=1-s((Arg(t)-pi/2)/(pi/4)).  This is the actual C31 projector,
+# rather than a generic 10 by 10 rank-one placeholder.
+assert source_statement_e(cusp.elliptic_meridian_projector,
+    'kind,data = elliptic_raw_base_reference(v,h,dps=dps,elementary=elementary)')
+assert source_statement_e(cusp.elliptic_meridian_projector,
+    'e = elliptic_bundle_embedding(kind,data,dps=dps,elementary=elementary)')
+assert source_statement_e(cusp.elliptic_meridian_projector,
+    'return mp.matrix([[a*mp.conj(b) for b in e] for a in e])')
+assert source_statement_e(cusp.elliptic_raw_base_reference,
+    "return ('mid',(t,mp.mpf(0),four,lt))")
+assert source_statement_e(cusp.elliptic_bundle_embedding,
+    'b0 = 1-scalar_flat_step((r-mp.mpf(\'.3\'))/mp.mpf(\'.2\'))')
+assert source_statement_e(cusp.elliptic_bundle_embedding,
+    'bi = 1-scalar_flat_step((1/r-mp.mpf(\'.3\'))/mp.mpf(\'.2\'))')
+assert source_statement_e(cusp.elliptic_bundle_embedding,
+    'weight = 1-scalar_flat_step((abs(angle)-mp.pi/2)/(mp.pi/4))')
+assert source_statement_e(cusp.elliptic_bundle_embedding,
+    'vec[8+index] = bm*weight*mp.exp(mp.j*(2*mp.pi*one-(angle+centre-lt.imag)*four))')
+assert source_statement_e(cusp.elementary_projection_section,
+    'kind,data = elliptic_raw_base_reference(tuple((1-h*h)*a for a in n),h,dps=dps,elementary=True)')
+assert source_statement_e(cusp.elementary_projection_section,
+    'ref = elliptic_bundle_embedding(kind,data,dps=dps,elementary=True)')
+assert source_statement_e(cusp.elementary_projection_section,
+    'phase = _elementary_inner(ref,vector)')
+assert source_statement_e(cusp.elementary_projection_section,
+    'vector = tuple(a*phase/abs(phase) for a in ref)')
+ar_i,ai_i = sp.symbols('ar_i ai_i',real=True)
+aj_i,bj_i = jvar_i(ar_i,0),jvar_i(ai_i,1)
+halfangle_i = jatan_i(jdiv_i(jneg_i(aj_i),bj_i))
+cut_i = jmul_i(jconst_i(4/sp.pi),halfangle_i)
+flat_exponent_i = jsub_i(jinv_i(cut_i),
+                         jinv_i(jsub_i(jconst_i(1),cut_i)))
+flat_i = jinv_i(jadd_i(jconst_i(1),jexp_i(flat_exponent_i)))
+d_i = jsub_i(jconst_i(1),flat_i)
+qscalar_i = sp.Symbol('qscalar_i',positive=True)
+flat_source_i = sp.exp(-1/qscalar_i)/(
+    sp.exp(-1/qscalar_i)+sp.exp(-1/(1-qscalar_i)))
+assert sp.simplify(flat_source_i
+    -1/(1+sp.exp(1/qscalar_i-1/(1-qscalar_i))))==0
+assert jzero_i(jsub_i(halfangle_i, SixJetI(
+    sp.atan(-ar_i/ai_i),
+    [-ai_i/(ar_i**2+ai_i**2),ar_i/(ar_i**2+ai_i**2),0,0,0,0],
+    [2*ar_i*ai_i/(ar_i**2+ai_i**2)**2,
+     (ai_i**2-ar_i**2)/(ar_i**2+ai_i**2)**2,0,0,0,0,
+     -2*ar_i*ai_i/(ar_i**2+ai_i**2)**2,
+     *([0]*14)])))
+assert all(d_i.grad[a]==0 for a in range(2,6))
+assert all(d_i.second(a,b)==0 for a,b in _pairs_i if b>=2)
+assert sp.Rational(1,2)<sp.sqrt(5)/3<1
+assert 0<sp.atan(sp.Rational(1,2))<sp.pi/4
+print('(i2) actual source pure-middle 10-slot projector profile:'
+      ' complete six-variable local second jet and strict witness: PASS')
+
+# Write the source projector as P=ref ref*.  The two nonzero slots are
+# 8,9 and P has a nonconstant 2 by 2 block.  All 100 matrix entries
+# and their 6+21 derivatives are specified by these two source slots.
+D_i = sp.Symbol('D_i',real=True)
+v8_i,v9_i = sp.symbols('v8_i v9_i')
+ref_formal_i = sp.Matrix([D_i,1])/sp.sqrt(1+D_i**2)
+P_formal_i = ref_formal_i*ref_formal_i.conjugate().T
+inject_i = sp.zeros(10,2)
+inject_i[8,0],inject_i[9,1] = 1,1
+P_ten_i = inject_i*P_formal_i*inject_i.T
+vec_formal_i = sp.Matrix([v8_i,v9_i])
+phase_formal_i = (ref_formal_i.conjugate().T*vec_formal_i)[0]
+assert all(sp.simplify((P_formal_i*vec_formal_i)[k]
+                       -ref_formal_i[k]*phase_formal_i)==0
+           for k in range(2))
+assert sp.simplify((ref_formal_i.conjugate().T*ref_formal_i)[0]-1)==0
+assert sp.simplify(P_formal_i*P_formal_i-P_formal_i)==sp.zeros(2)
+assert P_ten_i.shape==(10,10)
+assert sp.simplify(P_ten_i*P_ten_i-P_ten_i)==sp.zeros(10)
+assert sp.simplify(sp.trace(P_ten_i)-1)==0
+dr_i = jsqrt_i(jadd_i(jmul_i(d_i,d_i),jconst_i(1)))
+ref_i = [jconst_i(0) for _ in range(10)]
+ref_i[8],ref_i[9] = jdiv_i(d_i,dr_i),jinv_i(dr_i)
+pg_i = sp.symbols('pg_i0:6',real=True)
+ph_i = sp.symbols('ph_i0:21',real=True)
+prior_phase_i = jexp_i(jmul_i(jconst_i(sp.I),
+                              SixJetI(0,pg_i,ph_i)))
+assert jzero_i(jsub_i(jmul_i(prior_phase_i,jconj_i(prior_phase_i)),
+                     jconst_i(1)))
+prev_i = [jconst_i(0) for _ in range(10)]
+prev_i[9] = prior_phase_i
+Pjet_i = [[jmul_i(ref_i[a],jconj_i(ref_i[b]))
+           for b in range(10)] for a in range(10)]
+# The generic exact identity P e=ref<ref,e> above, together with the
+# tested six-variable Taylor-ring homomorphism, proves equality of all
+# 28 coefficients here without expanding the long flat-step expression.
+next_i = projection_update_i(ref_i,prev_i)
+assert len(Pjet_i)==10 and all(len(row)==10 for row in Pjet_i)
+assert all(len(p.grad)==6 and len(p.hess)==21
+           for row in Pjet_i for p in row)
+assert all(jzero_i(Pjet_i[a][b])
+           for a in range(10) for b in range(10)
+           if a not in (8,9) or b not in (8,9))
+assert len(next_i)==10
+assert all(len(v.grad)==6 and len(v.hess)==21 for v in next_i)
+assert all(jzero_i(v) for v in next_i[:8])
+assert all(not entry.has(sp.Derivative)
+           for v in next_i[8:] for entry in
+           (v.value,*v.grad,*v.hess))
+# The previous vector has a variable unit phase with independent data
+# in every first and second slot.  Its inner product with this projector
+# has magnitude 1/sqrt(1+d^2)>0, and these angular data reach the
+# normalized output in all 28 slots.
+assert all(next_i[9].grad[a].has(pg_i[a]) for a in range(6))
+assert all(next_i[9].second(a,b).has(ph_i[_index_i[(a,b)]])
+           for a,b in _pairs_i)
+assert sp.ask(sp.Q.positive(1/sp.sqrt(1+D_i**2))) is True
+print('(i3) source-normalized rank-one step: ten slots, 6 first and 21'
+      ' second entries per slot, nonzero denominator: PASS')
+
+# An arbitrary local reference gauge gamma=exp(i theta) must disappear
+# from the normalized projection.  Test its unit equation in all 28
+# coefficients for independent real theta gradients/Hessians.  Then
+# (gamma ref)<gamma ref,e> = (gamma conj(gamma))ref<ref,e>
+# in this Taylor ring; the denominator is the same.  The formal source
+# update above supplies the actual ref and projector.
+thg_i = sp.symbols('thg_i0:6',real=True)
+thh_i = sp.symbols('thh_i0:21',real=True)
+theta_i = SixJetI(0,thg_i,thh_i)
+gamma_i = jexp_i(jmul_i(jconst_i(sp.I),theta_i))
+assert jzero_i(jsub_i(jmul_i(gamma_i,jconj_i(gamma_i)),
+                     jconst_i(1)))
+# A direct variable-gauge test of the source update, at the exact
+# nonorthogonal ref=(1,2)/sqrt(5), has all 6+21 gauge entries active.
+fixed_ref_i = [jconst_i(0) for _ in range(10)]
+fixed_ref_i[8],fixed_ref_i[9] = (
+    jconst_i(1/sp.sqrt(5)),jconst_i(2/sp.sqrt(5)))
+gauged_ref_i = [jmul_i(gamma_i,v) for v in fixed_ref_i]
+gauge_previous_i = [jconst_i(0) for _ in range(10)]
+gauge_previous_i[9] = jconst_i(1)
+gauged_next_i = projection_update_i(gauged_ref_i,gauge_previous_i)
+assert all(jzero_i(jsub_i(gauged_next_i[k],fixed_ref_i[k]))
+           for k in (8,9))
+print('(i4) source update is reference-gauge invariant in all 28'
+      ' coefficients, including a variable gauge: PASS')
+
+# One source-form right-half-plane increment on generic unit mismatch
+# jets.  At the strict ratio value R=1, the increment is
+# theta_1-theta_0 to second order in every direction.
+assert source_statement_e(cusp.elementary_phase_family,
+    'ratio = value*mp.conj(previous)')
+assert source_statement_e(cusp.elementary_phase_family,
+    'if ratio.real<=0:\n    raise ValueError(\'phase count does not give right-half-plane increments\')')
+assert source_statement_e(cusp.elementary_phase_family,
+    'total += mp.atan(ratio.imag/ratio.real)')
+assert source_statement_e(cusp._elementary_corrected_section,
+    'return _elementary_inner(direct,section)')
+assert source_statement_e(cusp._elementary_corrected_section,
+    'P = elliptic_meridian_projector(nn,h,dps=dps,elementary=True)')
+def has_source_fold_i(function,iteration):
+    tree = ast.parse(inspect.getsource(function))
+    wanted = ast.dump(ast.parse(iteration,mode='eval').body,
+                      include_attributes=False)
+    return any(isinstance(node,ast.For)
+               and ast.dump(node.iter,include_attributes=False)==wanted
+               for node in ast.walk(tree))
+assert has_source_fold_i(cusp.elementary_projection_section,
+                         'range(steps+1)')
+assert has_source_fold_i(cusp.elementary_phase_family,'values')
+th0g_i = sp.symbols('th0g_i0:6',real=True)
+th1g_i = sp.symbols('th1g_i0:6',real=True)
+th0h_i = sp.symbols('th0h_i0:21',real=True)
+th1h_i = sp.symbols('th1h_i0:21',real=True)
+theta0_i,theta1_i = SixJetI(0,th0g_i,th0h_i),SixJetI(0,th1g_i,th1h_i)
+g0_i = jexp_i(jmul_i(jconst_i(sp.I),theta0_i))
+g1_i = jexp_i(jmul_i(jconst_i(sp.I),theta1_i))
+assert jzero_i(jsub_i(jmul_i(g0_i,jconj_i(g0_i)),jconst_i(1)))
+assert jzero_i(jsub_i(jmul_i(g1_i,jconj_i(g1_i)),jconst_i(1)))
+ratio_i,phase_step_i = phase_increment_i(g0_i,g1_i)
+assert ratio_i.value==1
+assert jzero_i(jsub_i(phase_step_i,jsub_i(theta1_i,theta0_i)))
+params_i = cusp.elementary_closed_parameters()
+L_i,N_i = params_i['projector_bound'],params_i['projection_steps']
+Lg_i,K_i = params_i['phase_bound'],params_i['phase_steps']
+assert (L_i==10**8000 and N_i==4*L_i+1
+        and Lg_i==32*(N_i+1)*L_i and K_i==8*Lg_i+1)
+assert 4*L_i<N_i and 8*Lg_i<K_i
+assert source_statement_e(cusp.elementary_global_slice,
+    'params = elementary_closed_parameters()')
+assert source_statement_e(cusp.elementary_global_slice,
+    "N = params['projection_steps'] if projection_steps is None else projection_steps")
+assert source_statement_e(cusp.elementary_global_slice,
+    "K = params['phase_steps'] if phase_steps is None else phase_steps")
+assert source_statement_e(cusp._elementary_corrected_section,
+    'result = elementary_projection_section(xi,X,N,dps,diagnostics)')
+assert source_statement_e(cusp._elementary_corrected_section,
+    'theta = elementary_phase_family(mismatch,n,X,anchor,K,diagnostics=diagnostics)')
+# The checked update maps one valid six-jet state to another.  Induction
+# therefore applies to the exact finite N+1 and K increments, provided
+# every projector/phase generator has a valid local jet and the published
+# nonzero/right-half-plane bounds hold along its path.  This checker
+# verifies one actual projector cell, not those remaining premises.
+print('(i5) right-half-plane increment: 6 first and 21 second jets;'
+      ' conditional induction at exact fixed N/K: PASS')
+
+# Negative control: a skew entry cannot be smuggled into a coordinate
+# Hessian by the compact 21-coefficient representation.
+bad_hess_i = [[0]*6 for _ in range(6)]
+bad_hess_i[0][1] = 1
+skew_rejected_i = False
+try:
+    SixJetI.from_full(0,[0]*6,bad_hess_i)
+except ValueError:
+    skew_rejected_i = True
+assert skew_rejected_i
+print('(i6) asymmetric-Hessian negative control rejected: PASS')
 print('ALL PASS')

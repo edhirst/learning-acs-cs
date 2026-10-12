@@ -1804,3 +1804,40 @@ in `AGENTS.md` §5.
   each outer collar seam. The other seam cells, the complete
   free-slab branch circuit, and direct global \(J_{\mathrm{cl}}\)
   verification remain open.
+
+### 2026-10-12-TSG-12 — Carry a source projector through a six-variable jet fold
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** 3833a12
+- **Where:** extra/s4t2_explicit/symbolic_identities.py (i),
+  docs/s4t2_symbolic_programme.md status, and
+  SYMBOLIC_CAMPAIGN.md T16 status. No manuscript or construction
+  file changed.
+- **Change:** added a six-variable value, first, and symmetric
+  second-jet ring with 28 coefficients per scalar. It binds one
+  actual C31 pure-middle ten-slot rank-one projector to the source
+  AST and carries an arbitrary prior unit phase through the
+  normalized projection recurrence. It checks one right-half-plane
+  phase increment, local gauge covariance in all 28 coefficients,
+  the exact certified \(N,K\) constants at their source call sites,
+  and rejection of a skew coordinate Hessian.
+- **Why:** the fixed-count projection and phase products are too
+  large to execute step by step. The checked recurrence rules admit
+  induction at those exact finite counts once every source projector
+  and seam supplies valid jets and the written denominator bounds
+  apply. The actual C31 cell is one nontrivial instantiation of
+  that recurrence.
+- **Verification:** symbolic_identities.py (i1–i6): **ALL PASS**
+  on an independent full run; its generic product and unary
+  Taylor coefficients, source-cell rank-one projector, all 28
+  gauge coefficients, phase increment, and negative control pass.
+  verify_construction.py: all checks passed; sphere_products.py:
+  Dimension 8 check passed; git diff --check: pass. LaTeX:
+  **not run** (latexmk unavailable). Git fetch/pull and push were
+  left to the collaborator as requested.
+- **Open points:** the fixed-count induction is conditional on
+  the other projector cells, seams, and denominator premises.
+  This does not execute the full free-slab map or directly verify
+  the global \(J_{\mathrm{cl}}\).
