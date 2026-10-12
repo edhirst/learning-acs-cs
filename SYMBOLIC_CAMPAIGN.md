@@ -444,9 +444,17 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   \(\Phi\)/\(\Theta\) of the middle output. Propagation
   through the fold still assumes nonzero projection
   denominators and checks of the other seams.
-  **Next unchecked T16 tasks:** certify the pure-middle
-  \(|t|=1\) radial selector and its negative-real
-  argument-cut intersection; extend the C38 argument-selector
+  **Pure-middle seams (2026-10-12-EH-2):** C42 proves that
+  on every open subset of \(1/2<|t|<2\) the source middle
+  data agree, modulo \(x_1\mapsto x_1+1\),
+  \(x_4\mapsto x_4+1\) and the log-branch change, with data
+  built from continuous branches. The projector is
+  unchanged; for a smooth final fold vector (a premise
+  resting on the other seams) the restored output changes by
+  holomorphic lattice translations. This covers the \(|t|=1\) selector
+  and the argument cuts of \(u_1\), \(u_2\) and \(t\), with
+  their corners.
+  **Next unchecked T16 tasks:** extend the C38 argument-selector
   overlap from \(|t_c|<1/10\) to \(1/10\le|t_c|<1/2\),
   including its corner with the C41 seam; then bind a
   guarded six-real second-jet circuit to every remaining
