@@ -1541,3 +1541,35 @@ in `AGENTS.md` §5.
   round-to-W circuit. The complete direct verification of the specific
   global \(J_{\mathrm{cl}}\) remains open, and the global statement
   still requires human review.
+
+### 2026-10-12-TSG-5 — Check the raw-reference profile and selector seam
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** 86064f7
+- **Where:** extra/s4t2_explicit/sym/node_remainder.py (N11) and
+  docs/s4t2_symbolic_programme.md status and §11.8. No manuscript or
+  construction file changed.
+- **Change:** added an ordered source-path check for both
+  dominant-coordinate positive-root profile branches, exact nonempty
+  round-meridian witnesses, finite value/first/second real-ratio jets, and
+  the removable \(|u_1|=|u_2|\) selector seam of the effective middle
+  coordinate \(t\). The seam calculation proves \(D_iD_d=4e^4\), equality
+  of the two positive factors and their first two derivatives, and the
+  common source phase input \(u_2\) there.
+- **Why:** the raw reference is an input to every free-slab projector step.
+  Its two ratio branches use different numerical formulas, so their
+  smooth agreement at the selector boundary needs an exact check. The
+  script compares the ordered source AST with the written formulas and
+  checks every radial derivative identity by SymPy.
+- **Verification:** node_remainder.py N11a–e: **ALL PASS**;
+  verify_construction.py: all checks passed; sphere_products.py:
+  Dimension 8 check passed; git diff --check: pass.
+  LaTeX: **not run** (latexmk unavailable). Git fetch/pull and push were
+  left to the collaborator as requested.
+- **Open points:** this checks one scalar generator and its selector
+  seam, not the inverse-first cusp height, ten-slot embedding,
+  fixed-count free-slab projection/phase composition, or the global
+  six-dimensional \(J_{\mathrm{cl}}\). The complete direct T16
+  verification and human review of the global certificate remain open.

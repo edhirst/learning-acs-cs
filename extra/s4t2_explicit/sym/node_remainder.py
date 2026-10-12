@@ -1065,5 +1065,213 @@ rep('N10d radial determinant S Sprime/r and inverse-jet domain',
                      /(shell_c10-shell_s10)**2)==0
     and shell_a10<sp.Rational(5,4)*shell_a10<shell_c10)
 
+# ---------------------------------------------------------------- N11: the actual dominant-coordinate profile in the raw
+# meridian reference.  This checks one scalar generator of P(n,X), not the
+# downstream height, ten-slot embedding, or full fixed-count G_cl circuit.
+# On the open branch |u1|>|u2| the source uses T=u2/u1 and c=2B;
+# otherwise it uses T=u1/u2 and c=2.  The dominant denominator is nonzero
+# because |u1|^2+|u2|^2=1.  For z=|T|^2<=1, b=A(1-z)>=0 and
+# D=b+sqrt(b^2+4Bz)>0 (A,B>0), including T=0.
+profile_tree11 = ast.parse(inspect.getsource(
+    cusp8.elliptic_raw_base_reference)).body[0]
+profile_with11 = [node for node in profile_tree11.body
+                  if isinstance(node,ast.With)]
+profile_prefix11 = ast.parse('''
+vv = tuple(map(mp.mpf,v))
+xx = mp.mpf(X)
+if not abs(xx)<1:
+    raise ValueError('the raw reference excludes the two fixed points')
+aa = xx*mp.sqrt(2-xx*xx)
+w = (vv[0]/(1-aa),-vv[2]/(1-aa),-vv[1]/(1-aa))
+y = (w[0],w[1]+1,w[2])
+s2 = sum(z*z for z in y)
+u1 = mp.mpc(1-s2,2*y[0])/(1+s2)
+u2 = mp.mpc(2*y[1],2*y[2])/(1+s2)
+A,B = (4*mp.pi)**2,mp.exp(4)
+inverse_ratio = abs(u1)>abs(u2)
+ratio = u2/u1 if inverse_ratio else u1/u2
+rr = abs(ratio)**2
+b = A*(1-rr)
+root = mp.sqrt(b*b+4*B*rr)
+small = ratio*mp.sqrt((2*B if inverse_ratio else 2)/(b+root))
+inf = inverse_ratio and abs(small)<mp.mpf('.5')
+t = None if inf else (1/small if inverse_ratio else small)
+''').body
+profile_source11 = (len(profile_with11)==1
+    and [ast.dump(node,include_attributes=False)
+         for node in profile_with11[0].body[:len(profile_prefix11)]]
+    ==[ast.dump(node,include_attributes=False)
+       for node in profile_prefix11]
+    and isinstance(profile_with11[0].body[len(profile_prefix11)],ast.If)
+    and ast.dump(profile_with11[0].body[len(profile_prefix11)].test,
+                 include_attributes=False)
+       ==ast.dump(ast.parse("inf or abs(t)<mp.mpf('.5')",mode='eval').body,
+                   include_attributes=False))
+yr11,yi11,yj11 = sp.symbols('yr11 yi11 yj11',real=True)
+s211 = yr11**2+yi11**2+yj11**2
+u111 = (1-s211+2*sp.I*yr11)/(1+s211)
+u211 = 2*(yi11+sp.I*yj11)/(1+s211)
+sphere11 = sp.factor(u111*sp.conjugate(u111)
+                     +u211*sp.conjugate(u211)-1)==0
+rep('N11a ordered actual raw-reference profile path and dominant denominator',
+    profile_source11 and sphere11)
+
+# Two exact round-meridian witnesses at X=0, where v=n and |n|=1.
+# The inverse witness has u1=(3+6i)/7, u2=2/7, z=4/45;
+# the direct witness has u1=-3/5, u2=4/5, z=9/16.
+def profile_witness11(n):
+    assert sp.expand(sum(v*v for v in n)-1)==0
+    w = (n[0],-n[2],-n[1])
+    y = (w[0],w[1]+1,w[2])
+    s2 = sum(v*v for v in y)
+    return ((1-s2+2*sp.I*y[0])/(1+s2),
+            2*(y[1]+sp.I*y[2])/(1+s2))
+
+u1inv11,u2inv11 = profile_witness11(
+    (sp.Rational(3,5),sp.Integer(0),sp.Rational(4,5)))
+u1dir11,u2dir11 = profile_witness11(
+    (sp.Integer(0),sp.Integer(0),-sp.Integer(1)))
+zin11,zdir11 = sp.Rational(4,45),sp.Rational(9,16)
+profile_witnesses11 = (
+    sp.simplify(u1inv11-(3+6*sp.I)/7)==0
+    and sp.simplify(u2inv11-sp.Rational(2,7))==0
+    and sp.simplify(u2inv11/u1inv11-(2-4*sp.I)/15)==0
+    and sp.simplify((u2inv11/u1inv11)
+                    *sp.conjugate(u2inv11/u1inv11)-zin11)==0
+    and sp.simplify(u1dir11+sp.Rational(3,5))==0
+    and sp.simplify(u2dir11-sp.Rational(4,5))==0
+    and sp.simplify((u1dir11/u2dir11)
+                    *sp.conjugate(u1dir11/u2dir11)-zdir11)==0
+    and sp.simplify(u1inv11*sp.conjugate(u1inv11)
+                    -u2inv11*sp.conjugate(u2inv11))>0
+    and sp.simplify(u2dir11*sp.conjugate(u2dir11)
+                    -u1dir11*sp.conjugate(u1dir11))>0
+    and bool(sp.pi>3) and bool(sp.E<3)
+    # R>b for z>0, so D>2A(1-z); these bounds force the
+    # inverse witness's `inf` selector and the direct witness's south t.
+    and sp.Rational(81*4,144*41)<sp.Rational(1,4)
+    and sp.Rational(9,144*7)<sp.Rational(1,4))
+rep('N11b strict rational meridian witnesses for both profile branches',
+    profile_witnesses11)
+
+# Write T=x+iy, z=x^2+y^2.  These are finite elementary value, gradient,
+# and Hessian circuits for the exact source `small`, with c=2B or c=2.
+# The one-variable derivative formulas are checked against the actual
+# positive-root expression; the two-variable radial tensor identities
+# then check all 4 first and 8 second entries for each specialization.
+px11,py11,pz11 = sp.symbols('px11 py11 pz11',real=True)
+Ap11,Bp11,cp11 = sp.symbols('Ap11 Bp11 cp11',positive=True)
+pb11 = Ap11*(1-pz11)
+pR11 = sp.sqrt(pb11**2+4*Bp11*pz11)
+pD11 = pb11+pR11
+pg11 = sp.sqrt(cp11/pD11)
+pRz11 = (2*Bp11-Ap11*pb11)/pR11
+pRzz11 = 4*Bp11*(Ap11**2-Bp11)/pR11**3
+pDz11,pDzz11 = -Ap11+pRz11,pRzz11
+pgz11 = -pg11*pDz11/(2*pD11)
+pgzz11 = pg11*(3*pDz11**2/(4*pD11**2)
+                 -pDzz11/(2*pD11))
+profile_root11 = (
+    sp.simplify(pD11**2-2*pb11*pD11-4*Bp11*pz11)==0
+    and sp.simplify(sp.diff(pR11,pz11)-pRz11)==0
+    and sp.simplify(sp.diff(pR11,pz11,2)-pRzz11)==0
+    and sp.simplify(sp.diff(pg11,pz11)-pgz11)==0
+    and sp.simplify(sp.diff(pg11,pz11,2)-pgzz11)==0)
+rep('N11c source positive-root value and first/second radial derivatives',
+    profile_root11)
+
+pf11 = sp.Function('pf11')(px11**2+py11**2)
+pvec11 = (px11,py11)
+pfz11 = sp.diff(sp.Function('pf11')(pz11),pz11).subs(
+    pz11,px11**2+py11**2)
+pfzz11 = sp.diff(sp.Function('pf11')(pz11),pz11,2).subs(
+    pz11,px11**2+py11**2)
+abstract_profile11 = sp.Matrix([v*pf11 for v in pvec11])
+abstract_M11 = abstract_profile11.jacobian(pvec11)
+abstract_H11 = [sp.hessian(v,pvec11) for v in abstract_profile11]
+expected_M11 = sp.Matrix(2,2,lambda i,j:
+    int(i==j)*pf11+2*pvec11[i]*pvec11[j]*pfz11)
+expected_H11 = [sp.Matrix(2,2,lambda i,j:
+    2*pfz11*(int(k==i)*pvec11[j]+int(k==j)*pvec11[i]
+               +int(i==j)*pvec11[k])
+    +4*pfzz11*pvec11[k]*pvec11[i]*pvec11[j]) for k in range(2)]
+profile_radial_jets11 = (abstract_M11==expected_M11
+    and all(abstract_H11[k]==expected_H11[k] for k in range(2)))
+profile_circuits11 = []
+for branch_c11 in (2*Bp11,sp.Integer(2)):
+    values11 = sp.Matrix([v*pg11.subs(cp11,branch_c11).subs(
+        pz11,px11**2+py11**2) for v in pvec11])
+    first11 = expected_M11.subs({pf11:pg11.subs(cp11,branch_c11),
+        pfz11:pgz11.subs(cp11,branch_c11)}).subs(
+            pz11,px11**2+py11**2)
+    second11 = [H.subs({pf11:pg11.subs(cp11,branch_c11),
+        pfz11:pgz11.subs(cp11,branch_c11),
+        pfzz11:pgzz11.subs(cp11,branch_c11)}).subs(
+            pz11,px11**2+py11**2) for H in expected_H11]
+    profile_circuits11.append((values11,first11,second11))
+profile_jet_checks11 = (profile_radial_jets11
+    and all(V.shape==(2,1) and M.shape==(2,2) and len(H)==2
+            and all(h.shape==(2,2) and h==h.T for h in H)
+            and not any(entry.has(sp.Derivative)
+                        for entry in list(V)+list(M)
+                        +[entry for h in H for entry in h])
+            for V,M,H in profile_circuits11))
+rep('N11d both source profile branches: 2 values, 4 first and 8 second jets',
+    profile_jet_checks11)
+
+# The selector |u1|=|u2| is not a singularity of the effective middle
+# coordinate t.  Put r=|u2/u1|^2>0, so the direct branch has ratio-square
+# 1/r.  Both source denominators use positive square roots.  Since r>0,
+# R_d=R/r; hence D_i D_d=4B.  Around r=1 the inverse branch's `small`
+# has modulus e>2, so `inf` is false on an open neighbourhood.  There the
+# two formulas for t, including every radial jet, are identical.
+profile_after11 = profile_with11[0].body[len(profile_prefix11)]
+profile_phase_prefix11 = ast.parse('''
+tc = small if inf else t
+phase_coordinate = -mp.conj(u1) if inf else u2
+''').body
+profile_phase_source11 = (profile_source11
+    and isinstance(profile_after11,ast.If)
+    and [ast.dump(node,include_attributes=False)
+         for node in profile_after11.body[:2]]
+    ==[ast.dump(node,include_attributes=False)
+       for node in profile_phase_prefix11])
+pr11 = sp.symbols('pr11',positive=True)
+pbi11 = Ap11*(1-pr11)
+pRi11 = sp.sqrt(pbi11**2+4*Bp11*pr11)
+pDi11 = pbi11+pRi11
+pRd11 = sp.sqrt(Ap11**2*(1-1/pr11)**2+4*Bp11/pr11)
+pDd11 = Ap11*(1-1/pr11)+pRd11
+pQi11,pQd11 = pDi11/(2*Bp11),2/pDd11
+profile_seam_algebra11 = (
+    sp.simplify(pRd11-pRi11/pr11)==0
+    and sp.simplify(pDd11-(pRi11-pbi11)/pr11)==0
+    and sp.simplify(pDi11*pDd11-4*Bp11)==0
+    and all(sp.simplify(sp.diff(pQi11-pQd11,pr11,k))==0
+            for k in range(3)))
+# For a positive squared factor Q, these are its first and second
+# positive-square-root derivatives.  Equal Q,Q',Q'' and positive factors
+# imply equal factors and both radial jets without branch sign ambiguity.
+pQformal11 = sp.Function('pQformal11')(pr11)
+pFformal11 = sp.sqrt(pQformal11)
+profile_sqrt_jets11 = (
+    sp.simplify(sp.diff(pFformal11,pr11)
+                -sp.diff(pQformal11,pr11)/(2*pFformal11))==0
+    and sp.simplify(sp.diff(pFformal11,pr11,2)
+                    -sp.diff(pQformal11,pr11,2)/(2*pFformal11)
+                    +sp.diff(pQformal11,pr11)**2
+                     /(4*pFformal11**3))==0)
+profile_tie11 = (
+    sp.simplify(pDi11.subs(pr11,1)-2*sp.sqrt(Bp11))==0
+    and sp.simplify(pDd11.subs(pr11,1)-2*sp.sqrt(Bp11))==0
+    and sp.simplify(sp.sqrt(pQi11).subs({pr11:1,
+                    Bp11:sp.exp(4)})-sp.exp(-1))==0
+    and sp.simplify(sp.sqrt(2*Bp11/pDi11).subs({pr11:1,
+                    Bp11:sp.exp(4)})-sp.E)==0
+    and bool(sp.E>2) and bool(sp.exp(-1)<sp.Rational(1,2)))
+rep('N11e removable dominant-selector seam: common t, phase input and two jets',
+    profile_phase_source11 and profile_seam_algebra11
+    and profile_sqrt_jets11 and profile_tie11)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A symbolic identity, constant bound, or numerical check failed'
