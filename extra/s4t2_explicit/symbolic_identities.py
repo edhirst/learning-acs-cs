@@ -3418,4 +3418,93 @@ with mp.workdps(80):
     assert kind_sample_l=='c0' and sample_error_l<mp.mpf('1e-60')
 print('(l7) N=1 six-output source correspondence at one witness'
       ' (numerical type d only): max error =',mp.nstr(sample_error_l,5),': PASS')
+
+# ---------------------------------------------------------------- m: opt-in formula branches of the elementary mpmath evaluator.
+# The six dps-dependent identity returns are numerical approximations.  In
+# formula-branch mode the source instead reaches the exact elementary
+# expressions of (11.3)--(11.4) and (11.12h), still evaluated with mpmath.
+def source_precision_gate_m(function,condition,result):
+    tree=ast.parse(inspect.getsource(function))
+    expected=ast.parse(
+        'if _elementary_precision_shortcuts.get():\n'
+        '    if '+condition+':\n'
+        '        return '+result).body[0]
+    wanted=ast.dump(expected,include_attributes=False)
+    return sum(ast.dump(node,include_attributes=False)==wanted
+               for node in ast.walk(tree))==1
+
+
+precision_gates_m=(
+    (cusp._elementary_pole_radial,
+     'c/(c-radius)>(mp.mp.dps+10)*mp.log(10)','z'),
+    (cusp.elementary_pole_patch,
+     'x-1/x<=-(dps+10)*mp.log(10)','pair'),
+    (cusp.elementary_pole_forward,
+     'x-1/x<=-(dps+10)*mp.log(10)','pair'),
+    (cusp._height_R,
+     'c/(c-value)>(mp.mp.dps+10)*mp.log(10)','value'),
+    (cusp._height_terminal_forward,
+     'Ez>(mp.mp.dps+20)*mp.log(10)+mp.log(K)','z0+delta_z'),
+    (cusp._height_terminal_inverse_delta,
+     'Ey>E0+(mp.mp.dps+20)*mp.log(10)+mp.log(K)','y-z0'),
+)
+assert all(source_precision_gate_m(*case) for case in precision_gates_m)
+whole_cusp_m=ast.parse(inspect.getsource(cusp))
+dps_return_guards_m=[
+    node for node in ast.walk(whole_cusp_m)
+    if isinstance(node,ast.If)
+    and any((isinstance(part,ast.Name) and part.id=='dps')
+            or (isinstance(part,ast.Attribute) and part.attr=='dps')
+            for part in ast.walk(node.test))
+    and node.body and isinstance(node.body[0],ast.Return)]
+assert len(dps_return_guards_m)==6
+print('(m1) all six production dps-dependent identity returns'
+      ' are gated in formula-branch mode: PASS')
+
+precision_state_m=cusp._elementary_precision_shortcuts
+assert precision_state_m.get() is True
+with cusp.elementary_formula_branches():
+    assert precision_state_m.get() is False
+    with cusp.elementary_formula_branches():
+        assert precision_state_m.get() is False
+    assert precision_state_m.get() is False
+    try:
+        with cusp.elementary_formula_branches():
+            assert precision_state_m.get() is False
+            raise RuntimeError('test context restoration')
+    except RuntimeError:
+        pass
+    assert precision_state_m.get() is False
+assert precision_state_m.get() is True
+print('(m2) opt-in state nests and restores after exceptions;'
+      ' numerical default remains enabled: PASS')
+
+# (m3) Two type-(d) strict-interior observations.  Their strict
+# inequality is proved independently in programme §§11.2--11.3.
+with mp.workdps(50):
+    radial_c_m=mp.mpf(3)/2*mp.mpf('1e-8')
+    radial_r_m=radial_c_m*mp.mpf(199)/200
+    radial_z_m=(mp.sqrt(radial_r_m),mp.mpc(0))
+    height_v_m=mp.mpf(199)/1000
+    assert radial_c_m/(radial_c_m-radial_r_m)>(
+        mp.mp.dps+10)*mp.log(10)
+    assert mp.mpf(1)/5/(mp.mpf(1)/5-height_v_m)>(
+        mp.mp.dps+10)*mp.log(10)
+    assert cusp._elementary_pole_radial(radial_z_m)==radial_z_m
+    assert cusp._height_R(height_v_m)==height_v_m
+with mp.workdps(240):
+    radial_c_m=mp.mpf(3)/2*mp.mpf('1e-8')
+    radial_r_m=radial_c_m*mp.mpf(199)/200
+    radial_z_m=(mp.sqrt(radial_r_m),mp.mpc(0))
+    height_v_m=mp.mpf(199)/1000
+    with cusp.elementary_formula_branches():
+        radial_image_m=cusp._elementary_pole_radial(radial_z_m)
+        height_image_m=cusp._height_R(height_v_m)
+    radial_gap_m=radial_r_m-sum(abs(v)**2 for v in radial_image_m)
+    height_gap_m=height_v_m-height_image_m
+    assert radial_gap_m>0 and height_gap_m>0
+    assert cusp._elementary_precision_shortcuts.get() is True
+print('(m3) two strict-interior formula/default value gaps'
+      ' (numerical type d, sample size 2):',
+      mp.nstr(radial_gap_m,12),mp.nstr(height_gap_m,12),': PASS')
 print('ALL PASS')

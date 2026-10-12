@@ -2119,3 +2119,49 @@ in `AGENTS.md` §5.
   nonzero-overlap premise for other meridian cells. Other
   selectors and the global direct \(J_{\mathrm{cl}}\)
   verification remain open.
+
+### 2026-10-12-TSG-20 — Expose exact-formula branches for symbolic auditing
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** a38fbb9
+- **Where:** extra/s4t2_explicit/cusp.py,
+  extra/s4t2_explicit/symbolic_identities.py (m1–m3),
+  docs/s4t2_symbolic_programme.md status and §11.7–11.8, and
+  SYMBOLIC_CAMPAIGN.md T16 status. No manuscript file changed.
+- **Change:** added an opt-in context that follows the six
+  elementary source formula branches formerly replaced by
+  working-precision identity returns. The default numerical
+  evaluator is unchanged. Source AST checks identify all six
+  guards and test nested and exception-safe restoration. Two
+  type-(d) strict-interior samples exhibit formula/default value
+  differences: \(9.0129315017\cdot10^{-99}\) for the pole radial
+  map and \(3.23193414504\cdot10^{-92}\) for the height radial
+  map at 240 digits; the symbolic programme separately proves
+  the strict radial inequalities on their open active regions.
+- **Why:** source comparisons in direct symbolic checks must
+  follow the finite elementary formulas, including where a
+  finite-precision shortcut would return the identity.
+- **Verification:** symbolic_identities.py (m1–m3): **ALL PASS**
+  on the full run; an independent referee checked that unwrapping
+  the six opt-in gates recovers the original source AST, exercised
+  nested/exception restoration and endpoint cases, and reproduced
+  both samples. chart_identities.py: **ALL PASS** before the
+  separate C39 edit; node_remainder.py: **ALL PASS**.
+  check_tcore.py, check_tlift.py, check_lift.py, check_full.py,
+  check_inverse.py 3000, check_inverse.py --closed,
+  check_inverse.py --closed-nijenhuis, check_degree.py 1121 128 128,
+  nijenhuis_round.py 2000, check_step1.py, check_step2.py,
+  check_glue.py, check_hopf.py, and check_middle.py: pass.
+  check_jround.py 300: **ALL PASS** (including 300 uniform
+  points and 100 points at each chart switch).
+  verify_construction.py:
+  all checks passed; sphere_products.py: Dimension 8 check passed;
+  git diff --check: pass. LaTeX: **not run** (latexmk
+  unavailable). Git fetch/pull and push were left to the
+  collaborator as requested.
+- **Open points:** this mode uses finite-precision mpmath
+  arithmetic and does not execute the astronomical fixed counts.
+  The global direct \(J_{\mathrm{cl}}\) second-jet and overlap
+  certificate remains open.

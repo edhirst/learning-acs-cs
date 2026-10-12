@@ -409,6 +409,14 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   is an explicit holomorphic deck map. This propagates through
   any fixed-count projection step with nonzero denominator;
   the remaining selectors and global T16 coverage are open.
+  **Exact-formula evaluator mode (2026-10-12-TSG-20):**
+  the optional \(\texttt{elementary\_formula\_branches()}\) context
+  bypasses all six working-precision identity returns in the
+  elementary source evaluator. Section (m) checks their source guards
+  and context restoration. It makes finite-precision source
+  comparisons follow the written formula branches; it does not
+  execute the certified fixed counts or complete the global
+  second-jet and overlap checks.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.

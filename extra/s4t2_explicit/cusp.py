@@ -17,7 +17,26 @@ Weight-1 function (notes, section 7):  E = sum_n chi(mu + n) E0(psi_hat^n p),  E
 """
 from __future__ import annotations
 
+from contextlib import contextmanager
+from contextvars import ContextVar
+
 import numpy as np
+
+
+_elementary_precision_shortcuts = ContextVar('elementary_precision_shortcuts',default=True)
+
+
+@contextmanager
+def elementary_formula_branches():
+    """Evaluate elementary branch formulas without dps-dependent identity returns.
+
+    This changes branch selection only; mpmath arithmetic remains approximate.
+    """
+    token = _elementary_precision_shortcuts.set(False)
+    try:
+        yield
+    finally:
+        _elementary_precision_shortcuts.reset(token)
 
 
 def bump_step(u):
@@ -346,8 +365,9 @@ def _elementary_pole_radial(pair,inverse=False):
     # In (11.12i), q=exp(-c/(c-radius)) and |S(radius)-radius|/radius
     # (likewise for S^{-1}) is <176q here. Avoid forming 1/q as an exp once
     # this is below working precision.
-    if c/(c-radius)>(mp.mp.dps+10)*mp.log(10):
-        return z
+    if _elementary_precision_shortcuts.get():
+        if c/(c-radius)>(mp.mp.dps+10)*mp.log(10):
+            return z
     if inverse:
         if radius<=0:
             raise ValueError('radial inverse requires positive radius')
@@ -426,12 +446,13 @@ def elementary_pole_patch(z,infinity=False,dps=50):
             return pair
         if radius<(inner+outer)/2:
             x = mp.exp(3)*mp.expm1(3*(radius-inner)/(outer-radius))
-            if x-1/x<=-(dps+10)*mp.log(10):
-                # u=S(radius)<(outer/e)*10^(-dps-10). For u<c/10,
-                # J(t)=log(expm1(psi(t))) has J'(t)<15/(2t).
-                # The raw bounds (11.9),(11.11) then give
-                # |H(z)-z|/|z|<1000u, below the requested precision.
-                return pair
+            if _elementary_precision_shortcuts.get():
+                if x-1/x<=-(dps+10)*mp.log(10):
+                    # u=S(radius)<(outer/e)*10^(-dps-10). For u<c/10,
+                    # J(t)=log(expm1(psi(t))) has J'(t)<15/(2t).
+                    # The raw bounds (11.9),(11.11) then give
+                    # |H(z)-z|/|z|<1000u, below the requested precision.
+                    return pair
         compressed = _elementary_pole_radial(pair)
         raw = elliptic_pole_raw_inverse(compressed,infinity,dps=dps,elementary=True)
         return _elementary_pole_radial(raw,inverse=True)
@@ -449,9 +470,10 @@ def elementary_pole_forward(w,infinity=False,dps=50):
             return pair
         if radius<(inner+outer)/2:
             x = mp.exp(3)*mp.expm1(3*(radius-inner)/(outer-radius))
-            if x-1/x<=-(dps+10)*mp.log(10):
-                # The same estimate gives |H^{-1}(w)-w|/|w|<3000S(radius).
-                return pair
+            if _elementary_precision_shortcuts.get():
+                if x-1/x<=-(dps+10)*mp.log(10):
+                    # The same estimate gives |H^{-1}(w)-w|/|w|<3000S(radius).
+                    return pair
         compressed = _elementary_pole_radial(pair)
         raw = elementary_pole_raw_forward(compressed,infinity,dps=dps)
         return _elementary_pole_radial(raw,inverse=True)
@@ -514,8 +536,9 @@ def _height_R(value,inverse=False):
         return value
     # The outer-seam identity bounds |R(v)-v| and |R^{-1}(v)-v| by
     # 32c exp(-c/(c-v)); this branch is below the working precision.
-    if c/(c-value)>(mp.mp.dps+10)*mp.log(10):
-        return value
+    if _elementary_precision_shortcuts.get():
+        if c/(c-value)>(mp.mp.dps+10)*mp.log(10):
+            return value
     if inverse:
         y = mp.e*mp.expm1(value/(c-value))
         L = y+mp.log1p(-mp.exp(-y)) if y>1 else mp.log(mp.expm1(y))
@@ -545,10 +568,11 @@ def _height_terminal_forward(delta_z,data):
     Ez = mp.exp(L)
     C0,C1 = 1+mu-2*Lambda,Lambda-mu
     K = 1+abs(C0)*mp.exp(E0)+abs(C1)*mp.exp(E0+Acut)
-    if Ez>(mp.mp.dps+20)*mp.log(10)+mp.log(K):
-        # 1+F(expm1(Ez-Acut))=exp(Ez-E0)*(1+D), |D|<K exp(-Ez).
-        # The inverse E changes z by less than the working precision.
-        return z0+delta_z
+    if _elementary_precision_shortcuts.get():
+        if Ez>(mp.mp.dps+20)*mp.log(10)+mp.log(K):
+            # 1+F(expm1(Ez-Acut))=exp(Ez-E0)*(1+D), |D|<K exp(-Ez).
+            # The inverse E changes z by less than the working precision.
+            return z0+delta_z
     if Ez>50:
         D = C0*mp.exp(E0-Ez)+C1*mp.exp(E0+Acut-2*Ez)
         correction = mp.log1p(D)
@@ -575,10 +599,11 @@ def _height_terminal_inverse_delta(y,data):
     Ey = mp.exp(L)
     C0,C1 = 1+mu-2*Lambda,Lambda-mu
     K = 1+abs(C0)+2*Lambda*abs(C1)
-    if Ey>E0+(mp.mp.dps+20)*mp.log(10)+mp.log(K):
-        # With tau=exp(E0-Ey), the large quadratic root h below obeys
-        # |h-1|<K*tau, so T^{-1}(y)-y is below working precision.
-        return y-z0
+    if _elementary_precision_shortcuts.get():
+        if Ey>E0+(mp.mp.dps+20)*mp.log(10)+mp.log(K):
+            # With tau=exp(E0-Ey), the large quadratic root h below obeys
+            # |h-1|<K*tau, so T^{-1}(y)-y is below working precision.
+            return y-z0
     if Ey>50:
         tau = mp.exp(E0-Ey)
         h = (1-C0*tau+mp.sqrt((1-C0*tau)**2-4*Lambda*C1*tau*tau))/2

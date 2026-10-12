@@ -81,6 +81,11 @@
 > and projectors agree with their second jets; the restored chart
 > change is an explicit holomorphic deck map. This is one selector
 > family, conditional on nonzero projection overlaps elsewhere.
+> **Evaluator branch audit (2026-10-12-TSG-20):** an opt-in source
+> mode now follows the six exact finite-formula branches where the
+> ordinary numerical evaluator takes working-precision identity
+> shortcuts. Its source guards and context restoration pass; global
+> T16 coverage remains open.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
 > **Resume point: complete T16's exact branch circuit and second-jet checks, then simplify the fixed counts.**
 
@@ -2894,6 +2899,31 @@ thus \(|D_0(q)|<22\), \(|\ell|<44q\), and \(c+t\ell>c/2\). Hence
 \(S^{-1}(r)\), apply the same bound at \(r'=S^{-1}(r)>r\):
 \(q_{r'}<q_r\) and \(|r'-r|/r<176q_r\). Each is below working precision.
 
+For source comparisons that must follow the **exact formula branches**,
+evaluate under the context manager
+\(\texttt{with cusp.elementary\_formula\_branches():}\).
+It bypasses the six working-precision identity returns in the pole radial,
+pole patch/forward, radial height and terminal height evaluators. The
+piecewise identity formulas on their actual constant regions and the
+algebraically equivalent stable formulas remain in force. Check (m1) in
+\(\texttt{symbolic\_identities.py}\) matches all six guards to the source
+syntax and counts them; (m2) verifies nested use and restoration after an
+exception. Check (m3) reproduces the two strict-interior observations
+below (sample size two). This opt-in mode still computes with finite-precision
+\(\texttt{mpmath}\), and the production work guard still prevents literal
+evaluation of the huge fixed counts. It supplies a branch-faithful numerical
+comparison path for the symbolic circuits, not an exact arithmetic engine or
+a global second-jet certificate. As type-(d) interior observations, at
+\(\texttt{dps}=50\) the ordinary evaluator returns the identity for
+\(r=(3\cdot10^{-8}/2)(199/200)\) and
+\(v=(1/5)(199/200)\); formula-branch evaluation at 240 digits gives
+\(r-S(r)=9.0129315017\cdot10^{-99}>0\) and
+\(v-R(v)=3.23193414504\cdot10^{-92}>0\).
+The strict inequalities \(S(r)<r\) on \((a,c)\) in §11.3 and
+\(R(v)<v\) on \((\delta,c)\) in §11.2 already prove that these are
+different functions throughout those open regions. Differentiating
+the ordinary shortcut there would differentiate the identity instead.
+
 The global tensor and inverse-pair statement require human review.
 The checks include the new height, individual exact identities, and
 reduced-count end-to-end F_cl compositions. Neither huge
@@ -2929,6 +2959,7 @@ derivatives are numerical observations, type (d).
 | C37a–d, one all-mesh pure-cusp free-slab cell (a,b,c,d) | On the strict near-south chamber \(X<0,\ X>-1+10^{-9},\ 1+X>10^{-5},\ \Lambda(X)<10^{-4},\ |n_0|<1/100,\ n_1<-3/4,\ 1/2<n_2<2/3\), every source meridian sample, including the endpoints of the certified \(N=4\cdot10^{8000}+1\) fold, takes the same positive-\(x\) south-cusp branch. The fixed-count projection overlaps are uniformly \(>3/5\), the four-seed height is \(H_f=a/(1-q)\), and the adapted six-real Jacobian has the positive factorization below: ALL PASS. The exact round witness is \(Z=(1/100,i/200),\ X=-\sqrt{7999/8000}\). A separately labelled numerical initial-overlap sample is \(0.9999999999999999999512\), with measured excess \(0.3999999999999999999512\) over \(3/5\); an \(N=1\) endpoint sample is not a minimum over the certified mesh. This cell supplies neither the six Hessians nor a named \(J\). |
 | N8, actual inner-pole charts (a) | both signs: the six real outputs of (11.17)–(11.18), including the four-seed \(H_f\), are differentiated to a 6×6 Jacobian and six Hessians; all 90 mixed-partial pairs per sign, the nonzero pole determinant, and 216 normal-frame \(N_J\) entries: ALL PASS |
 | C38a–e, pure-cusp argument-selector overlap (a,b,c,d) | At both cusps, exact round witnesses and \(\pm1/1000\) angular perturbations lie on opposite sides of the source selector inside valid open cusp charts. In the lower wedge, the principal and half-centred heights differ by one deck unit; the two normalized ten-slot references, their projectors, and all first/second jets agree openly. The four-seed height shifts by one, and torus restoration gives a holomorphic cusp deck transition with complex determinant \(1\): ALL PASS. The exact bound is \(|t_c|<1/10\); separate numerical lower-wedge samples give \(|t_c|\approx0.0039838456\) south and \(0.0294368583\) north, measured gaps \(0.0960161544\) and \(0.0705631417\). Fold propagation assumes the already certified nonzero projection overlaps; other selectors and global \(J\) coverage remain open. |
+| m1–m3, formula-branch source audit and observations (d) | The checker identifies and gates all six working-precision identity returns, and checks nested/exception restoration: ALL PASS. Two strict interior type-(d) samples have exact-formula value gaps \(9.0129315017\cdot10^{-99}\) (pole radial) and \(3.23193414504\cdot10^{-92}\) (height radial) from the default identity returns, evaluated at 240 digits. Sample size two; m3 reproduces the observations. This does not evaluate the fixed-count global tensor. |
 | N9a–i, cap/slab overlap (a,c) | for both signs, exact phase telescoping, source-linked raw-reference/projector identification, matching cusp inputs, torus restoration and first/second jets: ALL PASS, conditional on the written §11.3, §11.5 and §10.6 bounds; the post-raw radial margin is checked in N9b |
 | N10a–d, radial shell (a,b) | source-linked finite elementary \(S,S^{-1}\) nodes, exact scalar inverse and derivative identities, 16 first and 64 second entries for each radial direction, and \(\det DD=S(r)S'(r)/r>0\) on \(10^{-8}<r<1.5\cdot10^{-8}\): ALL PASS; the raw pole and torus stages are not composed here |
 | N11a–e, dominant raw-reference profile and selector seam (a,b) | the ordered source path selects \(T=u_2/u_1\) when \(|u_1|>|u_2|\), and \(T=u_1/u_2\) otherwise; its positive-root \(\mathrm{small}=T\sqrt{c/[A(1-z)+\sqrt{A^2(1-z)^2+4Bz}]}\), \(z=|T|^2\), \(c=2B\) or \(2\), has explicit value, 4 first and 8 second real-ratio entries on each branch: ALL PASS. The strict \(X=0\) witnesses have \(z=4/45\) and \(9/16\). \(A=(4\pi)^2>0\), \(B=e^4>0\), \(0\le z\le1\) make the root denominator positive. At \(|u_1|=|u_2|\), \(D_iD_d=4B\) proves the effective \(t\) and its first two jets agree; the source's inf test is false there and its phase input is \(u_2\) on both sides. The height and ten-slot projector are separate. |
