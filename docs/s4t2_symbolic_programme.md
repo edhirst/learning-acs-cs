@@ -2916,6 +2916,7 @@ derivatives are numerical observations, type (d).
 | C34a–f, negative-real-log active-collar seam (a,b,c,d) | on \(3/10<|t_c|<1/2\), with south \(t=t_c\) and north \(t=1/t_c\): exact source Cramer solves reconstruct \(e^\rho\) in each cusp slot; deck changes preserve the surviving middle angular phase. The surviving angular entry and reconstructed cusp input have matching value/first/second jets in \((\Re t,\Im t,\rho,H,\mathrm{one},\mathrm{four})\); strict target witnesses and angular perturbations show nonempty seam sectors: ALL PASS. Manifest determinant bounds are \(>981/5000\) south and \(>40\) north; the separately labelled two numerical samples are 1.2640336891 and 125.5013159820. The source formulas imply projector agreement on this seam; they do not differentiate the earlier round-meridian map or cover other chart seams. |
 | C35a–c, active upper-negative-axis collar projector (a,b,d) | On \(3/10<|t_c|<1/2\), \(3\pi/4<\Arg t<\pi\), and \(|H|<1/10\), the ordered source branches give a three-slot rank-one frame in the ten-slot embedding, supported on \((0,1,9)\) south and \((4,5,9)\) north. Its two positive normalization factors satisfy \(R_f>0\) and \(D=(1-s)^2+s^2\ge1/2\). Exact round-meridian witnesses and the five-variable value/first/second jet product rules pass: ALL PASS. Two separately labelled one-point numerical observations give \(D=0.9773063821\) south and \(0.6619583826\) north, margins \(0.4773063821\) and \(0.1619583826\) to the proved \(1/2\) bound. This is one projector cell, not the full meridian or free-slab tensor. |
 | C36a–c, two active-collar free-slab determinant cells (a,b) | At the two strict C35 round witnesses, the source path from \((n_0,n_1,X,\theta,\phi_2,\phi_3)\) to the six real middle-\(W\) coordinates has a factored nonzero determinant: ALL PASS. The raw radial, ratio/profile, height/Cramer, finite-fold fibre, and torus-restoration factors are checked against the production branches. In the fixed target order \((\Re t,\Im t,\Re z,\Im z,\Re w,\Im w)\), the determinant is strictly negative in both cells; the adapted base determinant is positive. The manifest factor \(1-s^2\) is \(>15/16\) for \(9/100<s=|t_c|^2<1/4\). This uses the existing finite-projection nonvanishing bound and proves local invertibility only in these two neighborhoods; it does not supply their full Hessians or \(N_J\). |
+| C37a–d, one all-mesh pure-cusp free-slab cell (a,b,c,d) | On the strict near-south chamber \(X<0,\ X>-1+10^{-9},\ 1+X>10^{-5},\ \Lambda(X)<10^{-4},\ |n_0|<1/100,\ n_1<-3/4,\ 1/2<n_2<2/3\), every source meridian sample, including the endpoints of the certified \(N=4\cdot10^{8000}+1\) fold, takes the same positive-\(x\) south-cusp branch. The fixed-count projection overlaps are uniformly \(>3/5\), the four-seed height is \(H_f=a/(1-q)\), and the adapted six-real Jacobian has the positive factorization below: ALL PASS. The exact round witness is \(Z=(1/100,i/200),\ X=-\sqrt{7999/8000}\). A separately labelled numerical initial-overlap sample is \(0.9999999999999999999512\), with measured excess \(0.3999999999999999999512\) over \(3/5\); an \(N=1\) endpoint sample is not a minimum over the certified mesh. This cell supplies neither the six Hessians nor a named \(J\). |
 | N8, actual inner-pole charts (a) | both signs: the six real outputs of (11.17)–(11.18), including the four-seed \(H_f\), are differentiated to a 6×6 Jacobian and six Hessians; all 90 mixed-partial pairs per sign, the nonzero pole determinant, and 216 normal-frame \(N_J\) entries: ALL PASS |
 | N9a–i, cap/slab overlap (a,c) | for both signs, exact phase telescoping, source-linked raw-reference/projector identification, matching cusp inputs, torus restoration and first/second jets: ALL PASS, conditional on the written §11.3, §11.5 and §10.6 bounds; the post-raw radial margin is checked in N9b |
 | N10a–d, radial shell (a,b) | source-linked finite elementary \(S,S^{-1}\) nodes, exact scalar inverse and derivative identities, 16 first and 64 second entries for each radial direction, and \(\det DD=S(r)S'(r)/r>0\) on \(10^{-8}<r<1.5\cdot10^{-8}\): ALL PASS; the raw pole and torus stages are not composed here |
@@ -2994,6 +2995,37 @@ are checked in C35–C36. The fibre phase has derivative \(+1\)
 under the source finite projection recurrence, and the torus
 restoration has identity \((\phi_2,\phi_3)\) block. These give the
 remaining factors in the displayed full determinants.
+
+For C37 let \(n_2=+\sqrt{1-n_0^2-n_1^2}\),
+\(\Lambda=(1-X^2)/(1-X\sqrt{2-X^2})\), and
+\(y=(\Lambda n_0,1-\Lambda n_2,-\Lambda n_1)\).
+Put \(S=1+|y|^2\), \(v^2=y_1^2+y_2^2\),
+\(s=|t|^2\), \(q=e^{-4s/(1-s)}s\),
+\(\Delta=\sqrt{a^2+4q}\), and
+\(z_s'=(A+2Bs+ABs^2)/(1+As)^2\), with
+\(A=(4\pi)^2,\ B=e^4\).
+In the period-one Hopf coordinate \(\theta\) and target order
+\((\Re z_1,\Im z_1,\Re z_2,\Im z_2,\Re z_3,\Im z_3)\), the exact
+source-linked factorization is
+\[
+ \det Dh=
+ \frac{\Lambda^2\Lambda_X S(1-s^2)}
+ {4n_2v^4z_s'\Delta}>0,\qquad
+ \frac{\Lambda_X}{\Lambda}
+ =\frac{2}{\sqrt{2-X^2}(1-X^2)}>0.
+\]
+The source inequalities give \(\Lambda/10<a<\Lambda/5\) and
+\(|t|<\Lambda/15\), whence \(a>3\sqrt q/2\).
+Every normalized reference has first-slot probability \(>4/5\);
+the initial pole inclusion has first-slot probability \(>7/8\).
+The reverse triangle inequality gives \(>3/5\) for the initial
+overlap modulus and for
+\(\Re\langle r_j,r_{j-1}\rangle\) between canonical references.
+Consequently every source projection-overlap modulus is \(>3/5\).
+These are uniform symbolic bounds at the certified count. The numerical
+sample in the table checks transcription only. The production
+evaluator's default work guard stops a literal run at this count;
+the checker proves the source-defined finite expression by induction.
 
 On the checked south raw-pole annulus, write \(r=|Z_0|^2+|Z_1|^2\) and
 \(z_L=(Z_0-iZ_1,Z_0+iZ_1)/\sqrt{4\pi(1+\sqrt{1-r^2})}\). Let \(w=g_0(z_L)\)

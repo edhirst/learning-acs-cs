@@ -1996,3 +1996,43 @@ in `AGENTS.md` §5.
   meridian reference cells, certify every argument seam, or
   construct the full free-slab \(h/M/H/J\) circuit. Global
   direct \(J_{\mathrm{cl}}\) verification remains open.
+
+### 2026-10-12-TSG-17 — Certify one all-mesh free-slab cusp cell
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** f035a49
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (C37),
+  docs/s4t2_symbolic_programme.md status, and
+  SYMBOLIC_CAMPAIGN.md T16 status. No manuscript or construction
+  file changed.
+- **Change:** certified a strict near-south round chamber in which
+  every meridian reference of the source-defined fixed-count
+  projection takes the same positive-\(x\) south-cusp branch.
+  The exact source path, open witness, uniform \(>3/5\) initial
+  and adjacent overlap bounds, four-seed reduction
+  \(H_f=a/(1-q)\), and positive factored six-real Jacobian are
+  recorded with their coordinate orders. The checker uses
+  induction over the certified count; the production evaluator
+  requires max_work=None to name this astronomical finite
+  expression.
+- **Why:** a direct source-specific tensor circuit needs both
+  valid differentiable branch formulas along the entire fixed
+  projection path and an invertible six-real Jacobian.
+- **Verification:** chart_identities.py C37a–d: **ALL PASS**
+  on an independent full run; a second independent reviewer
+  also ran the full script to **ALL PASS** and checked the
+  determinant signs and every uniform branch inequality.
+  The exact projection denominator bound is \(>3/5\);
+  the type-(d) one-point initial-overlap sample is
+  \(0.9999999999999999999512\), measured excess
+  \(0.3999999999999999999512\). The separate \(N=1\)
+  endpoint sample is not a certified-mesh minimum.
+  verify_construction.py: all checks passed; sphere_products.py:
+  Dimension 8 check passed. LaTeX: **not run**
+  (latexmk unavailable). Git fetch/pull and push were left
+  to the collaborator as requested.
+- **Open points:** C37 supplies no six Hessians or named \(J\).
+  Other free-slab cells, seams, and the global direct
+  \(J_{\mathrm{cl}}\) verification remain open.

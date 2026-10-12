@@ -384,7 +384,14 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   projections into an initial overlap and \(N\) consecutive scalar
   overlaps, with a six-variable second-jet induction at the exact
   fixed count. The source path's remaining cell and seam obligations
-  are unchanged.
+  are unchanged. **One all-mesh free-slab cell
+  (2026-10-12-TSG-17):** C37 proves that every fixed-count meridian
+  reference stays in the same positive-\(x\) south-cusp branch on a
+  strict near-south chamber. Every initial and adjacent projection
+  overlap exceeds \(3/5\), the finite height reduces to
+  \(a/(1-q)\), and the actual adapted six-real Jacobian has a
+  manifest positive factorization. The six Hessians, named tensor,
+  other cells and global direct verification remain open.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.

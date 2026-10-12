@@ -3662,5 +3662,503 @@ rep('C36c two strict-cell full determinants: positive adapted base, '
     and bool(sp.Rational(1,4)<1)
     and bool(sp.pi>0))
 
+# C37: one open free-slab chamber in which EVERY fixed-count projection
+# reference takes the same early south-cusp branch.  The round witness is
+# Z=(1/100,i/200), X=-sqrt(7999/8000).  The local source order is
+# (n0,n1,X,theta,phi2,phi3), n2=+sqrt(1-n0^2-n1^2), with the upper Hopf
+# reference; the holomorphic target order is the three complex cusp outputs.
+# This section certifies the source-defined finite expression symbolically
+# by induction, with max_work=None in mathematical expression mode.  The
+# evaluator's default work guard prevents literal evaluation at the certified
+# astronomical N.  Full six Hessians and the named J are not asserted here.
+def exact_if_body37(tree,test,body):
+    wanted = ast.dump(ast.parse(test,mode='eval').body,
+                      include_attributes=False)
+    matches = [node for node in ast.walk(tree)
+               if isinstance(node,ast.If)
+               and ast.dump(node.test,include_attributes=False)==wanted]
+    expected = [ast.dump(node,include_attributes=False)
+                for node in ast.parse(body).body]
+    return (len(matches)==1
+            and [ast.dump(node,include_attributes=False)
+                 for node in matches[0].body]==expected)
+
+
+def ordered_nodes37(body,snippets):
+    actual = [ast.dump(node,include_attributes=False) for node in body]
+    cursor = -1
+    for snippet in snippets:
+        expected = ast.parse(snippet).body
+        if len(expected)!=1:
+            return False
+        key = ast.dump(expected[0],include_attributes=False)
+        found = next((i for i in range(cursor+1,len(actual))
+                      if actual[i]==key),None)
+        if found is None:
+            return False
+        cursor = found
+    return True
+
+
+core_tree37 = source_tree30(cusp30.elementary_cusp_reference)
+moment_tree37 = source_tree30(cusp30.inverse_height_moment)
+terminal_tree37 = source_tree30(cusp30._terminal_height_data)
+g_tree37 = source_tree30(cusp30._height_G)
+finite_height_tree37 = source_tree30(cusp30.scalar_finite_height)
+restore_tree37 = source_tree30(cusp30.elementary_restore_torus)
+projection_loops37 = [node for node in ast.walk(project_tree30)
+                      if isinstance(node,ast.For)
+                      and ast.dump(node.iter,include_attributes=False)
+                      ==ast.dump(ast.parse('range(steps+1)',mode='eval').body,
+                                  include_attributes=False)]
+slice_with37 = [node for node in slice_tree30.body
+                if isinstance(node,ast.With)]
+finite_seed37 = [node for node in ast.walk(finite_height_tree37)
+                 if isinstance(node,ast.FunctionDef) and node.name=='seed']
+restore_coeffs37 = [node for node in ast.walk(restore_tree37)
+                    if isinstance(node,ast.FunctionDef) and node.name=='coeffs']
+restore_cusp_data37 = [node for node in ast.walk(restore_tree37)
+                       if isinstance(node,ast.FunctionDef)
+                       and node.name=='cusp_data']
+source_path37 = (
+    source_counts30 and project_source30 and source_cusp32
+    and source_torus35 and source_det36 and len(projection_loops37)==1
+    and [ast.dump(node,include_attributes=False)
+         for node in projection_loops37[0].body]
+        ==[ast.dump(node,include_attributes=False) for node in ast.parse('''
+h = start+(X-start)*j/steps
+kind,data = elliptic_raw_base_reference(tuple((1-h*h)*a for a in n),h,
+                                         dps=dps,elementary=True)
+ref = elliptic_bundle_embedding(kind,data,dps=dps,elementary=True)
+phase = _elementary_inner(ref,vector)
+margin = min(margin,abs(phase))
+if phase==0:
+    raise ValueError('finite projection product vanished')
+vector = tuple(a*phase/abs(phase) for a in ref)
+''').body]
+    and exact_if_body37(raw_tree31,
+        "abs(tc)<=mp.mpf('.3') and elementary",'''
+xs,yy = elementary_cusp_reference(tc,a,nu)
+return ('ci' if inf else 'c0'),(xs,yy,a)
+''')
+    and exact_if_body37(core_tree37,'a>0','''
+A = 2/(R-f) if cell==1 else (R+f)/2
+x = mp.sqrt(A/e)/nu
+return x,t/x
+''')
+    and exact_if_body37(bundle_tree32,"kind in ('c0','ci')",'''
+x,y = map(mp.mpc,data[:2])
+nu = mp.exp(-2) if kind=='ci' else mp.mpf(1)
+H = mp.mpf(data[2]) if elementary else elliptic_height_chart(x,y,nu,dps=dps)
+if abs(x*y)>mp.mpf('.3') or abs(H)>mp.mpf('.6'):
+    raise ValueError('pure cusp embedding requires |xy|<=.3 and |H|<=.6')
+f = frame(x,y,nu)
+block = [hw(H)*q for q in f]
+w = hw(H+mp.mpf('.5') if H<0 else H-mp.mpf('.5'))
+if H<0 and w>0:
+    rr = abs(x*y)**2
+    m = nu*mp.exp(-2*rr/(1-rr))
+    f = frame(1/(m*y),m*x*y*y,nu)
+block.extend(w*q for q in f)
+start = 4 if kind=='ci' else 0
+vec[start:start+4] = block
+''')
+    and ordered_nodes37(core_tree37.body,[
+        'e = mp.exp(-4*abs(t)**2/(1-abs(t)**2))',
+        'q = e*nu*nu*abs(t)**2',
+        "cell = int(mp.floor(a+mp.mpf('.5')))",
+        'b = a-cell',
+        'f = inverse_height_moment(b,q,0)',
+        'R = mp.sqrt(f*f+4*q)'])
+    and exact_if_body37(terminal_tree37,'lam==0',
+        'kappa,amp,d = mp.mpf(2),mp.mpf(0),mp.mpf(1)')
+    and exact_if_body37(g_tree37,'amp==0',
+        'return a/d if inverse else d*a')
+    and exact_if_body37(moment_tree37,
+        "lam==1 or aa<=mp.mpf('.1')",
+        'return _height_G(a,amp,d)')
+    and len(slice_with37)==1
+    and ordered_nodes37(slice_with37[0].body,[
+        'params = elementary_closed_parameters()',
+        "N = params['projection_steps'] if projection_steps is None else projection_steps",
+        'xi = tuple(a/mp.sqrt(1-X*X) for a in Z)',
+        'result = _elementary_corrected_section(xi,X,N,K,dps,diagnostics)',
+        'pc = 2*xi[0]*mp.conj(xi[1])',
+        'n = (pc.real,pc.imag,abs(xi[0])**2-abs(xi[1])**2)',
+        'kind,data = elliptic_raw_base_reference(tuple((1-X*X)*a for a in n),X,dps=dps,elementary=True)',
+        'ref = elliptic_bundle_embedding(kind,data,dps=dps,elementary=True)',
+        'phase = _elementary_inner(ref,result)',
+        'x,y = data[:2]',
+        'return kind,(mp.conj(phase)*x,phase*y)'])
+    and ordered_nodes37(correct_tree30.body,[
+        'result = elementary_projection_section(xi,X,N,dps,diagnostics)',
+        'return result'])
+    and matching_if_test32(slice_tree30,
+        'distance<alpha/2 and not force_slab')
+    and matching_if_test32(correct_tree30,'distance<alpha')
+    and matching_if_test32(slice_tree30,
+        'max_work is not None and cost>max_work')
+    and matching_statement31(slice_tree30,
+        "raise ValueError('certified finite expression exceeds max_work; inspect elementary_closed_parameters()')")
+    and matching_if_test32(raw_tree31,'inf or abs(t)<mp.mpf(\'.5\')')
+    and matching_if_test32(raw_tree31,
+        "phase_coordinate.real<-mp.mpf('.9')*abs(phase_coordinate)")
+    and matching_if_test32(bundle_tree32,
+        "abs(x*y)>mp.mpf('.3') or abs(H)>mp.mpf('.6')")
+    and matching_if_test32(bundle_tree32,'H<0 and w>0')
+    and matching_assignment30(raw_tree31,'ratio',
+        'u2/u1 if inverse_ratio else u1/u2')
+    and matching_assignment30(raw_tree31,'small',
+        'ratio*mp.sqrt((2*B if inverse_ratio else 2)/(b+root))')
+    and matching_assignment30(raw_tree31,'phase_coordinate',
+        '-mp.conj(u1) if inf else u2')
+    and matching_assignment30(raw_tree31,'a',
+        'mp.arg(phase_coordinate)/(2*mp.pi)')
+    and matching_assignment30(bundle_tree32,'H',
+        'mp.mpf(data[2]) if elementary else elliptic_height_chart(x,y,nu,dps=dps)')
+    and matching_statement31(bundle_tree32,'block = [hw(H)*q for q in f]')
+    and matching_statement31(bundle_tree32,
+        "w = hw(H+mp.mpf('.5') if H<0 else H-mp.mpf('.5'))")
+    and matching_statement31(bundle_tree32,'vec[start:start+4] = block')
+    and len(finite_seed37)==1
+    and exact_if_body37(finite_seed37[0],"v<=mp.mpf(1)/16",'value = v')
+    and returned_expr30(finite_height_tree37,
+        'seed(A)+seed(q*A)-seed(Y)-seed(q*Y)+q*q*(A-Y)/(1-q)')
+    and len(restore_coeffs37)==1 and len(restore_cusp_data37)==1
+    and ordered_nodes37(restore_coeffs37[0].body,[
+        'det = e2.real*e3.imag-e3.real*e2.imag',
+        'return ((rhs.real*e3.imag-e3.real*rhs.imag)/det, (e2.real*rhs.imag-rhs.real*e2.imag)/det)'])
+    and returned_expr30(restore_cusp_data37[0],
+        "((t*t-1,mp.j*(1+t*t),-2*t,t,mp.j*t) if inf else "
+        "(1-t*t,mp.j*(1+t*t),2*t,t,-mp.j*t))")
+    and exact_if_body37(restore_tree37,"kind in ('c0','ci')",'''
+x,y = data[:2]
+inf = kind=='ci'
+t = x*y
+e2,e3,e4,a2,a3 = cusp_data(t,inf)
+c = coeffs(e4,e2,e3)
+H = scalar_finite_height(x,y,mp.exp(-2) if inf else mp.mpf(1))
+C = tuple(v+H*w for v,w in zip(phi,c))
+A = C[0]*a2+C[1]*a3
+return kind,(x*mp.exp(-A),y*mp.exp(A),C[0]*e2+C[1]*e3)
+'''))
+
+# A strict, nonempty open chamber is specified by X<0, X>start,
+# 1+X>alpha, lambda(X)<1/10000, |n0|<1/100,
+# n1<-3/4 and 1/2<n2<2/3.  At the witness n=(0,-4/5,3/5).
+# lambda(h) is strictly increasing, so its upper bound holds for all
+# h_j=start+(X-start)j/N, including the actual huge fixed N.
+Zw37 = (sp.Rational(1,100),sp.I/sp.Integer(200))
+Xw37 = -sp.sqrt(sp.Rational(7999,8000))
+xi_w37 = tuple(z/sp.sqrt(1-Xw37**2) for z in Zw37)
+n_w37 = (sp.simplify(2*sp.re(xi_w37[0]*sp.conjugate(xi_w37[1]))),
+         sp.simplify(2*sp.im(xi_w37[0]*sp.conjugate(xi_w37[1]))),
+         sp.simplify(abs(xi_w37[0])**2-abs(xi_w37[1])**2))
+start37 = -1+sp.Rational(1,10**9)
+lam_end37 = 1/(8000+sp.sqrt(8000**2-1))
+lam_expr37 = lambda36.subs(X36,Xw37)
+strict_witness37 = (
+    n_w37==(0,-sp.Rational(4,5),sp.Rational(3,5))
+    and sp.simplify(sum(z*sp.conjugate(z) for z in xi_w37)-1)==0
+    and sp.simplify(lam_expr37-lam_end37)==0
+    and 0<lam_end37<sp.Rational(1,15999)<sp.Rational(1,10000)
+    and start37<Xw37<0
+    and sp.Rational(1,16000)<1+Xw37<sp.Rational(1,8000)
+    and sp.Rational(1,16000)>sp.Rational(1,10**5)
+    and abs(n_w37[0])<sp.Rational(1,100)
+    and n_w37[1]<-sp.Rational(3,4)
+    and sp.Rational(1,2)<n_w37[2]<sp.Rational(2,3)
+    and radial_base36 and count_ok30)
+
+# For any point in that chamber and every 0<lambda<1/10000,
+# y=(lambda*n0,1-lambda*n2,-lambda*n1).  Its stereographic numerators
+# are u1=lambda*((2*n2-lambda)+2i*n0),
+# u2=2*(1-lambda*n2-i*lambda*n1), up to their common positive S.
+# They have Re u1, Re u2 and Im u2 strictly positive.  The indicated
+# rational bounds prove |u1/u2|<7lambda/10 and hence the source chooses
+# its non-inverse south ratio and direct argument chart.  In particular
+# b=Aprof(1-|ratio|^2)>121, so the profile factor is <1/11 and
+# 0<|t|<lambda/15<1/150000<3/10.
+lam37,n037,n137,n237 = sp.symbols(
+    'lam37 n037 n137 n237',real=True)
+u1num37 = lam37*(2*n237-lam37+2*sp.I*n037)
+u2num37 = 2*(1-lam37*n237-sp.I*lam37*n137)
+y37 = sp.Matrix([lam37*n037,1-lam37*n237,-lam37*n137])
+S37 = 1+sum(v*v for v in y37)
+raw_numerators37 = (
+    sp.expand(1-sum(v*v for v in y37)+2*sp.I*y37[0]-u1num37
+              -lam37**2*(1-n037**2-n137**2-n237**2))==0
+    and sp.expand(2*(y37[1]+sp.I*y37[2])-u2num37)==0
+    and sp.Rational(67,50)**2>
+        (sp.Rational(4,3)**2+sp.Rational(1,50)**2)
+    and sp.Rational(67,50)/(2*(1-sp.Rational(1,10000)))
+        <sp.Rational(7,10)
+    and (sp.Rational(7,10)/10000)**2<sp.Rational(1,10**8)
+    and 144*(1-sp.Rational(1,10**8))>121
+    and sp.Rational(7,110)<sp.Rational(1,15)
+    and sp.Rational(1,150000)<sp.Rational(3,10))
+
+# Put z_ang=(-lambda*n1)/(1-lambda*n2)>0, so
+# a=atan(z_ang)/(2pi).  Since n1<-3/4, z_ang>3lambda/4;
+# z_ang<1/1000.  The elementary integral bound
+# z/(1+z^2)<=atan(z)<z, with 3<pi<22/7, gives
+# lambda/10<a<lambda/5<1/50000<1/10.  This selects cell=0,
+# the a>0 positive-x gauge, f=a, and both embedding weight plateaux.
+eps37 = sp.Symbol('eps37',positive=True)
+height_bounds37 = (
+    sp.simplify(sp.diff(sp.atan(eps37)-eps37/(1+eps37**2),eps37)
+                -2*eps37**2/(1+eps37**2)**2)==0
+    and sp.simplify(sp.diff(eps37-sp.atan(eps37),eps37)
+                    -eps37**2/(1+eps37**2))==0
+    and sp.Rational(1,10000)/(1-sp.Rational(1,10000))
+        <sp.Rational(1,1000)
+    and sp.Rational(3,4)*sp.Rational(7,44)
+        /(1+sp.Rational(1,10**6))>sp.Rational(1,10)
+    and 1/(6*(1-sp.Rational(1,10000)))<sp.Rational(1,5)
+    and sp.Rational(1,50000)<sp.Rational(1,10)
+    and bool(3<sp.pi<sp.Rational(22,7))
+    and sp.floor(sp.Rational(1,10)+sp.Rational(1,2))==0
+    and sp.Rational(1,5)<sp.Rational(1,4)
+    and (sp.Rational(2,5)-sp.Rational(1,4))/sp.Rational(3,20)==1)
+rep('C37a ordered source c0 path and strict uniform all-j chamber',
+    source_path37 and strict_witness37
+    and raw_numerators37 and height_bounds37)
+
+# In the selected source branch, write e=exp(-4s/(1-s)),
+# q=e*s, Delta=sqrt(a^2+4q), A=(Delta+a)/2 and Y=(Delta-a)/2.
+# Then x=sqrt(A/e)>0, y=t/x, A=e*x^2, Y=|y|^2, A-Y=a,
+# and AY=q.  The ten-vector has only first-pair entries
+# r=(x,y)/sqrt(x^2+Y).  The proved a>lambda/10 and
+# sqrt(q)<|t|<lambda/15 imply q<4a^2/9, Delta<5a/3, and therefore
+# its first-slot probability p=(A/e)/(A/e+Y)>4/5.
+a37,q37 = sp.symbols('a37 q37',positive=True)
+Delta37 = sp.sqrt(a37**2+4*q37)
+A37,Y37 = (Delta37+a37)/2,(Delta37-a37)/2
+eps_pos37,Fpos37 = sp.symbols('eps_pos37 Fpos37',positive=True)
+e_manifest37 = eps_pos37/(eps_pos37+Fpos37)
+p37 = (A37/e_manifest37)/(A37/e_manifest37+Y37)
+pmin37 = sp.Rational(4,5)
+source_frame37 = (
+    sp.simplify(A37-Y37-a37)==0
+    and sp.simplify(A37*Y37-q37)==0
+    and sp.simplify(q37/A37-Y37)==0
+    and sp.simplify((A37/e_manifest37-Y37)
+        -((1-e_manifest37)*Delta37
+          +(1+e_manifest37)*a37)/(2*e_manifest37))==0
+    and sp.simplify(p37-A37/(A37+Y37)
+        -A37*Y37*(1-e_manifest37)
+         /((A37+e_manifest37*Y37)*(A37+Y37)))==0
+    and sp.simplify(A37/(A37+Y37)
+                    -(sp.Rational(1,2)+a37/(2*Delta37)))==0
+    and (sp.Rational(1,15)/sp.Rational(1,10))**2
+        ==sp.Rational(4,9)
+    and sp.simplify(sp.sqrt(a37**2+4*sp.Rational(4,9)*a37**2)
+                    -5*a37/3)==0
+    and 1+4*sp.Rational(2,3)**2==sp.Rational(25,9)
+    and (1+sp.Rational(3,5))/2==pmin37
+    and pmin37>sp.Rational(7,10)
+    and 2*pmin37-1==sp.Rational(3,5)
+    and sp.Rational(1,10)>sp.Rational(1,15)
+    and sp.Rational(1,10**10)<sp.Rational(1,8))
+# The unit projection pair and both source plateaux are exact.  The
+# source frame radius, including the final source norm2, is positive.
+tr37,ti37,x37 = sp.symbols('tr37 ti37 x37',real=True,positive=True)
+t37 = tr37+sp.I*ti37
+yframe37 = t37/x37
+frame37 = sp.Matrix([x37,yframe37])/sp.sqrt(
+    x37**2+(tr37**2+ti37**2)/x37**2)
+frame_unit37 = sp.simplify((frame37.conjugate().T*frame37)[0]-1)==0
+Ppair37 = frame37*frame37.conjugate().T
+frame_projector37 = (frame_unit37
+    and sp.simplify(Ppair37*Ppair37-Ppair37)==sp.zeros(2)
+    and sp.simplify(sp.trace(Ppair37)-1)==0
+    and sp.Rational(1,5)<sp.Rational(1,4)
+    and sp.Rational(2,5)==sp.Rational(1,4)+sp.Rational(3,20))
+
+# For the upper Hopf reference, the first pole-inclusion probability
+# is (1-n1)/2>7/8.  The reverse triangle inequality therefore gives
+# |c0|>sqrt((4/5)(7/8))-sqrt((1/5)(1/8))
+#      >4/5-1/5=3/5>2/5.
+# Every adjacent overlap has Re(cj)>pmin-(1-pmin)=3/5>1/sqrt(5).
+# These inequalities hold for arbitrary j and j-1, so the source
+# normalizations exist for the actual N=4*10^8000+1 without unrolling it.
+ur37,ui37,vr37,vi37 = sp.symbols(
+    'ur37 ui37 vr37 vi37',real=True)
+spin_a37,spin_b37 = ur37+sp.I*ui37,vr37+sp.I*vi37
+pole_first37 = (spin_a37-sp.I*spin_b37)/sp.sqrt(2)
+hopf_im37 = 2*sp.im(spin_a37*sp.conjugate(spin_b37))
+pole_probability37 = sp.expand(
+    pole_first37*sp.conjugate(pole_first37)
+    -(spin_a37*sp.conjugate(spin_a37)
+      +spin_b37*sp.conjugate(spin_b37)-hopf_im37)/2)==0
+overlap_margin37 = (
+    pole_probability37
+    and sp.simplify((1-n_w37[1])/2-sp.Rational(9,10))==0
+    and (1+sp.Rational(3,4))/2==sp.Rational(7,8)
+    and sp.Rational(7,10)>sp.Rational(16,25)
+    and sp.Rational(1,40)<sp.Rational(1,25)
+    and sp.Rational(3,5)>sp.Rational(2,5)
+    and sp.Rational(3,5)>1/sp.sqrt(5)
+    and sp.Rational(7,10)<pmin37
+    and count_ok30 and N30>0)
+phase37,c_r37,c_i37 = sp.symbols('phase37 c_r37 c_i37',real=True)
+step_c37 = c_r37+sp.I*c_i37
+unit_phase37 = sp.exp(sp.I*phase37)
+phase_induction37 = (
+    sp.simplify(sp.conjugate(step_c37*unit_phase37)
+                *(step_c37*unit_phase37)
+                -sp.conjugate(step_c37)*step_c37)==0
+    and sp.simplify(sp.conjugate(unit_phase37)*unit_phase37-1)==0
+    and project_source30 and projection_value30 and projection_norm30)
+rep('C37b actual first-pair projector and fixed-count overlap induction',
+    source_path37 and source_frame37 and frame_projector37
+    and overlap_margin37 and phase_induction37)
+
+# Type (d) only: one source evaluation of the initial overlap and one
+# N=1 endpoint overlap at the exact witness.  The second number is not
+# the minimum over the certified N and is not used in the uniform proof.
+import mpmath as mp37
+with mp37.workdps(80):
+    Xsample37 = -mp37.sqrt(mp37.mpf(7999)/8000)
+    Zsample37 = (mp37.mpc(mp37.mpf(1)/100),mp37.j/200)
+    xisample37 = tuple(z/mp37.sqrt(1-Xsample37**2)
+                       for z in Zsample37)
+    pcsample37 = 2*xisample37[0]*mp37.conj(xisample37[1])
+    nsample37 = (pcsample37.real,pcsample37.imag,
+                 abs(xisample37[0])**2-abs(xisample37[1])**2)
+    def sample_reference37(h):
+        kind,data = cusp30.elliptic_raw_base_reference(
+            tuple((1-h*h)*a for a in nsample37),h,
+            dps=80,elementary=True)
+        return kind,cusp30.elliptic_bundle_embedding(
+            kind,data,dps=80,elementary=True)
+    kind_start37,ref_start37 = sample_reference37(
+        -1+mp37.mpf(1)/10**9)
+    kind_end37,ref_end37 = sample_reference37(Xsample37)
+    measured_initial37 = abs(cusp30._elementary_inner(
+        ref_start37,cusp30._elementary_pole_inclusion(xisample37)))
+    measured_endpoint37 = abs(cusp30._elementary_inner(
+        ref_end37,ref_start37))
+    measured_initial_margin37 = measured_initial37-mp37.mpf(3)/5
+    measured_endpoint_margin37 = measured_endpoint37-mp37.mpf(3)/5
+sample_overlap37 = (
+    kind_start37==kind_end37=='c0'
+    and measured_initial37>mp37.mpf(3)/5
+    and measured_endpoint37>mp37.mpf(3)/5)
+rep('C37b2 initial and N=1 endpoint overlap samples (numerical, d)',
+    sample_overlap37)
+print('C37b2 initial/N=1 overlaps and margins to 3/5:',
+      mp37.nstr(measured_initial37,24),
+      mp37.nstr(measured_endpoint37,24),
+      mp37.nstr(measured_initial_margin37,24),
+      mp37.nstr(measured_endpoint_margin37,24))
+
+# On this same chamber the source four-seed height is completely linear.
+# Since a<lambda/5, sqrt(q)<|t|<lambda/15, we have
+# A<a+sqrt(q)<4lambda/15 and Y<sqrt(q)<lambda/15.
+# Also e>1/2 by exp(-u)>1-u and 4s/(1-s)<1/2.
+# Thus A,Y,qA,qY<1/16, and source H_f=(A-Y)/(1-q)=a/(1-q).
+seed_bounds37 = (
+    sp.simplify(sp.diff(sp.exp(-eps37)-(1-eps37),eps37)
+                -(1-sp.exp(-eps37)))==0
+    and sp.Rational(1,150000)**2<sp.Rational(1,10**10)
+    and 4*sp.Rational(1,150000)**2
+      /(1-sp.Rational(1,150000)**2)<sp.Rational(1,2)
+    and sp.Rational(4,15)/10000<sp.Rational(1,16)
+    and sp.Rational(1,15)/10000<sp.Rational(1,16)
+    and sp.Rational(1,10**10)<1
+    and sp.Rational(1,150000)**2<sp.Rational(1,4))
+height_seed37 = (A37+q37*A37-Y37-q37*Y37
+                 +q37**2*(A37-Y37)/(1-q37))
+finite_height37 = (
+    sp.simplify(height_seed37-(A37-Y37)/(1-q37))==0
+    and sp.simplify(height_seed37-a37/(1-q37))==0
+    and source_path37 and seed_bounds37)
+rep('C37c source finite cusp height collapses to a/(1-q)',
+    finite_height37)
+
+# The signed determinant is a product of genuine source stages, in input
+# order (n0,n1,X,theta,phi2,phi3) and holomorphic output order
+# (Re z1,Im z1,Re z2,Im z2,Re z3,Im z3).  Put
+# v=|y1+i*y2|, S=1+|y|^2, s=|t|^2.  In polar y1+i*y2=v*e^(i alpha),
+# ratio*e^(i alpha)=(1-u^2-v^2)/(2v)+i*u/v and a=alpha/(2pi).
+# Thus det D(Re ratio,Im ratio,a)/D(y0,y1,y2)=S/(4pi v^4).
+n0_det37,n1_det37 = sp.symbols('n0_det37 n1_det37',real=True)
+n2_det37 = sp.sqrt(1-n0_det37**2-n1_det37**2)
+dy_positive37 = sp.Matrix([
+    [L36,0,Lp36*n0_det37],
+    [-L36*sp.diff(n2_det37,n0_det37),
+     -L36*sp.diff(n2_det37,n1_det37),-Lp36*n2_det37],
+    [0,-L36,-Lp36*n1_det37]])
+round_base_det37 = sp.simplify(dy_positive37.det()
+                                +L36**2*Lp36/n2_det37)==0
+u37,v37 = sp.symbols('u37 v37',real=True,positive=True)
+Rratio37 = (1-u37**2-v37**2)/(2*v37)
+Iratio37 = u37/v37
+S_polar37 = 1+u37**2+v37**2
+ratio_det_polar37 = sp.Matrix([
+    [sp.diff(Rratio37,u37),sp.diff(Rratio37,v37)],
+    [sp.diff(Iratio37,u37),sp.diff(Iratio37,v37)]]).det()
+ratio_det37 = (sp.simplify(ratio_det_polar37
+                        -S_polar37/(2*v37**3))==0
+               and sp.simplify(ratio_det_polar37/(2*sp.pi*v37)
+                               -S_polar37/(4*sp.pi*v37**4))==0)
+# The source profile has z=(B*s^2+A*s)/(1+A*s), so its inverse radial
+# map has positive real determinant 1/z_s'(s), already checked in C36.
+# At fixed t, rho=log(Y)/2 has rho_a=-1/(2Delta).
+rho37 = sp.log(Y37)/2
+rho_derivative37 = sp.simplify(sp.diff(rho37,a37)
+                               +1/(2*Delta37))==0
+# Write the source cusp fibre phase as sigma=e^(i psi).  The real map
+# (r,beta,rho,psi)->(x',y') with
+# x'=r e^(-rho-i psi), y'=e^(rho+i(beta+psi)) has determinant r;
+# (r,beta)->(Re t,Im t) also has determinant r.  Hence its fixed-t
+# Jacobian from (Re t,Im t,rho,psi) is exactly +1.
+rpol37,beta37,rho_pol37,psi37 = sp.symbols(
+    'rpol37 beta37 rho_pol37 psi37',real=True)
+xpol37 = rpol37*sp.exp(-rho_pol37-sp.I*psi37)
+ypol37 = sp.exp(rho_pol37+sp.I*(beta37+psi37))
+cusp_polar37 = sp.Matrix([
+    sp.re(xpol37),sp.im(xpol37),
+    sp.re(ypol37),sp.im(ypol37)])
+cusp_det37 = sp.trigsimp(sp.factor(
+    cusp_polar37.jacobian(
+        [rpol37,beta37,rho_pol37,psi37]).det()))
+# The source C=phi+H_f*c is a shear with phi block I2.  At fixed C,
+# (x,y)->(x exp(-kxy),y exp(kxy)) has complex determinant one; the
+# final real torus block has det 1-|t|^4>0, as in C9e/C36.
+xflow37,yflow37,kflow37 = sp.symbols('xflow37 yflow37 kflow37')
+flow37 = sp.Matrix([
+    xflow37*sp.exp(-kflow37*xflow37*yflow37),
+    yflow37*sp.exp(kflow37*xflow37*yflow37)])
+flow_det37 = sp.simplify(flow37.jacobian(
+    [xflow37,yflow37]).det()-1)==0
+# The actual source south cusp torus basis is the 2x2 real matrix R(t).
+tr_det37,ti_det37 = sp.symbols('tr_det37 ti_det37',real=True)
+tt_det37 = tr_det37+sp.I*ti_det37
+e2_det37,e3_det37 = 1-tt_det37**2,sp.I*(1+tt_det37**2)
+Rtorus37 = sp.Matrix([[sp.re(e2_det37),sp.re(e3_det37)],
+                      [sp.im(e2_det37),sp.im(e3_det37)]])
+torus_block37 = sp.factor(Rtorus37.det()
+    -(1-(tr_det37**2+ti_det37**2)**2))==0
+lampos37,lamprime37,npos37,Spos37,vpos37,zprime37,Dpos37,spos37 = sp.symbols(
+    'lampos37 lamprime37 npos37 Spos37 vpos37 zprime37 Dpos37 spos37',
+    positive=True)
+det_factors37 = (-lampos37**2*lamprime37/npos37
+    *Spos37/(4*sp.pi*vpos37**4)
+    /zprime37 *(-1/(2*Dpos37))*(2*sp.pi)
+    *(1-spos37**2))
+det_closed37 = (lampos37**2*lamprime37*Spos37*(1-spos37**2)
+    /(4*npos37*vpos37**4*zprime37*Dpos37))
+det_certificate37 = (
+    round_base_det37 and ratio_det37 and radial_base36 and radial_profile36
+    and rho_derivative37 and cusp_det37==rpol37
+    and flow_det37 and torus_block37
+    and sp.simplify(det_factors37-det_closed37)==0
+    and sp.Rational(1,150000)**2<1
+    and source_path37 and overlap_margin37 and finite_height37)
+rep('C37d actual near-south free-slab six-real determinant is positive',
+    det_certificate37)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'
