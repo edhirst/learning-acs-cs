@@ -100,6 +100,16 @@
 > modulo deck conditional on matching finite-fold endpoint
 > jets and nonzero phase. The intermediate projector joins
 > and nonzero projection denominators remain premises.
+> **Cusp/middle join (2026-10-12-EH-1):** C41 checks the
+> source selector \(|t_c|=3/10\) at both cusp signs along the
+> whole seam, not in one chamber. The core reference is a unit
+> multiple of the \(\lambda=0\) middle continuation, so the
+> ten-slot projectors agree identically. The right-hand formulas
+> differ from that continuation only by flat terms. For every
+> \(\phi\), the c0/ci restoration is the paper's holomorphic
+> chart change \(\Phi\)/\(\Theta\) of the middle restoration.
+> Propagation through the fold still assumes nonzero projection
+> denominators and checks of the other seams.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
 > **Resume point: complete T16's exact branch circuit and second-jet checks, then simplify the fixed counts.**
 
@@ -2975,6 +2985,7 @@ derivatives are numerical observations, type (d).
 | C38a–e, pure-cusp argument-selector overlap (a,b,c,d) | At both cusps, exact round witnesses and \(\pm1/1000\) angular perturbations lie on opposite sides of the source selector inside valid open cusp charts. In the lower wedge, the principal and half-centred heights differ by one deck unit; the two normalized ten-slot references, their projectors, and all first/second jets agree openly. The four-seed height shifts by one, and torus restoration gives a holomorphic cusp deck transition with complex determinant \(1\): ALL PASS. The exact bound is \(|t_c|<1/10\); separate numerical lower-wedge samples give \(|t_c|\approx0.0039838456\) south and \(0.0294368583\) north, measured gaps \(0.0960161544\) and \(0.0705631417\). Fold propagation assumes the already certified nonzero projection overlaps; other selectors and global \(J\) coverage remain open. |
 | C39a–e, dominant-coordinate selector overlap (a,b,c,d) | On \(99/100<|u_1/u_2|^2<101/100,\ |\Arg(u_1/u_2)|<\pi/5,\ |\Arg u_2|<\pi/5\), both source positive-root formulas give the same effective \(t\) and all its real first and second jets. Explicit profile bounds place \(3/10<|t|<1/2\), \(1/100<q<1/8\), with Cramer determinant \(>981/5000\), torus determinant \(>15/16\), and raw-reference norm square \(\ge1/2\). Both branches select the same south active collar, middle data, ten-slot reference, projector and restored output on this open cell: ALL PASS. Exact round witnesses at \(\lambda=2-\sqrt2\) and \(\lambda\pm1/10000\) meet the selector and both sides. C39e is a separate one-point type-(d) source observation at the seam; measured gaps to the displayed bounds are \(0.0623622466\) and \(0.0526377534\) for \(q\), \(1.0927862054\) for Cramer, \(0.0441843611\) for torus, and \(0.1888800593\) for reference norm square. Other selector seams and global \(J\) coverage remain open. |
 | C40a–f, north infinity/middle flat selector (a,b,c,d) | At the exact round witness \(|\mathrm{small}|=1/2,\ a=3/8,\ \Arg t=\pi/3\), and in a small open angular/height neighborhood, the source height and sparse projector have matching complete second jets across the selector. Conditional on matching finite-fold endpoint jets, a nonzero final phase, and nonzero fold denominators, the phase-corrected and restored middle formulas match through second order modulo local integer deck. C40a–e check source guards, exact Cramer and terminal-height identities, flat cutoff derivatives, all mixed projector jets, and phase cancellation: ALL PASS. Exact round witnesses at \(s=499/1000,1/2,501/1000\) lie on and strictly across the selector. Proven local bounds are \(q>1/2025\), Cramer \(>30\), torus \(>9/10\), reference norm square \(>1/4\); C40f's separate two-point type-(d) source sample has measured minimum gaps \(0.000709386291679574016\), \(19.9925817884944262\), \(0.036998497999\), and \(0.783279071736023484\), respectively, with a nonzero left interior height difference \(\Delta=-1.37624625388097242\cdot10^{-87}\) at 190 digits. Intermediate projector joins remain open; this is one seam chamber, not global \(J\) coverage. |
+| C41a–f, cusp/middle \(|t_c|=3/10\) join (a,b,c,d) | Along the whole seam, at both cusp signs, for any argument chart of \(a\) and any fixed branch of \(\log t\): the core reference is \(g\) times the \(\lambda=0\) middle continuation \(M_0\), with \(g=t_c/|t_c|\) for \(a>0\) and \(g=1\) for \(a\le0\), so the ten-slot projectors are identical. The right-hand source differs from \(M_0\) only by terms with a factor flat at \(|t_c|=3/10\). For every \(\phi\) and a common final unit vector, the c0/ci restoration equals \(\Phi\)/\(\Theta\) of the middle restoration, because \(D-cc=H_fc\); the complex determinants are \(i\) and \(-i/t^4\). All parts: ALL PASS. Also checked: the source formulas, the paper's chart maps in `tfull.py`, the band \(2/25<|t_c|^2<1/10\) (where \(1/2500<q<1/8\), the Cramer determinant is \(>0\) and \(|a|<3/5\)), and exact witnesses at \(|t_c|=299/1000,\,3/10,\,301/1000\). C41f records 18 production observations (d) at 120 digits, over all cells and both argument charts: projector difference \(\le2.4\cdot10^{-121}\), restored-output difference \(\le3.9\cdot10^{-120}\), and right-side flat weight \(3.8\cdot10^{-87}\). Propagation through the fold assumes nonzero projection denominators and checks of the other seams. |
 | m1–m3, formula-branch source audit and observations (d) | The checker identifies and gates all six working-precision identity returns, and checks nested/exception restoration: ALL PASS. Two strict interior type-(d) samples have exact-formula value gaps \(9.0129315017\cdot10^{-99}\) (pole radial) and \(3.23193414504\cdot10^{-92}\) (height radial) from the default identity returns, evaluated at 240 digits. Sample size two; m3 reproduces the observations. This does not evaluate the fixed-count global tensor. |
 | N9a–i, cap/slab overlap (a,c) | for both signs, exact phase telescoping, source-linked raw-reference/projector identification, matching cusp inputs, torus restoration and first/second jets: ALL PASS, conditional on the written §11.3, §11.5 and §10.6 bounds; the post-raw radial margin is checked in N9b |
 | N10a–d, radial shell (a,b) | source-linked finite elementary \(S,S^{-1}\) nodes, exact scalar inverse and derivative identities, 16 first and 64 second entries for each radial direction, and \(\det DD=S(r)S'(r)/r>0\) on \(10^{-8}<r<1.5\cdot10^{-8}\): ALL PASS; the raw pole and torus stages are not composed here |
@@ -3361,6 +3372,122 @@ Propagation through the full finite meridian fold is
 conditional on all intermediate projectors having matching
 two-jets and nonzero projection denominators.
 C40 does not certify those premises along every global path.
+
+C41 treats the cusp/middle source selector \(|t_c|=3/10\) at
+both cusp signs. For \(|t_c|\le3/10\) the raw reference returns
+the core reference of `elementary_cusp_reference`. For
+\(3/10<|t_c|<1/2\) it returns middle data
+\((t,\mathrm{one},\mathrm{four},\log t,a)\), built from
+`elementary_cusp_logradius` and the real Cramer solve, with
+\(t=t_c\) south and \(t=1/t_c\) north. At a given point both
+sides use the same argument value \(a\), the same
+\(q=e\nu^2|t_c|^2\) with \(e=\exp(-4|t_c|^2/(1-|t_c|^2))\), the
+same cell \(n=\lfloor a+1/2\rfloor\) and the same moment
+\(f=f(a-n,q,\lambda)\). Let \(M_0\) denote the right-hand
+formulas with \(\lambda=s((|t_c|-3/10)/(1/5))\), the weight
+deficit \(1-b_0\) (south) or \(1-b_\infty\) (north), and \(b_m\)
+all replaced by zero. Unlike C39–C40, C41 is a join along the
+whole seam, not in one chamber. It holds for each argument chart
+of \(a\) and each fixed branch of \(\log t\); C34 relates the
+branches of \(\log t\).
+
+*Reference.* Put \(R=\sqrt{f^2+4q}\). The middle height is
+\(e^{2\rho}=q^nY\) with \(Y=2q/(R+f)=(R-f)/2\), and C34e
+reconstructs \(zz=e^\rho\), so the \(M_0\) reference is
+\((t_c/e^\rho,e^\rho)\). In each of the cells \(n=-1,0,1\) the
+core reference is
+\[
+ (x,y)=\bigl(\overline g\,t_c/e^\rho,\ g\,e^\rho\bigr),\qquad
+ g=t_c/|t_c|\ (a>0),\quad g=1\ (a\le0).
+\]
+For \(a>0\) this reduces to \(|x|^2e^{2\rho}=|t_c|^2\), and for
+\(a\le0\) to \(|y|^2=e^{2\rho}\). Both follow from
+\((R-f)(R+f)=4q\). A unit scalar multiplies both source frames,
+plain and deck-shifted, by \(g\). On \(|H|<3/5\) the core weights
+\((\mathrm{hw}(H),\mathrm{hw}(H\mp1/2))\) and the shift integers
+of `torus_pair` select the same frame wherever the weight is
+nonzero. Hence the normalized ten-vectors differ by the factor
+\(g\), and on the left of the seam the rank-one projectors
+coincide identically (C41b, identity type (a)).
+
+*Flatness on the right.* Near the seam put \(u=5|t_c|-3/2\).
+South, \(\lambda=1-b_0=b_m=s(u)\); north, \(\lambda=1-b_\infty=b_m=s(u)\).
+The other cusp weight is exactly zero, and the restoration
+weight \(\beta\) is the same \(1-s(u)\). The flat step has value
+and first two derivatives tending to zero as \(u\downarrow0\).
+Every right-hand source quantity minus its \(M_0\) value either
+carries such a factor, or is \(F(\lambda,\cdot)-F(0,\cdot)\) for
+an \(F\) smooth in \(\lambda\ge0\). The latter holds because the
+\(\lambda=0\) terminal data equal the general data at
+\(\lambda=0\), the \(\gamma=0\) quotients are removable, and
+§11.2 proves smoothness of \(f\) in \(\lambda\) on its second
+parameter piece. These differences therefore have zero
+complete two-jets on the seam (C41a, C41c; types (a) and (b)).
+
+*Phase and restoration.* Let \(E\) be the common final unit
+vector of the finite fold. On the left it lies in the image of
+\(P_c=P_{M_0}\), so \(p=\langle\mathrm{ref},E\rangle\) has modulus
+one. The source inner product is conjugate-linear in its first
+slot, so \(p_m=g\,p_c\). (A linear first slot would give
+\(\bar g\,p_c\), and the \(W\)-points would differ by \(g^2\);
+C41d checks this control.) The restore loop rebuilds \(y\) from
+the middle \(W\)-point by the same reconstruction as C34e. With
+\(\mathrm{one}\) shifted by \(\Arg p_m/(2\pi)\), its exponent is
+\(\rho+i\Arg p_m\) at both signs. So both final \(W\)-points have
+\(y=g\,p_c\,e^\rho\) and \(x=t_c/y\), and both restorations call the
+four-seed \(H_f\) at the same point. On the right, \(E\) lies in the
+image of the actual projector, which differs from \(P_{M_0}\) by flat
+terms, so there the identities below hold up to flat terms. The paper's holomorphic chart changes out of
+the middle chart are
+\[
+ \Phi:\ y=e^{i(z-\pi s(s-1))},\ x=t/y,\ w_c=w-2ts,\ \
+ s=\frac{\log t}{2\pi i};\qquad
+ \Theta:\ y=e^{i(z-iw/t)},\ x=t^{-1}/y,\ w_c=w/t^2 .
+\]
+Their complex Jacobian determinants are \(i\) and \(-i/t^4\), and
+`tfull.c0_to_mid` and `ci_to_mid` are their inverses. Let \(c\)
+be the real coordinates of the cusp vector \(e_4\), and \(cc\)
+those of \(-w_c\). The source middle correction then satisfies
+\(D-cc=H_fc\) at both signs. South, this follows from the
+lattice \(w\)-equation \(2ts=\xi_1e_2+\xi_2e_3+2t\xi_3\); north,
+from \(cc=\mathrm{four}\cdot c\). Hence, for every \(\phi\), the
+c0/ci restoration of the core \(W\)-point equals \(\Phi\)
+(resp. \(\Theta\)) of the \(M_0\) middle restoration exactly
+(C41d, identity type (a)).
+
+Consequently, at every point of the seam the source projector
+and the restored holomorphic output have matching complete
+two-jets across \(|t_c|=3/10\), through a holomorphic chart
+change. Higher jets would also match, given §11.2's smoothness
+of \(f\) in \(\lambda\); C41 checks second order. Inside the finite fold the same
+identity applies to every meridian sample that meets this
+seam, so this selector creates no jet mismatch at any \(P_j\).
+Propagation through the fold remains conditional on the nonzero
+projection denominators and on the other source seams. The
+argument selector of C38 is certified only for \(|t_c|<1/10\);
+its continuation to \(1/10\le|t_c|<1/2\), which meets this seam
+at a corner, is not covered here.
+
+*Domain and witnesses.* On the band \(2/25<|t_c|^2<1/10\) both
+sources are in their certified domains (type (c)). There
+\(1/25<q<1/10\) south and \(1/1375<q<1/10\) north, so
+\(1/2500<q<1/8\). The Cramer determinant exceeds
+\(2r^2(1+r^2)>0\). The torus determinants are \(1-|t_c|^4>0\) and
+\(|t_c|^4-1<0\). Finally \(|a|<3/5\) in both argument charts,
+because \(\cos(\pi/5)<9/10\). In fact production gives only
+\(-0.43<a<0.58\), so cell \(-1\) never occurs there; C41b covers it
+anyway. C41a binds the whole real Cramer solve
+(`scalar_lattice_coords`, including its determinant helper). The exact round witnesses use
+\(p=|t_c|^2\in\{(299/1000)^2,\,9/100,\,(301/1000)^2\}\),
+\(A=(4\pi)^2\), \(B=e^4\) and \(Q=\sqrt{1+k^2}\). South:
+\(k^2=(Bp^2+Ap)/(1+Ap)\) and \((u_1,u_2)=(-k/Q,i/Q)\), giving
+\(t_c=i\sqrt p\). North: \(k^2=(p^2+Ap)/(Ap+B)\) and
+\((u_1,u_2)=(i/Q,k/Q)\), giving \(t_c=-i\sqrt p\). Both have
+\(a=1/4\) and \(\Arg t=\pi/2\), away from the log cut, and
+\(|X|<3/5\) (C41e). C41f is a numerical observation (d) only. It compares the
+production branches at 18 points, covering the cells with \(a\le0\)
+(including the deck frame), \(a=0\), \(a>0\) in cells \(0\) and
+\(1\), and both argument charts.
 
 On the checked south raw-pole annulus, write \(r=|Z_0|^2+|Z_1|^2\) and
 \(z_L=(Z_0-iZ_1,Z_0+iZ_1)/\sqrt{4\pi(1+\sqrt{1-r^2})}\). Let \(w=g_0(z_L)\)

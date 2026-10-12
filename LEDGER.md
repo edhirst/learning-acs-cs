@@ -2263,3 +2263,105 @@ in `AGENTS.md` §5.
   \(|t_c|=3/10\) join at both signs, the pure-middle
   \(|t|=1\) join and its argument-cut corner, and the
   all-branch guarded six-real circuit.
+
+### 2026-10-12-EH-1 — Certify the cusp/middle |t_c|=3/10 source join at both signs
+- **Date:** 2026-10-12
+- **Collaborator:** Edward Hirst
+- **Agent:** Claude Code (Claude Opus 5.5), with one independent reviewer subagent
+- **Type:** addition
+- **Based on:** ea14d2a
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (new section C41a–f
+  at the end), docs/s4t2_symbolic_programme.md (status line, §11.8 table
+  row and certificate paragraph), SYMBOLIC_CAMPAIGN.md (T16 status and
+  next tasks). No manuscript or construction file changed.
+- **Change:** added C41, the first T16 target listed by TSG-22: the source
+  selector \(|t_c|=3/10\) between the c0/ci core reference
+  (`elementary_cusp_reference`) and the middle data built from
+  `elementary_cusp_logradius` and the Cramer solve, at both cusp signs,
+  including the restored holomorphic chart transition. Let \(M_0\) be the
+  right-hand formulas with \(\lambda\), \(1-b_0\) (or \(1-b_\infty\)) and
+  \(b_m\) set to zero. C41 proves the following along the whole seam,
+  for each argument chart of \(a\) and each fixed branch of \(\log t\):
+  (b) the core reference is \(g\) times the \(M_0\) reference
+  \((t_c/e^\rho,e^\rho)\), with \(g=t_c/|t_c|\) for \(a>0\) and \(g=1\) for
+  \(a\le0\), in all three cells, so the ten-slot projectors are
+  identical; (c) the right-hand source differs from \(M_0\) only by terms
+  with a factor flat at \(|t_c|=3/10\); (d) for every \(\phi\) and a common
+  final unit vector, the c0/ci torus restoration equals the paper's
+  holomorphic chart change \(\Phi\) (south) or \(\Theta\) (north) of the
+  middle restoration, via \(D-cc=H_fc\). The complex determinants are
+  \(i\) and \(-i/t^4\), and \(\Phi\), \(\Theta\) are bound to
+  `tfull.c0_to_mid` and `ci_to_mid`. C41a binds the source, C41e gives
+  the band and the exact witnesses, and C41f is a type-(d) production
+  comparison.
+- **Why:** the direct certificate of the specific \(J_{\mathrm{cl}}\)
+  needs every source selector to join with matching jets. This one
+  changes chart (c0/ci versus middle), so equality of raw tuples is not
+  the right test: the references differ by a unit gauge, and the outputs
+  differ by a holomorphic chart change. Because the core reference
+  equals the \(\lambda=0\) middle continuation identically, the join
+  holds along the whole seam, not in one chamber as in C39–C40.
+- **Verification:** `python3 extra/s4t2_explicit/sym/chart_identities.py`:
+  **ALL PASS** (C1–C41; sympy 1.14.0, mpmath 1.3.0, conda env
+  `nijenhuis`, Python 3.10.19). Negative controls, run separately in a
+  scratch script, fail as they should: a mutated source line, the north
+  correction \(D\) used at the south, a non-flat factor, and a wrong cell
+  formula. Explicit constants (type (c)): on \(2/25<|t_c|^2<1/10\),
+  \(1/25<q<1/10\) south and \(1/1375<q<1/10\) north (both in
+  \((1/2500,1/8)\)), Cramer determinant \(>2r^2(1+r^2)>0\), torus
+  determinants \(1-|t_c|^4>0\) and \(|t_c|^4-1<0\), and \(|a|<3/5\) (from
+  \(\cos(\pi/5)<9/10\)); the witnesses have \(|X|<3/5\). C41f, numerical
+  observation (d), sample size 18 at 120 digits. Per sign it uses four
+  pairs (a, arg t_c) covering a<=0 (with the deck frame), a=0, a>0 in
+  cell 0, and a>0 in cell 1 (half-centred chart), at the left and seam
+  points, plus one right point. Maximum projector difference
+  \(2.4\cdot10^{-121}\); maximum restored-output difference
+  \(3.9\cdot10^{-120}\); right-side flat weights \(3.8\cdot10^{-87}\);
+  \(|\rho-\rho(\lambda=0)|\le1.1\cdot10^{-87}\). At the exact seam,
+  rounding sends the production raw reference to either branch, so the
+  core formula is evaluated directly there. An independent reviewer
+  subagent audited C41 adversarially. It re-derived (b) and (d) by hand
+  and ran its own checks: 1200 production points over all cells, ten
+  values of arg t (including the cut) and both signs, with worst
+  identity errors \(6\cdot10^{-79}\); 360 right-side points showing the
+  flat order; a separate symbolic proof of the restore link; and a
+  reduced-count whole-chain comparison. Verdict: sound, with caveats.
+  All its actionable points are fixed in this commit:
+  - the lattice solve (`ez`, `ew`, the determinant helper, `den`) is now
+    bound, and the helper is checked to be the cofactor determinant;
+  - \(p_m=g\,p_c\) is derived from the conjugate-linear source inner
+    product, with a linear-slot negative control, instead of being
+    assumed;
+  - the restore loop's `yy` is linked symbolically to the final c0/ci
+    \(W\)-point at both signs, instead of assuming a common \(H_f\);
+  - three trivial checks are replaced by real ones (composition with
+    the `tfull` chart maps, \(1+\Re u_1=1-k/Q>0\), and the identity
+    \(\det-2r^2(1+r^2)=(1+r^2)(r^2-1)\log r\ge0\) for every \(r>0\));
+  - the exposition now states that (d) is exact for \(E\) in the image
+    of \(P_{M_0}\) and holds up to flat terms on the right, and that
+    only second order is checked;
+  - C41f is widened to all cells and both argument charts.
+  The full script was rerun after these fixes: ALL PASS (127 s).
+  Baseline before the edit: `lemmas_1d.py`, `chart_identities.py`,
+  `node_remainder.py`, `i2_margins.py` and `symbolic_identities.py`:
+  **ALL PASS**. `verify_construction.py`: `all checks passed`;
+  `sphere_products.py`: `Dimension 8 check passed` (before and after).
+  `git diff --check`: pass. LaTeX: **not run** (no manuscript change).
+  The legacy numerical safety net was not run, because no construction
+  block (`cusp.py`, `tcore.py`, `tlift.py`, …) changed.
+- **Open points:** the reviewer found a numerical edge (type (d)) in the
+  production evaluator, not in the mathematics. The selector compares
+  with `mp.mpf('.3')` at dps+50, while the embedding's guard
+  \(|xy|\le .3\) uses dps+40, where `.3` can round lower. A point within
+  about \(10^{-(\mathrm{dps}+40)}\) of the seam could therefore select
+  c0 and then raise in the embedding. It was triggered only in a direct
+  call with mixed precision, never through the production chain (80
+  exact-seam trials). `cusp.py` is left unchanged; fixing this needs a
+  construction edit together with the safety net. Propagation through
+  the fold is still conditional on
+  the nonzero projection denominators and on the other source seams. C38
+  certifies the argument selector only for \(|t_c|<1/10\); its
+  continuation to \(1/10\le|t_c|<1/2\), which meets this seam at a corner,
+  is not covered, and is now listed as a T16 task. The pure-middle
+  \(|t|=1\) selector and its argument cuts remain open. The global
+  \(J_{\mathrm{cl}}\) statement still requires human review.

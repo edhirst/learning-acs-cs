@@ -5416,5 +5416,750 @@ with mp40.workdps(190), cusp30.elementary_formula_branches():
 rep('C40f two production branch margins (numerical observation, d)',
     sample_ok40)
 
+# C41: the cusp/middle source join |t_c|=3/10, at both cusp signs.
+# For |tc|<=3/10 the raw reference returns the c0/ci core reference of
+# elementary_cusp_reference; for 3/10<|tc|<1/2 it returns middle data
+# built from elementary_cusp_logradius and the real Cramer solve.  Let M0
+# denote the right-hand source formulas with the three collar weights
+# lambda=s((|tc|-3/10)/(1/5)), 1-b0 and bm replaced by zero.  C41 proves,
+# on an open neighbourhood of the whole seam (any fixed argument chart of
+# a, any fixed branch of log t): the core reference is a unit multiple of
+# the M0 reference, so the two ten-slot projectors are identical; the
+# right source differs from M0 only by terms with a factor flat at
+# |tc|=3/10; and for every phi and every common final unit vector the
+# c0/ci restoration equals the holomorphic chart change Phi/Theta of the
+# M0 middle restoration.  Unlike C40 this is not one chamber.
+def body_dump41(tree):
+    body = tree.body
+    if (body and isinstance(body[0],ast.Expr)
+            and isinstance(body[0].value,ast.Constant)
+            and isinstance(body[0].value.value,str)):
+        body = body[1:]
+    return [ast.dump(node,include_attributes=False) for node in body]
+
+
+def text_dump41(text):
+    return [ast.dump(node,include_attributes=False)
+            for node in ast.parse(text).body]
+
+
+core_body41 = '''
+import mpmath as mp
+t,a,nu = mp.mpc(t),mp.mpf(a),mp.mpf(nu)
+if abs(t)>mp.mpf('.3') or abs(a)>=mp.mpf('.6'):
+    raise ValueError('core reference requires |t|<=.3 and |a|<.6')
+e = mp.exp(-4*abs(t)**2/(1-abs(t)**2))
+q = e*nu*nu*abs(t)**2
+cell = int(mp.floor(a+mp.mpf('.5')))
+b = a-cell
+f = inverse_height_moment(b,q,0)
+R = mp.sqrt(f*f+4*q)
+if a>0:
+    A = 2/(R-f) if cell==1 else (R+f)/2
+    x = mp.sqrt(A/e)/nu
+    return x,t/x
+Y = 2/(R+f) if cell==-1 else (R-f)/2
+y = mp.sqrt(Y)
+if y==0:
+    raise ValueError('the core reference excludes the node')
+return t/y,y
+'''
+logradius_body41 = '''
+import mpmath as mp
+with mp.workdps(max(mp.mp.dps,dps)+50):
+    a,t,nu = mp.mpf(a),mp.mpc(t),mp.mpf(nu)
+    r = abs(t)
+    if not 0<r<=mp.mpf('.5') or not 0<nu<=1:
+        raise ValueError('elementary cusp inverse requires 0<|t|<=.5 and 0<nu<=1')
+    P = mp.log(nu)+mp.log(r)-2*r*r/(1-r*r)
+    q = mp.exp(2*P)
+    n = mp.floor(a+mp.mpf('.5'))
+    b = a-n
+    lam = scalar_flat_step((r-mp.mpf('.3'))/mp.mpf('.2'))
+    if lam==1:
+        return +(P*(a+mp.mpf('.5')))
+    f = inverse_height_moment(b,q,lam)
+    root = mp.sqrt(f*f+4*q)
+    Y = 2*q/(root+f) if f>=0 else (root-f)/2
+    return +(n*P+mp.log(Y)/2)
+'''
+restore_loop41 = '''
+for inf,tc,beta in ((False,t,1-scalar_flat_step((r-mp.mpf('.3'))/mp.mpf('.2'))),
+                    (True,1/t,1-scalar_flat_step((1/r-mp.mpf('.3'))/mp.mpf('.2')))):
+    if beta==0:
+        continue
+    e2,e3,e4,a2,a3 = cusp_data(tc,inf)
+    c = coeffs(e4,e2,e3)
+    if inf:
+        zc,wc = z-mp.j*w/t,w/(t*t)
+    else:
+        s = lt/(2*mp.j*mp.pi)
+        zc,wc = z-mp.pi*s*(s-1),w-2*t*s
+    cc = coeffs(-wc,e2,e3)
+    yy = mp.exp(mp.j*(zc-mp.j*(cc[0]*a2+cc[1]*a3)))
+    H = scalar_finite_height(tc/yy,yy,mp.exp(-2) if inf else mp.mpf(1))
+    if inf:
+        D = tuple((H+four)*v for v in c)
+    else:
+        s = lt/(2*mp.j*mp.pi)
+        xi = scalar_lattice_coords(mp.pi*s*(s-1),2*t*s,t,lt)
+        D = tuple(xi[j+1]+(H-four+xi[3])*c[j] for j in range(2))
+    C = [v+beta*d for v,d in zip(C,D)]
+'''
+selector_nodes41 = [node for node in ast.walk(raw_tree31)
+                    if isinstance(node,ast.If)
+                    and ast.dump(node.test,include_attributes=False)
+                    ==ast.dump(ast.parse("inf or abs(t)<mp.mpf('.5')",
+                                         mode='eval').body,
+                               include_attributes=False)]
+restore_loops41 = [node for node in ast.walk(restore_tree30)
+                   if isinstance(node,ast.For)]
+terminal_lam41 = [node for node in ast.walk(terminal_tree36)
+                  if isinstance(node,ast.If)
+                  and ast.dump(node.test,include_attributes=False)
+                  ==ast.dump(ast.parse('lam==0',mode='eval').body,
+                             include_attributes=False)]
+height_G_tree41 = source_tree30(cusp30._height_G)
+lattice_tree41 = source_tree30(cusp30.scalar_lattice_coords)
+lattice_body41 = '''
+import mpmath as mp
+ez = (-mp.j*t,-t,-mp.j*logt)
+ew = (1-t*t,mp.j*(1+t*t),2*t)
+rows = [[v.imag for v in ez],[v.real for v in ew],[v.imag for v in ew]]
+rhs = (z.imag,w.real,w.imag)
+def det(a):
+    return (a[0][0]*(a[1][1]*a[2][2]-a[1][2]*a[2][1])
+            -a[0][1]*(a[1][0]*a[2][2]-a[1][2]*a[2][0])
+            +a[0][2]*(a[1][0]*a[2][1]-a[1][1]*a[2][0]))
+den = det(rows)
+coords = []
+for k in range(3):
+    replaced = [[rhs[i] if j==k else rows[i][j] for j in range(3)] for i in range(3)]
+    coords.append(det(replaced)/den)
+one = (z.real-sum(a*b.real for a,b in zip(coords,ez)))/(2*mp.pi)
+return (one,*coords)
+'''
+# The source det helper is the cofactor expansion of a 3x3 determinant,
+# so its Cramer quotients are the unique solve whenever den!=0.
+gen41 = sp.Matrix(3,3,sp.symbols('g41_0:9'))
+det_helper41 = sp.expand(
+    gen41[0,0]*(gen41[1,1]*gen41[2,2]-gen41[1,2]*gen41[2,1])
+    -gen41[0,1]*(gen41[1,0]*gen41[2,2]-gen41[1,2]*gen41[2,0])
+    +gen41[0,2]*(gen41[1,0]*gen41[2,1]-gen41[1,1]*gen41[2,0])
+    -gen41.det())==0
+source41 = (
+    body_dump41(lattice_tree41)==text_dump41(lattice_body41)
+    and det_helper41 and
+    source_path37 and source_collar34 and source_torus35
+    and source_cusp_ok30 and selector_source40 and arg_source38
+    and body_dump41(core_tree37)==text_dump41(core_body41)
+    and body_dump41(logradius_tree34)==text_dump41(logradius_body41)
+    and len(selector_nodes41)==1
+    and ordered_nodes37(selector_nodes41[0].body,[
+        'tc = small if inf else t',
+        "nu = mp.exp(-2) if inf else mp.mpf(1)",
+        '''
+if abs(tc)<=mp.mpf('.3') and elementary:
+    xs,yy = elementary_cusp_reference(tc,a,nu)
+    return ('ci' if inf else 'c0',(xs,yy,a))
+''',
+        'rho = (elementary_cusp_logradius if elementary else '
+        'elliptic_cusp_logradius)(a,tc,nu,dps=dps)',
+        'yy = mp.exp(rho)',
+        'xs = tc/yy',
+        'if inf:\n    t = 1/tc',
+        'lt = mp.log(t)',
+        'lattice = scalar_lattice_coords(zm,wm,t,lt)',
+        'data = (t,lattice[0],lattice[3],lt,a) if elementary else '
+        '(t,lattice[0],lattice[3],lt)',
+        "return ('mid',data)"])
+    and len(restore_loops41)==1
+    and ast.dump(restore_loops41[0],include_attributes=False)
+        ==text_dump41(restore_loop41)[0]
+    and ordered_nodes37(restore_tree30.body,[
+        't,one,four,lt = data[:4]',
+        'r = abs(t)',
+        'z,w = 2*mp.pi*one-mp.j*lt*four,2*t*four',
+        'C = list(phi)'])
+    and returned_expr30(restore_tree30,
+        "'mid',(z-mp.j*t*C[0]-t*C[1],"
+        "w+(1-t*t)*C[0]+mp.j*(1+t*t)*C[1],t)")
+    and matching_statement31(slice_tree30,'x,y = data[:2]')
+    and returned_expr30(slice_tree30,'kind,(mp.conj(phase)*x,phase*y)')
+    and returned_expr30(slice_tree30,
+        'kind,(t,one+mp.arg(phase)/(2*mp.pi),four,lt)')
+    and matching_assignment30(slice_tree30,'phase',
+        '_elementary_inner(ref,result)')
+    and returned_expr30(inner_tree36,
+        'sum(mp.conj(a)*b for a,b in zip(u,v))')
+    and len(terminal_lam41)==1
+    and [ast.dump(node,include_attributes=False)
+         for node in terminal_lam41[0].body]
+        ==text_dump41('kappa,amp,d = mp.mpf(2),mp.mpf(0),mp.mpf(1)')
+    and ordered_nodes37(terminal_lam41[0].orelse,[
+        'k = -mp.log(q)',
+        'kappa = 2+lam*(k-2)',
+        'amp = lam*k',
+        'd = 1-lam+2*lam*mp.sqrt(q)*k'])
+    and exact_if_body37(height_G_tree41,'amp==0',
+        'return a/d if inverse else d*a')
+    and returned_expr30(height_G_tree41,
+        'mp.asinh(amp*a/d)/amp if inverse else d*mp.sinh(amp*a)/amp')
+    and matching_if_test32(moment_tree36,
+        "abs(a)>mp.mpf('.5') or not 0<=q<=mp.mpf('.125') or "
+        "not 0<=lam<=1 or (lam>0 and q<mp.mpf(1)/2500)")
+    and matching_assignment30(moment_tree36,'data',
+        '_terminal_height_data(q,lam)')
+    and matching_if_test32(moment_tree36,"lam==1 or aa<=mp.mpf('.1')")
+    and matching_if_test32(moment_tree36,"aa>=mp.mpf('.4')")
+    and exact_if_body37(flat_tree38,'u<=0','return mp.mpf(0)')
+    and exact_if_body37(flat_tree38,'u>=1','return mp.mpf(1)'))
+
+# The lambda=0 piece of the terminal data is the value of the general
+# piece at lambda=0, and the amp=0 quotients are removable: their series
+# are even in amp.  Thus f(b,q,lambda) is the restriction of one smooth
+# function of lambda>=0 on the second parameter piece of section 11.2,
+# whose smoothness up to lambda=0 is proved there.
+lam41,k41,qq41,g41,a41,y41,d41 = sp.symbols(
+    'lam41 k41 qq41 g41 a41 y41 d41',positive=True)
+lambda_piece41 = (
+    sp.simplify((2+lam41*(k41-2)).subs(lam41,0)-2)==0
+    and (lam41*k41).subs(lam41,0)==0
+    and sp.simplify((1-lam41+2*lam41*sp.sqrt(qq41)*k41)
+                    .subs(lam41,0)-1)==0
+    and sp.simplify(sp.series(d41*sp.sinh(g41*a41)/g41,g41,0,4).removeO()
+                    -(d41*a41+d41*a41**3*g41**2/6))==0
+    and sp.simplify(sp.series(sp.asinh(g41*y41/d41)/g41,g41,0,4).removeO()
+                    -(y41/d41-g41**2*y41**3/(6*d41**3)))==0)
+rep('C41a ordered source paths on both sides of |tc|=3/10; lambda=0 piece',
+    source41 and lambda_piece41)
+
+# C41b.  Write q=e*nu^2*|t|^2 (both sources use this q: the core sets it
+# directly, the logradius sets q=exp(2P)) and R=sqrt(f^2+4q)>|f|, where
+# f=f(b,q,lambda) is the common source moment and n=cell=floor(a+1/2).
+# The right source has e^(2rho)=q^n*Y with Y=2q/(R+f)=(R-f)/2 (its two
+# branches are one function).  C34e reconstructs zz=e^rho, so the M0
+# reference is (x_m,y_m)=(t/e^rho,e^rho).  Cell by cell the core reference
+# is (conj(g)x_m,g*y_m), with g=t/|t| for a>0 and g=1 for a<=0.
+f41,tr41,ti41,th41 = sp.symbols('f41 tr41 ti41 th41',real=True)
+q41,nu41 = sp.symbols('q41 nu41',positive=True)
+t41 = tr41+sp.I*ti41
+abs2_41 = tr41**2+ti41**2
+R41 = sp.sqrt(f41**2+4*q41)
+e41 = q41/(nu41**2*abs2_41)
+Ypos41,Yneg41 = 2*q41/(R41+f41),(R41-f41)/2
+cells41 = (
+    # (a>0 ?, |x_c|^2 or |y_c|^2 from the core, e^(2 rho) from logradius)
+    (True,((R41+f41)/2)/(e41*nu41**2),Ypos41),            # cell 0, a>0
+    (True,(2/(R41-f41))/(e41*nu41**2),q41*Yneg41),        # cell 1
+    (False,Yneg41,Yneg41),                               # cell 0, a<=0
+    (False,2/(R41+f41),Ypos41/q41))                      # cell -1
+rq41 = sp.Symbol('rq41',positive=True)
+reference_cells41 = (
+    # logradius q=exp(2P), P=log(nu)+log(r)-2r^2/(1-r^2), equals the
+    # core q=e*nu^2*r^2, e=exp(-4r^2/(1-r^2)); both take cell=n=
+    # floor(a+1/2), b=a-cell and the same moment f (lambda=0 in M0).
+    sp.simplify(sp.exp(2*(sp.log(nu41)+sp.log(rq41)-2*rq41**2/(1-rq41**2)))
+                -nu41**2*rq41**2*sp.exp(-4*rq41**2/(1-rq41**2)))==0
+    and matching_assignment30(core_tree37,'cell',
+                              "int(mp.floor(a+mp.mpf('.5')))")
+    and matching_assignment30(logradius_tree34,'n',
+                              "mp.floor(a+mp.mpf('.5'))")
+    and sp.simplify(sp.expand((R41-f41)*(R41+f41))-4*q41)==0
+    and sp.simplify(Ypos41-Yneg41)==0
+    and all(sp.simplify((core*mid-abs2_41) if positive_x else
+                        (core-mid))==0
+            for positive_x,core,mid in cells41))
+# Gauge: with |x_c|*e^rho=|t| (a>0) the positive core x_c equals
+# conj(g)*t/e^rho and y_c=t/x_c=g*e^rho.  A unit scalar g multiplies both
+# source frames (plain and deck-shifted) by g, since r is unchanged.
+xr41,xi41,yr41,yi41 = sp.symbols('xr41 xi41 yr41 yi41',real=True)
+m41 = sp.Symbol('m41',positive=True)
+x41,y41c = xr41+sp.I*xi41,yr41+sp.I*yi41
+gauge41 = sp.exp(sp.I*th41)
+def frame41(x,y):
+    r = sp.expand(nu41**2*x*sp.conjugate(x)+y*sp.conjugate(y))
+    return sp.Matrix([nu41*sp.conjugate(x),y])/sp.sqrt(r)
+frame_plain41 = (frame41(sp.conjugate(gauge41)*x41,gauge41*y41c)
+                 -gauge41*frame41(x41,y41c))
+frame_deck41 = (frame41(1/(m41*gauge41*y41c),
+                        m41*sp.conjugate(gauge41)*x41*(gauge41*y41c)**2)
+                -gauge41*frame41(1/(m41*y41c),m41*x41*y41c**2))
+gauge_frames41 = (
+    all(sp.simplify(sp.expand_complex(v))==0 for v in frame_plain41)
+    and all(sp.simplify(sp.expand_complex(v))==0 for v in frame_deck41)
+    # g=t/|t| with |t|=sqrt(abs2)>0 real: conj(g)*t=|t|.
+    and sp.simplify(sp.expand(sp.conjugate(t41)*t41)/sp.sqrt(abs2_41)
+                    -sp.sqrt(abs2_41))==0)
+# The weights.  Core: hw(H)*frame(x,y) and, second, hw(H+1/2)*deck frame
+# if H<0, hw(H-1/2)*frame(x,y) if H>=0.  torus_pair(z,t,nu,H): centre c
+# has shift=floor(c+1/2-H), weight hw(H+shift-c), frame(t/yy,yy) with
+# yy=z*(m*t)^shift; shift=1 gives frame(1/(m z),m*t*z), the deck frame.
+# hw(h)=0 for |h|>=2/5 (flat step >=1).  On |H|<3/5 the source shift
+# values are constant on these intervals, and every disagreement of
+# the two formulas carries a zero weight.
+def shift_constant41(c,lo,lo_closed,hi,hi_closed,shift):
+    # g(H)=c+1/2-H decreases, so g maps the H-interval onto the interval
+    # with ends g(hi)<g(lo), closedness swapped.  floor(g)=shift on it
+    # iff g(hi)>=shift and g(lo)<shift+1 (or <=shift+1 at an open end).
+    left,right = c+sp.Rational(1,2)-hi,c+sp.Rational(1,2)-lo
+    right_closed = lo_closed
+    return (left>=shift
+            and (right<shift+1 if right_closed else right<=shift+1))
+two5_41 = sp.Rational(2,5)
+half41 = sp.Rational(1,2)
+H_intervals41 = (
+    # (lo, lo_closed, hi, hi_closed, shift centre 0, shift centre 1/2)
+    (-sp.Rational(3,5),False,-half41,True,1,1),
+    (-half41,False,sp.Integer(0),False,0,1),
+    (sp.Integer(0),False,half41,True,0,0),
+    (half41,False,sp.Rational(3,5),False,-1,0))
+shift_table41 = all(
+    shift_constant41(sp.Integer(0),lo,lc,hi,hc,s0)
+    and shift_constant41(half41,lo,lc,hi,hc,s1)
+    for lo,lc,hi,hc,s0,s1 in H_intervals41)
+# Zero weights where the formulas differ: on (-3/5,-1/2] both first
+# weights hw(H+1)=hw(H)=0; on (1/2,3/5) hw(H-1)=hw(H)=0; at H=0 the
+# second weights are hw(1/2)=hw(-1/2)=0; on (-1/2,0) and (-3/5,-1/2]
+# the second pair is the deck frame on both sides, with weight
+# hw(H+1/2); on [0,3/5) it is the plain frame with weight hw(H-1/2).
+zero_weights41 = (
+    sp.Rational(2,5)<=half41 and abs(-sp.Rational(3,5)+1)>=two5_41
+    and abs(-half41+1)>=two5_41 and half41>=two5_41
+    and abs(sp.Rational(3,5)-1)>=two5_41 and abs(half41-1)>=two5_41
+    and sp.floor(half41-0)==0 and sp.floor(1-sp.Integer(0))==1
+    and abs(0+1-half41)>=two5_41 and abs(0-half41)>=two5_41)
+rep('C41b core reference = unit multiple of the M0 reference, cell by cell',
+    reference_cells41 and gauge_frames41 and shift_table41
+    and zero_weights41 and south_reconstruction34
+    and north_reconstruction34)
+
+# C41c.  On the right, near |tc|=3/10, the source has (with u=5|tc|-3/2)
+# lambda=s(u) in elementary_cusp_logradius, b0=1-s(u), bm=s(u) in the
+# embedding (bi=0 exactly: (1/r-3/10)/(1/5)>=1 for r<=2), and
+# beta=b0=1-s(u), beta_inf=0 in the middle restoration.  The source flat
+# step s has value and first two derivatives tending to zero as u->0+.
+# Hence every right source quantity minus its M0 value has a zero
+# complete two-jet on the seam: either it carries the factor s(u) or 1-b0,
+# or it is F(lambda,...)-F(0,...) for a function F smooth in lambda>=0
+# (C41a).  The generic chain-rule checks below use arbitrary smooth K, F.
+u41 = sp.Symbol('u41',positive=True)
+flat41 = flat_actual34.subs(p34,u41)
+flat_limits41 = (
+    flat_jets34
+    and all(sp.limit(expr.subs(p34,u41),u41,0,'+')==0
+            for expr in (flat_actual34,flat_slope34,flat_curv34))
+    and sp.simplify(sp.diff(flat41,u41)-flat_slope34.subs(p34,u41))==0
+    and sp.simplify(sp.diff(flat41,u41,2)-flat_curv34.subs(p34,u41))==0
+    and (1/sp.Integer(2)-sp.Rational(3,10))/sp.Rational(1,5)==1)
+rr41,v41,w41 = sp.symbols('rr41 v41 w41',real=True)
+gf41 = sp.Function('gf41')(rr41)
+Kf41 = sp.Function('Kf41')(rr41,v41,w41)
+Ff41 = sp.Function('Ff41')
+lam_s41 = sp.Symbol('lam_s41',real=True)
+def flat_at_seam41(expr):
+    # Substitute g=g'=g''=0 (the flat step at u=0+) after differentiating.
+    out = expr.subs({sp.Derivative(gf41,(rr41,2)):0,
+                     sp.Derivative(gf41,rr41):0}).subs(gf41,0)
+    return sp.simplify(out.doit())==0
+factor_terms41 = gf41*Kf41
+param_terms41 = Ff41(gf41,v41,w41)-Ff41(0,v41,w41)
+derivs41 = ((),(rr41,),(v41,),(w41,),(rr41,rr41),(rr41,v41),(rr41,w41),
+            (v41,v41),(v41,w41),(w41,w41))
+flat_two_jets41 = all(
+    flat_at_seam41(sp.diff(expr,*d) if d else expr)
+    for expr in (factor_terms41,param_terms41) for d in derivs41)
+rep('C41c right source = M0 + terms flat at |tc|=3/10: complete zero two-jets',
+    flat_limits41 and flat_two_jets41 and flat_all_directions40)
+
+# C41d.  Final phase and torus restoration.  Let E be the common final
+# unit vector of the finite fold (it lies on the final rank-one image, so
+# p=<ref,E> is a unit scalar).  With ref_c=g*ref_m (C41b) the source
+# inner product, conjugate-linear in its first slot, gives p_m=g*p_c.
+# The c0/ci W-point is (conj(p_c)x_c,p_c*y_c); the middle W-point shifts
+# `one` by Arg(p_m)/(2pi), i.e. multiplies the reconstructed zz=e^rho by
+# p_m.  Both W-points therefore have y=p_c*g*e^rho.  An integer change of
+# the local Arg branch is a lattice translation of `one`.
+al41 = sp.Symbol('al41',real=True)
+p_c41 = sp.exp(sp.I*al41)
+r1_41,r2_41,E1_41,E2_41 = sp.symbols('r1_41 r2_41 E1_41 E2_41')
+def inner41(u,v):                    # the source: sum(conj(a)*b)
+    return sum(sp.conjugate(a)*b for a,b in zip(u,v))
+ref_c41 = (r1_41,r2_41)
+ref_m41 = tuple(sp.conjugate(gauge41)*v for v in ref_c41)   # ref_c=g*ref_m
+E41 = (E1_41,E2_41)
+p_m41 = sp.expand(inner41(ref_m41,E41))
+xm41,ym41 = sp.symbols('xm41 ym41')
+final_W41 = (
+    sp.simplify(p_m41-gauge41*inner41(ref_c41,E41))==0
+    # control: a linear first slot would give conj(g)*p_c instead
+    and sp.simplify(sum(a*b for a,b in zip(ref_m41,E41))
+                    -gauge41*sum(a*b for a,b in zip(ref_c41,E41)))!=0
+    # core W y=p_c*(g*y_m), middle zz=e^rho times p_m=g*p_c: equal;
+    # x=tc/y on both sides.
+    and sp.simplify(p_c41*(gauge41*ym41)-(gauge41*p_c41)*ym41)==0
+    and sp.simplify(sp.conjugate(p_c41)*(sp.conjugate(gauge41)*xm41)
+                    *(gauge41*p_c41)*ym41-xm41*ym41)==0)
+# Restoration.  The middle chart (z,w,t) and the c0 chart (x,y,w_c) are
+# glued by the paper's holomorphic Phi: y=exp(i(z-pi s(s-1))),
+# s=log(t)/(2 pi i), x=t/y, w_c=w-2ts (tfull.c0_to_mid is its inverse);
+# ci is glued by Theta: y=exp(i(z-i w/t)), x=(1/t)/y, w_c=w/t^2.
+# Take any branch s of log(t)/(2 pi i) (south), with real lattice data
+# xi3 and (xi1,xi2) the unique real solution of the w-equation
+# 2ts=xi1(1-t^2)+xi2 i(1+t^2)+xi3 2t of scalar_lattice_coords.
+sr41,si41,xi3_41,four41,H41,ph2_41,ph3_41,one41 = sp.symbols(
+    'sr41 si41 xi3_41 four41 H41 ph2_41 ph3_41 one41',real=True)
+s41 = sr41+sp.I*si41
+def coeffs41(rhs,e2,e3):
+    det = sp.re(e2)*sp.im(e3)-sp.re(e3)*sp.im(e2)
+    return ((sp.re(rhs)*sp.im(e3)-sp.re(e3)*sp.im(rhs))/det,
+            (sp.re(e2)*sp.im(rhs)-sp.re(rhs)*sp.im(e2))/det)
+def cusp_data41(tc,inf):
+    return ((tc*tc-1,sp.I*(1+tc*tc),-2*tc,tc,sp.I*tc) if inf else
+            (1-tc*tc,sp.I*(1+tc*tc),2*tc,tc,-sp.I*tc))
+phi41 = (ph2_41,ph3_41)
+restoration41 = True
+chart_dets41 = []
+for inf41 in (False,True):
+    lt41 = 2*sp.pi*sp.I*s41
+    z41 = 2*sp.pi*one41-sp.I*lt41*four41
+    w41m = 2*t41*four41
+    tc41 = 1/t41 if inf41 else t41
+    e2_41,e3_41,e4_41,a2_41,a3_41 = cusp_data41(tc41,inf41)
+    c41 = coeffs41(sp.expand_complex(e4_41),e2_41,e3_41)
+    if inf41:
+        zc41,wc41 = z41-sp.I*w41m/t41,w41m/(t41*t41)
+    else:
+        zc41,wc41 = z41-sp.pi*s41*(s41-1),w41m-2*t41*s41
+    cc41 = coeffs41(sp.expand_complex(-wc41),e2_41,e3_41)
+    if inf41:
+        D41 = tuple((H41+four41)*v for v in c41)
+    else:
+        xi12_41 = coeffs41(sp.expand_complex(2*t41*s41-2*t41*xi3_41),
+                           e2_41,e3_41)
+        D41 = tuple(xi12_41[j]+(H41-four41+xi3_41)*c41[j]
+                    for j in range(2))
+    # D-cc=H*c: the restored torus coordinates differ exactly by H c.
+    restoration41 &= all(sp.simplify(D41[j]-cc41[j]-H41*c41[j])==0
+                         for j in range(2))
+    yy_exp41 = sp.I*(zc41-sp.I*(cc41[0]*a2_41+cc41[1]*a3_41))
+    Cm41 = [phi41[j]+D41[j] for j in range(2)]
+    zr41 = z41-sp.I*t41*Cm41[0]-t41*Cm41[1]
+    wr41 = w41m+(1-t41**2)*Cm41[0]+sp.I*(1+t41**2)*Cm41[1]
+    if inf41:
+        y_exp41,wcusp41 = sp.I*(zr41-sp.I*wr41/t41),wr41/t41**2
+    else:
+        y_exp41,wcusp41 = sp.I*(zr41-sp.pi*s41*(s41-1)),wr41-2*t41*s41
+    Cc41 = [phi41[j]+H41*c41[j] for j in range(2)]
+    A41 = Cc41[0]*a2_41+Cc41[1]*a3_41
+    restoration41 &= (
+        sp.simplify(sp.expand(y_exp41-(yy_exp41+A41)))==0
+        and sp.simplify(sp.expand(wcusp41-(Cc41[0]*e2_41+Cc41[1]*e3_41)))==0)
+    # Complex Jacobian of the holomorphic chart change (z,w,t)->(x,y,w_c).
+    zh41,wh41,th41h = sp.symbols('zh41 wh41 th41h')
+    sh41 = sp.log(th41h)/(2*sp.pi*sp.I)
+    if inf41:
+        yh41 = sp.exp(sp.I*(zh41-sp.I*wh41/th41h))
+        Fh41 = sp.Matrix([1/(th41h*yh41),yh41,wh41/th41h**2])
+    else:
+        yh41 = sp.exp(sp.I*(zh41-sp.pi*sh41*(sh41-1)))
+        Fh41 = sp.Matrix([th41h/yh41,yh41,wh41-2*th41h*sh41])
+    chart_dets41.append(sp.simplify(Fh41.jacobian([zh41,wh41,th41h]).det()))
+restoration41 &= (sp.simplify(chart_dets41[0]-sp.I)==0
+                  and sp.simplify(chart_dets41[1]+sp.I/sp.Symbol('th41h')**4)==0)
+tfull_tree41 = ast.parse(open(os.path.join(os.path.dirname(
+    cusp30.__file__),'tfull.py')).read())
+tfull_defs41 = {node.name:node for node in tfull_tree41.body
+                if isinstance(node,ast.FunctionDef)}
+chart_source41 = (
+    'c0_to_mid' in tfull_defs41 and 'ci_to_mid' in tfull_defs41
+    and body_dump41(tfull_defs41['c0_to_mid'])==text_dump41('''
+t = x * y
+logt = torch.log(t)
+s = logt / (2j * math.pi)
+return -1j * torch.log(y) + math.pi * s * (s - 1), w + 2 * t * s, t, logt
+''')
+    and body_dump41(tfull_defs41['ci_to_mid'])==text_dump41('''
+s = x * y
+t = 1 / s
+wm = w * t ** 2
+return -1j * torch.log(y) + 1j * wm / t, wm, t, -torch.log(s)
+'''))
+# Phi and Theta invert these: compose Phi (Theta) with the tfull output
+# and recover (x,y,w); a different log branch changes z by 2 pi k only.
+xl41,yl41,wl41 = sp.symbols('xl41 yl41 wl41',nonzero=True)
+tl41 = xl41*yl41
+sl41 = sp.log(tl41)/(2*sp.pi*sp.I)
+z_c0_41 = -sp.I*sp.log(yl41)+sp.pi*sl41*(sl41-1)        # c0_to_mid
+w_c0_41 = wl41+2*tl41*sl41
+y_back41 = sp.exp(sp.I*(z_c0_41-sp.pi*sl41*(sl41-1)))
+tci41 = 1/tl41                                          # ci_to_mid
+w_ci_41 = wl41*tci41**2
+z_ci_41 = -sp.I*sp.log(yl41)+sp.I*w_ci_41/tci41
+y_back_ci41 = sp.exp(sp.I*(z_ci_41-sp.I*w_ci_41/tci41))
+chart_inverse41 = (
+    sp.simplify(y_back41-yl41)==0
+    and sp.simplify(tl41/y_back41-xl41)==0
+    and sp.simplify(w_c0_41-2*tl41*sl41-wl41)==0
+    and sp.simplify(y_back_ci41-yl41)==0
+    and sp.simplify((1/tci41)/y_back_ci41-xl41)==0
+    and sp.simplify(w_ci_41/tci41**2-wl41)==0)
+# The restore loop reconstructs yy from the final middle W-point: at the
+# raw data of C34e with one shifted by al/(2pi), its exponent is
+# rho+i*al.  With al=Arg(p_m) this is yy=e^rho*p_m, the core y, so both
+# restorations call scalar_finite_height with the same (tc/y,y).
+del41 = sp.Symbol('del41',real=True)
+yy_link41 = True
+for inf41 in (False,True):
+    if inf41:
+        tcl41 = 1/t34
+        zl41,wl41m = z_mid_n34+2*sp.pi*del41,w_mid_n34
+        zcl41,wcl41 = zl41-sp.I*wl41m/t34,wl41m/t34**2
+    else:
+        tcl41 = t34
+        zl41,wl41m = z_mid_s34+2*sp.pi*del41,w_mid_s34
+        zcl41,wcl41 = zl41-sp.pi*s34*(s34-1),wl41m-2*t34*s34
+    e2l41,e3l41,_,a2l41,a3l41 = cusp_data41(tcl41,inf41)
+    ccl41 = source_coeff34(-wcl41,e2l41,e3l41)
+    yy_link41 &= sp.simplify(sp.I*(zcl41-sp.I*(ccl41[0]*a2l41+ccl41[1]*a3l41))
+                             -(rho34+2*sp.pi*sp.I*del41))==0
+rep('C41d final W-points agree; c0/ci restoration = Phi/Theta of middle one',
+    final_W41 and restoration41 and chart_source41 and chart_inverse41
+    and yy_link41 and source_cusp_ok30 and source_torus35)
+
+# C41e.  Domain of the whole seam and exact round witnesses.  On
+# 2/25<|tc|^2<1/10 (an open band around the seam) both sources are in
+# their certified domains: south q=s*exp(-4s/(1-s)) and north
+# q=e^-4*s*exp(-4s/(1-s)) (s=|tc|^2) lie in (1/2500,1/8), as needed
+# by inverse_height_moment with lambda>0; the Cramer determinant is
+# >2r^2(1+r^2)>0 (for every r=|t|>0, below); the torus 2x2 determinants
+# are 1-s^2>0 and s^2-1<0; and |a|<3/5 in both argument charts
+# (|Arg(-p)|<arccos(9/10)<pi/5 in the half-centred chart).
+s_band41 = sp.Symbol('s_band41',positive=True)
+q_south41 = s_band41*sp.exp(-4*s_band41/(1-s_band41))
+band41 = (
+    sp.simplify(sp.diff(q_south41,s_band41)
+                -sp.exp(-4*s_band41/(1-s_band41))
+                *(1-4*s_band41/(1-s_band41)**2))==0
+    # (1-4s/(1-s)^2)>0 on s<1/10: 4/(10*(81/100))<1, so q increases.
+    and 4*sp.Rational(1,10)/(1-sp.Rational(1,10))**2<1
+    and q_south41.subs(s_band41,sp.Rational(2,25))
+        >sp.Rational(2,25)*sp.exp(-sp.Rational(1,2))
+    # q(2/25)=(2/25)exp(-8/23)>(2/25)exp(-1/2)>(2/25)(1/2)=1/25.
+    and sp.exp(-sp.Rational(1,2))>sp.Rational(1,2)
+    and sp.Rational(2,25)*sp.Rational(1,2)==sp.Rational(1,25)
+    and sp.Rational(1,10)<sp.Rational(1,8)
+    and sp.exp(4)<55 and sp.Rational(1,25)/55>sp.Rational(1,2500)
+    and 4*sp.Rational(2,25)/(1-sp.Rational(2,25))<sp.Rational(1,2)
+    and sp.cos(sp.pi/5)<sp.Rational(9,10)
+    and sp.Rational(1,2)+sp.Rational(1,10)==sp.Rational(3,5)
+    and 1-sp.Rational(1,10)**2>0
+    # det-2r^2(1+r^2)=(1+r^2)(r^2-1)log r>=0 for every r>0 (both factors
+    # change sign at r=1), so det>2r^2(1+r^2)>0 on the whole band.
+    and sp.factor(det_expected34-2*(ar34**2+ai34**2)*(1+ar34**2+ai34**2)
+                  -(1+ar34**2+ai34**2)*(ar34**2+ai34**2-1)*ell34)==0)
+# Exact witnesses.  Put p=|tc|^2, A=(4 pi)^2, B=e^4, Q=sqrt(1+k^2).
+# South: k^2=(B p^2+A p)/(1+A p), u1=-k/Q, u2=i/Q.  North:
+# k^2=(p^2+A p)/(A p+B), u1=i/Q, u2=k/Q.  Then the source positive root
+# gives tc=i sqrt(p) (south) and tc=-i sqrt(p) (north, middle t=i/sqrt(p)),
+# the phase coordinate is i/Q, so a=1/4 in the principal chart, and
+# Arg t=pi/2 avoids the log cut.  Stereographic y=(0,0,Q+k) (south)
+# and y=(1/Q,k/Q,0) (north); X=(R-1)/sqrt(1+R^2), R=|y-(0,1,0)|.
+pw41,Aw41,Bw41 = sp.symbols('pw41 Aw41 Bw41',positive=True)
+k2_south41 = (Bw41*pw41**2+Aw41*pw41)/(1+Aw41*pw41)
+k2_north41 = (pw41**2+Aw41*pw41)/(Aw41*pw41+Bw41)
+root_south41 = (Aw41+2*Bw41*pw41+Aw41*Bw41*pw41**2)/(1+Aw41*pw41)
+root_north41 = (Aw41*Bw41+2*Bw41*pw41+Aw41*pw41**2)/(Aw41*pw41+Bw41)
+b_south41 = Aw41*(1-k2_south41)
+b_north41 = Aw41*(1-k2_north41)
+witness_roots41 = (
+    sp.factor(root_south41**2-b_south41**2-4*Bw41*k2_south41)==0
+    and sp.factor(root_north41**2-b_north41**2-4*Bw41*k2_north41)==0
+    # positive roots: both displayed numerators are positive
+    and sp.factor(k2_south41*2/(b_south41+root_south41)-pw41)==0
+    and sp.factor(k2_north41*2*Bw41/(b_north41+root_north41)-pw41)==0)
+kw41 = sp.Symbol('kw41',positive=True)
+Qw41 = sp.sqrt(1+kw41**2)
+stereo41 = True
+for u1w41,u2w41,yw41,re_u1_41 in (
+        (-kw41/Qw41,sp.I/Qw41,(0,0,Qw41+kw41),-kw41/Qw41),
+        (sp.I/Qw41,kw41/Qw41,(1/Qw41,kw41/Qw41,0),sp.Integer(0))):
+    Sy41 = 1+sum(v**2 for v in yw41)
+    stereo41 &= (
+        sp.simplify(u1w41*sp.conjugate(u1w41)
+                    +u2w41*sp.conjugate(u2w41)-1)==0
+        and sp.simplify((1-(Sy41-1)+2*sp.I*yw41[0])/Sy41-u1w41)==0
+        and sp.simplify(2*(yw41[1]+sp.I*yw41[2])/Sy41-u2w41)==0
+        and sp.simplify(sp.re(u1w41)-re_u1_41)==0)
+# 1+Re(u1)=1-k/Q>0 south because Q^2-k^2=1 (Q>k>0), and 1 north, so the
+# inverse stereographic coordinates y above are well defined.
+stereo41 &= sp.simplify(Qw41**2-kw41**2-1)==0
+# Ratios: south u1/u2=i k (|u1|<|u2| iff k<1), north u2/u1=-i k
+# (|u1|>|u2| iff k<1).  p<=(301/1000)^2<1/10 gives B p^2<55/100<1, and
+# p^2<B, so k<1 at all three witnesses; |small|=sqrt(p)<1/2.
+witness_sides41 = (
+    sp.simplify((-kw41/Qw41)/(sp.I/Qw41)-sp.I*kw41)==0
+    and sp.simplify((kw41/Qw41)/(sp.I/Qw41)+sp.I*kw41)==0
+    and sp.simplify(k2_south41-1-(Bw41*pw41**2-1)/(1+Aw41*pw41))==0
+    and sp.simplify(k2_north41-1-(pw41**2-Bw41)/(Aw41*pw41+Bw41))==0
+    and 55*sp.Rational(301,1000)**4<1
+    and sp.Rational(301,1000)**2<sp.Rational(1,10)
+    and sp.Rational(299,1000)**2>sp.Rational(2,25)
+    and sp.Rational(299,1000)<sp.Rational(3,10)<sp.Rational(301,1000)
+    and sp.Rational(301,1000)<sp.Rational(1,2)
+    and sp.arg(sp.I)==sp.pi/2 and sp.arg(sp.I)/(2*sp.pi)==sp.Rational(1,4)
+    and sp.re(sp.I)>-sp.Rational(9,10))
+# Free slab: south R^2=1+(Q+k)^2 with 1<Q+k<1+sqrt(2), so 1<R<sqrt(7);
+# north R^2=2-2k/Q, where (k/Q)^2=k^2/(1+k^2)<1/2 for k<1, so
+# 2-sqrt(2)<R^2<2.  X=(R-1)/sqrt(1+R^2) increases in R (round_inverse38),
+# hence |X|<3/5 at every witness, far from the pole bands 1-|X|<10^-5.
+Rv41 = sp.Symbol('Rv41',positive=True)
+Xv41 = (Rv41-1)/sp.sqrt(1+Rv41**2)
+slab41 = (
+    round_inverse38
+    and sp.simplify(sp.diff(Xv41,Rv41)-(1+Rv41)/(1+Rv41**2)**sp.Rational(3,2))==0
+    and 1+(1+sp.sqrt(2))**2<7
+    and Xv41.subs(Rv41,sp.sqrt(7))<sp.Rational(3,5)
+    and Xv41.subs(Rv41,sp.sqrt(2-sp.sqrt(2)))>-sp.Rational(3,5)
+    and sp.simplify((kw41/Qw41)**2-kw41**2/(1+kw41**2))==0
+    and sp.simplify(kw41**2/(1+kw41**2)-sp.Rational(1,2)
+                    -(kw41**2-1)/(2*(1+kw41**2)))==0)
+rep('C41e seam band in both source domains; exact witnesses on and across it',
+    band41 and witness_roots41 and stereo41 and witness_sides41 and slab41)
+
+# C41f is solely a reproducible numerical observation (d), sample size
+# 18.  Per sign it uses four (a, arg) pairs covering a<=0 (with the deck
+# frame), a=0, a>0 in cell 0 and a>0 in cell 1 (half-centred argument
+# chart), at |tc|=299/1000 (left) and 3/10 (seam), plus one right point
+# |tc|=301/1000.  The spinor is u2=e^(2 pi i a)/Q, u1=k u2 e^(i arg tc)
+# (south) or u1=-conj(e^(2 pi i a))/Q, u2=k u1 e^(i arg tc) (north), with
+# k from the C41e profiles.  Left: the production raw reference (c0/ci)
+# is compared with the production middle formulas at the same (tc,a),
+# which are M0 there (b0 or bi is 1, bm=0, lambda=0); the restorations
+# are compared through Phi/Theta for one common final phase.  Seam:
+# rounding may send the raw reference to either branch, so the
+# production core formula is evaluated directly and compared in the same
+# way.  Right: the flat collar weight and rho-rho(lambda=0) are printed.
+# It is not used by C41a-e.
+mp41 = mp39
+rows41 = []
+sample_ok41 = True
+def middle_m0_41(tc,a,nu,north):
+    rho = cusp30.elementary_cusp_logradius(a,tc,nu,dps=110)
+    tm = 1/tc if north else tc
+    lt = mp41.log(tm)
+    if north:
+        zm,wm = -mp41.j*rho,mp41.mpc(0)
+    else:
+        ss = lt/(2*mp41.j*mp41.pi)
+        zm,wm = -mp41.j*rho+mp41.pi*ss*(ss-1),2*tm*ss
+    lat = cusp30.scalar_lattice_coords(zm,wm,tm,lt)
+    return (tm,lat[0],lat[3],lt,a)
+def compare41(kind,core,north,phi,pc):
+    xc,yc,ac = core
+    nu = mp41.exp(-2) if north else mp41.mpf(1)
+    ref_c = cusp30.elliptic_bundle_embedding(kind,core,dps=110,elementary=True)
+    data_m = middle_m0_41(xc*yc,ac,nu,north)
+    ref_m = cusp30.elliptic_bundle_embedding('mid',data_m,dps=110,elementary=True)
+    Pdiff = max(abs(a*mp41.conj(b)-c*mp41.conj(d))
+                for a,c in zip(ref_c,ref_m) for b,d in zip(ref_c,ref_m))
+    E = tuple(pc*v for v in ref_c)
+    p_c = cusp30._elementary_inner(ref_c,E)
+    p_m = cusp30._elementary_inner(ref_m,E)
+    tm,lt = data_m[0],data_m[3]
+    _,out_c = cusp30.elementary_restore_torus(kind,(mp41.conj(p_c)*xc,p_c*yc),phi)
+    _,out_m = cusp30.elementary_restore_torus(
+        'mid',(tm,data_m[1]+mp41.arg(p_m)/(2*mp41.pi),data_m[2],lt),phi)
+    zr,wr,_ = out_m
+    if north:
+        yr = mp41.exp(mp41.j*(zr-mp41.j*wr/tm))
+        mapped = (1/(tm*yr),yr,wr/tm**2)
+    else:
+        sr = lt/(2*mp41.j*mp41.pi)
+        yr = mp41.exp(mp41.j*(zr-mp41.pi*sr*(sr-1)))
+        mapped = (tm/yr,yr,wr-2*tm*sr)
+    return Pdiff,max(abs(a-b) for a,b in zip(out_c,mapped)),abs(abs(p_m)-1)
+with mp41.workdps(120), cusp30.elementary_formula_branches():
+    A41n,B41n = (4*mp41.pi)**2,mp41.exp(4)
+    phi41n = (mp41.mpf(1)/3,mp41.mpf(2)/7)
+    pc41n = mp41.exp(mp41.j*mp41.mpf('0.7'))
+    pairs41n = ((mp41.mpf('-0.35'),mp41.mpf(2)),(mp41.mpf(0),mp41.mpf(-1)),
+                (mp41.mpf(1)/4,mp41.pi/2),(mp41.mpf('0.55'),mp41.mpf('0.7')))
+    def raw41(rad,arg_tc,aa,north):
+        pp = rad**2
+        kk = mp41.sqrt((pp**2+A41n*pp)/(A41n*pp+B41n) if north else
+                       (B41n*pp**2+A41n*pp)/(1+A41n*pp))
+        QQ = mp41.sqrt(1+kk**2)
+        if north:
+            u1 = -mp41.conj(mp41.exp(2*mp41.pi*mp41.j*aa))/QQ
+            u2 = kk*u1*mp41.exp(mp41.j*arg_tc)
+        else:
+            u2 = mp41.exp(2*mp41.pi*mp41.j*aa)/QQ
+            u1 = kk*u2*mp41.exp(mp41.j*arg_tc)
+        d = 1+u1.real
+        w = (u1.imag/d,u2.real/d-1,u2.imag/d)
+        R = mp41.sqrt(sum(v*v for v in w))
+        X = (R-1)/mp41.sqrt(1+R**2)
+        n = (w[0]/R,-w[2]/R,-w[1]/R)
+        kind,data = cusp30.elliptic_raw_base_reference(
+            tuple((1-X**2)*v for v in n),X,dps=110,elementary=True)
+        return kind,data,X
+    for north41 in (False,True):
+        nu41n = mp41.exp(-2) if north41 else mp41.mpf(1)
+        ckind41n = 'ci' if north41 else 'c0'
+        sgn41n = -1 if north41 else 1
+        for aa41n,arg41n in pairs41n:
+            arg_tc41n = sgn41n*arg41n
+            for rad41n in (mp41.mpf(299)/1000,mp41.mpf(3)/10):
+                tc41n = rad41n*mp41.exp(mp41.j*arg_tc41n)
+                kind41n,data41n,X41n = raw41(rad41n,arg_tc41n,aa41n,north41)
+                sample_ok41 &= abs(X41n)<1-mp41.mpf('1e-5')
+                if rad41n<mp41.mpf(3)/10:
+                    sample_ok41 &= (kind41n==ckind41n
+                        and abs(data41n[0]*data41n[1]-tc41n)<mp41.mpf('1e-100')
+                        and abs(data41n[2]-aa41n)<mp41.mpf('1e-100'))
+                    core41n = data41n
+                else:
+                    core41n = (*cusp30.elementary_cusp_reference(
+                        tc41n,aa41n,nu41n),aa41n)
+                    rows41.append(('seam-branch',north41,kind41n,None))
+                Pdiff41n,outdiff41n,unit41n = compare41(
+                    ckind41n,core41n,north41,phi41n,pc41n)
+                rows41.append(('left',north41,Pdiff41n,outdiff41n))
+                sample_ok41 &= (Pdiff41n<mp41.mpf('1e-90')
+                                and outdiff41n<mp41.mpf('1e-90')
+                                and unit41n<mp41.mpf('1e-100'))
+        rad41n = mp41.mpf(301)/1000
+        arg_tc41n = sgn41n*mp41.pi/2
+        tc41n = rad41n*mp41.exp(mp41.j*arg_tc41n)
+        kind41n,data41n,X41n = raw41(rad41n,arg_tc41n,mp41.mpf(1)/4,north41)
+        t_r41n,_,_,_,a_r41n = data41n
+        sample_ok41 &= (kind41n=='mid'
+                        and abs(t_r41n-(1/tc41n if north41 else tc41n))
+                        <mp41.mpf('1e-100')
+                        and abs(a_r41n-mp41.mpf(1)/4)<mp41.mpf('1e-100'))
+        lam41n = cusp30.scalar_flat_step((rad41n-mp41.mpf(3)/10)/(mp41.mpf(1)/5))
+        rho41n = cusp30.elementary_cusp_logradius(a_r41n,tc41n,nu41n,dps=110)
+        P41n = mp41.log(nu41n)+mp41.log(rad41n)-2*rad41n**2/(1-rad41n**2)
+        q41n = mp41.exp(2*P41n)
+        f041n = cusp30.inverse_height_moment(a_r41n,q41n,0)
+        rho041n = mp41.log(2*q41n/(mp41.sqrt(f041n**2+4*q41n)+f041n))/2
+        rows41.append(('right',north41,lam41n,abs(rho41n-rho041n)))
+        sample_ok41 &= (0<lam41n<mp41.mpf('1e-80')
+                        and abs(rho41n-rho041n)<mp41.mpf('1e-80'))
+    print('C41f production observations (d), sample size 18:'
+          ' max |P_c-P_M0| =',mp41.nstr(max(r[2] for r in rows41
+                                            if r[0]=='left'),5),
+          ' max |out_c-Phi(out_mid)| =',mp41.nstr(max(r[3] for r in rows41
+                                                     if r[0]=='left'),5),
+          ' right flat weights =',[mp41.nstr(r[2],5) for r in rows41
+                                   if r[0]=='right'],
+          ' |rho-rho(lambda=0)| =',[mp41.nstr(r[3],5) for r in rows41
+                                     if r[0]=='right'],
+          ' seam raw branches =',[r[2] for r in rows41
+                                  if r[0]=='seam-branch'])
+rep('C41f 18 production seam observations (numerical observation, d)',
+    sample_ok41)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'
