@@ -867,5 +867,203 @@ rep('N9i4 actual raw Qz numerator, active frame and cusp phase action',
     and all(sp.simplify(a-b)==0 for a,b in zip(slab_pair9i,cap_pair9i))
     and projector_source9i)
 
+# ---------------------------------------------------------------- N10: the nonidentity radial pole shell.
+# This is a stage of H_j=D^{-1} g_j D, not by itself a check of the full
+# six-dimensional tensor there.  The finite elementary S and S^{-1} below
+# supply actual value and second-jet nodes for the missing radial stages.
+shell_a10 = sp.Rational(1, 10**8)
+shell_c10 = 3*shell_a10/2
+shell_r10, shell_s10 = sp.symbols('shell_r10 shell_s10', positive=True)
+shell_x10 = sp.exp(shell_c10/(shell_c10-shell_r10))-sp.exp(3)
+shell_y10 = sp.exp(shell_c10/(shell_c10-shell_s10))-sp.E
+shell_F10 = shell_x10-1/shell_x10
+shell_T10 = sp.log(1+sp.exp(shell_F10))
+shell_S10 = shell_c10*(1-1/sp.log(shell_T10+sp.E))
+shell_L10 = sp.log(sp.exp(shell_y10)-1)
+shell_root10 = (shell_L10+sp.sqrt(shell_L10**2+4))/2
+shell_R10 = shell_c10*(1-1/sp.log(shell_root10+sp.exp(3)))
+source_radial10 = (
+    has_statement9(cusp8._elementary_pole_radial,
+                   "a,c = mp.mpf('1e-8'),mp.mpf('1.5e-8')")
+    and has_statement9(cusp8._elementary_pole_radial,
+                       'x = mp.exp(3)*mp.expm1(3*(radius-a)/(c-radius))')
+    and has_statement9(cusp8._elementary_pole_radial,
+                       'f = x-1/x')
+    and has_statement9(cusp8._elementary_pole_radial,
+                       'y = mp.log1p(mp.exp(f)) if f<0 else f+mp.log1p(mp.exp(-f))')
+    and has_statement9(cusp8._elementary_pole_radial,
+                       'ell = mp.log1p(y/mp.e)')
+    and has_statement9(cusp8._elementary_pole_radial,
+                       'new_radius = c*ell/(1+ell)')
+    and has_statement9(cusp8._elementary_pole_radial,
+                       'y = mp.e*mp.expm1(radius/(c-radius))')
+    and has_statement9(cusp8._elementary_pole_radial,
+                       'x = 2/(mp.sqrt(L*L+4)-L) if L<0 else (L+mp.sqrt(L*L+4))/2')
+    and has_statement9(cusp8._elementary_pole_radial,
+                       'ell = mp.log1p(x/mp.exp(3))')
+    and has_statement9(cusp8._elementary_pole_radial,
+                       'new_radius = a+c*ell/(3*(3+ell))')
+    and has_statement9(cusp8._elementary_pole_radial,
+                       'factor = mp.sqrt(new_radius/radius)')
+    and has_statement9(cusp8.elementary_pole_patch,
+                       'compressed = _elementary_pole_radial(pair)')
+    and has_statement9(cusp8.elementary_pole_patch,
+                       'return _elementary_pole_radial(raw,inverse=True)')
+    and has_statement9(cusp8.elementary_pole_forward,
+                       'compressed = _elementary_pole_radial(pair)')
+    and has_statement9(cusp8.elementary_pole_forward,
+                       'return _elementary_pole_radial(raw,inverse=True)'))
+# The production forms use expm1/log1p and an algebraically equivalent
+# rationalization of the positive quadratic root.  The following small-node
+# identities check those conversions without expanding the nested exponential.
+shell_u10, shell_v10, shell_l10 = sp.symbols(
+    'shell_u10 shell_v10 shell_l10', positive=True)
+shell_coord10 = sp.cancel(shell_c10/(shell_c10-shell_r10)-3
+                          -3*(shell_r10-shell_a10)
+                          /(shell_c10-shell_r10))
+shell_root_node10 = (shell_l10+sp.sqrt(shell_l10**2+4))/2
+rep('N10a source-bound elementary radial formulas and stable-code rewrites',
+    source_radial10 and shell_coord10==0
+    and sp.cancel(shell_c10*(1-1/(1+shell_v10))
+                  -shell_c10*shell_v10/(1+shell_v10))==0
+    and sp.cancel(shell_a10+shell_c10*shell_v10/(3*(3+shell_v10))
+                  -shell_c10*(1-1/(3+shell_v10)))==0
+    and sp.simplify(shell_root_node10*(shell_root_node10-shell_l10)-1)==0)
+
+# S and R are mutual inverses on the stated open ranges.  The inverse
+# primitive identities are verified with positive formal exponential
+# coordinates; for phi the exponential coordinate is >3 because r>a.
+shell_e10 = sp.symbols('shell_e10', positive=True)
+shell_lam10 = shell_u10-1/shell_u10
+shell_soft10 = sp.log(1+sp.exp(shell_lam10))
+shell_root_back10 = (shell_lam10+
+                     sp.sqrt(shell_lam10**2+4))/2
+shell_phi_inverse10 = shell_c10*(1-1/sp.log(
+    sp.exp(shell_v10)-sp.exp(3)+sp.exp(3)))
+shell_psi_inverse10 = shell_c10*(1-1/sp.log(
+    sp.exp(shell_e10)-sp.E+sp.E))
+shell_phi_back10 = shell_c10*(1-1/sp.log(shell_u10+sp.exp(3)))
+shell_psi_back10 = shell_c10*(1-1/sp.log(shell_e10+sp.E))
+rep('N10b elementary scalar S/R inverse and positive derivative factors',
+    sp.simplify(sp.exp(shell_soft10)-1-sp.exp(shell_lam10))==0
+    and sp.simplify(shell_root_back10*(shell_root_back10-shell_lam10)-1)==0
+    and sp.simplify(sp.diff(shell_lam10,shell_u10)
+                    -(1+shell_u10**-2))==0
+    and sp.simplify(sp.diff(sp.log(1+sp.exp(shell_lam10)),shell_u10)
+                    -(1+shell_u10**-2)*sp.exp(shell_lam10)
+                      /(1+sp.exp(shell_lam10)))==0
+    and sp.cancel(shell_c10*(1-1/shell_e10)
+                  -shell_c10*(shell_e10-1)/shell_e10)==0
+    and sp.simplify(2/(sp.sqrt(shell_l10**2+4)-shell_l10)
+                    -shell_root_node10)==0
+    and sp.simplify(shell_phi_inverse10
+                    -shell_c10*(1-1/shell_v10))==0
+    and sp.simplify(shell_psi_inverse10
+                    -shell_c10*(1-1/shell_e10))==0
+    and sp.simplify(sp.exp(shell_c10/(shell_c10-shell_phi_back10))
+                    -sp.exp(3)-shell_u10)==0
+    and sp.simplify(sp.exp(shell_c10/(shell_c10-shell_psi_back10))
+                    -sp.E-shell_e10)==0
+    and sp.simplify(sp.diff(shell_psi_back10,shell_e10)
+                    -shell_c10/((shell_e10+sp.E)
+                        *sp.log(shell_e10+sp.E)**2))==0
+    and sp.simplify(sp.sqrt(sp.factor(shell_lam10**2+4))
+                    -(shell_u10+1/shell_u10))==0
+    and sp.simplify((shell_lam10+
+                     sp.sqrt(sp.factor(shell_lam10**2+4)))/2-shell_u10)==0
+    and sp.simplify((2*shell_root_back10-shell_lam10)**2
+                    -shell_lam10**2-4)==0)
+
+shell_z10 = sp.symbols('shell_z10_0:4', real=True)
+shell_q10 = sum(v*v for v in shell_z10)
+shell_f10 = sp.Function('shell_f10')(shell_q10)
+shell_D10 = sp.Matrix([shell_f10*v for v in shell_z10])
+shell_M10 = shell_D10.jacobian(shell_z10)
+shell_H10 = [sp.hessian(v,shell_z10) for v in shell_D10]
+shell_dummy10 = sp.symbols('shell_dummy10', positive=True)
+shell_fp10 = sp.diff(sp.Function('shell_f10')(shell_dummy10),
+                     shell_dummy10).subs(shell_dummy10,shell_q10)
+shell_fpp10 = sp.diff(sp.Function('shell_f10')(shell_dummy10),
+                      shell_dummy10,2).subs(shell_dummy10,shell_q10)
+shell_M_formula10 = sp.Matrix(4,4,lambda i,j:
+    shell_f10*int(i==j)+2*shell_fp10*shell_z10[i]*shell_z10[j])
+shell_H_formula10 = [sp.Matrix(4,4,lambda i,j:
+    2*shell_fp10*(int(k==i)*shell_z10[j]
+                  +int(k==j)*shell_z10[i]
+                  +int(i==j)*shell_z10[k])
+    +4*shell_fpp10*shell_z10[k]*shell_z10[i]*shell_z10[j])
+    for k in range(4)]
+rep('N10c actual radial four-output first and 64 second entries',
+    shell_M10==shell_M_formula10
+    and all(shell_H10[k]==shell_H_formula10[k] for k in range(4))
+    and all(shell_H10[k][i,j]==shell_H10[k][j,i]
+            for k in range(4) for i in range(4) for j in range(4)))
+
+shell_w10 = sp.symbols('shell_w10_0:4', real=True)
+shell_qinv10 = sum(v*v for v in shell_w10)
+shell_g10 = sp.Function('shell_g10')(shell_qinv10)
+shell_Dinv10 = sp.Matrix([shell_g10*v for v in shell_w10])
+shell_Minv10 = shell_Dinv10.jacobian(shell_w10)
+shell_Hinv10 = [sp.hessian(v,shell_w10) for v in shell_Dinv10]
+shell_g_dummy10 = sp.Function('shell_g10')(shell_dummy10)
+shell_gp10 = sp.diff(shell_g_dummy10,shell_dummy10).subs(
+    shell_dummy10,shell_qinv10)
+shell_gpp10 = sp.diff(shell_g_dummy10,shell_dummy10,2).subs(
+    shell_dummy10,shell_qinv10)
+shell_Minv_formula10 = sp.Matrix(4,4,lambda i,j:
+    shell_g10*int(i==j)+2*shell_gp10*shell_w10[i]*shell_w10[j])
+shell_Hinv_formula10 = [sp.Matrix(4,4,lambda i,j:
+    2*shell_gp10*(int(k==i)*shell_w10[j]
+                  +int(k==j)*shell_w10[i]
+                  +int(i==j)*shell_w10[k])
+    +4*shell_gpp10*shell_w10[k]*shell_w10[i]*shell_w10[j])
+    for k in range(4)]
+rep('N10c2 inverse radial four-output first and 64 second entries',
+    shell_Minv10==shell_Minv_formula10
+    and all(shell_Hinv10[k]==shell_Hinv_formula10[k] for k in range(4))
+    and all(shell_Hinv10[k][i,j]==shell_Hinv10[k][j,i]
+            for k in range(4) for i in range(4) for j in range(4)))
+
+# For D(z)=sqrt(S(r)/r) z, the tangential eigenvalue is f>0 and the
+# radial eigenvalue is f+2r f'=f*r*S'/S>0.  The same calculation with R
+# checks D^{-1}.  The determinant identity is symbolic in the *actual*
+# value of S, whose derivative is a positive composition of the three
+# monotone elementary primitives checked above.
+shell_sym_r10 = sp.symbols('shell_sym_r10', positive=True)
+shell_sym_S10 = sp.Function('shell_sym_S10')(shell_sym_r10)
+shell_f_expr10 = sp.sqrt(shell_sym_S10/shell_sym_r10)
+shell_det10 = sp.factor(shell_f_expr10**3*
+                        (shell_f_expr10+2*shell_sym_r10*
+                         sp.diff(shell_f_expr10,shell_sym_r10)))
+shell_det_expected10 = (shell_sym_S10
+                        *sp.diff(shell_sym_S10,shell_sym_r10)/shell_sym_r10)
+shell_sym_s10 = sp.symbols('shell_sym_s10', positive=True)
+shell_sym_R10 = sp.Function('shell_sym_R10')(shell_sym_s10)
+shell_g_expr10 = sp.sqrt(shell_sym_R10/shell_sym_s10)
+shell_invdet10 = sp.factor(shell_g_expr10**3*
+    (shell_g_expr10+2*shell_sym_s10*
+     sp.diff(shell_g_expr10,shell_sym_s10)))
+shell_invdet_expected10 = (shell_sym_R10
+    *sp.diff(shell_sym_R10,shell_sym_s10)/shell_sym_s10)
+shell_phi_prime10 = (shell_c10*sp.exp(shell_c10/(shell_c10-shell_r10))
+                     /(shell_c10-shell_r10)**2)
+shell_T_prime10 = (sp.exp(shell_F10)*(1+shell_x10**-2)
+                   /(1+sp.exp(shell_F10)))
+shell_psi_inverse_prime10 = (shell_c10/((shell_T10+sp.E)
+                                  *sp.log(shell_T10+sp.E)**2))
+rep('N10d radial determinant S Sprime/r and inverse-jet domain',
+    sp.simplify(shell_det10-shell_det_expected10)==0
+    and sp.simplify(shell_invdet10-shell_invdet_expected10)==0
+    and sp.simplify(sp.diff(shell_S10,shell_r10)
+                    -shell_phi_prime10*shell_T_prime10
+                     *shell_psi_inverse_prime10)==0
+    and sp.simplify(sp.diff(sp.exp(shell_c10/(shell_c10-shell_r10)),shell_r10)
+                    -shell_c10*sp.exp(shell_c10/(shell_c10-shell_r10))
+                     /(shell_c10-shell_r10)**2)==0
+    and sp.simplify(sp.diff(sp.exp(shell_c10/(shell_c10-shell_s10)),shell_s10)
+                    -shell_c10*sp.exp(shell_c10/(shell_c10-shell_s10))
+                     /(shell_c10-shell_s10)**2)==0
+    and shell_a10<sp.Rational(5,4)*shell_a10<shell_c10)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A symbolic identity, constant bound, or numerical check failed'

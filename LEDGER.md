@@ -1467,3 +1467,39 @@ in `AGENTS.md` §5.
   overlap status and regional claims. The global conclusion still uses the written
   diffeomorphism/gluing certificate and generic naturality, and requires
   human review.
+
+### 2026-10-12-TSG-3 — Check the nonidentity pole radial stage and its inverse
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** 791c775
+- **Where:** extra/s4t2_explicit/sym/node_remainder.py (N10) and
+  docs/s4t2_symbolic_programme.md status and §11.8. No manuscript or
+  construction file changed.
+- **Change:** added source-linked exact scalar nodes for the elementary
+  radial compression \(S\) and its inverse \(S^{-1}\), checked the primitive
+  inverse identities and derivative factors, and differentiated both radial
+  maps in four real coordinates through their 16 first and 64 second entries
+  apiece. The exact determinant is \(S(r)S'(r)/r>0\) for
+  \(10^{-8}<r<1.5\cdot10^{-8}\). The document records this as a stage check,
+  not a check of the complete shell tensor.
+- **Why:** on this shell the pole patch is
+  \(H_j=D^{-1}\circ g_j\circ D\), so the previously checked raw annulus
+  cannot be used without both nonidentity radial stages. The code binds
+  the stable expm1/log1p source operations to the exact elementary
+  definitions, checks the positive quadratic root, and compares direct
+  differentiation of each radial map with its stated Hessian formula.
+  The positive scalar derivative follows from the displayed product of
+  the positive \(\phi'\), \(T'\), and \((\psi^{-1})'\) factors.
+- **Verification:** node_remainder.py N10a–d: **ALL PASS**;
+  verify_construction.py: all checks passed; sphere_products.py:
+  Dimension 8 check passed; git diff --check: pass.
+  LaTeX: **not run** (latexmk unavailable). Git fetch/pull and push were
+  left to the collaborator as requested.
+- **Open points:** N10 does not compose the radial stages with \(g_j\),
+  the round cap, or torus restoration, and does not calculate the specific
+  six-dimensional \(J_{\mathrm{cl}}\) on the shell. All global T16 gaps
+  recorded in the previous entry remain open; the north raw annulus,
+  remaining projector branches, and free-slab path are being audited
+  separately. Human review remains necessary for the global conclusion.
