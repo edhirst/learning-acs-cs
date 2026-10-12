@@ -417,6 +417,14 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   comparisons follow the written formula branches; it does not
   execute the certified fixed counts or complete the global
   second-jet and overlap checks.
+  **Dominant-coordinate selector (2026-10-12-TSG-21):** C39
+  proves that the two source positive-root ratio branches give
+  the same effective \(t\) and first/second jets on a strict
+  open south-collar band across \(|u_1|=|u_2|\).
+  The source ten-slot reference, projector and restored
+  output agree there; exact round witnesses meet both selector
+  sides. The other source seams and global T16 coverage remain
+  open.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.

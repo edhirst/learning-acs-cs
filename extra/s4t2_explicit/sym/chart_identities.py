@@ -4514,5 +4514,329 @@ phase_deck38 = (
 rep('C38e finite projector recurrence respects this selector at every index',
     phase_deck38)
 
+# C39: the dominant-coordinate selector in elliptic_raw_base_reference is
+# an exact OPEN overlap, not merely a pointwise seam equality.  Put
+# R=u1/u2, r=|R|^2, A=(4*pi)^2, B=exp(4), b=A(1-r),
+# D=sqrt(b^2+4*B*r)>|b|.  The direct branch gives
+# t=R sqrt(2/(b+D)).  The inverse branch uses S=1/R,
+# b_I=-b/r, D_I=D/r and gives
+# t=1/[S sqrt(2*B/(b_I+D_I))].  Its positive radial gain has
+# square (D-b)/(2*B*r)=2/(D+b).  Positivity therefore identifies
+# the two *positive* gains, including their first two derivatives.
+selector_source39 = (
+    middle_source31 and source_collar34 and source_torus35
+    and project_source30 and projection_norm30 and source_cusp_ok30
+    and matching_statement31(raw_tree31,
+                             'A,B = (4*mp.pi)**2,mp.exp(4)')
+    and matching_assignment30(raw_tree31,'rr','abs(ratio)**2')
+    and matching_assignment30(raw_tree31,'b','A*(1-rr)')
+    and matching_assignment30(raw_tree31,'root',
+        'mp.sqrt(b*b+4*B*rr)')
+    and matching_assignment30(raw_tree31,'small',
+        'ratio*mp.sqrt((2*B if inverse_ratio else 2)/(b+root))')
+    and matching_assignment30(raw_tree31,'inf',
+        "inverse_ratio and abs(small)<mp.mpf('.5')")
+    and matching_assignment30(raw_tree31,'t',
+        'None if inf else (1/small if inverse_ratio else small)')
+    and matching_if_test32(raw_tree31,"inf or abs(t)<mp.mpf('.5')")
+    and matching_assignment30(raw_tree31,'tc','small if inf else t')
+    and matching_assignment30(raw_tree31,'phase_coordinate',
+        '-mp.conj(u1) if inf else u2')
+    and len(arg_selector38)==1
+    and [ast.dump(node,include_attributes=False)
+         for node in arg_selector38[0].orelse]
+        ==[ast.dump(node,include_attributes=False) for node in ast.parse(
+            'a = mp.arg(phase_coordinate)/(2*mp.pi)').body]
+    and matching_assignment30(raw_tree31,'a',
+        'mp.arg(phase_coordinate)/(2*mp.pi)')
+    and matching_assignment30(raw_tree31,'nu',
+        "mp.exp(-2) if inf else mp.mpf(1)")
+    and matching_if_test32(raw_tree31,
+        "abs(tc)<=mp.mpf('.3') and elementary")
+    and matching_assignment30(raw_tree31,'rho',
+        '(elementary_cusp_logradius if elementary else '
+        'elliptic_cusp_logradius)(a,tc,nu,dps=dps)')
+    and matching_statement31(raw_tree31,
+        'lattice = scalar_lattice_coords(zm,wm,t,lt)')
+    and matching_assignment30(raw_tree31,'data',
+        '(t,lattice[0],lattice[3],lt,a) if elementary else '
+        '(t,lattice[0],lattice[3],lt)')
+    and returned_expr30(raw_tree31,"'mid',data")
+    and matching_assignment30(bundle_tree32,'known_height',
+        'mp.mpf(data[4]) if elementary and len(data)>4 else None')
+    and matching_assignment30(bundle_tree32,'norm2',
+        'sum(abs(q)**2 for q in vec)')
+    and matching_assignment30(bundle_tree32,'result',
+        'tuple(+(q/mp.sqrt(norm2)) for q in vec)')
+    and matching_call30(meridian_tree31,
+        'mp.matrix([[a*mp.conj(b) for b in e] for a in e])')
+    and returned_expr30(restore_tree30,
+        "'mid',(z-mp.j*t*C[0]-t*C[1],"
+        "w+(1-t*t)*C[0]+mp.j*(1+t*t)*C[1],t)"))
+
+r39,A39,B39 = sp.symbols('r39 A39 B39',positive=True)
+b39 = A39*(1-r39)
+D39 = sp.sqrt(b39**2+4*B39*r39)
+bI39,D_I39 = -b39/r39,D39/r39
+Fdirect39 = 2/(b39+D39)
+Finverse39 = (bI39+D_I39)/(2*B39)
+sfrom39 = r39*Fdirect39
+# Finverse is the square of 1/sqrt(2B/(b_I+D_I)), since S=1/R.
+root_identity39 = (
+    sp.simplify(Finverse39-(D39-b39)/(2*B39*r39))==0
+    and sp.simplify((D39-b39)*(D39+b39)-4*B39*r39)==0
+    and sp.simplify(B39*sfrom39**2+b39*sfrom39-r39)==0
+    and sp.simplify(sfrom39-(D39-b39)/(2*B39))==0
+    and all(sp.simplify(sp.diff(Fdirect39,r39,k)
+                        -sp.diff(Finverse39,r39,k))==0
+            for k in range(3))
+    and sp.simplify(D39.subs(r39,1)-2*sp.sqrt(B39))==0
+    and sp.simplify(Fdirect39.subs(r39,1)-1/sp.sqrt(B39))==0)
+# Both radicands and both gains are positive because D>|b|, r,B>0.
+# The following derivative recurrence is checked against a general
+# smooth radial F, then the three identities above specialize it to
+# *both* source gains.  R=x+i*y, r=x^2+y^2 are local real coordinates;
+# (R,u2)->(u1,u2) is a diffeomorphism for u2!=0.
+x39,y39 = sp.symbols('x39 y39',real=True)
+rs39 = x39**2+y39**2
+Ffun39 = sp.Function('Ffun39')
+Fval39 = Ffun39(rs39)
+g39 = sp.sqrt(Fval39)
+tformal39 = (x39+sp.I*y39)*g39
+F1_39 = sp.diff(Ffun39(r39),r39)
+F2_39 = sp.diff(Ffun39(r39),r39,2)
+gain1_39 = F1_39/(2*sp.sqrt(Ffun39(r39)))
+gain2_39 = (F2_39/(2*sp.sqrt(Ffun39(r39)))
+            -F1_39**2/(4*Ffun39(r39)**sp.Rational(3,2)))
+radial_jets39 = True
+for i39,vi39 in enumerate((x39,y39)):
+    ri39 = 2*vi39
+    Ri39 = 1 if i39==0 else sp.I
+    first39 = Ri39*g39+(x39+sp.I*y39)*gain1_39.subs(
+        r39,rs39)*ri39
+    radial_jets39 &= sp.simplify(sp.diff(tformal39,vi39)-first39)==0
+    for j39,vj39 in enumerate((x39,y39)):
+        rj39 = 2*vj39
+        Rj39 = 1 if j39==0 else sp.I
+        second39 = (Ri39*gain1_39.subs(r39,rs39)*rj39
+                    +Rj39*gain1_39.subs(r39,rs39)*ri39
+                    +(x39+sp.I*y39)*(
+                        gain2_39.subs(r39,rs39)*ri39*rj39
+                        +gain1_39.subs(r39,rs39)*(2 if i39==j39 else 0)))
+        radial_jets39 &= (
+            sp.simplify(sp.diff(tformal39,vi39,vj39)-second39)==0)
+rep('C39a source dominant-ratio branches have identical positive-root two-jets',
+    selector_source39 and root_identity39 and radial_jets39)
+
+# Take the strict open sector 99/100<r<101/100,
+# |Arg R|<pi/5, |Arg u2|<pi/5.  For s=|t|^2, source profile inversion is
+# r=z(s)=(B*s^2+A*s)/(1+A*s), with z'>0.  Rational bounds
+# A<160 and 50<B<81 imply z(9/100)<99/100 and
+# z(1/4)>101/100.  Hence 3/10<|t|<1/2 on the whole band.
+s39 = sp.Symbol('s39',positive=True)
+profile39 = (B39*s39**2+A39*s39)/(1+A39*s39)
+profile_prime39 = (A39+B39*(2*s39+A39*s39**2))/(1+A39*s39)**2
+low_gap39 = (sp.Rational(99,100)
+             -sp.Rational(81*81+160*9,10000))
+high_gap39 = (sp.Rational(50,16)-sp.Rational(101,100)
+              -sp.Rational(160,400))
+band_bounds39 = (
+    sp.factor(sp.diff(profile39,s39)-profile_prime39)==0
+    and sp.simplify(profile39.subs(s39,sfrom39)-r39)==0
+    and sp.pi<sp.Rational(22,7)
+    and (4*sp.Rational(22,7))**2<160
+    and sp.E>sp.Rational(8,3)
+    and sp.Rational(8,3)**4>50
+    and sp.E<3 and sp.E**4<81
+    and low_gap39==sp.Rational(1899,10000)>0
+    and high_gap39==sp.Rational(343,200)>0
+    and sp.simplify(profile39.subs(s39,sp.Rational(9,100))
+                    -sp.Rational(99,100)).subs(
+                        {A39:160,B39:81})<0
+    and sp.simplify(profile39.subs(s39,sp.Rational(1,4))
+                    -sp.Rational(101,100)).subs(
+                        {A39:160,B39:50})>0
+    and sp.Rational(9,100)/sp.E**2>sp.Rational(1,100)
+    and sp.Rational(1,100)>sp.Rational(1,2500)
+    and 1/(4*sp.E)<sp.Rational(1,8)
+    and sp.pi/5<sp.pi/2
+    and sp.Rational(1,10)<sp.Rational(1,4)
+    and 1/sp.sqrt(sp.Rational(1,4))==2
+    and sp.Rational(4,5)*sp.pi>sp.Rational(3,4)*sp.pi)
+# q=s exp(-4s/(1-s)) lies in (1/100,1/8): the lower bound uses
+# 4s/(1-s)<4/3 and e<3; the upper uses the increasing function
+# s exp(-4s) on (0,1/4), whose endpoint is 1/(4e).
+# Since |a|<1/10, the inverse-moment source takes its G branch.
+moment_band39 = (
+    band_bounds39
+    and matching_assignment30(logradius_tree34,'lam',
+        "scalar_flat_step((r-mp.mpf('.3'))/mp.mpf('.2'))")
+    and matching_if_test32(moment_tree36,
+        "lam==1 or aa<=mp.mpf('.1')")
+    and sp.factor(sp.diff(s39*sp.exp(-4*s39),s39)
+                  -sp.exp(-4*s39)*(1-4*s39))==0
+    and sp.Rational(9,100)>0
+    and sp.Rational(1,4)<1)
+rep('C39b strict ratio band stays in the active south collar and height domain',
+    moment_band39)
+
+# Exact round witness and two strict selector-side witnesses.  Let
+# lambda=|w|, w=(0,-lambda,0), y=(0,1-lambda,0),
+# X=(lambda-1)/sqrt(1+lambda^2), n=(0,0,1), v=(1-X^2)n.
+# At lambda0=2-sqrt(2), u1=u2=1/sqrt(2), so r=1 and t=e^-1.
+# At lambda0 +/- 1/10000 the positive ratio crosses 1 strictly.
+lam39 = sp.Symbol('lam39',positive=True)
+X39 = (lam39-1)/sp.sqrt(1+lam39**2)
+aa39 = (lam39**2-1)/(lam39**2+1)
+v239 = 1-X39**2
+y139 = 1-lam39
+u139 = (1-y139**2)/(1+y139**2)
+u239 = 2*y139/(1+y139**2)
+Rround39 = sp.factor(u139/u239)
+lam0_39 = 2-sp.sqrt(2)
+eps39 = sp.Rational(1,10000)
+y0_39 = sp.sqrt(2)-1
+witness39 = (
+    sp.simplify(X39**2*(2-X39**2)-aa39**2)==0
+    and 0<lam0_39-eps39<lam0_39+eps39<1
+    and X39.subs(lam39,lam0_39+eps39)<0
+    and aa39.subs(lam39,lam0_39+eps39)<0
+    and sp.simplify(v239/(1-aa39)-lam39)==0
+    and sp.simplify(u139**2+u239**2-1)==0
+    and sp.simplify(u139.subs(lam39,lam0_39)-1/sp.sqrt(2))==0
+    and sp.simplify(u239.subs(lam39,lam0_39)-1/sp.sqrt(2))==0
+    and sp.simplify(Rround39.subs(lam39,lam0_39)-1)==0
+    and sp.Rational(2,5)<y0_39-eps39
+    and y0_39+eps39<sp.Rational(1,2)
+    and sp.simplify(sp.diff(Rround39,lam39)
+                    -(1+y139**2)/(2*y139**2))==0
+    and (1+sp.Rational(1,2)**2)/(2*sp.Rational(2,5)**2)<4
+    and (1-sp.Rational(1,2500))**2>sp.Rational(99,100)
+    and (1+sp.Rational(1,2500))**2<sp.Rational(101,100)
+    and sp.Rational(99,100)<Rround39.subs(
+        lam39,lam0_39-eps39)**2<1
+    and 1<Rround39.subs(lam39,lam0_39+eps39)**2<sp.Rational(101,100)
+    and sp.simplify(Fdirect39.subs({r39:1,A39:(4*sp.pi)**2,
+                                   B39:sp.exp(4)})-sp.exp(-2))==0
+    and sp.exp(-1)>sp.Rational(3,10)
+    and sp.exp(-1)<sp.Rational(1,2))
+rep('C39c exact round seam and strict open witnesses on both selector sides',
+    witness39)
+
+# On this angular sector Arg(t) is in (-pi/5,pi/5) and
+# a=Arg(u2)/(2*pi) is in (-1/10,1/10).  Thus source middle data are
+# exactly the same five entries (t,one,four,log(t),a) on both sides.
+# The C34 real Cramer determinant is >981/5000, the south 2x2
+# determinant is 1-s^2>15/16, and the height domain is strict.
+# C34e reconstructs zz=e^rho in the south torus_pair.  The source
+# flat weights then give b0=beta in (0,1), bi=0, bm=1-beta;
+# hw(a)=1, the second torus pair has weight zero, and the two
+# angular weights are 1,0.  Consequently the *actual* normalized
+# ten-vector has the following three nonzero slots.
+tr39,ti39,rho39,one39,beta39 = sp.symbols(
+    'tr39 ti39 rho39 one39 beta39',real=True)
+t39 = tr39+sp.I*ti39
+yy39 = sp.exp(rho39)
+xcore39 = t39/yy39
+frame_den39 = sp.sqrt((tr39**2+ti39**2)/yy39**2+yy39**2)
+vec_den39 = sp.sqrt(beta39**2+(1-beta39)**2)
+E39 = sp.zeros(10,1)
+E39[0] = beta39*sp.conjugate(xcore39)/(frame_den39*vec_den39)
+E39[1] = beta39*yy39/(frame_den39*vec_den39)
+E39[8] = (1-beta39)*sp.exp(2*sp.pi*sp.I*one39)/vec_den39
+# SymPy does not infer positivity of beta^2+(1-beta)^2 from beta real.
+# Its equality to 1/2+2(beta-1/2)^2 supplies that proof, so write the
+# conjugate explicitly with the same positive denominators.
+Ebar39 = sp.zeros(10,1)
+Ebar39[0] = beta39*xcore39/(frame_den39*vec_den39)
+Ebar39[1] = beta39*yy39/(frame_den39*vec_den39)
+Ebar39[8] = (1-beta39)*sp.exp(-2*sp.pi*sp.I*one39)/vec_den39
+P39 = E39*Ebar39.T
+support39 = (0,1,8)
+ten_slot39 = (
+    south_reconstruction34 and south_det2_34 and cramer34
+    and source_torus35 and selector_source39
+    and Ebar39==E39.conjugate().xreplace(
+        {sp.conjugate(1/vec_den39):1/vec_den39})
+    and sp.simplify((Ebar39.T*E39)[0]-1)==0
+    and all(E39[k]==0 for k in range(10) if k not in support39)
+    and all(P39[i,j]==0 for i in range(10) for j in range(10)
+            if i not in support39 or j not in support39)
+    and all(sp.simplify((P39*P39-P39)[i,j])==0
+            for i in support39 for j in support39)
+    and sp.simplify(beta39**2+(1-beta39)**2-sp.Rational(1,2)
+                    -2*(beta39-sp.Rational(1,2))**2)==0
+    and det_margin34.subs(radius_bound34,sp.Rational(3,10))
+        ==sp.Rational(981,5000)
+    and sp.Rational(1)-sp.Rational(1,4)**2
+        ==sp.Rational(15,16))
+# The exact positive-root equality is on an open four-real input set.
+# Source uses identical rho, Cramer data, and the displayed E39 there;
+# hence all ten component functions, all 100 P entries, and their first
+# and symmetric second derivatives are identical.  The same source
+# phase/restore formulas take equal input, so the holomorphic target
+# and its two-jets coincide.  This is source-level extensionality after
+# a checked nontrivial root identity, not a claim that the enormous
+# global projector loop was executed.  For any finite count whose
+# denominators are nonzero, equality propagates index by index.
+selector_jet39 = (
+    ten_slot39 and root_identity39 and radial_jets39 and witness39
+    and project_source30 and generic_projector31
+    and source_cusp_ok30 and source_torus35)
+rep('C39d ten-slot reference, rank-one projector and target two-jets agree openly',
+    selector_jet39)
+
+# C39e is a numerical observation (d), sample size one, at the exact
+# round seam witness above.  It measures the margins next to the proved
+# constants; it is not used by C39a--d or by their open-band argument.
+import mpmath as mp39
+with mp39.workdps(80):
+    lam_sample39 = 2-mp39.sqrt(2)
+    X_sample39 = (lam_sample39-1)/mp39.sqrt(1+lam_sample39**2)
+    v_sample39 = (mp39.mpf(0),mp39.mpf(0),1-X_sample39**2)
+    kind_sample39,data_sample39 = cusp30.elliptic_raw_base_reference(
+        v_sample39,X_sample39,dps=70,elementary=True)
+    t_sample39,_,_,lt_sample39,a_sample39 = data_sample39
+    _,norm2_sample39 = cusp30.elliptic_bundle_embedding(
+        kind_sample39,data_sample39,dps=70,with_norm=True,
+        elementary=True)
+    s_sample39 = abs(t_sample39)**2
+    q_sample39 = s_sample39*mp39.exp(-4*s_sample39/(1-s_sample39))
+    ez_sample39 = (-mp39.j*t_sample39,-t_sample39,
+                   -mp39.j*lt_sample39)
+    ew_sample39 = (1-t_sample39*t_sample39,
+                   mp39.j*(1+t_sample39*t_sample39),2*t_sample39)
+    rows_sample39 = [[z.imag for z in ez_sample39],
+                     [z.real for z in ew_sample39],
+                     [z.imag for z in ew_sample39]]
+    cramer_sample39 = mp39.det(mp39.matrix(rows_sample39))
+    e2_sample39,e3_sample39 = ew_sample39[:2]
+    torus_sample39 = (e2_sample39.real*e3_sample39.imag
+                      -e3_sample39.real*e2_sample39.imag)
+    sample_ok39 = (
+        kind_sample39=='mid'
+        and abs(t_sample39-1/mp39.e)<mp39.mpf('1e-60')
+        and abs(a_sample39)<mp39.mpf('1e-60')
+        and abs(cramer_sample39-(1+s_sample39)**2)
+            <mp39.mpf('1e-60')
+        and abs(torus_sample39-(1-s_sample39**2))
+            <mp39.mpf('1e-60')
+        and q_sample39>mp39.mpf(1)/100
+        and q_sample39<mp39.mpf(1)/8
+        and cramer_sample39>mp39.mpf(981)/5000
+        and torus_sample39>mp39.mpf(15)/16
+        and norm2_sample39>mp39.mpf(1)/2)
+    print('C39e one-point source margins (d), sample size 1:'
+          ' q-1/100=',mp39.nstr(q_sample39-mp39.mpf(1)/100,18),
+          ' 1/8-q=',mp39.nstr(mp39.mpf(1)/8-q_sample39,18),
+          ' Cramer-981/5000=',mp39.nstr(
+              cramer_sample39-mp39.mpf(981)/5000,18),
+          ' torus-15/16=',mp39.nstr(
+              torus_sample39-mp39.mpf(15)/16,18),
+          ' norm2-1/2=',mp39.nstr(
+              norm2_sample39-mp39.mpf(1)/2,18))
+rep('C39e one-point production margins (numerical observation, d)',
+    sample_ok39)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

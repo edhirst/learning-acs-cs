@@ -86,6 +86,12 @@
 > ordinary numerical evaluator takes working-precision identity
 > shortcuts. Its source guards and context restoration pass; global
 > T16 coverage remains open.
+> **Dominant-selector overlap (2026-10-12-TSG-21):** C39 checks
+> an open band across the raw reference's dominant-coordinate
+> selector. Its two positive-root formulas give the same effective
+> \(t\), source reference, projector and restored output through
+> second order. Exact round witnesses lie on both selector sides;
+> other source seams and global T16 coverage remain open.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
 > **Resume point: complete T16's exact branch circuit and second-jet checks, then simplify the fixed counts.**
 
@@ -2959,6 +2965,7 @@ derivatives are numerical observations, type (d).
 | C37a–d, one all-mesh pure-cusp free-slab cell (a,b,c,d) | On the strict near-south chamber \(X<0,\ X>-1+10^{-9},\ 1+X>10^{-5},\ \Lambda(X)<10^{-4},\ |n_0|<1/100,\ n_1<-3/4,\ 1/2<n_2<2/3\), every source meridian sample, including the endpoints of the certified \(N=4\cdot10^{8000}+1\) fold, takes the same positive-\(x\) south-cusp branch. The fixed-count projection overlaps are uniformly \(>3/5\), the four-seed height is \(H_f=a/(1-q)\), and the adapted six-real Jacobian has the positive factorization below: ALL PASS. The exact round witness is \(Z=(1/100,i/200),\ X=-\sqrt{7999/8000}\). A separately labelled numerical initial-overlap sample is \(0.9999999999999999999512\), with measured excess \(0.3999999999999999999512\) over \(3/5\); an \(N=1\) endpoint sample is not a minimum over the certified mesh. This cell supplies neither the six Hessians nor a named \(J\). |
 | N8, actual inner-pole charts (a) | both signs: the six real outputs of (11.17)–(11.18), including the four-seed \(H_f\), are differentiated to a 6×6 Jacobian and six Hessians; all 90 mixed-partial pairs per sign, the nonzero pole determinant, and 216 normal-frame \(N_J\) entries: ALL PASS |
 | C38a–e, pure-cusp argument-selector overlap (a,b,c,d) | At both cusps, exact round witnesses and \(\pm1/1000\) angular perturbations lie on opposite sides of the source selector inside valid open cusp charts. In the lower wedge, the principal and half-centred heights differ by one deck unit; the two normalized ten-slot references, their projectors, and all first/second jets agree openly. The four-seed height shifts by one, and torus restoration gives a holomorphic cusp deck transition with complex determinant \(1\): ALL PASS. The exact bound is \(|t_c|<1/10\); separate numerical lower-wedge samples give \(|t_c|\approx0.0039838456\) south and \(0.0294368583\) north, measured gaps \(0.0960161544\) and \(0.0705631417\). Fold propagation assumes the already certified nonzero projection overlaps; other selectors and global \(J\) coverage remain open. |
+| C39a–e, dominant-coordinate selector overlap (a,b,c,d) | On \(99/100<|u_1/u_2|^2<101/100,\ |\Arg(u_1/u_2)|<\pi/5,\ |\Arg u_2|<\pi/5\), both source positive-root formulas give the same effective \(t\) and all its real first and second jets. Explicit profile bounds place \(3/10<|t|<1/2\), \(1/100<q<1/8\), with Cramer determinant \(>981/5000\), torus determinant \(>15/16\), and raw-reference norm square \(\ge1/2\). Both branches select the same south active collar, middle data, ten-slot reference, projector and restored output on this open cell: ALL PASS. Exact round witnesses at \(\lambda=2-\sqrt2\) and \(\lambda\pm1/10000\) meet the selector and both sides. C39e is a separate one-point type-(d) source observation at the seam; measured gaps to the displayed bounds are \(0.0623622466\) and \(0.0526377534\) for \(q\), \(1.0927862054\) for Cramer, \(0.0441843611\) for torus, and \(0.1888800593\) for reference norm square. Other selector seams and global \(J\) coverage remain open. |
 | m1–m3, formula-branch source audit and observations (d) | The checker identifies and gates all six working-precision identity returns, and checks nested/exception restoration: ALL PASS. Two strict interior type-(d) samples have exact-formula value gaps \(9.0129315017\cdot10^{-99}\) (pole radial) and \(3.23193414504\cdot10^{-92}\) (height radial) from the default identity returns, evaluated at 240 digits. Sample size two; m3 reproduces the observations. This does not evaluate the fixed-count global tensor. |
 | N9a–i, cap/slab overlap (a,c) | for both signs, exact phase telescoping, source-linked raw-reference/projector identification, matching cusp inputs, torus restoration and first/second jets: ALL PASS, conditional on the written §11.3, §11.5 and §10.6 bounds; the post-raw radial margin is checked in N9b |
 | N10a–d, radial shell (a,b) | source-linked finite elementary \(S,S^{-1}\) nodes, exact scalar inverse and derivative identities, 16 first and 64 second entries for each radial direction, and \(\det DD=S(r)S'(r)/r>0\) on \(10^{-8}<r<1.5\cdot10^{-8}\): ALL PASS; the raw pole and torus stages are not composed here |
@@ -3165,6 +3172,80 @@ Here \(z_2\ne0\) on the overlap. This equality of open chart
 formulas transports all their jets; it does not assert that the
 remaining projector path cells or source-chart seams have been
 covered.
+
+C39 treats the dominant-coordinate selector in the raw reference
+on an open overlap. Set \(R=u_1/u_2\), \(r=|R|^2\),
+\(A=(4\pi)^2\), \(B=e^4\), \(b=A(1-r)\), and
+\(D=\sqrt{b^2+4Br}>|b|\). The direct source branch has
+\(t=R\sqrt{2/(b+D)}\). On the inverse-ratio branch the source
+first forms \(1/R\) and then takes its reciprocal; its effective
+coordinate is
+\[
+ t=R\sqrt{\frac{D-b}{2Br}}.
+\]
+The identity \((D-b)(D+b)=4Br\), together with positivity of both
+square roots, makes these the same smooth function for \(r>0\).
+C39a checks the source assignments and the radial derivatives
+through order two (identity type (a)).
+
+For the strict band
+\[
+ \frac{99}{100}<r<\frac{101}{100},\qquad
+ |\Arg R|<\frac{\pi}{5},\qquad |\Arg u_2|<\frac{\pi}{5},
+\]
+write \(s=|t|^2\). The inverse profile is
+\(r=(Bs^2+As)/(1+As)\), with derivative
+\((A+B(2s+As^2))/(1+As)^2>0\).
+The explicit bounds \(A<160\), \(50<B<81\) show
+\(r(9/100)<99/100\): after multiplying by its positive
+denominator, the available gap is
+\(99/100-(81\cdot81+160\cdot9)/10000=1899/10000\).
+Likewise \(r(1/4)>101/100\), with gap
+\(50/16-101/100-160/400=343/200\).
+Thus \(3/10<|t|<1/2\). The source infinity flag is false
+on both sides, so both use \(t_c=t\), the same argument \(a\)
+and the same active south collar. Here
+\(q=s\exp[-4s/(1-s)]\) satisfies
+\[
+ \frac1{100}<\frac{9}{100e^2}<q<
+ \frac1{4e}<\frac18.
+\]
+The lower bound uses \(4s/(1-s)<4/3<2\); the upper
+uses \((se^{-4s})'=e^{-4s}(1-4s)>0\) for \(s<1/4\).
+The source Cramer determinant is \(>981/5000\), the
+south torus determinant \(1-s^2>15/16\), and the
+unnormalized reference norm square is
+\(\beta^2+(1-\beta)^2=1/2+2(\beta-1/2)^2\ge1/2\).
+These are explicit-constant inequalities and manifest squares
+(types (b)–(c)); C39b and C39d check their algebra and source
+guards.
+
+At the exact round witness
+\(\lambda=2-\sqrt2\),
+\(X=(\lambda-1)/\sqrt{1+\lambda^2}\),
+\(Z=(\sqrt{1-X^2},0)\), the source has
+\(u_1=u_2=1/\sqrt2\) and \(t=e^{-1}\).
+The values \(\lambda\pm1/10000\) give strict witnesses on
+opposite selector sides inside the displayed band (C39c).
+On this band the source normalized ten-vector has only slots
+\(0,1,8\), with entries
+\[
+ \frac{\beta}{\sqrt{\beta^2+(1-\beta)^2}}
+ \frac{(\overline{t/e^\rho},\,e^\rho)}
+      {\sqrt{|t/e^\rho|^2+e^{2\rho}}},
+ \qquad
+ \frac{1-\beta}{\sqrt{\beta^2+(1-\beta)^2}}
+ e^{2\pi i\,\mathrm{one}}
+\]
+in the first two and last slot, respectively. Since the
+source data agree as functions on the open band, so do this
+reference, its rank-one projector and all their second jets.
+The same Cramer, height, phase and torus formulas then give
+identical restored-output second jets (C39d). This equality
+propagates through each finite meridian step wherever its
+projection denominator is nonzero. C39e reports a separate
+one-point numerical source comparison and the measured margins
+listed in §11.8; it does not supply a global bound.
 
 On the checked south raw-pole annulus, write \(r=|Z_0|^2+|Z_1|^2\) and
 \(z_L=(Z_0-iZ_1,Z_0+iZ_1)/\sqrt{4\pi(1+\sqrt{1-r^2})}\). Let \(w=g_0(z_L)\)

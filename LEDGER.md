@@ -2165,3 +2165,47 @@ in `AGENTS.md` §5.
   arithmetic and does not execute the astronomical fixed counts.
   The global direct \(J_{\mathrm{cl}}\) second-jet and overlap
   certificate remains open.
+
+### 2026-10-12-TSG-21 — Certify a dominant-coordinate selector overlap
+- **Date:** 2026-10-12
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6), with subagents
+- **Type:** addition
+- **Based on:** 2b503c6
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (C39a–e),
+  docs/s4t2_symbolic_programme.md status, §11.8 and certificate,
+  and SYMBOLIC_CAMPAIGN.md T16 status. No manuscript or
+  construction file changed.
+- **Change:** proved that both source dominant-ratio positive
+  roots give the same effective \(t\) and real two-jets on a
+  strict open band across \(|u_1|=|u_2|\). Explicit constants
+  keep this band in the active south collar, with nonzero
+  Cramer and torus determinants and reference norm. Both
+  branches therefore have the same actual three-slot
+  normalized reference, projector and restored output through
+  second order. An exact round seam witness and perturbations
+  on both selector sides are checked. A separate one-point
+  type-(d) production sample records the measured margins.
+- **Why:** the local \(J\) circuits must agree across an
+  artificial source selector before a global direct certificate
+  can be claimed.
+- **Verification:** chart_identities.py C39a–e: **ALL PASS**
+  on my full run and independently on the author's and
+  referee's full runs. The referee also checked the source
+  reference and embedding at the algebraic seam witness and
+  strict side witnesses. The proved margins are
+  \(q>1/100,\ q<1/8\), Cramer \(>981/5000\), torus
+  \(>15/16\), and norm square \(\ge1/2\). The one-point
+  observed gaps are respectively \(0.0623622466\),
+  \(0.0526377534\), \(1.0927862054\),
+  \(0.0441843611\), and \(0.1888800593\).
+  verify_construction.py: all checks passed;
+  sphere_products.py: Dimension 8 check passed;
+  git diff --check: pass. LaTeX: **not run** (latexmk
+  unavailable). Git fetch/pull and push were left to the
+  collaborator as requested.
+- **Open points:** equality propagates through each finite
+  projector step under its nonzero-denominator premise; this
+  certificate does not execute the global fixed-count loop.
+  Other source seams and global \(J_{\mathrm{cl}}\) coverage
+  remain open.
