@@ -6491,5 +6491,421 @@ with mp41.workdps(120), cusp30.elementary_formula_branches():
 rep('C42f production points across eight pure-middle seams (numerical, d)',
     sample_ok42)
 
+# C43: the argument-chart selector of the raw reference (C38) on
+# 1/10<=|tc|<1/2, i.e. in the rest of the core and in the collar, at both
+# cusp signs.  The source takes a=1/2+Arg(-p)/(2pi) if Re p<-(9/10)|p|,
+# else a=Arg(p)/(2pi) (p=u2 south, p=-conj(u1) north).  On the upper
+# wedge the two values agree; on the lower wedge -pi<Arg p<-5pi/6 the
+# principal a0 is in (-1/2,-5/12) and the half-centred a1=a0+1 (C38a).
+# C43 proves, on the whole lower overlap and for every |tc|<1/2 (core
+# and collar), that the two charts give the same ten-slot projector; and,
+# for a final unit vector E of the fold that is smooth there (a premise
+# resting on the other seams and on nonzero overlaps), restored outputs
+# related by a holomorphic deck transition: the cusp deck T of C38d in
+# the core, and the lattice vector +e4 (south) or -e4 (north) in the
+# collar.  It replaces C38's seed-branch computation, valid only for
+# q<1/100, by an exact deck shift of the four-seed height valid on
+# 1/4<Y<2 for every q<1/8.
+seed_body43 = '''
+reciprocal = u>2
+v = 1/u if reciprocal else u
+if v<=mp.mpf(1)/16:
+    value = v
+elif v>=mp.mpf('.5'):
+    value = v/(1+v)
+else:
+    weight = scalar_flat_step(mp.log(16*v)/mp.log(8))
+    value = v+weight*(v/(1+v)-v)
+return 1-value if reciprocal else value
+'''
+finite_body43 = '''
+import mpmath as mp
+rr = abs(x*y)**2
+e = mp.exp(-4*rr/(1-rr))
+A,Y = nu*nu*e*abs(x)**2,abs(y)**2
+q = A*Y
+if not rr<=mp.mpf('.25') or max(A,Y)>4 or q>=mp.mpf('.125'):
+    raise ValueError('four-seed finite height is outside its stated domain')
+def seed(u):
+    reciprocal = u>2
+    v = 1/u if reciprocal else u
+    if v<=mp.mpf(1)/16:
+        value = v
+    elif v>=mp.mpf('.5'):
+        value = v/(1+v)
+    else:
+        weight = scalar_flat_step(mp.log(16*v)/mp.log(8))
+        value = v+weight*(v/(1+v)-v)
+    return 1-value if reciprocal else value
+return seed(A)+seed(q*A)-seed(Y)-seed(q*Y)+q*q*(A-Y)/(1-q)
+'''
+finite_tree43 = source_tree30(cusp30.scalar_finite_height)
+source43 = (
+    source41 and arg_source38 and open_wedges38 and source_torus35
+    and body_dump41(finite_tree43)==text_dump41(finite_body43)
+    and len(seed_nodes38)==1
+    and body_dump41(seed_nodes38[0])==text_dump41(seed_body43))
+
+# C43a.  K=seed satisfies K(u)+K(1/u)=1 for every u>0: on [1/2,2] both
+# are v/(1+v) and the sum is 1; otherwise one of u,1/u exceeds 2 and the
+# reciprocal branch returns 1-K of the other.  It is linear, K(u)=u, on
+# u<=1/16.  Let (A,Y)=(q/Y0,Y0) be a cusp representative and
+# psi_hat(x,y)=(1/(my),mxy^2), m=nu*sqrt(e); then psi_hat has
+# (A,Y)=(1/Y0,q*Y0) with the same t and q.  If 1/4<Y0<2 and q<1/8, both
+# lie in the four-seed domain (max(A,Y)<=4, q<1/8) and q^2 Y0,
+# q^2/Y0<1/16.  The A-seed K(q/Y0) of p cancels the qA-seed of psi_hat p,
+# the qY-seed K(qY0) of p cancels the Y-seed of psi_hat p, the q^2 seeds
+# are linear, and
+#   H_f(psi_hat p)-H_f(p)=K(1/Y0)+K(Y0)=1   exactly.
+Y0_43,q43 = sp.symbols('Y0_43 q43',positive=True)
+Kpair43 = sp.Function('K43')
+def H4_43(A,Y,qq,K):
+    return K(A)+K(qq*A)-K(Y)-K(qq*Y)+qq**2*(A-Y)/(1-qq)
+lin43 = {Kpair43(q43**2/Y0_43):q43**2/Y0_43,Kpair43(q43**2*Y0_43):q43**2*Y0_43}
+shift43 = sp.simplify(
+    (H4_43(1/Y0_43,q43*Y0_43,q43,Kpair43)
+     -H4_43(q43/Y0_43,Y0_43,q43,Kpair43)).xreplace(lin43)
+    -(Kpair43(1/Y0_43)+Kpair43(Y0_43)))==0
+vv43 = sp.Symbol('vv43',positive=True)
+seed_mid43 = vv43/(1+vv43)
+reciprocal43 = (
+    sp.simplify(seed_mid43+seed_mid43.subs(vv43,1/vv43)-1)==0
+    and seed_mid43.subs(vv43,2)+seed_mid43.subs(vv43,sp.Rational(1,2))==1
+    # psi_hat moduli: A'=nu^2 e/(m^2 Y)=1/Y, Y'=m^2 |x|^2 Y^2=A Y=qY.
+    and sp.simplify((nu41**2*sp.Symbol('ee43',positive=True)
+                     /((nu41*sp.sqrt(sp.Symbol('ee43',positive=True)))**2
+                       *Y0_43))-1/Y0_43)==0
+    # domain: 1/4<Y0<2, q<1/8 give max(A,Y)<=4 and q^2 max(Y0,1/Y0)<1/16
+    # (the source's linear seed branch is v<=1/16)
+    and sp.Rational(1,8)**2*4<=sp.Rational(1,16)
+    and sp.Rational(1,8)**2*2<sp.Rational(1,16))
+rep('C43a four-seed height shifts by exactly 1 under psi_hat on 1/4<Y<2',
+    source43 and shift43 and reciprocal43)
+
+# C43b.  Y0 is in (1/4,2) on both charts' common domain.  With b=a0 in
+# (-1/2,-5/12) the source moment is on its outer branch |b|>=2/5:
+# f=-(e^(kappa(|b|-1/2))-q e^(kappa(1/2-|b|))), kappa=2+lam(k-2), k=-log q.
+# The cell-0 negative reference has Y0=(R-f)/2 (R=sqrt(f^2+4q)), so
+# |f|<=Y0<=|f|+sqrt q.  Core (lam=0, kappa=2, q<1/8 by L13d):
+#   |f|>e^(-1/6)-e^(1/6)/8>1/4.
+# Collar: with s=|tc|^2 in (9/100,1/4), q=nu^2 s exp(-4s/(1-s)).  Its
+# derivative has the sign of 1-4s/(1-s)^2, which decreases, so q is
+# unimodal and its minimum is at an endpoint: q(1/4)>(1/4)e^(-4/3)>1/16
+# (e^(4/3)<4) and q(9/100)>(9/100)e^(-4/9)>9/200>1/25.  Hence south
+# q>1/25 and north q>1/(25*55)>1/2500, while q<s e^(-4s)<=1/(4e)<1/8.
+# So 2<=kappa<=k<8 and
+#   |f|>=e^(-k/12)-e^(-k)e^(k/12)=e^(-k/12)(1-e^(-5k/6))
+#      >e^(-2/3)(1-e^(-5/3))>1/4,
+# and in both cases Y0<1+sqrt(1/8)<2.
+k43 = sp.Symbol('k43',positive=True)
+domain43 = (
+    sp.exp(-sp.Rational(1,6))-sp.exp(sp.Rational(1,6))/8>sp.Rational(1,4)
+    and sp.exp(-sp.Rational(2,3))*(1-sp.exp(-sp.Rational(5,3)))>sp.Rational(1,4)
+    # q<1/8<e^-2 gives k>2, and q>1/2500>e^-8 gives k<8.
+    and sp.exp(8)>2500 and sp.exp(2)<8
+    and sp.simplify(sp.exp(-k43/12)-sp.exp(-k43)*sp.exp(k43/12)
+                    -sp.exp(-k43/12)*(1-sp.exp(-5*k43/6)))==0
+    and 1+sp.sqrt(sp.Rational(1,8))<2
+    and sp.Rational(5,12)>sp.Rational(2,5)
+    and sp.factor(sp.diff(4*s_band41/(1-s_band41)**2,s_band41)
+                  -4*(1+s_band41)/(1-s_band41)**3)==0
+    and sp.exp(sp.Rational(4,3))<4
+    and 4*sp.Rational(9,100)/(1-sp.Rational(9,100))<sp.Rational(4,9)
+    and sp.Rational(9,100)*sp.exp(-sp.Rational(4,9))>sp.Rational(9,200)
+    and sp.Rational(9,200)>sp.Rational(1,25)
+    and sp.Rational(1,25)/55>sp.Rational(1,2500)
+    and 1/(4*sp.E)<sp.Rational(1,8)
+    and matching_if_test32(moment_tree36,"aa>=mp.mpf('.4')")
+    and exact_if_body37(moment_tree36,"aa>=mp.mpf('.4')",
+        'return mp.sign(a)*(B*mp.exp(kappa*aa)-C*mp.exp(-kappa*aa))')
+    and matching_statement31(terminal_tree36,
+        'B,C = mp.exp(-kappa/2),q*mp.exp(kappa/2)'))
+rep('C43b both charts keep Y0 in (1/4,2): core (q<1/8) and collar',
+    domain43)
+
+# C43c.  Core (|tc|<=3/10).  Same b=a0, f, R on both charts (cells 0 and
+# 1).  The a0<=0 reference is y0=sqrt((R-f)/2), x0=t/y0; the a1>0 cell-1
+# reference is x1=sqrt(2/((R-f)e))/nu, y1=t/x1.  Hence
+# (x1,y1)=psi_hat(x0,y0) exactly, for every f.  Both heights have zero
+# first weight (|a0|,a1>5/12>2/5) and second weight hw(a0+1/2)=hw(a1-1/2);
+# the negative chart applies psi_hat before its second frame.  So the
+# ten-vectors coincide, the final phase p is the same (|p|=1 because the
+# fold vector E lies in the image of the final projector), and the final
+# W-points are psi_hat-related (C38e: the phase commutes with psi_hat).
+# The four-seed height shifts by one (C43a,b), so the restorations are
+# related by the holomorphic cusp deck T of C38d.
+fc43,qc43,ec43,nuc43 = sp.symbols('fc43 qc43 ec43 nuc43',positive=True)
+fneg43 = -fc43                       # f<0 on the negative outer branch
+Rc43 = sp.sqrt(fneg43**2+4*qc43)
+y0c43 = sp.sqrt((Rc43-fneg43)/2)
+mc43 = nuc43*sp.sqrt(ec43)
+x1c43 = sp.sqrt(2/((Rc43-fneg43)*ec43))/nuc43
+core_deck43 = (
+    sp.simplify(x1c43-1/(mc43*y0c43))==0
+    and sp.simplify(t41/x1c43-mc43*(t41/y0c43)*y0c43**2)==0
+    and holomorphic_deck38 and phase_deck38
+    # first weights: |a0|>5/12>2/5 and a1>1/2>2/5 give hw=0; the
+    # second weights are hw(a0+1/2)=hw(a1-1/2) since a1=a0+1.
+    and sp.Rational(5,12)>sp.Rational(2,5)
+    # m=nu*exp(-2rr/(1-rr)) in the core block is nu*sqrt(e): both are
+    # positive and m^2=nu^2 e.
+    and matching_assignment30(bundle_tree32,'m','nu*mp.exp(-2*rr/(1-rr))')
+    and sp.simplify(sp.exp(-2*rq41**2/(1-rq41**2))**2
+                    -sp.exp(-4*rq41**2/(1-rq41**2)))==0)
+rep('C43c core: references psi_hat-related, same ten-vector, deck T',
+    core_deck43 and source43)
+
+# C43d.  Collar (3/10<|tc|<1/2), with t=re^(i th) the middle variable and
+# L=log r+i th.  Both charts use the same b and lambda, so the logradius
+# gives rho1=rho0+P with P=log(m|tc|) (cells n=0,1).  The raw middle point
+# therefore moves by (-iP,0), and in the middle lattice
+#   south: (-iP,0)= e4-c.e-(th/2pi)e1,   north: (-iP,0)=-e4+c.e+(th/2pi)e1,
+# where c=coeffs(2t) are torus directions (dropped from W).  So
+# four->four+-1 and one->one-th_c/(2pi), th_c=Arg tc.  The ten-vector is
+# multiplied by exp(-i th_c): the cusp pair has zz->zz e^P, H->H+1, shift
+# ->shift-1, so yy->yy |m tc|/(m tc), and the angular slots get
+# exp(2 pi i Delta one) (an integer change of four is invisible, C42b).
+# Hence the projectors agree, p->exp(i th_c)p, the corrected one agrees
+# modulo 1, and Psi(W) changes by +-e4 plus an integer multiple of e1.
+# In the restore loop yy changes by m*tc (the psi_hat factor), so H_f
+# rises by one (C43a,b), and D is unchanged: south H-four, north H+four.
+# The restored outputs differ by a lattice translation (C42d).
+xd43,yd43,lr43,th43 = sp.symbols('xd43 yd43 lr43 th43',real=True)
+td43 = xd43+sp.I*yd43
+r2d43 = xd43**2+yd43**2
+Ld43 = lr43+sp.I*th43
+e1d43,e2d43,e3d43,e4d43 = ((2*sp.pi,0),(-sp.I*td43,1-td43**2),
+                           (-td43,sp.I*(1+td43**2)),(-sp.I*Ld43,2*td43))
+cd43 = coeffs41(sp.expand(2*td43),e2d43[1],e3d43[1])
+ced43 = (cd43[0]*e2d43[0]+cd43[1]*e3d43[0],cd43[0]*e2d43[1]+cd43[1]*e3d43[1])
+P_s43 = lr43-2*r2d43/(1-r2d43)                  # nu=1, |tc|=r
+P_n43 = -2-lr43-2/(r2d43-1)                      # nu=e^-2, |tc|=1/r
+lattice_shift43 = (
+    all(sp.simplify(sp.expand_complex(a-b))==0 for a,b in zip(
+        (-sp.I*P_s43,0),
+        (e4d43[0]-ced43[0]-th43/(2*sp.pi)*e1d43[0],e4d43[1]-ced43[1])))
+    and all(sp.simplify(sp.expand_complex(a-b))==0 for a,b in zip(
+        (-sp.I*P_n43,0),
+        (-e4d43[0]+ced43[0]+th43/(2*sp.pi)*e1d43[0],-e4d43[1]+ced43[1]))))
+# Gauge of the ten-vector: cusp pair (yy -> yy*|m tc|/(m tc), the frame
+# gauge of C41b with g=exp(-i th_c)) and angular slots (exp(2 pi i Delta)).
+rc43,mm43,thc43 = sp.symbols('rc43 mm43 thc43',positive=True)
+tc43 = rc43*sp.exp(sp.I*thc43)
+gauge43 = (
+    sp.simplify(mm43*rc43/(mm43*tc43)-sp.exp(-sp.I*thc43))==0
+    and gauge_frames41
+    and sp.simplify(sp.exp(2*sp.pi*sp.I*(-thc43/(2*sp.pi)))
+                    -sp.exp(-sp.I*thc43))==0)
+# p changes by exp(i th_c) (conjugate-linear first slot), so the
+# corrected one, one+Arg(p)/(2pi), is unchanged modulo 1.
+Vg43 = sp.symbols('Vg0_43 Vg1_43')
+Eg43 = sp.symbols('Eg0_43 Eg1_43')
+phase43 = (
+    sp.simplify(sp.expand(inner41(tuple(sp.exp(-sp.I*thc43)*v for v in Vg43),Eg43))
+                -sp.exp(sp.I*thc43)*inner41(Vg43,Eg43))==0)
+# Restore-loop yy under W -> W+-e4 (+ integer e1): its exponent changes by
+# log(m tc) = P+i th_c (south: L-d, north: -L-2-d, d=2|tc|^2/(1-|tc|^2)).
+yy_shift43 = True
+for inf43,sign43 in ((False,1),(True,-1)):
+    zq43,wq43 = sp.symbols('zq43 wq43')
+    sq43 = Ld43/(2*sp.pi*sp.I)
+    tcd43 = 1/td43 if inf43 else td43
+    e2q,e3q,_,a2q,a3q = cusp_data41(tcd43,inf43)
+    def expo43(z,w):
+        if inf43:
+            zc,wc = z-sp.I*w/td43,w/td43**2
+        else:
+            zc,wc = z-sp.pi*sq43*(sq43-1),w-2*td43*sq43
+        cc = coeffs41(sp.expand_complex(-wc),e2q,e3q)
+        return sp.I*(zc-sp.I*(cc[0]*a2q+cc[1]*a3q))
+    zr43,zi43,wr43,wi43 = sp.symbols('zr43 zi43 wr43 wi43',real=True)
+    z0q,w0q = zr43+sp.I*zi43,wr43+sp.I*wi43
+    diff43 = sp.expand(expo43(z0q+sign43*e4d43[0],w0q+sign43*e4d43[1])
+                       -expo43(z0q,w0q))
+    tc_abs2 = 1/r2d43 if inf43 else r2d43
+    d43 = 2*tc_abs2/(1-tc_abs2)
+    target43 = (-Ld43-2-d43) if inf43 else (Ld43-d43)
+    yy_shift43 &= sp.simplify(sp.expand_complex(diff43-target43))==0
+# Arithmetic of the two source D formulas (bound in restore_loop41).
+D_invariant43 = (sp.simplify((H41+1)-(four41+1)-(H41-four41))==0
+                 and sp.simplify((H41+1)+(four41-1)-(H41+four41))==0)
+rep('C43d collar: lattice shift +-e4, same projector, D invariant, deck',
+    lattice_shift43 and gauge43 and phase43 and yy_shift43
+    and D_invariant43 and deck_det42 and source43)
+
+# C43e.  Exact round witnesses on the lower selector, with
+# p_c=pr-i sqrt(1-pr^2), pr in {-9/10-1/1000,-9/10,-9/10+1/1000}
+# (half-centred, seam, principal chart; Re p+(9/10)|p|=pr+9/10, C38a).
+# Core south (|tc|=1/5, direct branch, k^2=(Bp^2+Ap)/(1+Ap), p=1/25):
+#   u2=p_c/Q, u1=i k/Q; y=(k,pr,-sqrt(1-pr^2))/Q, R^2=2-2pr/Q.
+# Collar south (|tc|=2/5, inverse branch, small=1/t, p'=|small|^2=25/4,
+# k^2=(p'^2+Ap')/(Ap'+B)): u1=i/Q, u2=k p_c/Q; y=(1,k pr,-k sqrt(1-pr^2))/Q,
+#   R^2=2-2k pr/Q.
+# North (|tc|=1/5 and 2/5, inverse branch, k^2=(p^2+Ap)/(Ap+B)):
+#   u1=-conj(p_c)/Q, u2=-i k/Q; y=(-sqrt(1-pr^2),0,-k)/(Q-pr),
+#   R^2=1+(1-pr^2+k^2)/(Q-pr)^2.
+# In each case 0<k<1<Q<sqrt 2 and -1<pr<-4/5 give 1<R^2<4, hence
+# 0<X<1/sqrt 5<3/5 (round_inverse38); the moduli |small|=sqrt(p) follow
+# from witness_roots41, which depends only on k^2.
+# Rational parametrization pr=-(1-tau^2)/(1+tau^2), sqrt(1-pr^2)=
+# 2tau/(1+tau^2), tau>0; pr=-9/10 is tau=1/sqrt(19), and pr in
+# (-1,-4/5) is 0<tau<1/3.
+tau43,kw43 = sp.symbols('tau43 kw43',positive=True)
+pr43 = -(1-tau43**2)/(1+tau43**2)
+Qw43 = sp.sqrt(1+kw43**2)
+sq43w = 2*tau43/(1+tau43**2)
+pcw43 = pr43-sp.I*sq43w
+cases43 = (
+    (sp.I*kw43/Qw43,pcw43/Qw43,(kw43,pr43,-sq43w),Qw43,
+     2-2*pr43/Qw43),
+    (sp.I/Qw43,kw43*pcw43/Qw43,(1,kw43*pr43,-kw43*sq43w),Qw43,
+     2-2*kw43*pr43/Qw43),
+    (-sp.conjugate(pcw43)/Qw43,-sp.I*kw43/Qw43,(-sq43w,0,-kw43),Qw43-pr43,
+     1+(1-pr43**2+kw43**2)/(Qw43-pr43)**2))
+witness43 = True
+for u1c,u2c,ynum,yden,R2c in cases43:
+    yv = tuple(v/yden for v in ynum)
+    Sy = 1+sum(v**2 for v in yv)
+    witness43 &= (
+        sp.simplify(sp.expand_complex(u1c*sp.conjugate(u1c)
+                                      +u2c*sp.conjugate(u2c))-1)==0
+        and sp.simplify(sp.expand_complex((1-(Sy-1)+2*sp.I*yv[0])/Sy-u1c))==0
+        and sp.simplify(sp.expand_complex(2*(yv[1]+sp.I*yv[2])/Sy-u2c))==0
+        and sp.simplify(sum((yv[i]-(0,1,0)[i])**2 for i in range(3))-R2c)==0)
+# k^2<1: south core Bp^2<1 (p=1/25, B<55); inverse branch p^2<B (p<=25/4,
+# B>50).  R^2: cases 1-2 are 2-2pr/Q or 2-2k pr/Q in (2,4) since
+# 0<-pr<1, 0<k<1<Q; case 3 is 1+(1-pr^2+k^2)/(Q-pr)^2 in (1,2) since
+# 1-pr^2<9/25, k^2<1, Q-pr>9/5.  So 1<R^2<4 and 0<X<X(2)=1/sqrt 5<3/5.
+witness43 &= (
+    sp.exp(4)>50 and sp.exp(4)<55
+    and 55*sp.Rational(1,25)**2<1
+    and sp.Rational(25,4)**2<50
+    and sp.Rational(9,25)+1<sp.Rational(9,5)**2
+    and sp.simplify(pr43**2+sq43w**2-1)==0
+    and sp.simplify(pr43.subs(tau43,1/sp.sqrt(19))+sp.Rational(9,10))==0
+    and sp.Rational(-9,10)-sp.Rational(1,1000)>-1
+    and sp.Rational(-9,10)+sp.Rational(1,1000)<-sp.Rational(4,5)
+    and 1-(sp.Rational(4,5))**2==sp.Rational(9,25)
+    and Xv41.subs(Rv41,2)<sp.Rational(3,5)
+    and sp.Rational(1,5)<sp.Rational(3,10)<sp.Rational(2,5)<sp.Rational(1,2)
+    and (-sp.Rational(9,10)-sp.Rational(1,1000))+sp.Rational(9,10)<0
+    and (-sp.Rational(9,10)+sp.Rational(1,1000))+sp.Rational(9,10)>0
+    # all three lie in the lower wedge Arg p<-5pi/6, i.e. pr<-sqrt(3)/2
+    and sp.Rational(899,1000)**2>sp.Rational(3,4))
+rep('C43e exact selector witnesses at |tc|=1/5 and 2/5, both cusps and sides',
+    witness43 and witness_roots41 and round_inverse38)
+
+# C43f is solely a reproducible numerical observation (d), sample size 8:
+# |tc| in {.15,.25} (core) and {.35,.45} (collar) at both signs, just
+# inside the half-centred chart of the lower selector.  The production
+# raw reference gives chart a1; the other chart a0=a1-1 is evaluated at
+# the same point with the production core reference or logradius and
+# lattice solve.  It prints the projector difference, the deck-relation
+# residual of the restored outputs (T of C38d in the core, +-e4 plus an
+# integer e1 in the collar), the measured (Delta four, Delta one), and
+# the measured margins of |f| and Y0 beside the proven C43b bounds.
+rows43 = []
+margins43 = []
+sample_ok43 = True
+with mp41.workdps(120), cusp30.elementary_formula_branches():
+    A43n,B43n = (4*mp41.pi)**2,mp41.exp(4)
+    beta43 = -(mp41.pi-mp41.acos(mp41.mpf(9)/10))-mp41.mpf('1e-30')
+    phi43 = (mp41.mpf(1)/3,mp41.mpf(2)/7)
+    pc43n = mp41.exp(mp41.j*mp41.mpf('0.7'))
+    for north43 in (False,True):
+        nu43 = mp41.exp(-2) if north43 else mp41.mpf(1)
+        sig43 = -1 if north43 else 1
+        for rad43 in (mp41.mpf('0.15'),mp41.mpf('0.25'),mp41.mpf('0.35'),
+                      mp41.mpf('0.45')):
+            arg_tc43 = sig43*mp41.mpf('0.8')
+            if north43 or rad43<1/mp41.e:           # direct south / north
+                pp = rad43**2
+                kk = mp41.sqrt((pp**2+A43n*pp)/(A43n*pp+B43n) if north43 else
+                               (B43n*pp**2+A43n*pp)/(1+A43n*pp))
+            else:                                   # south inverse branch
+                pp = 1/rad43**2
+                kk = mp41.sqrt((pp**2+A43n*pp)/(A43n*pp+B43n))
+            QQ = mp41.sqrt(1+kk**2)
+            ph = mp41.exp(mp41.j*beta43)
+            if north43:
+                u1 = -mp41.conj(ph)/QQ
+                u2 = kk*u1*mp41.exp(mp41.j*arg_tc43)
+            elif rad43<1/mp41.e:
+                u2 = ph/QQ
+                u1 = kk*u2*mp41.exp(mp41.j*arg_tc43)
+            else:
+                u2 = kk*ph/QQ
+                u1 = u2/kk*mp41.exp(mp41.j*arg_tc43)
+            d = 1+u1.real
+            w = (u1.imag/d,u2.real/d-1,u2.imag/d)
+            R = mp41.sqrt(sum(v*v for v in w))
+            X = (R-1)/mp41.sqrt(1+R**2)
+            n = (w[0]/R,-w[2]/R,-w[1]/R)
+            kind1,data1 = cusp30.elliptic_raw_base_reference(
+                tuple((1-X**2)*v for v in n),X,dps=110,elementary=True)
+            a1 = data1[-1]
+            a0 = a1-1
+            tc = rad43*mp41.exp(mp41.j*arg_tc43)
+            sample_ok43 &= a1>mp41.mpf(1)/2 and a1<mp41.mpf(7)/12
+            ref1 = cusp30.elliptic_bundle_embedding(kind1,data1,dps=110,elementary=True)
+            if kind1 in ('c0','ci'):
+                x0,y0 = cusp30.elementary_cusp_reference(tc,a0,nu43)
+                data0 = (x0,y0,a0)
+                ref0 = cusp30.elliptic_bundle_embedding(kind1,data0,dps=110,elementary=True)
+                E = tuple(pc43n*v for v in ref1)
+                p0 = cusp30._elementary_inner(ref0,E)
+                p1 = cusp30._elementary_inner(ref1,E)
+                _,o0 = cusp30.elementary_restore_torus(kind1,(mp41.conj(p0)*x0,p0*y0),phi43)
+                _,o1 = cusp30.elementary_restore_torus(kind1,(mp41.conj(p1)*data1[0],p1*data1[1]),phi43)
+                T0 = (1/(nu43*o0[1]),nu43*o0[0]*o0[1]**2,o0[2]+2*sig43*o0[0]*o0[1])
+                resid = max(abs(a-b) for a,b in zip(o1,T0))
+                dfour = None
+            else:
+                rho0 = cusp30.elementary_cusp_logradius(a0,tc,nu43,dps=110)
+                tm,_,_,lt,_ = data1
+                if north43:
+                    zm,wm = -mp41.j*rho0,mp41.mpc(0)
+                else:
+                    ss = lt/(2*mp41.j*mp41.pi)
+                    zm,wm = -mp41.j*rho0+mp41.pi*ss*(ss-1),2*tm*ss
+                lat = cusp30.scalar_lattice_coords(zm,wm,tm,lt)
+                data0 = (tm,lat[0],lat[3],lt,a0)
+                ref0 = cusp30.elliptic_bundle_embedding('mid',data0,dps=110,elementary=True)
+                E = tuple(pc43n*v for v in ref1)
+                p0 = cusp30._elementary_inner(ref0,E)
+                p1 = cusp30._elementary_inner(ref1,E)
+                W0 = (tm,data0[1]+mp41.arg(p0)/(2*mp41.pi),data0[2],lt)
+                W1 = (tm,data1[1]+mp41.arg(p1)/(2*mp41.pi),data1[2],lt)
+                _,o0 = cusp30.elementary_restore_torus('mid',W0,phi43)
+                _,o1 = cusp30.elementary_restore_torus('mid',W1,phi43)
+                dfour = int(mp41.nint(data1[2]-data0[2]))
+                dz,dw = o1[0]-o0[0],o1[1]-o0[1]
+                mint = int(mp41.nint(((dz+mp41.j*lt*dfour)/(2*mp41.pi)).real))
+                resid = max(abs(dz-(2*mp41.pi*mint-mp41.j*lt*dfour)),
+                            abs(dw-2*tm*dfour),abs(o1[2]-o0[2]))
+                done = data1[1]-data0[1]+arg_tc43/(2*mp41.pi)
+                sample_ok43 &= (dfour==(-1 if north43 else 1)
+                                and abs(done-mp41.nint(done))<mp41.mpf('1e-100'))
+            Pd = max(abs(a*mp41.conj(b)-c*mp41.conj(dd))
+                     for a,c in zip(ref0,ref1) for b,dd in zip(ref0,ref1))
+            rr43 = rad43**2
+            q43n = nu43**2*rr43*mp41.exp(-4*rr43/(1-rr43))
+            lam43 = cusp30.scalar_flat_step((rad43-mp41.mpf(3)/10)/(mp41.mpf(1)/5))
+            f43n = cusp30.inverse_height_moment(a0,q43n,lam43)
+            Y43n = (mp41.sqrt(f43n**2+4*q43n)-f43n)/2
+            margins43.append((abs(f43n),Y43n))
+            rows43.append((north43,rad43,kind1,Pd,resid,dfour))
+            sample_ok43 &= Pd<mp41.mpf('1e-90') and resid<mp41.mpf('1e-90')
+    print('C43f production observations (d), sample size 8:'
+          ' max |P_a0-P_a1| =',mp41.nstr(max(r[3] for r in rows43),5),
+          ' max deck residual =',mp41.nstr(max(r[4] for r in rows43),5),
+          ' kinds =',[r[2] for r in rows43],
+          ' Delta four (collar) =',[r[5] for r in rows43 if r[5] is not None],
+          ' min|f| =',mp41.nstr(min(m[0] for m in margins43),6),
+          '(proven >1/4) Y0 in [',mp41.nstr(min(m[1] for m in margins43),6),
+          ',',mp41.nstr(max(m[1] for m in margins43),6),'] (proven (1/4,2))')
+rep('C43f eight production points at the selector (numerical, d)',
+    sample_ok43)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

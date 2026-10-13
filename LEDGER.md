@@ -2445,3 +2445,83 @@ in `AGENTS.md` §5.
   all-branch six-real circuit with global determinant and overlap bounds
   remain open. The global \(J_{\mathrm{cl}}\) statement still requires
   human review.
+
+### 2026-10-12-EH-3 — Extend the argument-selector overlap to every |t_c|<1/2
+- **Date:** 2026-10-12
+- **Collaborator:** Edward Hirst
+- **Agent:** Claude Code (Claude Opus 5.5), with one independent reviewer subagent
+- **Type:** addition
+- **Based on:** d88746a
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (new section C43a–f
+  at the end), docs/s4t2_symbolic_programme.md (status line, §11.8 table
+  row and certificate paragraph), SYMBOLIC_CAMPAIGN.md (T16 status and
+  next tasks). No manuscript or construction file changed.
+- **Change:** added C43, which extends C38 (certified only for
+  \(|t_c|<1/10\)) to every \(|t_c|<1/2\), at both cusp signs. On the lower
+  overlap \(-\pi<\Arg p<-5\pi/6\), where the half-centred chart has
+  \(a_1=a_0+1\), the two charts give the same ten-slot projector. For a
+  smooth common final fold vector (a stated premise), the restored
+  outputs are related by the holomorphic cusp deck \(T\) of C38d in the
+  core, and by the lattice vector \(+e_4\) (south) or \(-e_4\) (north) in
+  the collar. The key identity is an exact deck shift
+  \(H_f(\hat\psi p)=H_f(p)+1\) of the four-seed height on \(1/4<Y_0<2\),
+  for every \(q<1/8\), obtained from \(K(u)+K(1/u)=1\) and the linear
+  seeds; it replaces C38c's seed-branch computation, which needed
+  \(q<1/100\). The other ingredients are:
+  - \(Y_0\in(1/4,2)\) on both charts, in the core and the collar;
+  - \((x_1,y_1)=\hat\psi(x_0,y_0)\) in the core, for every moment \(f\);
+  - in the collar, \(\rho_1=\rho_0+P\) and the lattice identity
+    \((-iP,0)=\pm(e_4-c\cdot e)\mp(\theta/2\pi)e_1\): the ten-vector
+    changes by \(e^{-i\theta_c}\), the corrected \(x_1\) is unchanged
+    modulo \(1\), and the correction \(D\) is invariant.
+- **Why:** this selector meets the C41 seam at a corner and lies on
+  every meridian that crosses the lower wedge of the core or the collar.
+  C38's height computation depended on a small-\(q\) seed regime; the
+  telescoping identity of §10.2 makes the shift exact for every \(q\)
+  that occurs.
+- **Verification:** `python3 extra/s4t2_explicit/sym/chart_identities.py`:
+  **ALL PASS** (C1–C43). The explicit-constant bounds of C43b are
+  type (c): core \(|f|>e^{-1/6}-e^{1/6}/8>1/4\); collar
+  \(|f|\ge e^{-k/12}(1-e^{-5k/6})>e^{-2/3}(1-e^{-5/3})>1/4\) with
+  \(2<k=-\log q<8\) (from \(e^2<8\) and \(e^8>2500\)), where the collar
+  bounds \(1/1375<q<1/8\) come from the unimodality of \(q\) in
+  \(|t_c|^2\in(9/100,1/4)\); in both,
+  \(Y_0<1+\sqrt{1/8}<2\). C43e gives exact witnesses at \(|t_c|=1/5\)
+  and \(2/5\), on both sides of the selector and at both signs, with a
+  rational parametrization of the selector angle and \(|X|<3/5\). C43f,
+  numerical observation (d), sample size 8 at 120 digits: projector
+  difference \(\le8.6\cdot10^{-122}\), deck residual
+  \(\le1.7\cdot10^{-120}\), and measured \(\Delta x_4=+1\) south, \(-1\)
+  north. Measured margins (type (d)) beside the proven
+  \(|f|>1/4\) and \(Y_0\in(1/4,2)\): C43f gives \(\min|f|=0.6335\) and
+  \(Y_0\in[0.6356,0.8663]\); the reviewer's scan gives \(|f|\ge0.578\) and
+  \(Y_0\in[0.580,0.996]\). An independent reviewer subagent audited C43.
+  It re-derived every claim against `cusp.py` (including the deck
+  directions, consistent with C41's chart maps at the corner) and ran:
+  - 1568 forced-chart production cases (both cusps; 16 radii in
+    \([0.1,0.495]\) including the corner; seven values of \(\Arg t_c\));
+  - seam crossings at \(\varepsilon=10^{-20}\) and \(10^{-40}\);
+  - the reduced-count production fold across the seam at six points;
+  - a bounds scan;
+  - 17 mutations of the script, all of which fail.
+  Worst residuals were \(3.5\cdot10^{-80}\) (deck) and \(1.1\cdot10^{-81}\)
+  (projector). Verdict: sound, with minor caveats. Fixed in this commit:
+  - the collar \(q\) range is now proved rather than assumed;
+  - tautological sub-checks and a dead variable are removed, and the
+    lower-wedge check of the witnesses is added;
+  - the seed-cancellation wording, the \(|p|=1\) premise and the C43b
+    label are corrected;
+  - measured margins are recorded, and the C41 paragraph now points to
+    C43.
+  The full script was rerun after these fixes: ALL PASS.
+  `verify_construction.py`: `all checks
+  passed`; `sphere_products.py`: `Dimension 8 check passed`.
+  `git diff --check`: pass. LaTeX: **not run** (no manuscript change).
+  The legacy numerical safety net was not run (no construction block
+  changed).
+- **Open points:** the restored-output conclusion rests on a smooth
+  final fold vector, as for C40–C42. The remaining T16 work is the
+  collar/pure-middle joins beyond the N13 and C40 chambers, then the
+  all-branch six-real circuit with global determinant and overlap
+  bounds. The global \(J_{\mathrm{cl}}\) statement still requires human
+  review.

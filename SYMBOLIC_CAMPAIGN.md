@@ -454,12 +454,19 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   holomorphic lattice translations. This covers the \(|t|=1\) selector
   and the argument cuts of \(u_1\), \(u_2\) and \(t\), with
   their corners.
-  **Next unchecked T16 tasks:** extend the C38 argument-selector
-  overlap from \(|t_c|<1/10\) to \(1/10\le|t_c|<1/2\),
-  including its corner with the C41 seam; then bind a
-  guarded six-real second-jet circuit to every remaining
-  production source branch and the global
-  determinant/overlap bounds. The listed joins are research
+  **Argument selector for \(|t_c|<1/2\) (2026-10-12-EH-3):**
+  C43 extends C38 to the rest of the core and to the collar
+  at both signs. The two argument charts give the same
+  projector; for a smooth final fold vector the restored
+  outputs differ by the cusp deck \(T\) (core) or by
+  \(\pm e_4\) (collar). An exact four-seed deck shift on
+  \(1/4<Y<2\), for every \(q<1/8\), replaces C38's
+  \(q<1/100\) computation.
+  **Next unchecked T16 tasks:** the joins of the pure middle
+  with the collars at \(|t|=1/2\) and \(|t|=2\) outside the
+  N13 and C40 chambers; then bind a guarded six-real
+  second-jet circuit to every remaining production source
+  branch and the global determinant/overlap bounds. The listed joins are research
   targets, not certificates.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
