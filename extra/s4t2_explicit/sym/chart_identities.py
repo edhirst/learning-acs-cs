@@ -9509,5 +9509,199 @@ print('    north band n2=+0.3: theta=',mp41.nstr(north_theta47,8),' |theta_N-the
       ' min Re R=',mp41.nstr(min(v[1] for v in north_vals47.values()),5))
 rep('C47f reduced-count chart overlap and band selector (numerical, d)',sample_ok47)
 
+# C48: no domain guard on the production G path is ever triggered.  The
+# 25 raise statements of the 26 functions executed by
+# elementary_global_coordinates (the list is checked against the static
+# call graph below) are collected from the source and each is
+# matched with the bound that excludes it (types (a)-(c)); the list must
+# be complete.  Static guards (kind strings, integer counts, the known
+# height of the elementary embedding) and the max_work execution guard
+# (absent in the exact formula, max_work=None) are listed separately.
+path_functions48 = (
+    'elementary_global_coordinates','elementary_global_slice',
+    '_elementary_corrected_section','elementary_projection_section',
+    'elementary_phase_family','_elementary_pole_inclusion','_elementary_unit',
+    'elementary_pole_patch','_elementary_pole_radial',
+    'elliptic_pole_raw_inverse','elliptic_raw_base_reference',
+    'elliptic_bundle_embedding','elementary_cusp_reference',
+    'elementary_cusp_logradius','inverse_height_moment',
+    '_terminal_height_data','_height_G','_height_R',
+    '_height_terminal_forward','scalar_flat_step','scalar_lattice_coords',
+    'elementary_restore_torus','scalar_finite_height','_elementary_inner',
+    'elliptic_meridian_projector','elementary_closed_parameters')
+# The list is checked against the static call graph from
+# elementary_global_coordinates: every other reachable cusp function is
+# called only inside an arm that the elementary path never enters (the
+# else-arm of an `elementary` test, or the `tc == 0` arm after the core
+# return of the raw reference).
+cusp_functions48 = {n for n,o in vars(cusp30).items()
+                    if inspect.isfunction(o) and o.__module__==cusp30.__name__}
+def callees48(name):
+    return {n.id for n in ast.walk(source_tree30(getattr(cusp30,name)))
+            if isinstance(n,ast.Name) and n.id in cusp_functions48}-{name}
+reach48,todo48 = set(),['elementary_global_coordinates']
+while todo48:
+    f48 = todo48.pop()
+    if f48 not in reach48:
+        reach48.add(f48)
+        todo48.extend(callees48(f48)-reach48)
+legacy48 = reach48-set(path_functions48)
+def in_dead_arm48(tree,callee,tc_rule=False):
+    parents = {}
+    for node in ast.walk(tree):
+        for child in ast.iter_child_nodes(node):
+            parents[child] = node
+    sites = [n for n in ast.walk(tree)
+             if isinstance(n,ast.Name) and n.id==callee]
+    def dead(node):
+        while node in parents:
+            up = parents[node]
+            if isinstance(up,(ast.If,ast.IfExp)):
+                test = ast.unparse(up.test)
+                branch = up.orelse if isinstance(up,ast.If) else [up.orelse]
+                body = up.body if isinstance(up,ast.If) else [up.body]
+                if test=='elementary' and any(node is b for b in branch):
+                    return True
+                if tc_rule and test=='tc == 0' and any(node is b for b in body):
+                    return True
+            node = up
+        return False
+    return all(dead(site) for site in sites)
+def core_return_first48():
+    # In the raw reference, `if abs(tc)<=.3 and elementary:` ends in a
+    # return and precedes `if tc==0:` in the same block; tc==0 implies
+    # abs(tc)<=.3, so with elementary=True the tc==0 arm is never entered.
+    core = "abs(tc) <= mp.mpf('.3') and elementary"
+    for node in ast.walk(raw_tree31):
+        for field in ('body','orelse'):
+            stmts = getattr(node,field,None)
+            if not isinstance(stmts,list):
+                continue
+            tests = [ast.unparse(x.test) if isinstance(x,ast.If) else None
+                     for x in stmts]
+            if core in tests and 'tc == 0' in tests:
+                i,j = tests.index(core),tests.index('tc == 0')
+                return (i<j and not stmts[i].orelse
+                        and isinstance(stmts[i].body[-1],ast.Return))
+    return False
+call_graph48 = (
+    len(set(path_functions48))==26 and set(path_functions48)<=reach48
+    and legacy48=={'elliptic_axis_radius','elliptic_collar_blend',
+               'elliptic_cusp_logradius','elliptic_height',
+               'elliptic_height_chart','elliptic_height_inverse',
+               'elliptic_height_reparam'}
+    and all(in_dead_arm48(source_tree30(getattr(cusp30,f)),g,
+                          tc_rule=(f=='elliptic_raw_base_reference'))
+            for f in path_functions48 for g in legacy48
+            if g in callees48(f))
+    and core_return_first48())
+raises48 = []
+for name48 in path_functions48:
+    for node48 in ast.walk(source_tree30(getattr(cusp30,name48))):
+        if isinstance(node48,ast.Raise):
+            raises48.append((name48,node48.exc.args[0].value))
+certificate48 = {
+    'the finite slab formula excludes the inner pole caps':
+        'G1 slab only for 1-|X|>=alpha/2=5e-6>1e-9',
+    'certified finite expression exceeds max_work; inspect elementary_closed_parameters()':
+        'execution guard, absent with max_work=None',
+    'steps must be a positive integer': 'static N is a positive integer',
+    'finite projection product vanished': 'G2 (11.13)-(11.14): overlaps >1/2',
+    'positive integer steps and a valid chart are required':
+        'static K positive integer, chart None',
+    'phase chart requires stereographic radius <=2':
+        'G4 hemisphere chart radius^2=(1-|n2|)/(1+|n2|)<=1',
+    'phase count does not give right-half-plane increments':
+        'G3 (11.14),(11.16): increments have Re>7/8',
+    'zero denominator in a finite projection':
+        'G14 cap estimate of section 11.5 in the phase band',
+    'radial inverse requires positive radius':
+        'G13 raw output nonzero for z_L!=0',
+    'radial compression requires radius greater than 1e-8':
+        'G13 called only for radius>1e-8',
+    'raw pole inverse requires 0<|z|^2<=1e-4': 'G12 cap radius <2e-6',
+    'local Hopf projections became orthogonal': 'G14 (11.11)',
+    'elementary pole inverse left its certified height region':
+        'G12 |height|<1/10 on the cap (C46)',
+    'the raw reference excludes the two fixed points': 'G5 |X|<1 on the slab',
+    'the bundle embedding excludes the fixed points':
+        'G6 only the node has r=0, and it is the pole',
+    'elementary projector requires the known inverse-first height':
+        'G16 (C42a) core/collar data carry a; pure-middle data have none, but there b0=bi=0 exactly, so torus_pair is never called',
+    'pure cusp embedding requires |xy|<=.3 and |H|<=.6':
+        'G7 |tc|<=3/10 branch and |a|<3/5',
+    'kind must be mid, c0, or ci': 'static',
+    'core reference requires |t|<=.3 and |a|<.6': 'G8',
+    'the core reference excludes the node': 'G6 node is the pole',
+    'elementary cusp inverse requires 0<|t|<=.5 and 0<nu<=1':
+        'G9 collar 3/10<|tc|<1/2',
+    'inverse moment is outside the certified (q,lam) domain':
+        'G10 |b|<=1/2, q<1/8, lambda>0 => q>1/2500',
+    'positive collar weight requires q>0': 'G15 from G10',
+    'kind must be mid, c0 or ci': 'static',
+    'four-seed finite height is outside its stated domain':
+        'G11 rr<=1/4, max(A,Y)<4, q<1/8'}
+complete48 = (len(raises48)==25
+              and {m for _,m in raises48}==set(certificate48))
+# The bounds.  G2: consecutive meridian projectors differ by at most
+# L*2/N<1/2 (N=4L+1), and the initial one by 100 r_L<1/2, so every
+# projection of a unit vector onto the next line has norm >1/2.  G3: the
+# K phase samples move the unit value by <4 L_g/K<1/2, so each ratio w
+# has |w-1|<1/2, i.e. Re w>7/8.
+pars48 = cusp30.elementary_closed_parameters()
+L48,N48 = pars48['projector_bound'],pars48['projection_steps']
+Lg48,K48 = pars48['phase_bound'],pars48['phase_steps']
+counts48 = (
+    N48==4*L48+1 and Lg48==32*(N48+1)*L48 and K48==8*Lg48+1
+    and 2*(2*L48)<N48                      # 2L/N<1/2
+    and 2*(4*Lg48)<K48                     # 4L_g/K<1/2
+    and 1-sp.Rational(1,4)/2==sp.Rational(7,8)   # |w-1|^2=2-2Re w<1/4
+    and 100*sp.Rational(2,3)*sp.Rational(1,10**9)<sp.Rational(1,2))
+# G4: for n2>=0, |(n0,n1)/(1+n2)|^2=(1-n2)/(1+n2)<=1 on the unit sphere.
+n2_48 = sp.Symbol('n2_48',nonnegative=True)
+g4_48 = (sp.simplify((1-n2_48**2)/(1+n2_48)**2-(1-n2_48)/(1+n2_48))==0
+         and sp.Rational(1,1)<=4)
+# G7: the principal chart is used only if Re p>=-(9/10)|p|, so |a|<=1/2;
+# the half-centred chart has |Arg(-p)|<arccos(9/10)<4pi/25<pi/5, so
+# 1/2-2/25<a<1/2+2/25=29/50 and b=a-1<-21/50<-5/12 in cell 1.
+g7_48 = (sp.cos(sp.pi/5)<sp.Rational(9,10)
+         and sp.cos(4*sp.pi/25)<sp.Rational(9,10)
+         and sp.Rational(1,2)+sp.Rational(2,25)==sp.Rational(29,50)
+         and sp.Rational(29,50)-1==-sp.Rational(21,50)
+         and sp.Rational(1,2)+sp.Rational(1,10)==sp.Rational(3,5))
+# G10: core q<1/8 for |t|<=1/2 (section 10.2, L13d:
+# q<=v(1-v)/(1+3v), and 8v^2-5v+1=8(v-5/16)^2+7/32>0); collar
+# q>1/1375>1/2500 (C43b).
+v48 = sp.Symbol('v48',positive=True)
+g10_48 = (sp.expand(8*v48**2-5*v48+1-(8*(v48-sp.Rational(5,16))**2
+                                      +sp.Rational(7,32)))==0
+          and sp.factor(sp.Rational(1,8)*(1+3*v48)-v48*(1-v48)
+                        -(8*v48**2-5*v48+1)/8)==0
+          and domain43)
+# G11: four-seed inputs.  Core cell 0: max(A,Y)<=R<=|f|+2 sqrt q<1+2/sqrt 8
+# <2.  Core cell 1 (b=a-1 in [-1/2,-21/50)) and the collar cell n=1:
+# A=1/Y(b)<=1/|f(b)| with |f(b)|>1/4 on |b|>5/12 (C43b), so A<4, and
+# Y<=2q<1/4 resp. Y=qY(b)<=q.  Collar cell n=0: Y(b) in [q,1], A=q/Y<=1.
+# rr=|t|^2<=1/4 and q<1/8 by G10.  Cap: A,Y<1 (section 11.6).
+# (A>=1/R>1/2 in cell 1 gives Y=q/A<2q, and 2q<1/4 since q<1/8.)
+g11_48 = (1+2/sp.sqrt(8)<2
+          and sp.Rational(21,50)>sp.Rational(5,12)
+          and 1/sp.Rational(1,4)==4
+          and 2*sp.Rational(1,8)==sp.Rational(1,4)
+          and sp.Rational(1,2)**2==sp.Rational(1,4))
+# G1, G12: alpha/2=5e-6>1e-9; cap r_L<1.7e-6 and |z_S|^2<2e-6<1e-4.
+g1_12_48 = (sp.Rational(5,10**6)>sp.Rational(1,10**9)
+            and sp.Rational(2,10**6)<sp.Rational(1,10**4)
+            and sp.Rational(17,10**7)<sp.Rational(2,10**6))
+# Implicit failures (division by zero in the Cramer and coefficient
+# solves, 1/small, t/x, t/y) are excluded by the same bounds: the Cramer
+# determinant exceeds 2r^2(1+r^2)>0, det(e2,e3)=+-(1-|t|^4)!=0, |small|
+# is >=1/2 in the pure middle, and x or y is the nonzero reference
+# coordinate.  The production call uses force_slab=False.
+rep('C48 every raise on the G path is excluded by a stated bound (25/25)',
+    complete48 and counts48 and g4_48 and g7_48 and g10_48 and g11_48
+    and g1_12_48 and call_graph48)
+print('C48 guard map:',sorted({v.split(' ')[0].rstrip(':') for v in certificate48.values()}))
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

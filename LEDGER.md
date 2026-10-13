@@ -2781,3 +2781,59 @@ in `AGENTS.md` §5.
   is below working precision. The inverse direction
   `elementary_global_forward` (not needed for \(J\)) uses the same
   hemisphere formulas and is not bound here.
+
+### 2026-10-12-EH-8 — Show that no domain guard on the G path is ever triggered
+- **Date:** 2026-10-12
+- **Collaborator:** Edward Hirst
+- **Agent:** Claude Code (Claude Opus 5.5), with one independent reviewer subagent
+- **Type:** addition
+- **Based on:** f2606c8
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (new section C48),
+  docs/s4t2_symbolic_programme.md (§11.8 table row). No manuscript or
+  construction file changed.
+- **Change:** added C48.
+  - The 26 functions executed by `elementary_global_coordinates` are
+    listed, and the list is checked against the static call graph of
+    `cusp.py`. Every other reachable function (seven `elliptic_*` functions
+    of the legacy path) is called only in an arm that the elementary path
+    never enters: the else-arm of an `elementary` test, or the `tc==0` arm
+    that follows the core return of the raw reference.
+  - The 25 `raise` statements of these functions are collected from the
+    source, and each is mapped to the bound that excludes it. The check
+    fails if one is unmapped. The bounds G1–G16 are:
+    - the slab margin;
+    - fold overlaps \(>1/2\) (\(2L<N\) with the exact integers);
+    - phase increments with \(\operatorname{Re}>7/8\) (\(8L_g<K\));
+    - hemisphere radius \(\le1\);
+    - \(|a|<3/5\), and \(b<-21/50\) in core cell 1 (\(\cos(4\pi/25)<9/10\));
+    - core \(q<1/8\) (L13d) and collar \(q>1/1375\) (C43b);
+    - four-seed inputs \(\max(A,Y)<4\) in every cell;
+    - cap radii \(<2\cdot10^{-6}\);
+    - (11.11);
+    - \(b_0=b_i=0\) exactly on pure-middle data (C42a), so the height-free
+      torus pair is never formed.
+  - Implicit failures (divisions in the Cramer and coefficient solves,
+    `1/small`, `t/x`) are excluded by the same bounds. The production call
+    has `force_slab=False`.
+- **Why:** smoothness of each branch formula requires that its arguments
+  stay in the domains where the elementary functions are smooth, which
+  is exactly what the guards encode.
+- **Verification:** `python3 extra/s4t2_explicit/sym/chart_identities.py`:
+  **ALL PASS**. Independent reviewer subagent: sound, with caveats. It
+  rebuilt the call graph, re-derived G1–G15, and ran a numerical stress
+  test (d) of 4600 instrumented production runs through the raw reference,
+  the embedding and the restoration. No raise occurred; the largest
+  \(\max(A,Y)\) was 1.613 (bound 4), and the smallest \(q\) with
+  \(\lambda>0\) was 0.00111. Its four defects are fixed:
+  - the missing bound \(\cos(4\pi/25)<9/10\) was added;
+  - the reason for the known-height guard was corrected (C42a, not
+    static);
+  - the function list is now checked against the call graph;
+  - the scope note (implicit divisions, `force_slab`) was added.
+
+  `verify_construction.py`: `all checks passed`; `sphere_products.py`:
+  `Dimension 8 check passed`. `git diff --check`: pass. LaTeX: **not run**.
+- **Open points:** the written bounds (11.11), (11.13) and the cap estimate
+  are cited. The dead-arm argument for the legacy functions is a source
+  check of the `elementary` flag and of the core return, not an execution
+  trace.
