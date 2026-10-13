@@ -315,7 +315,9 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   I2v check its specified exact identities and final counts; the height,
   forward and inverse blocks pass sampled compositions, and the type-(c)
   certificate has been independently audited. Human review of the statement
-  and a shorter, practical expression remain.
+  and a shorter, practical expression remain. **Shorter expression abandoned
+  (2026-10-13-EH-3):** by the collaborators' decision the campaign no longer
+  seeks a shorter or practically evaluable form; only human review remains.
 
 * **T16 (code+paper). Direct executable second-jet check of the specific \(J_{\mathrm{cl}}\).**
   Input: the exact local branches (11.18)–(11.19), including their scalar
@@ -512,9 +514,11 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   invertible differential, together with the seam-by-seam smoothness
   (C38–C50) and invertibility (C49) certificates; C50a pins the certified
   source. **Open:** the task owner's agreement to this change of route;
-  human review of §11.9 and of the written hypotheses it lists; a
-  practical evaluation (the fixed counts have 8001 and 16004 digits);
-  simplifying the counts.
+  human review of §11.9 and of the written hypotheses it lists.
+  **Not pursued (2026-10-13-EH-3):** a practical evaluation (the fixed
+  counts have 8001 and 16004 digits) and simplifying the counts. The
+  collaborators have abandoned the search for a simpler explicit form;
+  the certificate does not need either.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.
@@ -577,3 +581,6 @@ can start now, in parallel.
   non-smooth operation. Programme §11.9 states the direct certificate
   (J_cl well defined, J² = −Id, N_J = 0), for human review. **T16: proposed completion by a change of
   route, pending the owner's agreement and human review.** See ledger entries 2026-10-12-EH-1 to EH-9 and 2026-10-13-EH-1. Commits are local; push only with approval.
+* 2026-10-13 (EH/Claude Code, close-out): the search for a simpler explicit form is abandoned by the
+  collaborators' decision. An uncommitted fold-free phase draft was set aside unmerged (2026-10-13-EH-3).
+  The open items are now the owner's agreement to T16's change of route and human review of §11.9.

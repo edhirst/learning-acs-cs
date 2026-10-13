@@ -3065,3 +3065,42 @@ in `AGENTS.md` §5.
   pass. LaTeX: **not run**.
 - **Open points:** formula mode still does not terminate in thin
   neighbourhoods of the radial outer seams (2026-10-12-EH-6, open point (ii)).
+
+### 2026-10-13-EH-3 — Abandon the search for a simpler explicit form and set aside the fold-free phase draft
+- **Date:** 2026-10-13
+- **Collaborator:** Edward Hirst
+- **Agent:** Claude Code (Claude Opus 5.5)
+- **Type:** edit
+- **Based on:** 396584a
+- **Where:** SYMBOLIC_CAMPAIGN.md (task list: T15 and T16 open points;
+  status log, new line). No document, script or manuscript changed.
+- **Change:** records the collaborator's decision to give up the search
+  for a simpler, practically evaluable explicit form of
+  \(G_{\mathrm{cl}}\) and \(J_{\mathrm{cl}}\). T16's open points
+  "a practical evaluation" and "simplifying the counts" and T15's "a
+  shorter, practical expression" are marked as not pursued. The open
+  points that remain are the task owner's agreement to T16's change of
+  route and human review of programme §11.9.
+- **Why:** the direct certificate of §11.9 does not need the counts
+  (11.14) to be evaluated or reduced, so dropping this item does not
+  affect any claim. An uncommitted draft towards a count-free form (a
+  "fold-free explicit phase" in `cusp.py`: the slab phase as the direct
+  pairing of the reference embedding with four explicit equivariant
+  vectors, glued in collar bands by shifted principal arguments, citing
+  a programme §12 that was never written) was set aside without being
+  committed, together with its re-pinned C50a digest. Recorded for any
+  later attempt, type (d), 4000 random points of the round S⁴ with
+  1−|X|≥10⁻⁴, 20 digits: the smallest pairing modulus was 0.78 (south
+  cap) and 0.94 (north cap). In the middle region it was 0.011–0.028
+  (regions S, A, B, N). The smallest distance of a band angle from its
+  cut was 2.08, 2.72 and 2.45 (bands SA, AB, BN). The small middle
+  moduli were not resolved, so the draft's well-definedness is
+  unverified. The draft is kept outside the branch history as
+  `git stash` entry "fold-free explicit phase draft (abandoned
+  2026-10-13)".
+- **Verification:** `sym/chart_identities.py` (C1–C50) on the clean
+  HEAD after the draft was set aside: **ALL PASS**. No code changed, so
+  the other scripts were not re-run (they last passed in 2026-10-13-EH-2).
+  LaTeX: **not run** (manuscript untouched).
+- **Open points:** the task owner's agreement to T16's change of route;
+  human review of programme §11.9 and of the written hypotheses it lists.
