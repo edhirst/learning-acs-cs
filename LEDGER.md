@@ -3141,3 +3141,30 @@ in `AGENTS.md` §5.
 - **Open points:** a comparable north-band shortcut and laptop-scale
   uniform meridional derivative bounds remain open. The statement and
   certificate need human mathematical review.
+
+### 2026-10-13-TSG-2 — Reopen the laptop-scale symbolic campaign
+- **Date:** 2026-10-13
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6.1-sol)
+- **Type:** statement
+- **Based on:** `4ac64cd`
+- **Where:** `SYMBOLIC_CAMPAIGN.md`, new T17 and status-log line only.
+- **Change:** record the collaborator's new instruction superseding the
+  2026-10-13-EH-3 close-out: seek a laptop-evaluable finite elementary
+  pullback of the same Y, allowing a new diffeomorphism, and verify the
+  specific J globally and symbolically. Record the remaining gates and
+  the certified south-band partial result without marking T17 complete.
+- **Why:** the task list must reflect the current human instruction while
+  preserving EH-3 as a historical decision. The new acceptance criteria
+  distinguish the practical evaluator and its source-linked checks from
+  the existing formal fixed-count certificate.
+- **Verification:** compared the task and status wording against the
+  collaborator's instruction and programme (11.15a). No mathematical
+  construction or code changed in this commit. The immediately preceding
+  commit ran `sym/chart_identities.py` (C1–C51: **ALL PASS**),
+  `sym/lemmas_1d.py` (**ALL PASS**), `verify_construction.py`
+  (**all checks passed**) and `sphere_products.py` (**Dimension 8 check
+  passed**); these checks were **not rerun** for this status-only change.
+  `git diff --check`: pass. LaTeX: **not run**.
+- **Open points:** all three T17 gates; human review of the changed task
+  status and the §11.9 certificate.

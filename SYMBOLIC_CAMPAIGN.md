@@ -520,6 +520,21 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   collaborators have abandoned the search for a simpler explicit form;
   the certificate does not need either.
 
+* **T17 (new campaign, reopened by TSG on 2026-10-13). Laptop-scale symbolic
+  complex structure.** The collaborator has superseded the close-out decision
+  recorded in EH-3 and permits any explicit pullback of the same holomorphic
+  manifold Y to the round S⁴ × T². Deliver a finite elementary map and inverse
+  whose specific tensor J can be evaluated, with first and second jets, on an
+  ordinary laptop, together with reviewable symbolic checks of global
+  well-definedness, J²=−Id and N_J=0. A proof by naturality must identify the
+  exact evaluated map and certify its smoothness and invertible differential;
+  generic tensor identities alone do not complete this task. Open work:
+  replace the astronomical projector/fold bound or find a direct lift;
+  replace the north-band K-step phase computation by a practical certified
+  formula; and run a source-linked second-jet circuit of the chosen map on
+  every branch and overlap. Programme (11.15a) is a certified south-band
+  phase shortcut for the existing G_cl, but its N-step fold remains.
+
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.
 
@@ -584,3 +599,7 @@ can start now, in parallel.
 * 2026-10-13 (EH/Claude Code, close-out): the search for a simpler explicit form is abandoned by the
   collaborators' decision. An uncommitted fold-free phase draft was set aside unmerged (2026-10-13-EH-3).
   The open items are now the owner's agreement to T16's change of route and human review of §11.9.
+* 2026-10-13 (TSG/Codex, reopened campaign): the collaborator has explicitly reopened the practical,
+  fully symbolic objective and allows a new pullback of Y. T17 records its acceptance criteria and
+  open gates. Programme (11.15a), checked by C51, eliminates the K-step phase walk on the entire
+  south band of the existing map; the remaining fold and north phase are still impractical.
