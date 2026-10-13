@@ -2716,3 +2716,68 @@ in `AGENTS.md` §5.
   (ii) Formula mode does not terminate in thin neighbourhoods of the
   outer seams, where \(\exp(-f)\) has \(f\approx e^{c/(c-r)}\). So formula
   mode is not a practical evaluator there; C46e's points avoid them.
+
+### 2026-10-12-EH-7 — Certify the slab phase band and its selectors
+- **Date:** 2026-10-12
+- **Collaborator:** Edward Hirst
+- **Agent:** Claude Code (Claude Opus 5.5); section drafted by a subagent, reviewed and integrated by the main agent, with one independent reviewer subagent
+- **Type:** addition
+- **Based on:** 53efd2a
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (new section C47a–f
+  at the end), docs/s4t2_symbolic_programme.md (status line, §11.8 table
+  row and certificate paragraph), SYMBOLIC_CAMPAIGN.md (T16 status). No
+  manuscript or construction file changed.
+- **Change:** added C47, which certifies the phase-correction band of the
+  slab (\(\alpha/2\le1-|X|<\alpha\)) at both signs.
+  - The bodies of `_elementary_corrected_section`,
+    `elementary_phase_family`, `elementary_projection_section`,
+    `_elementary_unit` and `_elementary_pole_inclusion` are bound, and
+    all 52 conditionals are classified (8 guards). Dataflow checks
+    confirm that `cap_band` and the diagnostics never reach an output.
+  - The band cutoff is a flat join: the weight is \(s(1-u)\), with
+    explicit derivative constants through order four and a written
+    induction for all orders.
+  - The mismatch is independent of the hemisphere Hopf reference, since
+    both sections are \(S^1\)-equivariant.
+  - The two stereographic chart values of the finite logarithm agree
+    exactly on the connected band \(|n_2|<3/5\). Every identity of
+    §10.6's argument is checked, including the south-chart metric that
+    C20a did not cover.
+  - The start constant is one fixed point per band.
+- **Why:** the band's selectors (cutoff, hemisphere reference, chart
+  choice) were not bound to the source by any earlier check. They lie
+  on every slab point within \(\alpha\) of a pole.
+- **Verification:** `python3 extra/s4t2_explicit/sym/chart_identities.py`:
+  **ALL PASS** (C1–C47). Seven source mutations each turn the relevant
+  part to FAIL. C47f is a numerical observation (d) with reduced counts,
+  which define a different finite map.
+  - South band, \(N=64\), \(K=32\): at two overlap points the charts agree
+    to \(8\cdot10^{-59}\) and \(3\cdot10^{-43}\). The band selector gives
+    \(\|E_c-E\|=|e^{-iw\theta}-1|\) at \(0.99\alpha\) and \(E_c=E\) at
+    \(1.01\alpha\).
+  - North band, where the mismatch winds (\(\theta\approx0.32\)), \(N=400\),
+    \(K=48\): the two forced charts agree to \(9\cdot10^{-26}\).
+
+  Independent reviewer subagent: sound, with caveats; no mathematical
+  defect in C47a–e. It re-derived the phase invariance, the two-chart
+  argument and the flat-step constants \(M_1,M_2\) by hand, and ran
+  production at \(N=400\), \(K=64\) (a different map): charts agree to
+  \(\le6.4\cdot10^{-31}\) on the north band. Its minor defects are fixed:
+  - the north-band sample was added to C47f;
+  - the parameter orders of the projection section, the meridian
+    projector and the inner product are bound;
+  - the wording was corrected (conditional occurrences, primitives
+    outside the phase path, the equator terms, \(\le\) in
+    \(\|Dg_j\|\le(9+8N)L\), and the static use of `upper`).
+
+  `verify_construction.py`: `all checks passed`;
+  `sphere_products.py`: `Dimension 8 check passed`. `git diff --check`:
+  pass. LaTeX: **not run**. The legacy safety net was not run.
+- **Open points:** the bounds (11.13) and \(\|Dg_j\|<L_g\), and the cap
+  estimate, are cited. The step "strict inequalities on the closed band
+  give an open neighbourhood" is written (type (b)). Flatness constants
+  are explicit only through order four. Numerically, the source weight
+  \(1-s(u)\) rounds to \(0\) or about \(10^{-42}\) near \(d=\alpha\), which
+  is below working precision. The inverse direction
+  `elementary_global_forward` (not needed for \(J\)) uses the same
+  hemisphere formulas and is not bound here.

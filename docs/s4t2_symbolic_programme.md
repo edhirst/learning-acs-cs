@@ -148,6 +148,11 @@
 > margins. The production radial maps are exactly
 > \(\psi^{-1}T\varphi\) and \(\varphi^{-1}T^{-1}\psi\), with flat-factor
 > forms at their outer seams.
+> **Phase band (2026-10-12-EH-7):** C47 certifies the slab phase band
+> at both signs. The band cutoff is a \(C^\infty\) join. The mismatch is
+> independent of the hemisphere Hopf reference. The two stereographic
+> charts of the finite logarithm agree exactly, and its start constant is
+> one fixed point per band.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
 > **Resume point: complete T16's exact branch circuit and second-jet checks, then simplify the fixed counts.**
 
@@ -3029,6 +3034,7 @@ derivatives are numerical observations, type (d).
 | C44a–e, collar/pure-middle joins (a,b,c,d) | Along the whole seams \(|t|=1/2\) (south, selector `abs(t)<.5`) and \(|\mathrm{small}|=1/2\) (north, selector `inf`), for every argument chart of \(a\) and every fixed branch of \(\log t\). At \(\lambda=1\) every moment branch gives \(f=2\sqrt q\sinh(kb)\), so \(\rho=P(a+1/2)\), the source's \(\lambda=1\) return. With the C43 lattice identity, the \(\lambda=1\) collar data \(M_1\) have \(x_4=\xi_4+a+1/2\) (south) or \(-(a+1/2)\) (north); the actual collar data differ by flat terms, using §11.2's smoothness of the moment in \(\lambda\) up to \(1\). These equal the pure-middle \(x_4\) modulo an integer, while \(x_1\) differs by a real gauge. Hence the projectors agree, the corrected \(x_1\) agree modulo \(1\), and, for a smooth final fold vector, the restored outputs differ by a holomorphic lattice translation. \(1-\lambda\) and the cusp weight are flat at the seam: ALL PASS. Exact witnesses lie at \(|t|,|\mathrm{small}|\in\{499/1000,1/2,501/1000\}\). C44e, numerical (d), sample size 36: across both seams, for nine \((\Arg,a)\) choices including the half-centred chart and two with \(\Arg t\in(-3\pi/4,-\pi/4)\) (where the projector sees \(x_4\)), the \(\Psi\) jump is an integer lattice vector plus a residual of order \(\varepsilon\) (\(10^{-12}\to10^{-24}\)), as is the projector jump. |
 | C45a–c, height moment and cells (a,b,c) | The executed bodies of `inverse_height_moment`, `_height_R` and `_height_terminal_forward` are bound to the source. Every alternative of a stable rewrite is the same function: \(x=e^2\operatorname{expm1}(2(a-\delta)/(c-a))=\varphi(a)\), the softplus forms, \(c\ell/(1+\ell)=\psi^{-1}(S)\), the positive root of \(x-1/x=L\), and \(\delta+c\ell/(2(2+\ell))=\varphi^{-1}(x)\). Both terminal branches equal \(z_c-\eta/\log(E_0+M)\), since \(1+F(e^U-1)=e^{E_z-E_0}(1+D)\). At \(|b|=2/5\) the interior composite equals the outer formula once \(T=\mathrm{id}\), and \(T-\mathrm{id}=\eta\ell/(L(L+\ell))\) is flat. At \(|b|=1/5\), \(R(a)-a=c\,l/(L(L+l))\) with \(l\) a smooth function of \(w=e^{-L}\) vanishing at \(0\). The \(|b|=1/10\) join is §11.2's written blow-up argument. The \(R^{-1}\) switch at \(|b|=b^*(q,\lambda)\in(0.15,0.2)\), where \(h(R(b^*))=c\), is flat because \(R-\mathrm{id}\) is; and \(h(2/5)>c\) since \(G_*(c)<0.446<0.4485<z_c\). Height-cell seams: core \(A=e^{2a-1}\) at \(a=1/2\) and \(Y=e^{-2a-1}\) at \(a=-1/2\) on both cells; collar \(\rho\) equal on both cells for every \(\kappa\): ALL PASS. |
 | C46a–e, pole-cap internals (a,c,d) | Whole cap, both signs. Full bodies of `elementary_pole_patch`, `_elementary_pole_radial` (with its signature default) and `elliptic_pole_raw_inverse` are bound, and all 32 conditionals are classified. The identities are checked by executing the bound source statements under sympy, recording both alternatives of each symbolic if-expression. Both signs share the height \(\tan(2\pi h)=2\pi p_2/(1-2\pi p_0)\), and the executed height is \(\pm\operatorname{Arg}\) of the dominant coordinate; the \(AA\) and \(yy\) alternatives are identical (also for a symbolic \(q>0\)); \(|p_S|=s\); the executed chain gives \(|t_c|^2=K\,uu/\mathrm{den}\) with the positive root in den; `source_pc` is the Hopf vector of the slice pair \((\nu\bar x,y)\); and the returned pair has \(|\mathrm{out}|^2=s\). On the whole raw domain \(0<u\le10^{-4}\): \(|h|\le1.0008\cdot10^{-4}<1/10\), the height argument stays in the right half-plane, and \(|tc|^2<4.9\cdot10^{-7}\); the projection length (from (11.11)) satisfies \(|w|^2/u\ge0.9999\). The radial maps are \(S=\psi^{-1}T\varphi\) and \(S^{-1}=\varphi^{-1}T^{-1}\psi\), with identical rewrite alternatives; both outer seams have exact flat-factor forms \(t^2\ell/(c+t\ell)\), \(\ell=\log(1+QD(Q))\), \(Q=e^{-c/t}\); the inner-seam inputs of §11.3 are checked. Cap margins: \(r_L<1.6667\cdot10^{-6}\) (bound \(1.7\cdot10^{-6}\)); \(|z_S|^2<1.7003\cdot10^{-6}\) (bound \(2\cdot10^{-6}\)); four-seed \(A,Y<2\cdot10^{-6}\): ALL PASS. C46e, numerical (d), 32 production points: slice versus patch \(8.8\cdot10^{-105}\); flat defects at the seams scale as predicted. |
+| C47a–f, slab phase band and its selectors (a,b,c,d) | The full bodies of `_elementary_corrected_section`, `elementary_phase_family`, `elementary_projection_section`, `_elementary_unit` and `_elementary_pole_inclusion` are bound. All 52 conditionals are classified, and all 8 raises sit in guards. Dataflow checks: `cap_band` feeds only the work estimate, and the diagnostics never reach an output. The band cutoff at \(1-|X|=\alpha\) is a flat join: the weight is \(s(1-u)\), with explicit derivative constants for \(k\le4\) and a written induction for all orders. The mismatch is unchanged under \(xx\mapsto\lambda xx\), since both sections are \(S^1\)-equivariant. The two stereographic chart values of \(\Theta\) agree exactly on the connected band \(|n_2|<3/5\): every identity of the argument is checked, including the radius bounds and the equator correction. The constant \(\operatorname{Arg}g(\mathrm{north},\mathrm{anchor})\) is one fixed point per sign: ALL PASS. C47f, numerical (d), reduced counts (a different map): the charts agree on the overlap, and the band selector behaves as stated. |
 | m1–m3, formula-branch source audit and observations (d) | The checker identifies and gates all six working-precision identity returns, and checks nested/exception restoration: ALL PASS. Two strict interior type-(d) samples have exact-formula value gaps \(9.0129315017\cdot10^{-99}\) (pole radial) and \(3.23193414504\cdot10^{-92}\) (height radial) from the default identity returns, evaluated at 240 digits. Sample size two; m3 reproduces the observations. This does not evaluate the fixed-count global tensor. |
 | N9a–i, cap/slab overlap (a,c) | for both signs, exact phase telescoping, source-linked raw-reference/projector identification, matching cusp inputs, torus restoration and first/second jets: ALL PASS, conditional on the written §11.3, §11.5 and §10.6 bounds; the post-raw radial margin is checked in N9b |
 | N10a–d, radial shell (a,b) | source-linked finite elementary \(S,S^{-1}\) nodes, exact scalar inverse and derivative identities, 16 first and 64 second entries for each radial direction, and \(\det DD=S(r)S'(r)/r>0\) on \(10^{-8}<r<1.5\cdot10^{-8}\): ALL PASS; the raw pole and torus stages are not composed here |
@@ -3827,6 +3833,43 @@ with \(\psi'(0)=e/c\). On the cap, \(|X|>1-\alpha/2\), the denominator
 exceeds \(2-\alpha/2\), \(r_L<1.6667\cdot10^{-6}\) and
 \(|z_S|^2<1.7003\cdot10^{-6}\), and every four-seed input is \(<2\cdot10^{-6}\),
 on its linear branch (C46d–d2). C46e is a numerical observation (d).
+
+C47 certifies the phase-correction band of the slab
+(\(\alpha/2\le1-|X|<\alpha\)) at both signs. The bodies of
+`_elementary_corrected_section` (including `mismatch`),
+`elementary_phase_family`, `elementary_projection_section`,
+`_elementary_unit` and `_elementary_pole_inclusion` are bound to the
+source. Each of their 52 conditionals is static, a guard (with the bound
+that keeps it inactive), diagnostic bookkeeping, or a smooth join. A
+dataflow check shows that `cap_band` feeds only the work estimate.
+
+*Band cutoff* (C47b). Outside the band the output is the uncorrected
+section. The weight is \(1-s(u)=s(1-u)\) with \(u=1\) at \(1-|X|=\alpha\),
+and \(e^{-iw\theta}-1=-iw\theta\int_0^1e^{-isw\theta}\,ds\), so the
+correction has a flat factor. Flatness to all orders is a written
+induction. Its pieces are checked, with explicit constants for
+derivatives through order four and generic jet checks.
+
+*Hemisphere reference* (C47c). The two source formulas for the Hopf
+preimage `xx` differ on the overlap by a unit factor \(\lambda\). The
+direct and transported sections are both \(S^1\)-equivariant, so the
+mismatch \(\langle\lambda d,\lambda s\rangle=\langle d,s\rangle\) is
+independent of the choice. A control shows that rotating only one of
+them would change it.
+
+*Two-chart logarithm* (C47d, types (a)–(c)). Each chart value of
+\(\Theta\) is a sum of \(\arctan(\operatorname{Im}R/\operatorname{Re}R)\)
+with \(\operatorname{Re}R\ge7/8\), so \(e^{i\Theta}=g\) in both charts by
+telescoping. On the connected band \(|n_2|<3/5\), where both
+stereographic radii are \(\le2\), the difference of the two values is a
+continuous \(2\pi\mathbb Z\)-valued function, and it vanishes at
+\(e=(1,0,0)\) because of the equator correction. The hemisphere charts
+have radius \(\le1\), so the radius guard never fires.
+
+*Start constant* (C47e). \(\operatorname{Arg}g\) is evaluated once, at
+the fixed point \((\mathrm{north},\mathrm{anchor})\) of each band, so it
+creates no seam. C47f is a numerical observation (d) with reduced counts,
+which define a different finite map.
 
 On the checked south raw-pole annulus, write \(r=|Z_0|^2+|Z_1|^2\) and
 \(z_L=(Z_0-iZ_1,Z_0+iZ_1)/\sqrt{4\pi(1+\sqrt{1-r^2})}\). Let \(w=g_0(z_L)\)

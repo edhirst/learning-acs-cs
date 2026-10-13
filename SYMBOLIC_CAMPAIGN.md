@@ -477,10 +477,15 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   whole cap branch at both signs: all 32 conditionals classified,
   the raw inverse a single branch with inactive guards, and the
   radial maps exact with flat outer seams.
+  **Phase band (2026-10-12-EH-7):** C47 certifies the slab
+  phase band at both signs: the cutoff is a flat join, the
+  mismatch does not depend on the hemisphere reference, and the
+  two stereographic charts of the finite logarithm agree
+  exactly on the band.
   **Next unchecked T16 tasks:** promote the remaining
-  one-chamber checks to whole-seam statements: the slab
-  phase band, the collar log cut (C34) and the cusp
-  height-cell and central-fibre charts; then bind a guarded six-real second-jet circuit to
+  one-chamber checks to whole-seam statements: the collar
+  log cut (C34) and the cusp height-cell and central-fibre
+  charts; then bind a guarded six-real second-jet circuit to
   every remaining production source branch and the global
   determinant/overlap bounds. The listed joins are research
   targets, not certificates.

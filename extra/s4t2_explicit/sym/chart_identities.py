@@ -8482,5 +8482,1032 @@ with mp41.workdps(100), cusp30.elementary_formula_branches():
 rep('C46e production cap formula across the radial seams (numerical, d)',
     sample_ok46)
 
+# C47: the slab phase band and its selectors, at both pole signs.
+# Scope: the phase-correction path of the finite slab formula (11.15)-(11.16),
+# i.e. _elementary_corrected_section (with its nested mismatch),
+# elementary_phase_family (with increments/primitive), the finite projection
+# section, _elementary_unit, _elementary_pole_inclusion, and the slice lines
+# that select or price the band.  C47 proves that every conditional on that
+# path is (i) static (constant on each band component, or fixed by the call),
+# (ii) a guard that the written count bounds (11.14) of section 11.5 keep
+# inactive (nonzero projections, right-half-plane increments, chart radius),
+# (iii) a diagnostic that never reaches a returned value, or (iv) a smooth
+# join: the band cutoff distance<alpha (flat weight, C47b), the hemisphere
+# Hopf reference nn[2]>=0 in mismatch (exact phase cancellation, C47c) and
+# the stereographic chart upper=n[2]>=0 (exact real agreement, C47d).  The
+# start constant Arg g(north,anchor) has no variable seam (C47e).  Premises
+# not re-proved here: the written type-(c) bounds of sections 11.4-11.5
+# (||D P||<L (11.13), ||Dg_j||<=(9+8N)L<L_g, the cap estimate
+# ||P-I_j Pi(n) I_j^*||<=100 r_L with r_L<=2 alpha/3), the smoothness of
+# the meridian projector P(n,h) itself (its selectors are C31-C44), and
+# |Z|^2=1-X^2 on the round S^4.  Conditionals of the slice outside this path
+# (cap/slab selector, W-chart representative) are listed and attributed to
+# N9 (node_remainder.py) / section 11.6 and C41d/C44c.
+
+# C47a.  Source binding, type (a) (exact AST equality).  The full bodies of
+# _elementary_corrected_section, elementary_phase_family,
+# elementary_projection_section, _elementary_unit and
+# _elementary_pole_inclusion are fixed below; the slice lines that select
+# or price the band are matched individually.  A census of EVERY If/IfExp
+# test and every comparison in these functions and in the slice is compared
+# with an explicit classification table, so no conditional is unclassified.
+# Finally a dataflow check shows that the diagnostics/margin bookkeeping
+# (the only min() calls) never reaches an assigned value or a return.
+# The remaining non-polynomial primitives on the path are smooth where they
+# are used (type (b), with the cited checks): abs(X) (X!=0 on each band, so
+# 1-|X| is 1+X or 1-X, C47b); abs(.)**2 (a sum of squares); abs(phase) and
+# the root in _elementary_unit (arguments nonzero by the guards, C47d);
+# sqrt((1+-nn[2])/2) (argument >=1/2 on the selected hemisphere, >0 on its
+# open domain, C47c); atan(Im R/Re R) (Re R>0 guard, C47d); mp.arg only at
+# one constant point per sign (C47e).  The slice's mp.arg(phase) (mid
+# W-point, a lattice e1 change, C42d/C50b) and sqrt(1-X*X) lie outside
+# this phase path.
+corrected_body47 = '''
+import mpmath as mp
+alpha = mp.mpf('1e-5')
+distance = 1-abs(X)
+pc = 2*xi[0]*mp.conj(xi[1])
+n = (pc.real,pc.imag,abs(xi[0])**2-abs(xi[1])**2)
+result = elementary_projection_section(xi,X,N,dps,diagnostics)
+if distance<alpha:
+    inf = X>0
+    anchor = 1-alpha if inf else -1+alpha
+    def mismatch(nn,h):
+        if nn[2]>=0:
+            w = mp.sqrt((1+nn[2])/2)
+            xx = (w,mp.mpc(nn[0],-nn[1])/(2*w))
+        else:
+            w = mp.sqrt((1-nn[2])/2)
+            xx = (mp.mpc(nn[0],nn[1])/(2*w),w)
+        section = elementary_projection_section(xx,h,N,dps,diagnostics)
+        P = elliptic_meridian_projector(nn,h,dps=dps,elementary=True)
+        direct = _elementary_unit(P*mp.matrix(_elementary_pole_inclusion(xx,inf)))
+        return _elementary_inner(direct,section)
+    theta = elementary_phase_family(mismatch,n,X,anchor,K,diagnostics=diagnostics)
+    weight = 1-scalar_flat_step((distance-alpha/2)/(alpha/2))
+    result = tuple(a*mp.exp(-mp.j*weight*theta) for a in result)
+return result
+'''
+phase_body47 = '''
+import mpmath as mp
+if not isinstance(steps,int) or steps<1 or chart not in (None,'north','south'):
+    raise ValueError('positive integer steps and a valid chart are required')
+north = (mp.mpf(0),mp.mpf(0),mp.mpf(1))
+def increments(values):
+    previous = next(values)
+    total = mp.mpf(0)
+    for value in values:
+        ratio = value*mp.conj(previous)
+        if ratio.real<=0:
+            raise ValueError('phase count does not give right-half-plane increments')
+        if diagnostics is not None:
+            diagnostics['minimum_phase_real'] = min(
+                diagnostics.get('minimum_phase_real',mp.mpf(1)),ratio.real)
+        total += mp.atan(ratio.imag/ratio.real)
+        previous = value
+    return total
+theta = mp.arg(g(north,anchor))
+theta += increments(g(north,anchor+(X-anchor)*j/steps) for j in range(steps+1))
+def primitive(a,upper):
+    def values():
+        for j in range(steps+1):
+            v,w = a[0]*j/steps,a[1]*j/steps
+            r2 = v*v+w*w
+            yield g((2*v/(1+r2),2*w/(1+r2),(1-r2 if upper else r2-1)/(1+r2)),X)
+    return increments(values())
+upper = n[2]>=0 if chart is None else chart=='north'
+sign = 1 if upper else -1
+a = (n[0]/(1+sign*n[2]),n[1]/(1+sign*n[2]))
+if a[0]**2+a[1]**2>4:
+    raise ValueError('phase chart requires stereographic radius <=2')
+if not upper:
+    theta += primitive((mp.mpf(1),mp.mpf(0)),True)-primitive((mp.mpf(1),mp.mpf(0)),False)
+return theta+primitive(a,upper)
+'''
+project_body47 = '''
+import mpmath as mp
+if not isinstance(steps,int) or steps<1:
+    raise ValueError('steps must be a positive integer')
+with mp.workdps(max(mp.mp.dps,dps)+20):
+    xi = tuple(map(mp.mpc,xi))
+    X = mp.mpf(X)
+    pc = 2*xi[0]*mp.conj(xi[1])
+    n = (pc.real,pc.imag,abs(xi[0])**2-abs(xi[1])**2)
+    start = -1+mp.mpf('1e-9')
+    vector = _elementary_pole_inclusion(xi)
+    margin = mp.mpf(1)
+    for j in range(steps+1):
+        h = start+(X-start)*j/steps
+        kind,data = elliptic_raw_base_reference(tuple((1-h*h)*a for a in n),h,
+                                                 dps=dps,elementary=True)
+        ref = elliptic_bundle_embedding(kind,data,dps=dps,elementary=True)
+        phase = _elementary_inner(ref,vector)
+        margin = min(margin,abs(phase))
+        if phase==0:
+            raise ValueError('finite projection product vanished')
+        vector = tuple(a*phase/abs(phase) for a in ref)
+    if diagnostics is not None:
+        diagnostics['minimum_projection_norm'] = min(
+            diagnostics.get('minimum_projection_norm',mp.mpf(1)),margin)
+    return tuple(+a for a in vector)
+'''
+unit_body47 = '''
+import mpmath as mp
+length = mp.sqrt(sum(abs(a)**2 for a in v))
+if length==0:
+    raise ValueError('zero denominator in a finite projection')
+return tuple(a/length for a in v)
+'''
+inclusion_body47 = '''
+import mpmath as mp
+a,b = xi
+pair = ((a+b)/mp.sqrt(2),(a-b)/mp.sqrt(2)) if infinity else (
+    (a-mp.j*b)/mp.sqrt(2),(a+mp.j*b)/mp.sqrt(2))
+result = [mp.mpc(0)]*10
+start = 4 if infinity else 0
+result[start:start+2] = pair
+return tuple(result)
+'''
+unit_tree47 = source_tree30(cusp30._elementary_unit)
+inclusion_tree47 = source_tree30(cusp30._elementary_pole_inclusion)
+meridian_tree47 = source_tree30(cusp30.elliptic_meridian_projector)
+def signature47(tree):
+    args = tree.args
+    return ([x.arg for x in args.args],
+            [ast.dump(d,include_attributes=False) for d in args.defaults],
+            [x.arg for x in args.kwonlyargs])
+bodies47 = (
+    body_dump41(correct_tree30)==text_dump41(corrected_body47)
+    and body_dump41(phase_tree30)==text_dump41(phase_body47)
+    and body_dump41(project_tree30)==text_dump41(project_body47)
+    and body_dump41(unit_tree47)==text_dump41(unit_body47)
+    and body_dump41(inclusion_tree47)==text_dump41(inclusion_body47)
+    and returned_expr30(inner_tree36,'sum(mp.conj(a)*b for a,b in zip(u,v))')
+    and returned_expr30(meridian_tree47,
+        'mp.matrix([[a*mp.conj(b) for b in e] for a in e])')
+    and matching_assignment30(meridian_tree47,'v',
+        'tuple((1-h*h)*mp.mpf(a) for a in n)')
+    # signatures: the production call passes no `chart`, so chart=None.
+    and signature47(phase_tree30)==(
+        ['g','n','X','anchor','steps','chart','diagnostics'],
+        [ast.dump(ast.Constant(None))]*2,[])
+    and signature47(correct_tree30)==(['xi','X','N','K','dps','diagnostics'],[],[])
+    and signature47(inclusion_tree47)==(['xi','infinity'],
+                                        [ast.dump(ast.Constant(False))],[])
+    # positional calls (xx,h,N,dps,diagnostics), (nn,h,dps=,elementary=)
+    # and (direct,section) rely on these parameter orders
+    and signature47(project_tree30)==(['xi','X','steps','dps','diagnostics'],
+        [ast.dump(ast.Constant(50)),ast.dump(ast.Constant(None))],[])
+    and signature47(meridian_tree47)==(['n','X','dps','elementary'],
+        [ast.dump(ast.Constant(50)),ast.dump(ast.Constant(False))],[])
+    and signature47(inner_tree36)==(['u','v'],[],[]))
+# Slice lines.  cap_band only prices the evaluation (cost) for the
+# execution guard max_work; the band itself is selected inside
+# _elementary_corrected_section by the same test distance<alpha.
+slice_lines47 = (
+    matching_assignment30(slice_tree30,'alpha',"mp.mpf('1e-5')")
+    and matching_assignment30(slice_tree30,'distance','1-abs(X)')
+    and matching_assignment30(slice_tree30,'cap_band','distance<alpha')
+    and matching_assignment30(slice_tree30,'cost',
+                              '(N+1)*(12*(K+1) if cap_band else 1)')
+    and exact_if_body37(slice_tree30,'max_work is not None and cost>max_work',
+        "raise ValueError('certified finite expression exceeds max_work; "
+        "inspect elementary_closed_parameters()')")
+    and exact_if_body37(slice_tree30,
+        "not -1+mp.mpf('1e-9')<=X<=1-mp.mpf('1e-9')",
+        "raise ValueError('the finite slab formula excludes the inner pole caps')")
+    and matching_if_test32(slice_tree30,'distance<alpha/2 and not force_slab')
+    and matching_assignment30(slice_tree30,'xi',
+                              'tuple(a/mp.sqrt(1-X*X) for a in Z)')
+    and matching_assignment30(slice_tree30,'result',
+        '_elementary_corrected_section(xi,X,N,K,dps,diagnostics)')
+    and source_counts30 and project_source30 and phase_source30)
+def names47(node):
+    return {x.id for x in ast.walk(node) if isinstance(x,ast.Name)}
+# cap_band and cost are read only where stated (dataflow, type (a)).
+cap_reads47 = [node for node in ast.walk(slice_tree30)
+               if isinstance(node,(ast.Assign,ast.If,ast.Return,ast.Expr))
+               and 'cap_band' in names47(node.value if not isinstance(node,ast.If)
+                                         else node.test)]
+cost_reads47 = [node for node in ast.walk(slice_tree30)
+                if isinstance(node,ast.If) and 'cost' in names47(node.test)]
+slice_lines47 &= (
+    len(cap_reads47)==1      # read only by the cost assignment
+    and isinstance(cap_reads47[0],ast.Assign)
+    and cap_reads47[0].targets[0].id=='cost'
+    and len(cost_reads47)==1
+    and all(not isinstance(node,ast.Return) or 'cost' not in names47(node)
+            for node in ast.walk(slice_tree30)))
+
+# Census of conditionals.  Classes: 'static' (fixed by the call or
+# constant on each band component), 'guard' (raises; kept inactive by the
+# cited bound), 'diag' (diagnostics only), 'join' (smooth join, cited
+# subsection), 'outside' (not on the phase path; cited certificate).
+def census47(tree):
+    out = []
+    for node in ast.walk(tree):
+        if isinstance(node,(ast.If,ast.IfExp,ast.While)):
+            out.append(('test',ast.unparse(node.test)))
+        if isinstance(node,ast.Compare):
+            out.append(('cmp',ast.unparse(node)))
+    return sorted(out)
+classes47 = {
+  '_elementary_corrected_section': {
+    ('test','distance < alpha'): 'join C47b',
+    ('cmp','distance < alpha'): 'join C47b',
+    ('cmp','X > 0'): 'static C47e: X!=0 on the band, sign fixed per component',
+    ('test','inf'): 'static C47e',
+    ('test','nn[2] >= 0'): 'join C47c: exact equality of both branches',
+    ('cmp','nn[2] >= 0'): 'join C47c'},
+  'elementary_phase_family': {
+    ('test',"not isinstance(steps, int) or steps < 1 or chart not in (None, 'north', 'south')"):
+        'static guard: K is a fixed positive int, chart=None (C30a, C47a)',
+    ('cmp','steps < 1'): 'static guard',
+    ('cmp',"chart not in (None, 'north', 'south')"): 'static guard',
+    ('test','ratio.real <= 0'): 'guard: Re R>7/8 by (11.14), C47d',
+    ('cmp','ratio.real <= 0'): 'guard (11.14)',
+    ('test','diagnostics is not None'): 'diag',
+    ('cmp','diagnostics is not None'): 'diag',
+    ('test','chart is None'): 'static: production chart=None',
+    ('cmp','chart is None'): 'static',
+    ('cmp',"chart == 'north'"): 'static (not taken in production)',
+    ('cmp','n[2] >= 0'): 'join C47d: exact agreement of the charts',
+    ('test','upper'): 'join C47d (inside primitive() its value is the literal chart flag: static)',
+    ('test','a[0] ** 2 + a[1] ** 2 > 4'): 'guard: radius<=1 in the selected chart, C47d',
+    ('cmp','a[0] ** 2 + a[1] ** 2 > 4'): 'guard C47d',
+    ('test','not upper'): 'join C47d: equator correction of the south chart'},
+  'elementary_projection_section': {
+    ('test','not isinstance(steps, int) or steps < 1'): 'static guard: N fixed positive int',
+    ('cmp','steps < 1'): 'static guard',
+    ('test','phase == 0'): 'guard: |P_j e_(j-1)|>1/2 by (11.14)/(11.15), C47d',
+    ('cmp','phase == 0'): 'guard (11.15)',
+    ('test','diagnostics is not None'): 'diag',
+    ('cmp','diagnostics is not None'): 'diag'},
+  '_elementary_unit': {
+    ('test','length == 0'): 'guard: cap estimate, 1-100 r_L>0, C47d',
+    ('cmp','length == 0'): 'guard'},
+  '_elementary_pole_inclusion': {
+    ('test','infinity'): 'static: inf fixed per band (C47e); I_0 in the section'},
+  'elementary_global_slice': {
+    ('test','distance < alpha / 2 and (not force_slab)'): 'outside: cap/slab join, section 11.6 and N9',
+    ('cmp','distance < alpha / 2'): 'outside: cap/slab, N9',
+    ('cmp','X > 0'): 'outside: cap branch sign (static per cap)',
+    ('test','inf'): 'outside: cap branch, static per cap',
+    ('test',"not -1 + mp.mpf('1e-9') <= X <= 1 - mp.mpf('1e-9')"): 'static domain guard (slab)',
+    ('cmp',"-1 + mp.mpf('1e-9') <= X <= 1 - mp.mpf('1e-9')"): 'static domain guard',
+    ('test','projection_steps is None'): 'static count choice',
+    ('cmp','projection_steps is None'): 'static',
+    ('test','phase_steps is None'): 'static count choice',
+    ('cmp','phase_steps is None'): 'static',
+    ('cmp','distance < alpha'): 'cost only (cap_band), C47a dataflow',
+    ('test','cap_band'): 'cost only, C47a dataflow',
+    ('test','max_work is not None and cost > max_work'): 'execution guard, value-independent',
+    ('cmp','max_work is not None'): 'execution guard',
+    ('cmp','cost > max_work'): 'execution guard',
+    ('test',"kind == 'mid'"): 'outside: W-chart representative, C41d/C44c',
+    ('cmp',"kind == 'mid'"): 'outside: C41d/C44c'}}
+census_trees47 = {
+    '_elementary_corrected_section': correct_tree30,
+    'elementary_phase_family': phase_tree30,
+    'elementary_projection_section': project_tree30,
+    '_elementary_unit': unit_tree47,
+    '_elementary_pole_inclusion': inclusion_tree47,
+    'elementary_global_slice': slice_tree30}
+census_ok47 = all(set(census47(tree))==set(classes47[name])
+                  for name,tree in census_trees47.items())
+census_count47 = sum(len(census47(tree)) for tree in census_trees47.values())
+# The meridian projector itself has no conditional of its own (its callee
+# selectors are C31-C44).
+census_ok47 &= census47(meridian_tree47)==[]
+# Guards: every If whose body raises is listed as a (static/domain/
+# execution) guard above, and every raise sits in such an If.
+guard_tests47 = sorted(ast.unparse(node.test)
+                       for tree in census_trees47.values()
+                       for node in ast.walk(tree)
+                       if isinstance(node,ast.If)
+                       and any(isinstance(b,ast.Raise) for b in node.body))
+raise_count47 = sum(isinstance(node,ast.Raise)
+                    for tree in census_trees47.values()
+                    for node in ast.walk(tree))
+census_ok47 &= (
+    raise_count47==len(guard_tests47)==8
+    and all('guard' in classes47[name][('test',ast.unparse(node.test))]
+            for name,tree in census_trees47.items()
+            for node in ast.walk(tree)
+            if isinstance(node,ast.If)
+            and any(isinstance(b,ast.Raise) for b in node.body)))
+# Diagnostics dataflow: margin/diagnostics enter only assignments whose
+# targets are margin or diagnostics[...], or are passed through to the
+# same three phase-path functions (which satisfy the same property).
+passthrough47 = {'elementary_projection_section','elementary_phase_family',
+                 '_elementary_corrected_section'}
+def bookkeeping_names47(node):
+    if (isinstance(node,ast.Call) and isinstance(node.func,ast.Name)
+            and node.func.id in passthrough47):
+        return set().union(*[bookkeeping_names47(x) for x in
+                             [node.func]+[a for a in node.args
+                                          if not (isinstance(a,ast.Name)
+                                                  and a.id=='diagnostics')]
+                             +[k.value for k in node.keywords
+                               if k.arg!='diagnostics']])
+    if isinstance(node,ast.Name):
+        return {node.id} & {'margin','diagnostics'}
+    return set().union(set(),*[bookkeeping_names47(x)
+                               for x in ast.iter_child_nodes(node)])
+def bookkeeping_free47(tree):
+    for node in ast.walk(tree):
+        if isinstance(node,(ast.Assign,ast.AugAssign)):
+            if bookkeeping_names47(node.value):
+                targets = node.targets if isinstance(node,ast.Assign) else [node.target]
+                if not all((isinstance(t,ast.Name) and t.id=='margin')
+                           or (isinstance(t,ast.Subscript)
+                               and isinstance(t.value,ast.Name)
+                               and t.value.id=='diagnostics')
+                           for t in targets):
+                    return False
+        if isinstance(node,(ast.Return,ast.Expr,ast.Yield)) and node.value is not None:
+            if bookkeeping_names47(node.value):
+                return False
+        if isinstance(node,ast.If) and bookkeeping_names47(node.test):
+            if ast.unparse(node.test)!='diagnostics is not None':
+                return False
+    return True
+min_calls47 = [ast.unparse(node) for tree in census_trees47.values()
+               for node in ast.walk(tree)
+               if isinstance(node,ast.Call) and isinstance(node.func,ast.Name)
+               and node.func.id in ('min','max')]
+diag_ok47 = (
+    all(bookkeeping_free47(tree) for tree in census_trees47.values())
+    # control: a body that returned margin would be rejected
+    and not bookkeeping_free47(ast.parse('def f(margin):\n    return margin').body[0])
+    and sorted(min_calls47)==sorted([
+        "min(diagnostics.get('minimum_phase_real', mp.mpf(1)), ratio.real)",
+        'max(mp.mp.dps, dps)', 'min(margin, abs(phase))',
+        "min(diagnostics.get('minimum_projection_norm', mp.mpf(1)), margin)",
+        'max(mp.mp.dps, dps)']))
+rep(f'C47a full phase-path bodies; {census_count47} conditional occurrences classified, '
+    f'{raise_count47} guards',
+    bodies47 and slice_lines47 and census_ok47 and diag_ok47)
+
+# C47b.  The band selector `if distance<alpha:` is a smooth join, both
+# signs.  Type (a) source facts: the If has no else-branch and the function
+# returns `result`, so for distance>=alpha the output is the projection
+# section E itself; inside, it is exp(-i*w*theta)*E with
+# w=1-s(u), u=(distance-alpha/2)/(alpha/2) (C47a body), s=scalar_flat_step.
+# distance=1-|X| is 1+X on the south band and 1-X on the north band (both
+# are X-intervals avoiding 0), i.e. exactly the chi_0, chi_inf arguments of
+# (11.16).  Type (a): at distance=alpha, u=1; and 1-s(u)=s(1-u) with
+# 1-u=(alpha-distance)/(alpha/2) (flat_left44 symmetry), so on
+# alpha/2<distance<alpha the weight is s((alpha-distance)/(alpha/2)).
+band_if47 = [node for node in ast.walk(correct_tree30)
+             if isinstance(node,ast.If)
+             and ast.unparse(node.test)=='distance < alpha']
+al47 = sp.Symbol('al47',positive=True)
+d47 = sp.Symbol('d47',positive=True)
+u47 = (d47-al47/2)/(al47/2)
+Xs47,Xn47 = sp.Symbol('Xs47',negative=True),sp.Symbol('Xn47',positive=True)
+band_source47 = (
+    len(band_if47)==1 and band_if47[0].orelse==[]
+    and ast.unparse(correct_tree30.body[-1])=='return result'
+    and ordered_nodes37(correct_tree30.body,[
+        'result = elementary_projection_section(xi,X,N,dps,diagnostics)',
+        'return result'])
+    and correct_tree30.body.index(band_if47[0])==len(correct_tree30.body)-2
+    and ordered_nodes37(band_if47[0].body,[
+        'theta = elementary_phase_family(mismatch,n,X,anchor,K,diagnostics=diagnostics)',
+        'weight = 1-scalar_flat_step((distance-alpha/2)/(alpha/2))',
+        'result = tuple(a*mp.exp(-mp.j*weight*theta) for a in result)'])
+    and exact_if_body37(flat_tree38,'u>=1','return mp.mpf(1)')
+    and exact_if_body37(flat_tree38,'u<=0','return mp.mpf(0)')
+    and returned_expr30(flat_tree38,'a/(a+b)')
+    and matching_statement31(flat_tree38,'a,b = mp.exp(-1/u),mp.exp(-1/(1-u))'))
+# u as written in the source (sympified from its AST text)
+flat_calls47 = [node for node in ast.walk(correct_tree30)
+                if isinstance(node,ast.Call)
+                and ast.unparse(node.func)=='scalar_flat_step']
+u_src47 = (sp.sympify(ast.unparse(flat_calls47[0].args[0]),
+                      locals={'distance':d47,'alpha':al47})
+           if len(flat_calls47)==1 else sp.nan)
+band_weight47 = (
+    sp.cancel(u_src47-u47)==0
+    and sp.cancel(u47.subs(d47,al47))==1
+    and sp.cancel(u47.subs(d47,al47/2))==0
+    and sp.cancel(1-u47-(al47-d47)/(al47/2))==0
+    and u47.subs({d47:sp.Rational(1,10**5),al47:sp.Rational(1,10**5)})==1
+    and sp.simplify(flat_actual34.subs(p34,1-u41)+flat_actual34.subs(p34,u41)-1)==0
+    and sp.simplify((1-sp.Abs(Xs47))-(1+Xs47))==0
+    and sp.simplify((1-sp.Abs(Xn47))-(1-Xn47))==0)
+
+# All-orders flatness of s at 0+ (type (c), written; every identity it uses
+# is checked).  On 0<v<1, s(v)=sigma(y(v)) with sigma(y)=1/(1+e^-y) and
+# y=1/(1-v)-1/v.  sigma'=sigma(1-sigma), so by the chain rule (generic
+# induction step below) sigma^(k)=p_k(sigma) with p_0=x and
+# p_(k+1)=x(1-x)p_k'; thus x divides every p_k and |p_k(sigma)|<=c_k*sigma,
+# c_k the sum of |coefficients| of p_k/x.  y^(j)=j!/(1-v)^(j+1)
+# -(-1)^j j!/v^(j+1) (checked for symbolic j), so on 0<v<=1/2
+# |y^(j)|<=2 j! v^-(j+1).  Faa di Bruno: s^(k)=sum_m p_m(sigma)
+# B_(k,m)(y',y'',...), each monomial of B_(k,m) having degree m and weight
+# k, hence bounded by B_(k,m)(2*1!,2*2!,...) v^-(k+m)<=... v^-2k.  Finally
+# sigma(y(v))=s(v)<=exp(-1/v+1/(1-v))<=e^2 exp(-1/v) on (0,1/2].  So
+# |s^(k)(v)|<=M_k v^-2k exp(-1/v) with M_k=e^2 sum_m c_m B_(k,m)(2*1!,...),
+# and v^-2k exp(-1/v)->0 (t=1/v: t^2k e^-t->0).  M_1..M_4 are printed.
+v47 = sp.Symbol('v47',positive=True)
+y47 = sp.Symbol('y47',real=True)
+x47 = sp.Symbol('x47')
+jj47 = sp.Symbol('jj47',integer=True,nonnegative=True)
+sigma47 = 1/(1+sp.exp(-y47))
+yv47 = 1/(1-v47)-1/v47
+Pf47 = sp.Function('Pf47')
+p47 = [x47]
+for k47 in range(5):
+    p47.append(sp.expand(x47*(1-x47)*sp.diff(p47[-1],x47)))
+c47 = [sum(abs(cf) for cf in sp.Poly(sp.cancel(pk/x47),x47).coeffs())
+       for pk in p47]
+fy47 = sp.Function('fy47')
+yy47 = sp.Function('yy47')(v47)
+dy47 = sp.symbols('dy47_1:6')
+faa47 = all(
+    sp.simplify(sp.diff(fy47(yy47),v47,k).subs(
+        {sp.Derivative(yy47,(v47,j)):dy47[j-1] for j in range(k,0,-1)})
+        -sum(sp.Subs(sp.Derivative(fy47(y47),(y47,m)),y47,yy47).doit()
+             *sp.bell(k,m,dy47[:k-m+1]) for m in range(1,k+1)))==0
+    for k in range(1,5))
+weight_ok47 = all(
+    all(sum(sp.degree_list(mono,*dy47[:k-m+1]))==m
+        and sum((j+1)*e for j,e in enumerate(sp.degree_list(mono,*dy47[:k-m+1])))==k
+        and sp.Poly(mono,*dy47[:k-m+1]).coeffs()[0]>0
+        for mono in sp.Add.make_args(sp.expand(sp.bell(k,m,dy47[:k-m+1]))))
+    for k in range(1,5) for m in range(1,k+1))
+M47 = [sp.E**2*sum(c47[m]*sp.bell(k,m,[2*sp.factorial(j) for j in range(1,k-m+2)])
+                   for m in range(1,k+1)) for k in range(1,5)]
+flat_all47 = (
+    sp.simplify(flat_actual34.subs(p34,v47)-sigma47.subs(y47,yv47))==0
+    and sp.simplify(sp.diff(sigma47,y47)-sigma47*(1-sigma47))==0
+    # generic induction step: d/dy P(sigma)=P'(sigma) sigma(1-sigma)
+    and sp.simplify(sp.diff(Pf47(sigma47),y47)
+                    -sp.Subs(sp.Derivative(Pf47(x47),x47),x47,sigma47).doit()
+                     *sigma47*(1-sigma47))==0
+    and all(sp.simplify(sp.diff(sigma47,y47,k)-p47[k].subs(x47,sigma47))==0
+            for k in range(5))
+    and all(sp.rem(pk,x47,x47)==0 for pk in p47)
+    # y^(j) for symbolic j: induction step of both terms
+    and sp.simplify(sp.diff(sp.factorial(jj47)/(1-v47)**(jj47+1),v47)
+                    -sp.factorial(jj47+1)/(1-v47)**(jj47+2))==0
+    and sp.simplify(sp.diff((-1)**jj47*sp.factorial(jj47)/v47**(jj47+1),v47)
+                    -(-1)**(jj47+1)*sp.factorial(jj47+1)/v47**(jj47+2))==0
+    and sp.simplify(sp.diff(yv47,v47)-(1/(1-v47)**2+1/v47**2))==0
+    and faa47 and weight_ok47
+    # e^(-1/v)/(e^(-1/v)+e^(-1/(1-v)))<=e^(-1/v+1/(1-v)), 1/(1-v)<=2
+    and sp.simplify(flat_actual34.subs(p34,v47)*(1+sp.exp(1/v47-1/(1-v47)))-1)==0
+    and sp.cancel(2-1/(1-v47)-(1-2*v47)/(1-v47))==0      # >=0 iff v<=1/2
+    and all(sp.limit(v47**(-2*k)*sp.exp(-1/v47),v47,0,'+')==0 for k in range(1,5))
+    and flat_limits41 and flat_left44)
+print('     C47b flat-step constants M_1..M_4 (|s^(k)(v)|<=M_k v^-2k e^-1/v, 0<v<=1/2):',
+      [sp.nsimplify(m/sp.E**2)*sp.Symbol('e^2') for m in M47])
+
+# The join.  exp(-i w theta)-1=(-i w theta)*E1(-i w theta), with
+# E1(z)=int_0^1 e^(tz)dt smooth (type (a) identity below).  Hence
+# E_c-E=w*Kc with Kc=-i theta E1(-i w theta) E smooth wherever theta and E
+# are.  theta is a finite composition that is smooth on the open set where
+# its finitely many strict inequalities (C47d guards) hold; that set
+# contains the closed band 1-|X|<=alpha by (11.14), so Kc and all its
+# derivatives stay bounded as distance->alpha-.  By Leibniz every
+# derivative of w*Kc is a sum of (derivative of w)*(bounded), and every
+# derivative of w(distance)=s((alpha-distance)/(alpha/2)) tends to 0 as
+# distance->alpha- (above).  The outside value is 0.  Hence E_c is C^infty
+# across distance=alpha (type (b)).  The generic checks: a factor flat to
+# order three in the transverse variable has zero three-jet in all
+# directions, also when the cofactor depends on that variable; and
+# F(w,theta(d,y))-F(0,theta(d,y)) has zero two-jet (theta depends on d,
+# stronger than C41c).  Control: a non-flat linear cutoff c(alpha-d) gives
+# the nonzero first jet i*c*theta.
+zz47,tt47 = sp.symbols('zz47 tt47')
+th47,w47,cc47 = sp.symbols('th47 w47 cc47',real=True)
+E1_47 = sp.integrate(sp.exp(tt47*zz47),(tt47,0,1),conds='none')
+factor47 = (
+    sp.simplify(E1_47-(sp.exp(zz47)-1)/zz47)==0
+    and sp.simplify(sp.exp(-sp.I*w47*th47)-1
+                    -(-sp.I*w47*th47)*E1_47.subs(zz47,-sp.I*w47*th47))==0)
+dd47,ya47,yb47 = sp.symbols('dd47 ya47 yb47',real=True)
+gw47 = sp.Function('gw47')(dd47)
+Kw47 = sp.Function('Kw47')(dd47,ya47,yb47)
+thw47 = sp.Function('thw47')(dd47,ya47,yb47)
+Fw47 = sp.Function('Fw47')
+def flat_order3_47(expr):
+    out = expr.doit()
+    for k in (3,2,1):
+        out = out.subs(sp.Derivative(gw47,(dd47,k)),0)
+    out = out.subs(gw47,0)
+    return sp.simplify(out.doit())==0
+vars47 = (dd47,ya47,yb47)
+jets3_47 = [()]+[(a,) for a in vars47]+[
+    (a,b) for i,a in enumerate(vars47) for b in vars47[i:]]+[
+    (a,b,c) for i,a in enumerate(vars47) for j,b in enumerate(vars47[i:],i)
+    for c in vars47[j:]]
+flat_join47 = (
+    len(jets3_47)==20
+    and all(flat_order3_47(sp.diff(gw47*Kw47,*dv) if dv else gw47*Kw47)
+            for dv in jets3_47)
+    and all(flat_order3_47(sp.diff(Fw47(gw47,thw47)-Fw47(0,thw47),*dv)
+                           if dv else Fw47(gw47,thw47)-Fw47(0,thw47))
+            for dv in jets3_47 if len(dv)<=2)
+    and flat_two_jets41
+    # control for the jet test itself: g=0 alone (g'=gp!=0) leaves gp*K
+    and sp.simplify(sp.diff(gw47*Kw47,dd47).subs(sp.Derivative(gw47,dd47),
+                    sp.Symbol('gp47')).subs(gw47,0))!=0
+    and sp.simplify(sp.diff(sp.exp(-sp.I*cc47*(al47-d47)*th47)-1,d47)
+                    .subs(d47,al47)-sp.I*cc47*th47)==0)
+rep('C47b band cutoff distance<alpha: weight flat at u=1, C^infty join, both signs',
+    band_source47 and band_weight47 and flat_all47 and factor47 and flat_join47)
+
+# C47c.  The hemisphere selector `nn[2]>=0` in mismatch is a smooth join
+# with exact agreement, both signs (j=0 uses I_0, j=inf uses I_inf in
+# `direct`; the section always starts from I_0).  Type (a) identities:
+# (1) both source references are unit Hopf preimages of nn: the upper one
+#     on n2>-1 (w=sqrt((1+n2)/2)>0), the lower one on n2<1; on the
+#     selected closed hemisphere the square-root argument is >=1/2
+#     (manifest, type (b));
+# (2) on the overlap -1<n2<1, xx_lower=lambda*xx_upper with the unit
+#     scalar lambda=m/|m|, m=n0+i n1;
+# (3) every source operation is S^1-equivariant in xx: n=Hopf(xx) is
+#     invariant, I_j is C-linear, each projection step
+#     ref*<ref,v>/|<ref,v>| maps lambda*v to lambda times the old value, P is
+#     C-linear and unit() commutes with unit scalars;
+# (4) hence mismatch=<direct,section> (conjugate-linear first slot) is
+#     unchanged: conj(lambda)*lambda=1.  Control: rotating only one slot
+#     changes it by conj(lambda).  Also |mismatch|=1 (both unit vectors on
+#     the line of e(nn,h)).
+# So mismatch is ONE function of (nn,h), smooth on S^2 x band given the
+# projector's smoothness, and the selector merely chooses the formula.
+mm_if47 = [node for node in ast.walk(correct_tree30)
+           if isinstance(node,ast.If) and ast.unparse(node.test)=='nn[2] >= 0']
+hemi_source47 = (
+    len(mm_if47)==1
+    and [ast.dump(x,include_attributes=False) for x in mm_if47[0].body]
+        ==text_dump41('w = mp.sqrt((1+nn[2])/2)\n'
+                      'xx = (w,mp.mpc(nn[0],-nn[1])/(2*w))')
+    and [ast.dump(x,include_attributes=False) for x in mm_if47[0].orelse]
+        ==text_dump41('w = mp.sqrt((1-nn[2])/2)\n'
+                      'xx = (mp.mpc(nn[0],nn[1])/(2*w),w)')
+    and bodies47)
+n0c47,n1c47 = sp.symbols('n0c47 n1c47',real=True)
+Wc47,WLc47 = sp.symbols('Wc47 WLc47',positive=True)
+def hopf47(xi):
+    pc = sp.expand(2*xi[0]*sp.conjugate(xi[1]))
+    return (sp.re(pc),sp.im(pc),
+            sp.expand(xi[0]*sp.conjugate(xi[0])-xi[1]*sp.conjugate(xi[1])))
+def upper_ref47(n0,n1,n2):
+    w = sp.sqrt((1+n2)/2)
+    return (w,(n0-sp.I*n1)/(2*w))
+def lower_ref47(n0,n1,n2):
+    w = sp.sqrt((1-n2)/2)
+    return ((n0+sp.I*n1)/(2*w),w)
+# (1) whole open domains: n2=2W^2-1 (upper) / 1-2W^2 (lower), W>0, and
+# the sphere relation n0^2+n1^2=1-n2^2=4W^2(1-W^2).
+def mod_sphere47(expr,W):
+    return sp.simplify(sp.expand(expr).subs(n1c47**2,4*W**2*(1-W**2)-n0c47**2))
+hemi_hopf47 = True
+for ref47,n2c47 in ((upper_ref47,2*Wc47**2-1),(lower_ref47,1-2*Wc47**2)):
+    xxc47 = ref47(n0c47,n1c47,n2c47)
+    hemi_hopf47 &= (
+        all(mod_sphere47(a-b,Wc47)==0
+            for a,b in zip(hopf47(xxc47),(n0c47,n1c47,n2c47)))
+        and mod_sphere47(sum(sp.expand(z*sp.conjugate(z)) for z in xxc47)-1,Wc47)==0)
+nn2_47 = sp.Symbol('nn2_47',real=True)
+# square-root arguments: >=1/2 exactly on the selected closed/open
+# hemisphere, and >0 on the open domains n2>-1 / n2<1 (type (b)).
+hemi_hopf47 &= (
+    sp.solveset((1+nn2_47)/2>=sp.Rational(1,2),nn2_47,sp.Interval(-1,1))
+        ==sp.Interval(0,1)
+    and sp.solveset((1-nn2_47)/2>sp.Rational(1,2),nn2_47,sp.Interval(-1,1))
+        ==sp.Interval.Ropen(-1,0)
+    and sp.solveset((1+nn2_47)/2>0,nn2_47,sp.Interval(-1,1))==sp.Interval.Lopen(-1,1)
+    and sp.solveset((1-nn2_47)/2>0,nn2_47,sp.Interval(-1,1))==sp.Interval.Ropen(-1,1))
+# (2) overlap: n2=(W^2-WL^2)/D, D=W^2+WL^2, |m|=2 W WL/D.
+D47 = Wc47**2+WLc47**2
+n2o47 = (Wc47**2-WLc47**2)/D47
+def mod_overlap47(expr):
+    return sp.simplify(sp.expand(expr).subs(n1c47**2,4*Wc47**2*WLc47**2/D47**2-n0c47**2))
+up47 = upper_ref47(n0c47,n1c47,n2o47)
+lo47 = lower_ref47(n0c47,n1c47,n2o47)
+lam47 = (n0c47+sp.I*n1c47)*D47/(2*Wc47*WLc47)
+overlap47 = (
+    sp.simplify(up47[0]-Wc47/sp.sqrt(D47))==0
+    and sp.simplify(lo47[1]-WLc47/sp.sqrt(D47))==0
+    and mod_overlap47(n0c47**2+n1c47**2+n2o47**2-1)==0
+    and mod_overlap47(lam47*sp.conjugate(lam47)-1)==0
+    and all(mod_overlap47(lo47[k]-lam47*up47[k])==0 for k in range(2))
+    # control: the two references are NOT equal on the overlap
+    and mod_overlap47(lo47[1]-up47[1])!=0)
+# (3)-(4) equivariance and cancellation, in the ten-slot space.
+ph47 = sp.Symbol('ph47',real=True)
+lamu47 = sp.exp(sp.I*ph47)
+ar47 = sp.symbols('ar47_0:2',real=True)
+ai47 = sp.symbols('ai47_0:2',real=True)
+xig47 = tuple(ar47[k]+sp.I*ai47[k] for k in range(2))
+def inclusion47(xi,infinity):
+    a,b = xi
+    pair = ((a+b)/sp.sqrt(2),(a-b)/sp.sqrt(2)) if infinity else (
+        (a-sp.I*b)/sp.sqrt(2),(a+sp.I*b)/sp.sqrt(2))
+    out = [sp.Integer(0)]*10
+    start = 4 if infinity else 0
+    out[start:start+2] = pair
+    return out
+er47 = sp.symbols('er47_0:10',real=True)
+ei47 = sp.symbols('ei47_0:10',real=True)
+eg47 = [er47[k]+sp.I*ei47[k] for k in range(10)]
+vr47 = sp.symbols('vr47_0:10',real=True)
+vi47 = sp.symbols('vi47_0:10',real=True)
+vg47 = [vr47[k]+sp.I*vi47[k] for k in range(10)]
+pr47,pi47 = sp.symbols('pr47 pi47',real=True)
+pg47 = pr47+sp.I*pi47
+def unit_scalar47(p):
+    return p/sp.sqrt(sp.expand(p*sp.conjugate(p)))
+lamp47 = sp.expand(lamu47*pg47)
+equivariant47 = (
+    all(sp.simplify(a-b)==0 for a,b in zip(
+        hopf47(tuple(lamu47*z for z in xig47)),hopf47(xig47)))
+    and all(sp.expand(a-lamu47*b)==0
+            for inf47 in (False,True)
+            for a,b in zip(inclusion47(tuple(lamu47*z for z in xig47),inf47),
+                           inclusion47(xig47,inf47)))
+    # <ref,lambda v>=lambda<ref,v>; then the normalized step is equivariant
+    and sp.expand(inner41(eg47,[lamu47*z for z in vg47])
+                  -lamu47*inner41(eg47,vg47))==0
+    and sp.simplify(unit_scalar47(lamp47)-lamu47*unit_scalar47(pg47))==0
+    # P=e e^* (the source projector): P(lambda u)=lambda P u, entrywise
+    and all(sp.expand(sum(eg47[r]*sp.conjugate(eg47[c])*lamu47*vg47[c] for c in range(10))
+                      -lamu47*sum(eg47[r]*sp.conjugate(eg47[c])*vg47[c] for c in range(10)))==0
+            for r in range(10))
+    # unit(lambda u)=lambda unit(u): the norms agree
+    and sp.simplify(sum(sp.expand(lamu47*z*sp.conjugate(lamu47*z)) for z in vg47)
+                    -sum(sp.expand(z*sp.conjugate(z)) for z in vg47))==0)
+dr47 = sp.symbols('dr47_0:10',real=True)
+di47 = sp.symbols('di47_0:10',real=True)
+dg47 = [dr47[k]+sp.I*di47[k] for k in range(10)]
+cancel47 = (
+    sp.expand(inner41([lamu47*z for z in dg47],[lamu47*z for z in vg47])
+              -inner41(dg47,vg47))==0
+    and sp.expand(inner41([lamu47*z for z in dg47],vg47)
+                  -sp.conjugate(lamu47)*inner41(dg47,vg47))==0
+    and sp.expand(inner41([lamu47*z for z in dg47],vg47)-inner41(dg47,vg47))!=0)
+# |mismatch|=1: direct=mu*e, section=nu*e with |e|=|mu|=|nu|=1.
+mu47,nu47 = sp.symbols('mu47 nu47',real=True)
+e2r47 = sp.symbols('e2r47_0:2',real=True)
+e2v47 = [e2r47[0]+sp.I*e2r47[1],sp.Symbol('e2c47',real=True)]
+e2n47 = sp.Symbol('e2n47',positive=True)     # e2n47^2=|e|^2, e!=0
+e2u47 = [z/e2n47 for z in e2v47]
+gval47 = inner41([sp.exp(sp.I*mu47)*z for z in e2u47],[sp.exp(sp.I*nu47)*z for z in e2u47])
+cancel47 &= sp.simplify(sp.expand(gval47*sp.conjugate(gval47)).subs(
+    e2n47,sp.sqrt(sum(sp.expand(z*sp.conjugate(z)) for z in e2v47)))-1)==0
+cancel47 &= (matching_statement31(correct_tree30,
+                 'section = elementary_projection_section(xx,h,N,dps,diagnostics)')
+             and matching_statement31(correct_tree30,
+                 'P = elliptic_meridian_projector(nn,h,dps=dps,elementary=True)')
+             and matching_statement31(correct_tree30,
+                 'direct = _elementary_unit(P*mp.matrix(_elementary_pole_inclusion(xx,inf)))')
+             and matching_statement31(correct_tree30,
+                 'return _elementary_inner(direct,section)'))
+rep('C47c hemisphere Hopf reference: mismatch independent of the choice, both signs',
+    hemi_source47 and hemi_hopf47 and overlap47 and equivariant47 and cancel47)
+
+# C47d.  The chart selector upper=n[2]>=0 of elementary_phase_family and
+# its equator correction P_N(e)-P_S(e), both signs (the sign enters only
+# through the anchor, C47e).  In production chart=None (C47a signature and
+# call), so upper=n[2]>=0.  Write Theta_N=c+T_X+P_N(a_N(n)) and
+# Theta_S=c+T_X+P_N(e)-P_S(e)+P_S(a_S(n)), with c=Arg g(north,anchor),
+# T_X the north X-path sum, a_N=(n0,n1)/(1+n2), a_S=(n0,n1)/(1-n2), e=(1,0)
+# and P_N, P_S the K-step sums along S_N(ja/K), S_S(ja/K) at the current X.
+# Written argument (types (b)/(c); its identities are checked below):
+# (i) Guards.  Theta_N is defined (every Arg increment in the right half
+#     plane) for |a_N|<=2, i.e. n2>=-3/5, and Theta_S for n2<=3/5: by
+#     ||DS||<=2 (C20a, both charts) a chart step of length |a|/K has image
+#     length <=4/K, the X-path step is <=alpha/K<4/K, ||Dg||<L_g, so
+#     consecutive values differ by <4L_g/K<1/2 (exact counts (11.14)) and
+#     Re R=1-|z-w|^2/2>7/8 (unit z,w).  Likewise 2L/N<1/2 keeps every
+#     projection step >1/2 and 1-100*(2alpha/3)>0 keeps `direct` nonzero
+#     (cap estimate).  In the selected chart |a|^2<=1<4, so the radius
+#     guard never fires.
+# (ii) Exactness.  With Re R>0, exp(i atan(Im R/Re R))=R/|R|, and for unit
+#     values R/|R|=g_l conj(g_(l-1)), which telescopes (C20c).  With the
+#     endpoint identities S_N(0)=north, S_S(0)=south, S_N(e)=S_S(e)=(1,0,0),
+#     S_N(a_N(n))=S_S(a_S(n))=n, exp(i Theta_N)=exp(i Theta_S)=g(n,X).
+# (iii) Agreement.  Theta_S-Theta_N is continuous and 2pi Z-valued on the
+#     connected band -3/5<n2<3/5 (an annulus, joined to e by rotation about
+#     the axis and a meridian arc), and vanishes at n=e because
+#     a_N(e)=a_S(e)=e makes both pairs P_N(a_N(e))=P_N(e) and
+#     P_S(a_S(e))=P_S(e) one finite expression each.
+#     Hence Theta_S=Theta_N on the band, an open neighbourhood of the
+#     selector seam n2=0: theta equals the smooth Theta_N on n2>-3/5 and
+#     the smooth Theta_S on n2<3/5.  The selector is a smooth join with
+#     exact agreement; no 2pi seam exists.
+upper_source47 = (
+    matching_assignment30(phase_tree30,'upper',
+                          "n[2]>=0 if chart is None else chart=='north'")
+    and matching_assignment30(phase_tree30,'sign','1 if upper else -1')
+    and matching_assignment30(phase_tree30,'a',
+                              '(n[0]/(1+sign*n[2]),n[1]/(1+sign*n[2]))')
+    and exact_if_body37(phase_tree30,'a[0]**2+a[1]**2>4',
+        "raise ValueError('phase chart requires stereographic radius <=2')")
+    and exact_if_body37(phase_tree30,'not upper',
+        'theta += primitive((mp.mpf(1),mp.mpf(0)),True)'
+        '-primitive((mp.mpf(1),mp.mpf(0)),False)')
+    and returned_expr30(phase_tree30,'theta+primitive(a,upper)')
+    and matching_call30(correct_tree30,
+        'elementary_phase_family(mismatch,n,X,anchor,K,diagnostics=diagnostics)')
+    and bodies47)
+n0d47,n1d47,n2d47 = sp.symbols('n0d47 n1d47 n2d47',real=True)
+vd47,wd47 = sp.symbols('vd47 wd47',real=True)
+def stereo47(v,w,upper):       # the source primitive's point formula
+    r2 = v*v+w*w
+    return (2*v/(1+r2),2*w/(1+r2),(1-r2 if upper else r2-1)/(1+r2))
+def chart47(n,upper):          # the source `a` with sign=1/-1
+    sign = 1 if upper else -1
+    return (n[0]/(1+sign*n[2]),n[1]/(1+sign*n[2]))
+nd47 = (n0d47,n1d47,n2d47)
+sphere47 = n0d47**2+n1d47**2+n2d47**2-1
+def sph47(expr):               # numerator reduced modulo the sphere relation
+    num,den = sp.fraction(sp.cancel(sp.together(expr)))
+    return sp.rem(sp.expand(num),sphere47,n1d47),den
+one47,zero47 = sp.Integer(1),sp.Integer(0)
+stereo_ok47 = all(
+    sp.simplify(sum(c*c for c in stereo47(vd47,wd47,up))-1)==0
+    and stereo47(zero47,zero47,up)==(0,0,1 if up else -1)
+    and stereo47(one47,zero47,up)==(1,0,0)
+    and chart47((one47,zero47,zero47),up)==(1,0)
+    and all(sp.simplify(sph47(c-t)[0])==0
+            for c,t in zip(stereo47(*chart47(nd47,up),up),nd47))
+    for up in (True,False))
+# metric of the south chart too (C20a checked the north chart)
+ds_south47 = sp.Matrix(stereo47(vd47,wd47,False)).jacobian([vd47,wd47])
+stereo_ok47 &= ((ds_south47.T*ds_south47
+                 -4*sp.eye(2)/(1+vd47**2+wd47**2)**2).applyfunc(sp.factor)
+                ==sp.zeros(2))
+rad_N47 = sum(c*c for c in chart47(nd47,True))
+rad_S47 = sum(c*c for c in chart47(nd47,False))
+radius47 = (
+    sp.simplify(sph47(rad_N47-(1-n2d47)/(1+n2d47))[0])==0
+    and sp.simplify(sph47(rad_S47-(1+n2d47)/(1-n2d47))[0])==0
+    # selected chart: 1-|a|^2 = 2n2/(1+n2)>=0 (n2>=0), -2n2/(1-n2)>0 (n2<0)
+    and sp.cancel(1-(1-n2d47)/(1+n2d47)-2*n2d47/(1+n2d47))==0
+    and sp.cancel(1-(1+n2d47)/(1-n2d47)+2*n2d47/(1-n2d47))==0
+    # chart domains: 4-|a_N|^2=(3+5n2)/(1+n2), 4-|a_S|^2=(3-5n2)/(1-n2)
+    and sp.cancel(4-(1-n2d47)/(1+n2d47)-(3+5*n2d47)/(1+n2d47))==0
+    and sp.cancel(4-(1+n2d47)/(1-n2d47)-(3-5*n2d47)/(1-n2d47))==0
+    # the same sets by solveset on -1<n2<1: radius<=1 exactly on the
+    # selected hemispheres, radius<=2 on n2>=-3/5 / n2<=3/5.
+    and sp.solveset((1-n2d47)/(1+n2d47)<=1,n2d47,sp.Interval.open(-1,1))
+        ==sp.Interval.Ropen(0,1)
+    and sp.solveset((1+n2d47)/(1-n2d47)<=1,n2d47,sp.Interval.open(-1,1))
+        ==sp.Interval.Lopen(-1,0)
+    and sp.solveset((1-n2d47)/(1+n2d47)<=4,n2d47,sp.Interval.open(-1,1))
+        ==sp.Interval.Ropen(sp.Rational(-3,5),1)
+    and sp.solveset((1+n2d47)/(1-n2d47)<=4,n2d47,sp.Interval.open(-1,1))
+        ==sp.Interval.Lopen(-1,sp.Rational(3,5)))
+# (ii) increments: three generic right-half-plane ratios; control Re<0.
+xq47 = sp.symbols('xq47_1:4',positive=True)
+yq47 = sp.symbols('yq47_1:4',real=True)
+xneg47 = sp.Symbol('xneg47',negative=True)
+increment47 = (
+    sp.simplify(sp.expand_trig(sp.expand_complex(
+        sp.exp(sp.I*sum(sp.atan(y/x) for x,y in zip(xq47,yq47)))))
+        -sp.expand(sp.prod([(x+sp.I*y)/sp.sqrt(x*x+y*y)
+                            for x,y in zip(xq47,yq47)])))==0
+    and sp.simplify(sp.exp(sp.I*sp.atan(yq47[0]/xneg47)).rewrite(sp.cos)
+                    -(xneg47+sp.I*yq47[0])/sp.sqrt(xneg47**2+yq47[0]**2))!=0
+    and argument_value30)
+# unit values u=(1-t^2+2it)/(1+t^2): R=u_l conj(u_(l-1)) has |R|=1, so
+# R/|R|=R, and the source-order product telescopes to u_3 conj(u_0).
+tq47 = sp.symbols('tq47_0:4',real=True)
+uq47 = [(1-t*t+2*sp.I*t)/(1+t*t) for t in tq47]
+Rq47 = [uq47[l]*sp.conjugate(uq47[l-1]) for l in range(1,4)]
+increment47 &= (
+    all(sp.simplify(R*sp.conjugate(R)-1)==0 for R in Rq47)
+    and sp.simplify(sp.prod(Rq47)-uq47[3]*sp.conjugate(uq47[0]))==0)
+# Chart products in source order with unit values gA=g(north,anchor),
+# gN=g(north,X), gE=g((1,0,0),X), gS=g(south,X), gT=g(n,X).  Control: if the
+# two equator endpoints differed (gE vs gE2) the south value would be off.
+tg47 = sp.symbols('tg47_0:6',real=True)
+gA47,gN47,gE47,gS47,gT47,gE2_47 = [(1-t*t+2*sp.I*t)/(1+t*t) for t in tg47]
+def ratio47(new,old):
+    return new*sp.conjugate(old)
+north_val47 = gA47*ratio47(gN47,gA47)*ratio47(gT47,gN47)
+south_val47 = (gA47*ratio47(gN47,gA47)*ratio47(gE47,gN47)
+               *sp.conjugate(ratio47(gE47,gS47))*ratio47(gT47,gS47))
+south_bad47 = (gA47*ratio47(gN47,gA47)*ratio47(gE47,gN47)
+               *sp.conjugate(ratio47(gE2_47,gS47))*ratio47(gT47,gS47))
+products47 = (
+    sp.simplify(north_val47-gT47)==0 and sp.simplify(south_val47-gT47)==0
+    and sp.simplify(south_bad47-gT47)!=0)
+# (iii) the equator correction at n=e, with P_N, P_S uninterpreted
+# functions of the chart point; control: at another equator point the
+# difference is not syntactically zero (that equality is the
+# connectedness argument, not an identity).
+PN47,PS47 = sp.Function('PN47'),sp.Function('PS47')
+cst47 = sp.Symbol('cst47',real=True)
+def thetaN47(n):
+    return cst47+PN47(*chart47(n,True))
+def thetaS47(n):
+    return cst47+PN47(one47,zero47)-PS47(one47,zero47)+PS47(*chart47(n,False))
+equator47 = (
+    sp.simplify(thetaS47((one47,zero47,zero47))-thetaN47((one47,zero47,zero47)))==0
+    and sp.simplify(thetaS47((zero47,one47,zero47))
+                    -thetaN47((zero47,one47,zero47)))!=0)
+# (i) explicit constants with the exact counts (11.14).
+zr47,zi47,wr47,wi47 = sp.symbols('zr47 zi47 wr47 wi47',real=True)
+alq47 = sp.Rational(1,10**5)
+constants47 = (
+    count_ok30
+    and 4*L30<N30                           # 2L/N<1/2
+    and 8*Lg30<K30                          # 4L_g/K<1/2
+    and (9+8*N30)*L30<Lg30                  # ||Dg_j||<L_g
+    and alq47<4                             # X-path step alpha/K<4/K
+    and 100*2*alq47/3<1                     # cap estimate: direct!=0
+    and 100*2*sp.Rational(1,10**9)/3<1      # initial step at -1+1e-9
+    and sp.expand((zr47*wr47+zi47*wi47)
+                  -(1-((zr47-wr47)**2+(zi47-wi47)**2)/2)
+                  -((zr47**2+zi47**2-1)+(wr47**2+wi47**2-1))/2)==0
+    and 1-sp.Rational(1,2)**2/2==sp.Rational(7,8))
+rep('C47d chart selector n[2]>=0 and equator correction: exact real agreement',
+    upper_source47 and stereo_ok47 and radius47 and increment47
+    and products47 and equator47 and constants47)
+
+# C47e.  The start constant Arg g(north,anchor) has no variable seam, both
+# signs.  Type (a) source facts: the only mp.arg call of the phase family is
+# theta=mp.arg(g(north,anchor)); `north` is the literal (0,0,1) and
+# `anchor` is a parameter never reassigned there; in the corrected section
+# anchor=1-alpha if inf else -1+alpha with the literal alpha=1e-5 and
+# inf=X>0, each assigned once.  Type (b)/(c): on the band 1-|X|<alpha one has
+# |X|>1-alpha>0, the band is {X<-1+alpha} u {X>1-alpha} with
+# -1+alpha<0<1-alpha, so inf, hence anchor, is constant on each component,
+# and 1-|anchor|=alpha (the band end).  Thus the Arg is evaluated at one
+# fixed point per sign: a constant, whose principal branch (even on the
+# cut) cannot create a variable seam; exp(i Arg c)=c for every unit c (exact
+# values in all quadrants and on the cut below).  The X-path starts at that
+# same point and ends at X (j=0 and j=K), so T_X telescopes from it (C47d).
+arg_calls47 = [node for node in ast.walk(phase_tree30)
+               if isinstance(node,ast.Call) and ast.unparse(node.func)=='mp.arg']
+def assigned47(tree,name):
+    return sum(1 for node in ast.walk(tree) if isinstance(node,(ast.Assign,ast.AugAssign))
+               for t in (node.targets if isinstance(node,ast.Assign) else [node.target])
+               if any(isinstance(x,ast.Name) and x.id==name and isinstance(x.ctx,ast.Store)
+                      for x in ast.walk(t)))
+anchor_source47 = (
+    len(arg_calls47)==1
+    and ast.unparse(arg_calls47[0])=='mp.arg(g(north, anchor))'
+    and matching_assignment30(phase_tree30,'theta','mp.arg(g(north,anchor))')
+    and matching_assignment30(phase_tree30,'north','(mp.mpf(0),mp.mpf(0),mp.mpf(1))')
+    and assigned47(phase_tree30,'anchor')==0
+    and assigned47(phase_tree30,'north')==1
+    and matching_assignment30(correct_tree30,'anchor','1-alpha if inf else -1+alpha')
+    and matching_assignment30(correct_tree30,'inf','X>0')
+    and matching_assignment30(correct_tree30,'alpha',"mp.mpf('1e-5')")
+    and all(assigned47(correct_tree30,name)==1 for name in ('anchor','inf','alpha'))
+    and 'anchor' in [x.arg for x in phase_tree30.args.args]
+    and phase_source30)
+alc47 = sp.Rational(1,10**5)
+Kc47 = sp.Symbol('Kc47',positive=True,integer=True)
+Xc47,anc47 = sp.symbols('Xc47 anc47',real=True)
+# the X-path abscissa as written in the source, sympified from its AST
+jc47 = sp.Symbol('jc47',integer=True,nonnegative=True)
+xpath47 = [sp.sympify(ast.unparse(node.args[1]),
+                      locals={'anchor':anc47,'X':Xc47,'j':jc47,'steps':Kc47})
+           for node in ast.walk(phase_tree30)
+           if isinstance(node,ast.Call) and ast.unparse(node.func)=='g'
+           and ast.unparse(node.args[0])=='north'
+           and ast.unparse(node.args[1])!='anchor']
+cunits47 = [(3+4*sp.I)/5,(-3+4*sp.I)/5,(-3-4*sp.I)/5,(3-4*sp.I)/5,
+            sp.Integer(-1),sp.I]
+anchor_const47 = (
+    -1+alc47<0<1-alc47
+    and 1-abs(1-alc47)==alc47 and 1-abs(-1+alc47)==alc47
+    and all(sp.simplify(sp.exp(sp.I*sp.arg(cv)).rewrite(sp.cos)-cv)==0
+            for cv in cunits47)
+    and sp.arg(sp.Integer(-1))==sp.pi
+    and len(xpath47)==1
+    and sp.simplify(xpath47[0].subs(jc47,0)-anc47)==0
+    and sp.simplify(xpath47[0].subs(jc47,Kc47)-Xc47)==0)
+rep('C47e start constant Arg g(north,anchor): one fixed point per sign, no seam',
+    anchor_source47 and anchor_const47)
+
+# C47f is solely a reproducible numerical observation (d), not used by
+# C47a-e.  It evaluates the production functions at the REDUCED counts
+# projection_steps=64, phase_steps=32: a DIFFERENT finite map from the
+# certified one (11.14), with no guarantee.  South band, X=-1+0.6*alpha,
+# anchor=-1+alpha, 40 digits; the mismatch below repeats the source closure
+# verbatim (its text is bound in C47a), with a cache so that both charts
+# reuse identical evaluations.  Sample: two overlap points (n2=0, the
+# selector seam, and n2=-3/10), each with forced north, forced south and
+# production (chart=None) values; the band selector at distance
+# alpha(1-1/100) (weight s(1/50)) and alpha(1+1/100) (skipped branch).  On
+# the south band theta is tiny (|theta|~1e-18): the section has barely left
+# I_0, so this observes the mechanism, not a large winding.  The north band,
+# where theta is of order 1, is sampled once at N=400, K=48 below (N=64
+# and N=200 trip the projection guard there: reduced counts are not
+# certified).
+def mismatch_factory47(inf,N,dps):
+    def mismatch(nn,h):
+        if nn[2]>=0:
+            w = mp41.sqrt((1+nn[2])/2)
+            xx = (w,mp41.mpc(nn[0],-nn[1])/(2*w))
+        else:
+            w = mp41.sqrt((1-nn[2])/2)
+            xx = (mp41.mpc(nn[0],nn[1])/(2*w),w)
+        section = cusp30.elementary_projection_section(xx,h,N,dps,None)
+        P = cusp30.elliptic_meridian_projector(nn,h,dps=dps,elementary=True)
+        direct = cusp30._elementary_unit(
+            P*mp41.matrix(cusp30._elementary_pole_inclusion(xx,inf)))
+        return cusp30._elementary_inner(direct,section)
+    cache = {}
+    def cached(nn,h):
+        key = (tuple(nn),h)
+        if key not in cache:
+            cache[key] = mismatch(nn,h)
+        return cache[key]
+    return cached
+rows47 = []
+sample_ok47 = True
+with mp41.workdps(40):
+    alpha_n47 = mp41.mpf('1e-5')
+    X_s47 = -1+mp41.mpf('0.6')*alpha_n47
+    anchor_s47 = -1+alpha_n47
+    g_s47 = mismatch_factory47(False,64,40)
+    for n2v47,phv47 in ((mp41.mpf(0),mp41.mpf('0.7')),(mp41.mpf('-0.3'),mp41.mpf(2))):
+        rad47 = mp41.sqrt(1-n2v47**2)
+        np47 = (rad47*mp41.cos(phv47),rad47*mp41.sin(phv47),n2v47)
+        vals47 = {}
+        for ch47 in ('north','south',None):
+            dg47 = {}
+            vals47[ch47] = (cusp30.elementary_phase_family(
+                g_s47,np47,X_s47,anchor_s47,32,chart=ch47,diagnostics=dg47),
+                dg47['minimum_phase_real'])
+        gap47 = abs(vals47['north'][0]-vals47['south'][0])
+        exp_err47 = abs(mp41.exp(mp41.j*vals47[None][0])-g_s47(np47,X_s47))
+        chosen47 = 'north' if n2v47>=0 else 'south'
+        rows47.append(('chart',float(n2v47),vals47[None][0],gap47,exp_err47,
+                       min(v[1] for v in vals47.values())))
+        sample_ok47 &= (gap47<mp41.mpf('1e-20')*abs(vals47[None][0])
+                        and exp_err47<mp41.mpf('1e-35')
+                        and vals47[None][0]==vals47[chosen47][0]
+                        and min(v[1] for v in vals47.values())>0)
+# band selector, same overlap point n2=0, at 60 digits so that the
+# ~1e-38 jump is resolved: ||E_c-E|| must equal |exp(-i w theta)-1|.
+with mp41.workdps(60):
+    alpha_n47 = mp41.mpf('1e-5')
+    anchor_s47 = -1+alpha_n47
+    np47 = (mp41.cos(mp41.mpf('0.7')),mp41.sin(mp41.mpf('0.7')),mp41.mpf(0))
+    w0_47 = mp41.sqrt((1+np47[2])/2)
+    xi47 = (w0_47,mp41.mpc(np47[0],-np47[1])/(2*w0_47))
+    for frac47 in (mp41.mpf('0.99'),mp41.mpf('1.01')):
+        Xb47 = -1+frac47*alpha_n47
+        Ec47 = cusp30._elementary_corrected_section(xi47,Xb47,64,32,60,None)
+        Eb47 = cusp30.elementary_projection_section(xi47,Xb47,64,60,None)
+        jump47 = mp41.sqrt(sum(abs(a-b)**2 for a,b in zip(Ec47,Eb47)))
+        if frac47<1:
+            wt47 = 1-cusp30.scalar_flat_step(((1+Xb47)-alpha_n47/2)/(alpha_n47/2))
+            thb47 = cusp30.elementary_phase_family(
+                mismatch_factory47(False,64,60),
+                (np47[0],np47[1],np47[2]),Xb47,anchor_s47,32)
+            bound47 = abs(mp41.exp(-mp41.j*wt47*thb47)-1)
+            sample_ok47 &= (abs(jump47-bound47)<mp41.mpf('1e-10')*bound47
+                            and 0<wt47<mp41.mpf('1e-20') and thb47!=0)
+        else:
+            bound47 = mp41.mpf(0)
+            sample_ok47 &= Ec47==Eb47
+        rows47.append(('band',float(frac47),jump47,bound47))
+# north band, where the mismatch winds: reduced counts N=400, K=48 (a
+# different finite map), 25 digits, one overlap point n2=3/10, forced
+# north and south charts.
+with mp41.workdps(25):
+    alpha_n47 = mp41.mpf('1e-5')
+    X_n47 = 1-mp41.mpf('0.6')*alpha_n47
+    g_n47 = mismatch_factory47(True,400,25)
+    n2n47 = mp41.mpf('0.3')
+    np_n47 = (mp41.sqrt(1-n2n47**2)*mp41.cos(mp41.mpf('0.7')),
+              mp41.sqrt(1-n2n47**2)*mp41.sin(mp41.mpf('0.7')),n2n47)
+    north_vals47 = {}
+    for ch47 in ('north','south'):
+        dg47 = {}
+        north_vals47[ch47] = (cusp30.elementary_phase_family(
+            g_n47,np_n47,X_n47,1-alpha_n47,48,chart=ch47,diagnostics=dg47),
+            dg47['minimum_phase_real'])
+    north_gap47 = abs(north_vals47['north'][0]-north_vals47['south'][0])
+    north_theta47 = north_vals47['north'][0]
+    sample_ok47 &= (north_gap47<mp41.mpf('1e-15')
+                    and abs(north_theta47)>mp41.mpf('1e-2')
+                    and min(v[1] for v in north_vals47.values())>0)
+print('C47f reduced-count observations (d): south N=64,K=32 (2 points x 3 charts, 2 band); north N=400,K=48 (1 point x 2 charts):')
+for row47 in rows47:
+    if row47[0]=='chart':
+        print(f'    south band n2={row47[1]:+.1f}: theta={mp41.nstr(row47[2],5)}'
+              f'  |theta_N-theta_S|={mp41.nstr(row47[3],3)}'
+              f'  |e^(i theta)-g|={mp41.nstr(row47[4],3)}  min Re R={mp41.nstr(row47[5],8)}')
+    else:
+        print(f'    band selector distance={row47[1]}*alpha: ||E_c-E||={mp41.nstr(row47[2],12)}'
+              f'  |exp(-i w theta)-1|={mp41.nstr(row47[3],12)}')
+print('    north band n2=+0.3: theta=',mp41.nstr(north_theta47,8),' |theta_N-theta_S|=',mp41.nstr(north_gap47,3),
+      ' min Re R=',mp41.nstr(min(v[1] for v in north_vals47.values()),5))
+rep('C47f reduced-count chart overlap and band selector (numerical, d)',sample_ok47)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'
