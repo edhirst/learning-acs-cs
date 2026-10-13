@@ -291,7 +291,8 @@ def elliptic_pole_raw_inverse(z,infinity=False,dps=50,elementary=False):
             height = -mp.arg(-u1)/(2*mp.pi)
         else:
             s2 = aa*aa+(bb+1)**2+cc*cc
-            u1 = mp.mpc(1-s2,2*aa)/(1+s2)
+            # 1-s2=-(aa^2+bb^2+cc^2+2bb), written without the O(1) cancellation
+            u1 = mp.mpc(-(aa*aa+bb*bb+cc*cc+2*bb),2*aa)/(1+s2)
             u2 = mp.mpc(2*(bb+1),2*cc)/(1+s2)
             ratio = u1/u2
             height = mp.arg(u2)/(2*mp.pi)

@@ -7539,7 +7539,8 @@ with mp.workdps(max(mp.mp.dps,dps)+20):
         height = -mp.arg(-u1)/(2*mp.pi)
     else:
         s2 = aa*aa+(bb+1)**2+cc*cc
-        u1 = mp.mpc(1-s2,2*aa)/(1+s2)
+        # 1-s2=-(aa^2+bb^2+cc^2+2bb), written without the O(1) cancellation
+        u1 = mp.mpc(-(aa*aa+bb*bb+cc*cc+2*bb),2*aa)/(1+s2)
         u2 = mp.mpc(2*(bb+1),2*cc)/(1+s2)
         ratio = u1/u2
         height = mp.arg(u2)/(2*mp.pi)
@@ -10144,7 +10145,7 @@ digests50 = {
  '_elementary_unit':'771512424c60414f',
  'elementary_pole_patch':'9c44047e50db6bd3',
  '_elementary_pole_radial':'43417dec48397205',
- 'elliptic_pole_raw_inverse':'e8b7efb768c2de48',
+ 'elliptic_pole_raw_inverse':'9ceae566a70b3dac',
  'elliptic_raw_base_reference':'ed89be8f233aa60a',
  'elliptic_bundle_embedding':'1cc0cc7365147327',
  'elementary_cusp_reference':'2f486ce4072fb782',
@@ -10172,7 +10173,7 @@ def text_digest50(text):
                        tokenize50.INDENT:'<INDENT>',
                        tokenize50.DEDENT:'<DEDENT>'}.get(tok.type,tok.string))
     return hashlib50.sha256('\x1f'.join(tokens).encode()).hexdigest()
-module_digest50 = '3e96afac0abe6fb4f8154b71ddcdebd219a2e11f201a40ee2d9c5af80b9c6c7c'
+module_digest50 = '1aa613a4d71de2517962f0a1a8399c36fa449a28b6db7391380caca747383353'
 module_defs50 = {n.name:n for n in ast.parse(module_text50).body
                  if isinstance(n,ast.FunctionDef)}
 def literal50(node):

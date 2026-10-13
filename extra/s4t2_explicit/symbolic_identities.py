@@ -437,7 +437,7 @@ for statement in (
     'v = tuple(scale*w for w in ((p[2],-p[1],p[0]) if infinity else (-p[1],-p[2],p[0])))',
     'aa,bb,cc = v[0],-v[2],-v[1]',
     's2 = aa*aa+(bb+1)**2+cc*cc',
-    'u1 = mp.mpc(1-s2,2*aa)/(1+s2)',
+    'u1 = mp.mpc(-(aa*aa+bb*bb+cc*cc+2*bb),2*aa)/(1+s2)',
     'u2 = mp.mpc(2*(bb+1),2*cc)/(1+s2)',
     'ratio = u1/u2',
     'height = mp.arg(u2)/(2*mp.pi)',

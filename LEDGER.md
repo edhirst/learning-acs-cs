@@ -3017,3 +3017,51 @@ in `AGENTS.md` §5.
   digits: the formula is finite and explicit, but not practically
   evaluable on the slab. Any edit of `cusp.py` invalidates C50a until the
   censuses are redone.
+
+### 2026-10-13-EH-2 — Remove a catastrophic cancellation from the south raw pole inverse
+- **Date:** 2026-10-13
+- **Collaborator:** Edward Hirst
+- **Agent:** Claude Code (Claude Opus 5.5)
+- **Type:** edit
+- **Based on:** cabe59f
+- **Where:** extra/s4t2_explicit/cusp.py (one statement of
+  `elliptic_pole_raw_inverse`, south branch), and the source bindings of
+  that statement in extra/s4t2_explicit/symbolic_identities.py,
+  extra/s4t2_explicit/sym/node_remainder.py and
+  extra/s4t2_explicit/sym/chart_identities.py (C46, and the C50a module
+  and function digests, re-pinned after the edit); the transcription of
+  the south formula in N9i (node_remainder.py). No manuscript or document
+  changed.
+- **Change:** `u1 = mp.mpc(1-s2,2*aa)/(1+s2)` becomes
+  `u1 = mp.mpc(-(aa*aa+bb*bb+cc*cc+2*bb),2*aa)/(1+s2)`. Since
+  \(s_2=aa^2+(bb+1)^2+cc^2\), the two are the same function (type (a));
+  C46b checks \(s_2-1=aa^2+bb^2+cc^2+2bb\) and \(|u_1|^2(1+s_2)^2=(1-s_2)^2+4aa^2\)
+  on the executed statement. The old form computed
+  \(\operatorname{Re}u_1\approx2\pi p_0=O(u)\) as a difference of \(O(1)\)
+  numbers, so it lost about \(\log_{10}(1/u)\) digits. The formula,
+  and hence \(G_{\mathrm{cl}}\) and every exact claim, is unchanged. The C50
+  censuses are unaffected (no test, cut or new division), so only the
+  digest changes.
+- **Why:** the C46 reviewer (2026-10-12-EH-6) found that the south raw
+  inverse misses working precision for small compressed radii, against
+  §11.7's statement that numerical output is at working precision.
+- **Verification:** numerical (d), raw inverse at 30 digits (50 working)
+  against a 200-digit evaluation, \(\xi=(1+2i,3-i)/\sqrt{15}\),
+  \(u=10^{-6},10^{-20},10^{-40},10^{-60},10^{-90}\). Relative error
+  \(|out-out_{\mathrm{ref}}|/\sqrt u\): old \(2.6\cdot10^{-47}\), \(4.1\cdot10^{-33}\),
+  \(3.8\cdot10^{-13}\), \(0.055\), \(0.055\); new \(\le2.9\cdot10^{-51}\) for
+  all five. The north branch is unchanged (\(\le2.8\cdot10^{-51}\)). The new
+  form agrees with the old form evaluated at 400 digits to \(2.8\cdot10^{-51}\)
+  at \(u=10^{-90}\); the repository module reproduces the new errors.
+  `sym/chart_identities.py` (C1–C50), `sym/node_remainder.py`,
+  `symbolic_identities.py`, `sym/lemmas_1d.py`, `sym/i2_margins.py`:
+  **ALL PASS**. Safety-net and related scripts that import `cusp.py`:
+  `check_tcore.py` **ALL PASS**, `check_inverse.py` PASS (all sections),
+  `check_hopf.py` PASS, `check_step2.py` completes. `check_lam.py` (not in
+  the §12.0 safety net) fails with "Gamma_E Newton failed (mid): max
+  residual 1.1e-07" in `lam.py`. It fails identically on the unmodified
+  HEAD in a scratch copy, so the failure is pre-existing and unrelated.
+  The other §12.0 scripts do not import `cusp.py`. `git diff --check`:
+  pass. LaTeX: **not run**.
+- **Open points:** formula mode still does not terminate in thin
+  neighbourhoods of the radial outer seams (2026-10-12-EH-6, open point (ii)).

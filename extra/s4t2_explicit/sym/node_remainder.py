@@ -655,7 +655,7 @@ unorth_source9i = ((-1-2*lb9i+2*sp.I*la9i)/north_den9i,
                    2*(lb9i+lh29i+sp.I*lc9i)/north_den9i)
 usouth9i = stereo9i(la9i,1+lb9i,lc9i)
 south_s29i = la9i**2+(lb9i+1)**2+lc9i**2
-usouth_source9i = ((1-south_s29i+2*sp.I*la9i)/(1+south_s29i),
+usouth_source9i = ((-(la9i**2+lb9i**2+lc9i**2+2*lb9i)+2*sp.I*la9i)/(1+south_s29i),
                     2*(lb9i+1+sp.I*lc9i)/(1+south_s29i))
 raw_base_source9i = (
     has_statement9(cusp8.elliptic_raw_base_reference,
@@ -703,7 +703,7 @@ raw_base_source9i = (
     and has_statement9(cusp8.elliptic_pole_raw_inverse,
                        'u2 = mp.mpc(2*(bb+s2),2*cc)/den')
     and has_statement9(cusp8.elliptic_pole_raw_inverse,
-                       'u1 = mp.mpc(1-s2,2*aa)/(1+s2)')
+                       'u1 = mp.mpc(-(aa*aa+bb*bb+cc*cc+2*bb),2*aa)/(1+s2)')
     and has_statement9(cusp8.elliptic_pole_raw_inverse,
                        'u2 = mp.mpc(2*(bb+1),2*cc)/(1+s2)')
     and has_statement9(cusp8.elliptic_pole_raw_inverse,
