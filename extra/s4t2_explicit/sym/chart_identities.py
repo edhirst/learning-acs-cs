@@ -9697,7 +9697,8 @@ g1_12_48 = (sp.Rational(5,10**6)>sp.Rational(1,10**9)
 # solves, 1/small, t/x, t/y) are excluded by the same bounds: the Cramer
 # determinant exceeds 2r^2(1+r^2)>0, det(e2,e3)=+-(1-|t|^4)!=0, |small|
 # is >=1/2 in the pure middle, and x or y is the nonzero reference
-# coordinate.  The production call uses force_slab=False.
+# coordinate (all such operations are enumerated in C50f).  The
+# production call uses force_slab=False.
 rep('C48 every raise on the G path is excluded by a stated bound (25/25)',
     complete48 and counts48 and g4_48 and g7_48 and g10_48 and g11_48
     and g1_12_48 and call_graph48)
@@ -9855,6 +9856,920 @@ cap49 = sp.simplify(sp.diff(rc49/(1+sp.sqrt(1-rc49**2)),rc49)
                     /(1+sp.sqrt(1-rc49**2))**2)==0
 rep('C49c restoration and cap factors are invertible; G_cl is a local diffeo',
     restore49 and cap49)
+
+# C50: every conditional on the production G path is classified and
+# certified.  The 111 distinct (function, test) pairs of the functions
+# executed by elementary_global_coordinates are read from the source; the
+# check fails if one is missing from the table below or has an unknown
+# category.  Categories:
+#   static   fixed by the chart, sign, counts or flags (no seam);
+#   guard    a raise or a returned constant excluded on the path (C48);
+#   shortcut working-precision shortcut, bypassed by
+#            elementary_formula_branches (section 11.7, m1-m3);
+#   rewrite  algebraically identical alternatives (same function);
+#   flat     a weight, flat step or flat join (all jets agree);
+#   chart    choice of holomorphic chart; transitions holomorphic;
+#   seam     a genuine selector, certified by the cited check.
+classify50 = {
+ ('elementary_global_slice','distance < alpha / 2 and (not force_slab)'):'seam N9,C46',
+ ('elementary_global_slice',"not -1 + mp.mpf('1e-9') <= X <= 1 - mp.mpf('1e-9')"):'guard G1',
+ ('elementary_global_slice','max_work is not None and cost > max_work'):'static execution guard',
+ ('elementary_global_slice',"kind == 'mid'"):'chart C41,C44',
+ ('elementary_global_slice','projection_steps is None'):'static counts',
+ ('elementary_global_slice','phase_steps is None'):'static counts',
+ ('elementary_global_slice','inf'):'static sign',
+ ('elementary_global_slice','cap_band'):'static work estimate',
+ ('_elementary_corrected_section','distance < alpha'):'flat C47b',
+ ('_elementary_corrected_section','inf'):'static sign',
+ ('_elementary_corrected_section','nn[2] >= 0'):'rewrite C47c',
+ ('elementary_projection_section','not isinstance(steps, int) or steps < 1'):'static counts',
+ ('elementary_projection_section','diagnostics is not None'):'static bookkeeping',
+ ('elementary_projection_section','phase == 0'):'guard G2',
+ ('elementary_phase_family',"not isinstance(steps, int) or steps < 1 or chart not in (None, 'north', 'south')"):'static counts',
+ ('elementary_phase_family','a[0] ** 2 + a[1] ** 2 > 4'):'guard G4',
+ ('elementary_phase_family','not upper'):'seam C47d',
+ ('elementary_phase_family','chart is None'):'static chart argument',
+ ('elementary_phase_family','upper'):'seam C47d',
+ ('elementary_phase_family','ratio.real <= 0'):'guard G3',
+ ('elementary_phase_family','diagnostics is not None'):'static bookkeeping',
+ ('_elementary_pole_inclusion','infinity'):'static sign',
+ ('_elementary_unit','length == 0'):'guard G14',
+ ('elementary_pole_patch','radius <= inner'):'flat C46c',
+ ('elementary_pole_patch','radius < (inner + outer) / 2'):'shortcut gate',
+ ('elementary_pole_patch','_elementary_precision_shortcuts.get()'):'shortcut',
+ ('elementary_pole_patch','x - 1 / x <= -(dps + 10) * mp.log(10)'):'shortcut',
+ ('_elementary_pole_radial','radius >= c'):'flat C46c',
+ ('_elementary_pole_radial','_elementary_precision_shortcuts.get()'):'shortcut',
+ ('_elementary_pole_radial','inverse'):'static direction',
+ ('_elementary_pole_radial','c / (c - radius) > (mp.mp.dps + 10) * mp.log(10)'):'shortcut',
+ ('_elementary_pole_radial','radius <= 0'):'guard G13',
+ ('_elementary_pole_radial','radius <= a'):'guard G13',
+ ('_elementary_pole_radial','y > 1'):'rewrite C46c',
+ ('_elementary_pole_radial','L < 0'):'rewrite C46c',
+ ('_elementary_pole_radial','f < 0'):'rewrite C46c',
+ ('elliptic_pole_raw_inverse',"not 0 < radius <= mp.mpf('1e-4')"):'guard G12',
+ ('elliptic_pole_raw_inverse','infinity'):'static sign',
+ ('elliptic_pole_raw_inverse','elementary'):'static flag',
+ ('elliptic_pole_raw_inverse','length == 0'):'guard G14',
+ ('elliptic_pole_raw_inverse',"abs(height) >= mp.mpf('.1')"):'guard G12',
+ ('elliptic_pole_raw_inverse','tc == 0'):'static unreachable (elementary)',
+ ('elliptic_pole_raw_inverse','height < 0'):'rewrite C46b',
+ ('elliptic_pole_raw_inverse','height >= 0'):'rewrite C46b',
+ ('elliptic_raw_base_reference','not abs(xx) < 1'):'guard G5',
+ ('elliptic_raw_base_reference',"inf or abs(t) < mp.mpf('.5')"):'seam C44',
+ ('elliptic_raw_base_reference','r <= 1'):'seam C42',
+ ('elliptic_raw_base_reference','inverse_ratio'):'rewrite C39a',
+ ('elliptic_raw_base_reference','inf'):'seam C44',
+ ('elliptic_raw_base_reference',"phase_coordinate.real < -mp.mpf('.9') * abs(phase_coordinate)"):'seam C38,C43',
+ ('elliptic_raw_base_reference',"abs(tc) <= mp.mpf('.3') and elementary"):'seam C41',
+ ('elliptic_raw_base_reference','tc == 0'):'static unreachable (elementary)',
+ ('elliptic_raw_base_reference',"abs(tc) <= mp.mpf('.3')"):'static unreachable (elementary)',
+ ('elliptic_raw_base_reference','elementary'):'static flag',
+ ('elliptic_raw_base_reference','a > 0'):'static unreachable (elementary)',
+ ('elliptic_bundle_embedding',"kind in ('c0', 'ci')"):'chart C41,C44',
+ ('elliptic_bundle_embedding','not r > 0'):'guard G6',
+ ('elliptic_bundle_embedding','H is None'):'guard C42a (pure middle: b0=bi=0 exactly, torus_pair not called)',
+ ('elliptic_bundle_embedding',"abs(x * y) > mp.mpf('.3') or abs(H) > mp.mpf('.6')"):'guard G7',
+ ('elliptic_bundle_embedding','H < 0 and w > 0'):'flat C41b (w=0 on |H|<1/10)',
+ ('elliptic_bundle_embedding',"kind == 'mid'"):'chart C41,C44',
+ ('elliptic_bundle_embedding','with_norm'):'static flag',
+ ('elliptic_bundle_embedding','elementary'):'static flag',
+ ('elliptic_bundle_embedding','w == 0'):'flat C41b',
+ ('elliptic_bundle_embedding',"kind == 'ci'"):'static sign',
+ ('elliptic_bundle_embedding','b0 > 0'):'flat C41c',
+ ('elliptic_bundle_embedding','bi > 0'):'flat C41c',
+ ('elliptic_bundle_embedding','bm > 0'):'flat C41c,C44c',
+ ('elliptic_bundle_embedding','H < 0'):'flat C41b (w=0 on |H|<1/10)',
+ ('elliptic_bundle_embedding','elementary and len(data) > 4'):'guard C42a (false only on pure-middle data, where b0=bi=0)',
+ ('elliptic_bundle_embedding','index == 0'):'static slot',
+ ('elementary_cusp_reference',"abs(t) > mp.mpf('.3') or abs(a) >= mp.mpf('.6')"):'guard G8',
+ ('elementary_cusp_reference','a > 0'):'seam C41b gauge',
+ ('elementary_cusp_reference','y == 0'):'guard G6',
+ ('elementary_cusp_reference','cell == -1'):'seam C45c',
+ ('elementary_cusp_reference','cell == 1'):'seam C45c',
+ ('elementary_cusp_logradius',"not 0 < r <= mp.mpf('.5') or not 0 < nu <= 1"):'guard G9',
+ ('elementary_cusp_logradius','lam == 1'):'seam C44a',
+ ('elementary_cusp_logradius','f >= 0'):'rewrite C41b (rationalization 2q/(R+f)=(R-f)/2)',
+ ('inverse_height_moment',"abs(a) > mp.mpf('.5') or not 0 <= q <= mp.mpf('.125') or (not 0 <= lam <= 1) or (lam > 0 and q < mp.mpf(1) / 2500)"):'guard G10',
+ ('inverse_height_moment',"lam == 1 or aa <= mp.mpf('.1')"):'seam C45b (|b|=1/10 by the cited 11.2 argument; lam==1 by C44a)',
+ ('inverse_height_moment',"aa >= mp.mpf('.4')"):'seam C45b',
+ ('_terminal_height_data','lam == 0'):'rewrite C41a',
+ ('_terminal_height_data','q <= 0'):'guard G15',
+ ('_height_G','amp == 0'):'rewrite C41a',
+ ('_height_G','inverse'):'static direction',
+ ('_height_R','inverse'):'static direction',
+ ('_height_R','value >= c'):'flat C45b',
+ ('_height_R','_elementary_precision_shortcuts.get()'):'shortcut',
+ ('_height_R','value <= 0'):'guard unreachable (G^-1(v)>0)',
+ ('_height_R','value <= delta'):'guard unreachable (interior |b|>1/10)',
+ ('_height_R','c / (c - value) > (mp.mp.dps + 10) * mp.log(10)'):'shortcut',
+ ('_height_R','F < 0'):'rewrite C45a',
+ ('_height_R','y > 1'):'rewrite C45a',
+ ('_height_R','L < 0'):'rewrite C45a',
+ ('_height_terminal_forward','delta_z <= 0'):'guard unreachable (interior |b|>1/10)',
+ ('_height_terminal_forward','delta_z >= gap0'):'flat C45b',
+ ('_height_terminal_forward','_elementary_precision_shortcuts.get()'):'shortcut',
+ ('_height_terminal_forward','Ez > 50'):'rewrite C45a',
+ ('_height_terminal_forward','Ez > (mp.mp.dps + 20) * mp.log(10) + mp.log(K)'):'shortcut',
+ ('scalar_flat_step','u <= 0'):'flat C41c',
+ ('scalar_flat_step','u >= 1'):'flat C44c',
+ ('scalar_lattice_coords','j == k'):'static Cramer column',
+ ('elementary_restore_torus',"kind in ('c0', 'ci')"):'chart C41,C44',
+ ('elementary_restore_torus',"kind != 'mid'"):'static kind',
+ ('elementary_restore_torus','beta == 0'):'flat C41c',
+ ('elementary_restore_torus','inf'):'static sign',
+ ('scalar_finite_height',"not rr <= mp.mpf('.25') or max(A, Y) > 4 or q >= mp.mpf('.125')"):'guard G11',
+ ('scalar_finite_height','v <= mp.mpf(1) / 16'):'flat L13',
+ ('scalar_finite_height','reciprocal'):'flat L13',
+ ('scalar_finite_height',"v >= mp.mpf('.5')"):'flat L13'}
+categories50 = {'static','guard','shortcut','rewrite','flat','chart','seam'}
+found50 = set()
+occurrences50 = 0
+for name50 in path_functions48:
+    for node50 in ast.walk(source_tree30(getattr(cusp30,name50))):
+        if isinstance(node50,(ast.If,ast.IfExp)):
+            found50.add((name50,ast.unparse(node50.test)))
+            occurrences50 += 1
+# The table is keyed by distinct (function, test) text; the total number
+# of occurrences is recorded too, so a repeated test added later (which
+# could mean something else) changes the count and fails the check.
+classified50 = (
+    found50==set(classify50)
+    and len(found50)==111 and occurrences50==142
+    and all(v.split()[0] in categories50 for v in classify50.values()))
+counts50 = {}
+for v50 in classify50.values():
+    counts50[v50.split()[0]] = counts50.get(v50.split()[0],0)+1
+rep('C50 all 111 distinct G-path tests (142 occurrences) classified and certified',
+    classified50)
+print('C50 categories:',dict(sorted(counts50.items())),
+      '; occurrences:',occurrences50)
+
+# C50b: the implicit seams.  Principal-branch cuts hide inside library
+# calls, not conditionals, so every arg/log/atan call on the G path is
+# also read from the source and classified: 'positive' (real logarithm of
+# a positive number, or an argument kept in an open half-plane by a
+# stated bound), 'constant' (fixed arguments or shortcut thresholds), or
+# 'cut' (a principal-branch jump, certified as a holomorphic chart or
+# lattice change by the cited check).
+branch_calls50 = {
+ ('elementary_global_slice','mp.arg(phase)'):'cut C42d (middle), C50g (collar) (one->one+1: lattice e1)',
+ ('elementary_phase_family','mp.arg(g(north, anchor))'):'constant C47e',
+ ('elementary_phase_family','mp.atan(ratio.imag / ratio.real)'):'positive G3 Re ratio>7/8',
+ ('elementary_pole_patch','mp.log(10)'):'constant shortcut threshold',
+ ('_elementary_pole_radial','mp.log(mp.expm1(y))'):'positive y>0',
+ ('_elementary_pole_radial','mp.log(10)'):'constant shortcut threshold',
+ ('elliptic_pole_raw_inverse','mp.arg(u2)'):'positive C46b3 Re u2>0',
+ ('elliptic_pole_raw_inverse','mp.arg(-u1)'):'positive C46b3 Re(-u1)>0',
+ ('elliptic_raw_base_reference','mp.log(t)'):'cut C34, C50g (collar), C42 (pure middle)',
+ ('elliptic_raw_base_reference','mp.arg(phase_coordinate)'):'positive C38a,C43 principal chart Re p>=-(9/10)|p|',
+ ('elliptic_raw_base_reference','mp.arg(-phase_coordinate)'):'positive C38a,C43 half chart Re(-p)>(9/10)|p|',
+ ('elliptic_raw_base_reference','mp.arg(t)'):'cut C42',
+ ('elliptic_raw_base_reference','mp.arg(u2)'):'cut C42',
+ ('elliptic_raw_base_reference','mp.arg(u1)'):'cut C42',
+ ('elliptic_bundle_embedding','mp.log(m * abs(t))'):'positive m|t|>0',
+ ('elliptic_bundle_embedding','mp.log(t)'):'cut C34,C42 (principal normalization = move (c))',
+ ('elliptic_bundle_embedding','mp.log(abs(z))'):'constant unreachable (elementary)',
+ ('elliptic_bundle_embedding','mp.arg(t if index == 0 else -t)'):'cut C42b,C34d (brackets in {0,2pi}; weights vanish at jumps)',
+ ('elementary_cusp_logradius','mp.log(nu)'):'constant nu in {1,e^-2}',
+ ('elementary_cusp_logradius','mp.log(r)'):'positive r>3/10',
+ ('elementary_cusp_logradius','mp.log(Y)'):'positive Y>=q>0',
+ ('_terminal_height_data','mp.log(q)'):'positive q>1/2500 (G10)',
+ ('_height_R','mp.log(mp.expm1(y))'):'positive y>0',
+ ('_height_R','mp.log(10)'):'constant shortcut threshold',
+ ('_height_terminal_forward','mp.log(K)'):'constant shortcut threshold',
+ ('_height_terminal_forward','mp.log(10)'):'constant shortcut threshold',
+ ('scalar_finite_height','mp.log(16 * v)'):'positive v>1/16',
+ ('scalar_finite_height','mp.log(8)'):'constant'}
+found_calls50 = set()
+call_occurrences50 = 0
+for name50 in path_functions48:
+    for node50 in ast.walk(source_tree30(getattr(cusp30,name50))):
+        if (isinstance(node50,ast.Call) and isinstance(node50.func,ast.Attribute)
+                and node50.func.attr in ('arg','log','atan')):
+            found_calls50.add((name50,ast.unparse(node50)))
+            call_occurrences50 += 1
+calls_ok50 = (found_calls50==set(branch_calls50) and len(found_calls50)==28
+              and call_occurrences50==29
+              and all(v.split()[0] in ('positive','constant','cut')
+                      for v in branch_calls50.values()))
+rep('C50b all 28 distinct arg/log/atan calls (29 occurrences) classified',
+    calls_ok50)
+
+# C50c: the remaining non-smooth primitives (floor, nint, sign, int, min,
+# max) on the G path.  Each is a precision setting, diagnostic bookkeeping,
+# a guard argument, a height cell (C45c), a torus-pair shift whose jumps
+# carry zero weight (C41b shift table), the principal-log normalization
+# (C34/C42, zero in production), or a sign used only off a neighbourhood
+# of zero (the moment's G branch is odd and analytic on |b|<=1/10; the
+# raw inverse's sign(height) is in the non-elementary branch).
+primitive_calls50 = {
+ ('elementary_cusp_logradius','max(mp.mp.dps, dps)'):'precision',
+ ('elementary_cusp_logradius',"mp.floor(a + mp.mpf('.5'))"):'cell C45c',
+ ('elementary_cusp_reference',"int(mp.floor(a + mp.mpf('.5')))"):'cell C45c',
+ ('elementary_cusp_reference',"mp.floor(a + mp.mpf('.5'))"):'cell C45c',
+ ('elementary_global_coordinates',"max(mp.mp.dps, kwargs.get('dps', 50))"):'precision',
+ ('elementary_global_slice','max(mp.mp.dps, dps)'):'precision',
+ ('elementary_phase_family',"min(diagnostics.get('minimum_phase_real', mp.mpf(1)), ratio.real)"):'diagnostic',
+ ('elementary_pole_patch','max(mp.mp.dps, dps)'):'precision',
+ ('elementary_projection_section','max(mp.mp.dps, dps)'):'precision',
+ ('elementary_projection_section',"min(diagnostics.get('minimum_projection_norm', mp.mpf(1)), margin)"):'diagnostic',
+ ('elementary_projection_section','min(margin, abs(phase))'):'diagnostic',
+ ('elliptic_bundle_embedding','int(shift)'):'shift C41b',
+ ('elliptic_bundle_embedding','max(mp.mp.dps, dps)'):'precision',
+ ('elliptic_meridian_projector','max(mp.mp.dps, dps)'):'precision',
+ ('elliptic_bundle_embedding',"mp.floor(centre + mp.mpf('.5') - H)"):'shift C41b',
+ ('elliptic_bundle_embedding','mp.nint((lt.imag - principal.imag) / (2 * mp.pi))'):'normalization C34,C42',
+ ('elliptic_pole_raw_inverse','max(mp.mp.dps, dps)'):'precision',
+ ('elliptic_pole_raw_inverse','mp.sign(height)'):'unreachable (elementary)',
+ ('elliptic_raw_base_reference','max(mp.mp.dps, dps)'):'precision',
+ ('inverse_height_moment','mp.sign(a)'):'sign used only for |a|>1/10, where it is locally constant; the |a|<=1/10 branch is G(a) (C45)',
+ ('scalar_finite_height','max(A, Y)'):'guard G11'}
+found_prims50 = set()
+prim_occurrences50 = 0
+for name50 in path_functions48:
+    for node50 in ast.walk(source_tree30(getattr(cusp30,name50))):
+        if isinstance(node50,ast.Call):
+            fn50 = (node50.func.attr if isinstance(node50.func,ast.Attribute)
+                    else getattr(node50.func,'id',None))
+            if fn50 in ('floor','nint','sign','int','min','max'):
+                found_prims50.add((name50,ast.unparse(node50)))
+                prim_occurrences50 += 1
+prims_ok50 = (found_prims50==set(primitive_calls50) and len(found_prims50)==21
+              and prim_occurrences50==22
+              and exact_if_body37(moment_tree36,"lam==1 or aa<=mp.mpf('.1')",
+                                  'return _height_G(a,amp,d)'))
+rep('C50c all 21 distinct floor/nint/sign/int/min/max calls (22 occurrences) classified',
+    prims_ok50)
+
+# C50a: the certified object is exactly this source.  G_cl is the function
+# defined by reading the text of cusp.py in exact real arithmetic: decimal
+# literals are rationals (mp.mpf('.3')=3/10), mp.pi and mp.e are pi and e,
+# the mp functions are the mathematical functions, workdps, max(dps) and
+# unary + are identities, and the precision shortcuts are off; mpmath runs
+# of the same text are numerical evaluations (d) of it.  The whole module
+# is pinned by the full SHA-256 of its token stream (comments and blank
+# lines ignored), and the 26 path functions also by short digests that
+# localise a change; any edit of cusp.py fails here and requires a new
+# certificate.  The runtime objects the checks inspect are those the text
+# defines: no __wrapped__, code from cusp.py at the line of the def, the
+# module's globals, and defaults equal to the literals in the text.  For the pinned source the censuses are complete: there is
+# no while, try, match, lambda, assert, global, comprehension filter, % or
+# //; every comparison or boolean operator is an if/if-expression test, or
+# defines one of eight flags (cap_band, inf, upper, inverse_ratio,
+# reciprocal) whose every use is a test or a flag argument of a path call;
+# every call is a path function, a local helper, a listed builtin or a
+# listed mpmath function.  The object is
+# elementary_global_coordinates(Z,X,phi,max_work=None) inside
+# elementary_formula_branches() (shortcuts off, section (m) of
+# symbolic_identities.py), with force_slab=False.
+import tokenize as tokenize50, io as io50, hashlib as hashlib50
+def source_digest50(function):
+    tokens = []
+    for tok in tokenize50.generate_tokens(
+            io50.StringIO(inspect.getsource(function)).readline):
+        if tok.type in (tokenize50.COMMENT,tokenize50.NL,tokenize50.ENDMARKER):
+            continue
+        tokens.append({tokenize50.NEWLINE:'<NEWLINE>',
+                       tokenize50.INDENT:'<INDENT>',
+                       tokenize50.DEDENT:'<DEDENT>'}.get(tok.type,tok.string))
+    return hashlib50.sha256('\x1f'.join(tokens).encode()).hexdigest()[:16]
+digests50 = {
+ 'elementary_global_coordinates':'35907c53f648b603',
+ 'elementary_global_slice':'43b5c6b86bd0c47a',
+ '_elementary_corrected_section':'ede8e4e373251a43',
+ 'elementary_projection_section':'918354ac41feb986',
+ 'elementary_phase_family':'a607c7ba19668a1a',
+ '_elementary_pole_inclusion':'d1ec0b0f31808b66',
+ '_elementary_unit':'771512424c60414f',
+ 'elementary_pole_patch':'9c44047e50db6bd3',
+ '_elementary_pole_radial':'43417dec48397205',
+ 'elliptic_pole_raw_inverse':'e8b7efb768c2de48',
+ 'elliptic_raw_base_reference':'ed89be8f233aa60a',
+ 'elliptic_bundle_embedding':'1cc0cc7365147327',
+ 'elementary_cusp_reference':'2f486ce4072fb782',
+ 'elementary_cusp_logradius':'b5022878ce0da627',
+ 'inverse_height_moment':'2d9215b8877f6071',
+ '_terminal_height_data':'ad72c6262b1ab802',
+ '_height_G':'eee49e5444d94b3a',
+ '_height_R':'55c21917929901ed',
+ '_height_terminal_forward':'a71ae4caf0cd49af',
+ 'scalar_flat_step':'b166f4423dc6293d',
+ 'scalar_lattice_coords':'cdf243d1734d301b',
+ 'elementary_restore_torus':'3b1f09b05f16cad0',
+ 'scalar_finite_height':'55a894c952c38741',
+ '_elementary_inner':'bf798df0b7c67f78',
+ 'elliptic_meridian_projector':'ef96f0ac8bfce1a5',
+ 'elementary_closed_parameters':'1f10c9b30a384e25'}
+module_file50 = os.path.abspath(cusp30.__file__)
+module_text50 = open(module_file50).read()
+def text_digest50(text):
+    tokens = []
+    for tok in tokenize50.generate_tokens(io50.StringIO(text).readline):
+        if tok.type in (tokenize50.COMMENT,tokenize50.NL,tokenize50.ENDMARKER):
+            continue
+        tokens.append({tokenize50.NEWLINE:'<NEWLINE>',
+                       tokenize50.INDENT:'<INDENT>',
+                       tokenize50.DEDENT:'<DEDENT>'}.get(tok.type,tok.string))
+    return hashlib50.sha256('\x1f'.join(tokens).encode()).hexdigest()
+module_digest50 = '3e96afac0abe6fb4f8154b71ddcdebd219a2e11f201a40ee2d9c5af80b9c6c7c'
+module_defs50 = {n.name:n for n in ast.parse(module_text50).body
+                 if isinstance(n,ast.FunctionDef)}
+def literal50(node):
+    return eval(ast.unparse(node),{'__builtins__':{}})
+def same_object50(name):
+    fn,node = getattr(cusp30,name),module_defs50[name]
+    kw50 = {a.arg:literal50(d) for a,d in zip(node.args.kwonlyargs,
+                                              node.args.kw_defaults)
+            if d is not None}
+    return (not hasattr(fn,'__wrapped__') and not node.decorator_list
+            and os.path.abspath(fn.__code__.co_filename)==module_file50
+            and fn.__code__.co_firstlineno==node.lineno
+            and fn.__globals__ is vars(cusp30)
+            and fn.__defaults__==(tuple(literal50(d) for d in node.args.defaults)
+                                  or None)
+            and (fn.__kwdefaults__ or {})==kw50)
+pinned50 = (set(digests50)==set(path_functions48)
+            and text_digest50(module_text50)==module_digest50
+            and all(source_digest50(getattr(cusp30,f))==d
+                    for f,d in digests50.items())
+            and all(same_object50(f) for f in path_functions48))
+def parents50(tree):
+    parents = {}
+    for node in ast.walk(tree):
+        for child in ast.iter_child_nodes(node):
+            parents[child] = node
+    return parents
+def in_test50(node,parents):
+    # inside the test of an If/IfExp (through Compare/BoolOp/Not nodes)
+    while node in parents:
+        up = parents[node]
+        if isinstance(up,(ast.If,ast.IfExp)) and node is up.test:
+            return True
+        node = up
+    return False
+banned50 = (ast.While,ast.Try,ast.Lambda,ast.Assert,ast.Global,ast.Nonlocal,
+            ast.Delete)+((ast.Match,) if hasattr(ast,'Match') else ())
+flags50 = {('elementary_global_slice','cap_band'),('elementary_global_slice','inf'),
+           ('_elementary_corrected_section','inf'),('elementary_phase_family','upper'),
+           ('elliptic_raw_base_reference','inverse_ratio'),
+           ('elliptic_raw_base_reference','inf'),('elementary_restore_torus','inf'),
+           ('scalar_finite_height','reciprocal')}
+mp_calls50 = {'arg','asinh','atan','conj','exp','expm1','floor','log','log1p',
+              'matrix','mpc','mpf','nint','sign','sinh','sqrt','workdps'}
+builtin_calls50 = {'abs','max','min','int','sum','tuple','list','map','zip',
+                   'range','enumerate','next','isinstance','len','dict',
+                   'ValueError','Fraction'}
+method_calls50 = {'block.extend','coords.append','out.extend','diagnostics.get',
+                  'kwargs.get','_elementary_precision_shortcuts.get'}
+flag_names50 = {'cap_band','inf','infinity','upper','inverse_ratio',
+                 'reciprocal','elementary'}
+structure50 = True
+flag_defs50 = set()
+for name50 in path_functions48:
+    tree50 = source_tree30(getattr(cusp30,name50))
+    par50 = parents50(tree50)
+    local50 = ({n.id for n in ast.walk(tree50) if isinstance(n,ast.Name)
+                and isinstance(n.ctx,ast.Store)}
+               | {n.name for n in ast.walk(tree50) if isinstance(n,ast.FunctionDef)}
+               | {a.arg for n in ast.walk(tree50) if isinstance(n,ast.FunctionDef)
+                  for a in n.args.args+n.args.kwonlyargs})
+    for node50 in ast.walk(tree50):
+        if isinstance(node50,banned50):
+            structure50 = False
+        if isinstance(node50,ast.comprehension) and node50.ifs:
+            structure50 = False
+        if isinstance(node50,ast.BinOp) and isinstance(node50.op,(ast.Mod,ast.FloorDiv)):
+            structure50 = False
+        if isinstance(node50,(ast.Compare,ast.BoolOp)) and not in_test50(node50,par50):
+            up50 = node50
+            while isinstance(par50.get(up50),(ast.Compare,ast.BoolOp,ast.UnaryOp,ast.IfExp)):
+                up50 = par50[up50]
+            target50 = par50.get(up50)
+            if (isinstance(target50,ast.Assign) and len(target50.targets)==1
+                    and isinstance(target50.targets[0],ast.Name)
+                    and (name50,target50.targets[0].id) in flags50):
+                flag_defs50.add((name50,target50.targets[0].id))
+            else:
+                structure50 = False
+        if isinstance(node50,ast.Call):
+            fn50 = node50.func
+            if isinstance(fn50,ast.Name):
+                ok50 = (fn50.id in builtin_calls50 or fn50.id in local50
+                        or fn50.id in cusp_functions48)
+            elif (isinstance(fn50,ast.Attribute) and isinstance(fn50.value,ast.Name)
+                  and fn50.value.id=='mp'):
+                ok50 = fn50.attr in mp_calls50
+            elif isinstance(fn50,ast.Attribute):
+                ok50 = ast.unparse(fn50) in method_calls50
+            else:
+                # the selected logradius: (elementary_... if elementary else elliptic_...)
+                ok50 = (isinstance(fn50,ast.IfExp) and ast.unparse(fn50.test)=='elementary'
+                        and isinstance(fn50.body,ast.Name)
+                        and fn50.body.id=='elementary_cusp_logradius')
+            structure50 &= ok50
+    # every use of a boolean flag (definitions above, and the flag
+    # parameters inf/infinity/upper/elementary) is a test, a flag argument
+    # of a path or local function, or part of a flag definition
+    def flag_use_ok50(node):
+        if in_test50(node,par50):
+            return True
+        up = par50[node]
+        if isinstance(up,ast.keyword):
+            up = par50[up]
+        if (isinstance(up,ast.Call) and isinstance(up.func,ast.Name)
+                and (up.func.id in cusp_functions48 or up.func.id in local50)):
+            return True
+        while node in par50:
+            node = par50[node]
+            if (isinstance(node,ast.Assign) and len(node.targets)==1
+                    and isinstance(node.targets[0],ast.Name)
+                    and (name50,node.targets[0].id) in flags50):
+                return True
+        return False
+    for node50 in ast.walk(tree50):
+        if (isinstance(node50,ast.Name) and isinstance(node50.ctx,ast.Load)
+                and node50.id in flag_names50):
+            structure50 &= flag_use_ok50(node50)
+structure50 &= flag_defs50==flags50
+rep('C50a cusp.py pinned (SHA-256), objects = text; no hidden selector, call or flag use',
+    pinned50 and structure50)
+
+# C50e: the central fibres t_c=0 lie in the core, where the reference is
+# elementary_cusp_reference (bound in full by C41a) with lam=0.  There
+# (source of _terminal_height_data and inverse_height_moment):
+# kappa=2, amp=0, d=1, B=e^-1, C=q e, and f=f(b,q,0) has the sign of b:
+#   |b|<=1/10:      f=G(b)=d*b=b (amp==0);
+#   1/10<|b|<2/5:   f=sign(b) G(R^-1(G^-1(v)))=sign(b) R^-1(v), R^-1>=1/10;
+#   |b|>=2/5:       |f|=e^(2|b|-1)-q e^(1-2|b|)>=e^(-1/5)-e^(1/5)/8>0.
+# The core argument a lies in (-3/7,29/50): the principal chart has
+# |a|<=1/2-arccos(9/10)/(2pi)<1/2-1/14 (cos(pi/7)>9/10), the half chart
+# 1/2-2/25<a<1/2+2/25 (G7).  So cell=floor(a+1/2) is 0 or 1, the
+# cell==-1 alternative is never taken, and with R=sqrt(f^2+4q)>=|f|:
+#   cell 0, a>0:  f>0,  A=(R+f)/2>=f>0;
+#   cell 1:       f<0,  A=2/(R-f)>0;
+#   cell 0, a<=0: f<=0, Y=(R-f)/2>0 unless q=0 and f=0, i.e. t_c=0 and
+#                 a=0: the node (the pole; guard G6).
+# Hence x=sqrt(A/e)/nu, y=t/x and y=sqrt(Y), x=t/y are smooth through
+# t_c=0 (q enters f only through C=qe): the central fibre is not a seam.
+height_R_tree50 = source_tree30(cusp30._height_R)
+fp50,fn50 = sp.Symbol('fp50',positive=True),sp.Symbol('fn50',negative=True)
+q50 = sp.Symbol('q50',nonnegative=True)
+Rp50,Rn50 = sp.sqrt(fp50**2+4*q50),sp.sqrt(fn50**2+4*q50)
+ell50 = sp.Symbol('ell50',positive=True)
+central50 = (
+    exact_if_body37(core_tree37,'a>0',
+        'A = 2/(R-f) if cell==1 else (R+f)/2\n'
+        'x = mp.sqrt(A/e)/nu\n'
+        'return x,t/x')
+    and ordered_nodes37(core_tree37.body,[
+        "R = mp.sqrt(f*f+4*q)",
+        "Y = 2/(R+f) if cell==-1 else (R-f)/2",
+        "y = mp.sqrt(Y)",
+        "return t/y,y"])
+    and matching_assignment30(core_tree37,'f','inverse_height_moment(b,q,0)')
+    # lam=0 parameters and the three moment branches
+    and exact_if_body37(terminal_tree36,'lam==0',
+                        'kappa,amp,d = mp.mpf(2),mp.mpf(0),mp.mpf(1)')
+    and matching_statement31(terminal_tree36,
+                             'B,C = mp.exp(-kappa/2),q*mp.exp(kappa/2)')
+    and exact_if_body37(height_G_tree36,'amp==0',
+                        'return a/d if inverse else d*a')
+    and exact_if_body37(moment_tree36,"lam==1 or aa<=mp.mpf('.1')",
+                        'return _height_G(a,amp,d)')
+    and exact_if_body37(moment_tree36,"aa>=mp.mpf('.4')",
+        'return mp.sign(a)*(B*mp.exp(kappa*aa)-C*mp.exp(-kappa*aa))')
+    and matching_statement31(moment_tree36,
+        'return mp.sign(a)*_height_G(_height_R(_height_G(v,amp,d,inverse=True),'
+        'inverse=True),amp,d)')
+    # R^-1 >= 1/10: it returns delta=1/10, value>=c=1/5, or delta+c*ell/(2(2+ell))
+    and exact_if_body37(height_R_tree50,'value<=0','return delta')
+    and exact_if_body37(height_R_tree50,'value>=c','return value')
+    and matching_statement31(height_R_tree50,
+                             "delta,c = mp.mpf('.1'),mp.mpf('.2')")
+    and matching_statement31(height_R_tree50,
+                             'return delta+c*ell/(2*(2+ell))')
+    and (sp.Rational(1,5)*ell50/(2*(2+ell50))).is_positive
+    # |b|>=2/5: e^(2|b|-1)>=e^(-1/5)>4/5 and q e^(1-2|b|)<=e^(1/5)/8<5/32
+    and sp.exp(sp.Rational(1,5))<sp.Rational(5,4)
+    and sp.Rational(4,5)-sp.Rational(5,32)>0
+    # cells: cos(pi/7)>9/10 gives arccos(9/10)>pi/7
+    and sp.cos(sp.pi/7)>sp.Rational(9,10)
+    and sp.Rational(1,2)-sp.Rational(1,14)==sp.Rational(3,7)
+    and -sp.Rational(3,7)+sp.Rational(1,2)>0
+    and sp.Rational(1,2)+sp.Rational(2,25)+sp.Rational(1,2)<2
+    # R^2-f^2=4q>=0, so (R+f)/2-f=(R-f)/2>=0, R+f>0 for f>0, R-f>0 for f<0
+    and sp.expand(Rp50**2-fp50**2-4*q50)==0
+    and (Rp50+fp50).is_positive and (Rn50-fn50).is_positive)
+rep('C50e central fibre: f has the sign of b, cells 0/1, core roots positive off the node',
+    central50)
+
+# C50f: implicit domain conditions.  Every division, square root, log1p,
+# abs and non-integer power on the path is read from the source.  Four
+# kinds are recognised automatically: constant arguments; nodes inside a
+# test (they only select a branch; the divisions among them sit in
+# precision-shortcut tests, which are not evaluated with the shortcuts
+# off, and this is checked); nodes in a dead arm (C48); and
+# abs(..)**2, a polynomial.  Each remaining one is listed with the reason
+# its argument is nonzero (divisions, abs), positive (sqrt) or >-1
+# (log1p) on the branch where it is evaluated, and the check fails if one
+# is missing (types (b),(c); the cited bounds are C46b3, C47c, G1-G16 and
+# the written section 11.2 terminal bounds).  'flat' marks an abs inside
+# a flat step whose argument is <=0 (step 0) or >=1 (step 1) near the kink.
+def const_node50(node):
+    if isinstance(node,ast.Constant):
+        return True
+    if (isinstance(node,ast.Attribute) and isinstance(node.value,ast.Name)
+            and node.value.id=='mp' and node.attr in ('pi','e','j')):
+        return True
+    if (isinstance(node,ast.Call) and isinstance(node.func,ast.Attribute)
+            and node.func.attr in ('mpf','sqrt','exp','log')
+            and all(const_node50(a) for a in node.args)):
+        return True
+    if isinstance(node,ast.BinOp):
+        return const_node50(node.left) and const_node50(node.right)
+    if isinstance(node,ast.UnaryOp):
+        return const_node50(node.operand)
+    return False
+def dead_node50(node,parents,fname):
+    while node in parents:
+        up = parents[node]
+        if isinstance(up,(ast.If,ast.IfExp)):
+            test = ast.unparse(up.test)
+            orelse = up.orelse if isinstance(up,ast.If) else [up.orelse]
+            body = up.body if isinstance(up,ast.If) else [up.body]
+            if test=='elementary' and any(node is b for b in orelse):
+                return True
+            if (fname=='elliptic_raw_base_reference' and test=='tc == 0'
+                    and any(node is b for b in body)):
+                return True
+        node = up
+    return False
+census50 = {
+ ('_elementary_corrected_section','abs','X'):'positive distance=1-|X| enters a value only in the band, where |X|>1-alpha>0',
+ ('_elementary_corrected_section','div','2 * w'):'positive w=sqrt((1+-n2)/2)>=1/sqrt(2) on the selected hemisphere (C47c)',
+ ('_elementary_corrected_section','div','alpha / 2'):'positive alpha=1e-5',
+ ('_elementary_corrected_section','sqrt','(1 + nn[2]) / 2'):'positive >=1/2 for n2>=0 (C47c)',
+ ('_elementary_corrected_section','sqrt','(1 - nn[2]) / 2'):'positive >=1/2 for n2<0 (C47c)',
+ ('_elementary_pole_radial','div','1 + ell'):'positive ell=log1p(y/e)>=0 (C46c)',
+ ('_elementary_pole_radial','div','3 * (3 + ell)'):'positive ell=log1p(x/e^3)>0 (C46c)',
+ ('_elementary_pole_radial','div','c - radius'):'positive radius<c on this branch',
+ ('_elementary_pole_radial','div','mp.sqrt(L * L + 4) - L'):'positive sqrt(L^2+4)>|L|',
+ ('_elementary_pole_radial','div','radius'):'positive radius>0 (D: radius>a; D^-1 guard)',
+ ('_elementary_pole_radial','div','x'):'positive x=e^3 expm1(3(r-a)/(c-r))>0 for a<r<c',
+ ('_elementary_pole_radial','log1p','-mp.exp(-y)'):'positive -e^-y>-1 (y>1 on this branch)',
+ ('_elementary_pole_radial','log1p','mp.exp(-f)'):'positive argument >0',
+ ('_elementary_pole_radial','log1p','mp.exp(f)'):'positive argument >0',
+ ('_elementary_pole_radial','log1p','x / mp.exp(3)'):'positive x>0',
+ ('_elementary_pole_radial','log1p','y / mp.e'):'positive y=softplus(f)>0',
+ ('_elementary_pole_radial','sqrt','L * L + 4'):'positive >=4',
+ ('_elementary_pole_radial','sqrt','new_radius / radius'):'positive new_radius>0 (c ell/(1+ell), ell>0; or >a)',
+ ('_elementary_unit','div','length'):'positive |P I_j xx|>0 in the band (G14, section 11.5 cap estimate)',
+ ('_elementary_unit','sqrt','sum((abs(a) ** 2 for a in v))'):'positive the same length squared (G14)',
+ ('_height_G','div','amp'):'positive amp=lam k>0 on this branch (amp==0 returns first; k=-log q>2)',
+ ('_height_G','div','d'):'positive d=1-lam+2 lam sqrt(q) k>0',
+ ('_height_R','div','1 + ell'):'positive ell=log1p(soft/e)>=0 (C45a)',
+ ('_height_R','div','2 * (2 + ell)'):'positive ell=log1p(x/e^2)>0 (C45a)',
+ ('_height_R','div','c - value'):'positive value<c on this branch',
+ ('_height_R','div','mp.sqrt(L * L + 4) - L'):'positive sqrt(L^2+4)>|L|',
+ ('_height_R','div','x'):'positive x=e^2 expm1(2(v-delta)/(c-v))>0 for delta<v<c',
+ ('_height_R','log1p','-mp.exp(-y)'):'positive -e^-y>-1 (y>1 on this branch)',
+ ('_height_R','log1p','mp.exp(-F)'):'positive argument >0',
+ ('_height_R','log1p','mp.exp(F)'):'positive argument >0',
+ ('_height_R','log1p','soft / mp.e'):'positive soft>0',
+ ('_height_R','log1p','x / mp.exp(2)'):'positive x>0',
+ ('_height_R','sqrt','L * L + 4'):'positive >=4',
+ ('_height_terminal_forward','abs','C0'):'test K enters only the shortcut test',
+ ('_height_terminal_forward','abs','C1'):'test K enters only the shortcut test',
+ ('_height_terminal_forward','div','1 + u'):'positive u=expm1(x)>0 (x>0 for delta_z>0)',
+ ('_height_terminal_forward','div','E0'):'positive E0=exp(eta/zcut)',
+ ('_height_terminal_forward','div','Ez'):'positive Ez=exp(L)',
+ ('_height_terminal_forward','div','L * (L + ell)'):'positive L=log Ez>log 50 and |ell|<1, since |D|<K e^-Ez (section 11.2, C45a)',
+ ('_height_terminal_forward','div','eta / zcut + ell'):'positive ell=log1p(M/E0)>=0, zcut>0',
+ ('_height_terminal_forward','div','gap'):'positive 0<delta_z<gap0 on this branch',
+ ('_height_terminal_forward','div','gap * gap0'):'positive gap,gap0>0',
+ ('_height_terminal_forward','div','zcut'):'positive zcut>0 (below)',
+ ('_height_terminal_forward','log1p','D'):'positive |D|<K e^-Ez<1 for Ez>50 (section 11.2)',
+ ('_height_terminal_forward','log1p','F'):'positive F=(Lambda u^2+mu u)/(1+u)>=0',
+ ('_height_terminal_forward','log1p','M / E0'):'positive M=log1p(F)>=0',
+ ('_height_terminal_forward','log1p','correction / Ez'):'positive |correction|<1<Ez (section 11.2)',
+ ('_terminal_height_data','div','(zcut - z0) ** 2'):'positive zcut-z0=B(e^(.4k)-1)+C(1-e^(-.4k))>0',
+ ('_terminal_height_data','div','kappa * (B + C) * Eprime_z0'):'positive kappa>=2, B>0, Eprime_z0>0',
+ ('_terminal_height_data','div','zcut'):'positive zcut>0 (below)',
+ ('_terminal_height_data','div','zcut ** 2'):'positive zcut>0 (below)',
+ ('_terminal_height_data','div','zcut - z0'):'positive as above',
+ ('_terminal_height_data','sqrt','q'):'positive q>1/2500 when lam>0 (G10)',
+ ('elementary_cusp_logradius','abs','t'):'positive r=|t|>3/10 (called only in the collar)',
+ ('elementary_cusp_logradius','div','1 - r * r'):'positive r<1/2',
+ ('elementary_cusp_logradius','div','root + f'):'positive f>=0 and q>0 on this branch',
+ ('elementary_cusp_logradius','sqrt','f * f + 4 * q'):'positive q>0 in the collar',
+ ('elementary_cusp_reference','div','1 - abs(t) ** 2'):'positive |t|<=3/10',
+ ('elementary_cusp_reference','div','R + f'):'unreachable cell -1 alternative, never taken (C50e)',
+ ('elementary_cusp_reference','div','R - f'):'positive cell 1: f<0 (C50e)',
+ ('elementary_cusp_reference','div','e'):'positive exp',
+ ('elementary_cusp_reference','div','nu'):'positive nu in {1,e^-2}',
+ ('elementary_cusp_reference','div','x'):'positive x=sqrt(A/e)/nu>0 (C50e)',
+ ('elementary_cusp_reference','div','y'):'positive y=sqrt(Y)>0 off the node (C50e, G6)',
+ ('elementary_cusp_reference','sqrt','A / e'):'positive A>0 (C50e)',
+ ('elementary_cusp_reference','sqrt','Y'):'positive Y>0 off the node (C50e, G6)',
+ ('elementary_cusp_reference','sqrt','f * f + 4 * q'):'positive R=0 only at f=q=0, the node (C50e)',
+ ('elementary_global_slice','abs','X'):'positive |X|>1-alpha/2 where it enters a value (cap den); distance otherwise only in tests',
+ ('elementary_global_slice','div','den'):'positive den=sqrt(scale(1+|X|sqrt(2-X^2)))>0',
+ ('elementary_global_slice','div','mp.sqrt(1 - X * X)'):'positive |X|<=1-1e-9 on the slab (G1)',
+ ('elementary_global_slice','div','nu'):'positive nu in {1,e^-2}',
+ ('elementary_global_slice','sqrt','1 - X * X'):'positive G1',
+ ('elementary_global_slice','sqrt','2 - X * X'):'positive >=1',
+ ('elementary_global_slice','sqrt','scale * (1 + abs(X) * mp.sqrt(2 - X * X))'):'positive >=scale>0',
+ ('elementary_phase_family','div','1 + r2'):'positive >=1',
+ ('elementary_phase_family','div','1 + sign * n[2]'):'positive >=1 on the hemisphere of the sign',
+ ('elementary_phase_family','div','ratio.real'):'positive Re ratio>7/8 (G3)',
+ ('elementary_phase_family','div','steps'):'positive steps=K, a positive integer',
+ ('elementary_pole_patch','div','outer - radius'):'positive noop block (C46a2); radius<(inner+outer)/2<outer',
+ ('elementary_projection_section','abs','phase'):'positive |phase|>1/2 (G2); margin is diagnostic',
+ ('elementary_projection_section','div','abs(phase)'):'positive |phase|>1/2 (G2)',
+ ('elementary_projection_section','div','steps'):'positive steps=N, a positive integer',
+ ('elementary_restore_torus','abs','t'):'positive t!=0 on mid data (|t|>3/10)',
+ ('elementary_restore_torus','div','det'):'positive det(e2,e3)=+-(1-|t_c|^4), |t_c|<1/2 (C30k, C34e)',
+ ('elementary_restore_torus','div','r'):'positive r=|t|>0',
+ ('elementary_restore_torus','div','t'):'positive t!=0',
+ ('elementary_restore_torus','div','t * t'):'positive t!=0',
+ ('elementary_restore_torus','div','yy'):'positive yy=exp(..)!=0',
+ ('elliptic_bundle_embedding','abs','angle'):'flat step 0 near angle=0 (argument -2), step 1 near the cut |angle|=pi (argument 2): weight 0 there (C42b, C34d)',
+ ('elliptic_bundle_embedding','abs','h'):'flat hw: step argument -5/3 near h=0',
+ ('elliptic_bundle_embedding','abs','t'):'positive t!=0 on mid data and in the collar',
+ ('elliptic_bundle_embedding','div','1 - rr'):'positive rr=|t_c|^2<1/4 or |xy|^2<=9/100',
+ ('elliptic_bundle_embedding','div','det'):'positive +-(1-|t_c|^4), |t_c|<1/2 (C34e)',
+ ('elliptic_bundle_embedding','div','m * y'):'positive deck frame only for H<-1/10, where y!=0 (section 11.1); m>0',
+ ('elliptic_bundle_embedding','div','mp.sqrt(norm2)'):'positive norm2>=1/3 (weight partition, below)',
+ ('elliptic_bundle_embedding','div','mp.sqrt(r)'):'positive r>0 (G6)',
+ ('elliptic_bundle_embedding','div','r'):'positive r=|t|>0',
+ ('elliptic_bundle_embedding','div','t'):'positive t!=0',
+ ('elliptic_bundle_embedding','div','t * t'):'positive t!=0',
+ ('elliptic_bundle_embedding','div','yy'):'positive yy=z(mt)^shift, z=exp(..)!=0, mt!=0',
+ ('elliptic_bundle_embedding','pow','(m * t) ** int(shift)'):'positive mt!=0; int(shift) is locally constant where its weight is nonzero (C41b)',
+ ('elliptic_bundle_embedding','sqrt','norm2'):'positive norm2>=1/3 (below)',
+ ('elliptic_bundle_embedding','sqrt','r'):'positive r>0 (G6)',
+ ('elliptic_pole_raw_inverse','div','1 + s2'):'positive >=1',
+ ('elliptic_pole_raw_inverse','div','1 - abs(tc) ** 2'):'positive |tc|^2<4.9e-7 (C46b3)',
+ ('elliptic_pole_raw_inverse','div','2 * source_radius'):'positive source_radius>0 (C46b3)',
+ ('elliptic_pole_raw_inverse','div','R + height'):'positive height>=0 and R>0 (C46b3)',
+ ('elliptic_pole_raw_inverse','div','R - height'):'positive height<0',
+ ('elliptic_pole_raw_inverse','div','den'):'positive north den>=1-8u, profile den>=2A(1-uu) (C46b3)',
+ ('elliptic_pole_raw_inverse','div','e'):'positive exp',
+ ('elliptic_pole_raw_inverse','div','length'):'positive |w|^2/u>=0.9999 (C46b3)',
+ ('elliptic_pole_raw_inverse','div','u1'):'positive Re(-u1)>0 (north, C46b3)',
+ ('elliptic_pole_raw_inverse','div','u2'):'positive Re u2>0 (south, C46b3)',
+ ('elliptic_pole_raw_inverse','sqrt','(2 * B if infinity else 2) / den'):'positive den>0',
+ ('elliptic_pole_raw_inverse','sqrt','A * A * (1 - uu) ** 2 + 4 * B * uu'):'positive uu<1',
+ ('elliptic_pole_raw_inverse','sqrt','abs(w0) ** 2 + abs(w1) ** 2'):'positive length^2>0 (C46b3)',
+ ('elliptic_pole_raw_inverse','sqrt','height * height + 4 * q'):'positive R>0 (C46b3)',
+ ('elliptic_pole_raw_inverse','sqrt','source_radius'):'positive C46b3',
+ ('elliptic_raw_base_reference','abs','t'):'positive pure middle: t!=0',
+ ('elliptic_raw_base_reference','div','1 + s2'):'positive >=1',
+ ('elliptic_raw_base_reference','div','1 - aa'):'positive aa^2=1-(1-X^2)^2<1',
+ ('elliptic_raw_base_reference','div','b + root'):'positive root>=|b|, and b=A>0 if rr=0',
+ ('elliptic_raw_base_reference','div','small'):'positive |small|>=1/2 where 1/small is used',
+ ('elliptic_raw_base_reference','div','tc'):'positive |tc|>3/10 in the north collar',
+ ('elliptic_raw_base_reference','div','u1'):'positive dominant coordinate, |u1|>=1/sqrt(2)',
+ ('elliptic_raw_base_reference','div','u2'):'positive dominant coordinate, |u2|>=1/sqrt(2)',
+ ('elliptic_raw_base_reference','div','yy'):'positive yy=exp(rho)',
+ ('elliptic_raw_base_reference','sqrt','(2 * B if inverse_ratio else 2) / (b + root)'):'positive b+root>0',
+ ('elliptic_raw_base_reference','sqrt','2 - xx * xx'):'positive >=1',
+ ('elliptic_raw_base_reference','sqrt','b * b + 4 * B * rr'):'positive b=A>0 if rr=0',
+ ('inverse_height_moment','abs','a'):'positive aa enters a value only for |a|>1/10',
+ ('scalar_finite_height','div','1 + v'):'positive v>0',
+ ('scalar_finite_height','div','1 - q'):'positive q<1/8 (G11)',
+ ('scalar_finite_height','div','1 - rr'):'positive rr<=1/4 (G11)',
+ ('scalar_finite_height','div','u'):'positive u>2 on this branch',
+ ('scalar_flat_step','div','1 - u'):'positive 0<u<1 on this branch',
+ ('scalar_flat_step','div','a + b'):'positive a,b>0',
+ ('scalar_flat_step','div','u'):'positive 0<u<1',
+ ('scalar_lattice_coords','div','den'):'positive lattice determinant (1+|t|^2)((|t|^2-1)log|t|+2|t|^2)>0 (C1c, C34b)'}
+census_auto50 = {}
+census_gate_ok50 = True
+census_found50 = set()
+census_occ50 = 0
+for name50 in path_functions48:
+    tree50 = source_tree30(getattr(cusp30,name50))
+    par50 = parents50(tree50)
+    for node50 in ast.walk(tree50):
+        key50 = arg50 = None
+        if isinstance(node50,ast.BinOp) and isinstance(node50.op,ast.Div):
+            key50,arg50 = ('div',ast.unparse(node50.right)),node50.right
+        elif (isinstance(node50,ast.BinOp) and isinstance(node50.op,ast.Pow)
+              and not (isinstance(node50.right,ast.Constant)
+                       and isinstance(node50.right.value,int)
+                       and node50.right.value>=0)):
+            key50,arg50 = ('pow',ast.unparse(node50)),node50.left
+        elif isinstance(node50,ast.Call) and node50.args:
+            fn50 = (node50.func.attr if isinstance(node50.func,ast.Attribute)
+                    else getattr(node50.func,'id',None))
+            if fn50 in ('sqrt','log1p','abs'):
+                key50,arg50 = (fn50,ast.unparse(node50.args[0])),node50.args[0]
+        if key50 is None:
+            continue
+        census_occ50 += 1
+        up50 = par50.get(node50)
+        if const_node50(arg50):
+            kind50 = 'const'
+        elif in_test50(node50,par50) or isinstance(up50,ast.Compare):
+            kind50 = 'test'
+            if key50[0]=='div':
+                gate50,inner50 = False,node50
+                while inner50 in par50:
+                    inner50 = par50[inner50]
+                    if (isinstance(inner50,ast.If) and ast.unparse(inner50.test)
+                            =='_elementary_precision_shortcuts.get()'):
+                        gate50 = True
+                census_gate_ok50 = census_gate_ok50 and gate50
+        elif dead_node50(node50,par50,name50):
+            kind50 = 'dead'
+        elif (key50[0]=='abs' and isinstance(up50,ast.BinOp)
+              and isinstance(up50.op,ast.Pow) and up50.left is node50
+              and ast.unparse(up50.right)=='2'):
+            kind50 = 'square'
+        else:
+            census_found50.add((name50,)+key50)
+            continue
+        census_auto50[kind50] = census_auto50.get(kind50,0)+1
+# zcut=e^(-kappa/10)-q e^(kappa/10)>0 iff q<e^(-kappa/5); kappa lies in
+# [2,k] with k=-log q>2, so e^(-kappa/5)>=q^(1/5)>q (0<q<1); for q=0 it is
+# e^(-kappa/10)>0.  The embedding norm: each active slot block contains a
+# unit vector with weight 1 (hw=1 on |h|<=1/4, and of the two centres one
+# has |h|<=1/4; of the two angular slots one has |angle|<=pi/2), so
+# norm2>=b0^2+bi^2+bm^2>=(b0+bi+bm)^2/3=1/3.
+qz50,kz50 = sp.Symbol('qz50',positive=True),sp.Symbol('kz50',positive=True)
+bb50 = sp.symbols('b0_50 bi_50 bm_50',real=True)
+aux50 = (
+    sp.simplify(sp.exp(-kz50/2)*sp.exp(sp.Rational(2,5)*kz50)
+                -qz50*sp.exp(kz50/2)*sp.exp(-sp.Rational(2,5)*kz50)
+                -(sp.exp(-kz50/10)-qz50*sp.exp(kz50/10)))==0
+    and sp.expand(3*sum(b**2 for b in bb50)-sum(bb50)**2
+                  -((bb50[0]-bb50[1])**2+(bb50[0]-bb50[2])**2
+                    +(bb50[1]-bb50[2])**2))==0
+    and sp.log(8)>2)
+census_ok50 = (census_found50==set(census50) and len(census50)==139
+               and census_occ50==280
+               and all(v.split()[0] in ('positive','test','flat','unreachable')
+                       for v in census50.values())
+               and census_gate_ok50 and aux50)
+print('C50f census:',census_occ50,'occurrences;',len(census50),'listed;',
+      'automatic',dict(sorted(census_auto50.items())))
+rep('C50f all 280 divisions, roots, log1p, abs and powers: argument in domain',
+    census_ok50)
+
+# C50g: the collar logarithm cut, through the restoration.  C34 shows
+# that the collar ten-vector is the same on both sides of the negative
+# real axis (C34d-f, generic along the cut), so the fold and the final
+# phase theta agree, and the slice data (t,one,four,lt) differ by the deck
+# move of C34c with k=+-1: south one'=one-k four-k(k+1)/2, four'=four+k;
+# north one'=one-k four; lt'=lt+2 pi i k (theta/(2pi) is added to one on
+# both sides).  For the bound restoration loop (C41a, source41):
+#   (i)   z,w move by k e4(L)+k(k-1)/2 e1 (south) and not at all (north),
+#         with e1=(2pi,0), e4(L)=(-iL,2t);
+#   (ii)  zc,wc are unchanged, hence cc, yy and H;
+#   (iii) D=cc+H c for every branch of s=lt/(2 pi i): with xi the lattice
+#         coordinates of (pi s(s-1),2ts) and c those of e4 in (e2,e3), the
+#         candidate cc-(four_x-four)c solves the real 2x2 system for -wc,
+#         whose determinant +-(1-|t_c|^4) is nonzero (C34e); north D=(H+four)c;
+#   so C=phi+beta D is unchanged and the outputs differ by a lattice
+#   translation, the identity on Y.  (iv) The final-phase Arg cut
+#   one->one+1 moves z and zc by 2 pi, so yy=exp(i(...)) and C are
+#   unchanged and the output moves by e1.
+k50 = sp.Symbol('k50',integer=True)
+one50,four50,fx50,two50,three50,c0_50,c1_50,H50 = sp.symbols(
+    'one50 four50 fx50 two50 three50 c0_50 c1_50 H50',real=True)
+L50,t50,E2_50,E3_50 = sp.symbols('L50 t50 E2_50 E3_50')
+def zw50(one,four,L,t):
+    return 2*sp.pi*one-sp.I*L*four,2*t*four
+def zcwc_south50(z,w,L,t):
+    s = L/(2*sp.I*sp.pi)
+    return z-sp.pi*s*(s-1),w-2*t*s
+def zcwc_north50(z,w,t):
+    return z-sp.I*w/t,w/(t*t)
+z0_50,w0_50 = zw50(one50,four50,L50,t50)
+Ls50 = L50+2*sp.pi*sp.I*k50
+zs50,ws50 = zw50(one50-k50*four50-k50*(k50+1)/2,four50+k50,Ls50,t50)
+zn50,wn50 = zw50(one50-k50*four50,four50,Ls50,t50)
+logcut50 = (
+    # (i)
+    sp.expand(zs50-z0_50-(-sp.I*k50*L50+sp.pi*k50*(k50-1)))==0
+    and sp.expand(ws50-w0_50-2*t50*k50)==0
+    and sp.expand(zn50-z0_50)==0 and sp.expand(wn50-w0_50)==0
+    # (ii)
+    and all(sp.expand(a-b)==0 for a,b in zip(zcwc_south50(zs50,ws50,Ls50,t50),
+                                             zcwc_south50(z0_50,w0_50,L50,t50)))
+    and all(sp.expand(a-b)==0 for a,b in zip(zcwc_north50(zn50,wn50,t50),
+                                             zcwc_north50(z0_50,w0_50,t50))))
+# (iii) given 2ts=two e2+three e3+fx 2t and 2t=c0 e2+c1 e3 (w components)
+s50 = L50/(2*sp.I*sp.pi)
+T2_50 = c0_50*E2_50+c1_50*E3_50
+two_t_s50 = two50*E2_50+three50*E3_50+fx50*T2_50
+cand50 = (two50+(fx50-four50)*c0_50,three50+(fx50-four50)*c1_50)
+minus_wc50 = two_t_s50-T2_50*four50          # -wc=2ts-2t four
+D50 = tuple(x+(H50-four50+fx50)*c for x,c in zip((two50,three50),(c0_50,c1_50)))
+logcut50 &= (
+    sp.expand(cand50[0]*E2_50+cand50[1]*E3_50-minus_wc50)==0
+    and all(sp.expand(d-(cc+H50*c))==0
+            for d,cc,c in zip(D50,cand50,(c0_50,c1_50))))
+# (iv) one->one+1
+z1_50,w1_50 = zw50(one50+1,four50,L50,t50)
+logcut50 &= (
+    sp.expand(z1_50-z0_50-2*sp.pi)==0 and sp.expand(w1_50-w0_50)==0
+    and sp.expand(zcwc_south50(z1_50,w1_50,L50,t50)[0]
+                  -zcwc_south50(z0_50,w0_50,L50,t50)[0]-2*sp.pi)==0
+    and sp.expand(zcwc_north50(z1_50,w1_50,t50)[0]
+                  -zcwc_north50(z0_50,w0_50,t50)[0]-2*sp.pi)==0
+    and sp.exp(sp.I*2*sp.pi)==1)
+# The source lines used: the loop (C41a binds it in full), the w
+# components e2,e3,e4 shared by cusp_data (south) and the lattice solve.
+restore_tree50 = source_tree30(cusp30.elementary_restore_torus)
+logcut50 &= (
+    source41
+    and matching_statement31(restore_tree50,
+        'return ((t*t-1,mp.j*(1+t*t),-2*t,t,mp.j*t) if inf else '
+        '(1-t*t,mp.j*(1+t*t),2*t,t,-mp.j*t))')
+    and matching_assignment30(lattice_tree34,'ew','(1-t*t,mp.j*(1+t*t),2*t)')
+    and matching_statement31(restore_tree50,
+        'D = tuple(xi[j+1]+(H-four+xi[3])*c[j] for j in range(2))')
+    and matching_statement31(restore_tree50,'D = tuple((H+four)*v for v in c)')
+    and matching_statement31(restore_tree50,
+        'z,w = 2*mp.pi*one-mp.j*lt*four,2*t*four'))
+rep('C50g collar log cut and final-phase cut: restored outputs differ by lattice vectors',
+    logcut50)
+
+# C50h: the premise of C48's dead-arm argument, that elementary is True in
+# every frame the path executes.  Every call from a path function to a
+# function with an `elementary` parameter passes elementary=True, or
+# elementary=elementary from a function that itself has that parameter;
+# no path function assigns `elementary` (C50a: its uses are tests or flag
+# arguments); the path imports only mpmath and fractions, and the only
+# module global it reads besides cusp functions is the shortcut ContextVar
+# (off in formula mode).  The entry point has no such parameter, so by
+# induction along the call graph elementary is True throughout.
+def params50(function):
+    args = source_tree30(function).args
+    return [a.arg for a in args.args+args.kwonlyargs]
+elementary_ok50 = True
+for name50 in path_functions48:
+    tree50 = source_tree30(getattr(cusp30,name50))
+    own50 = 'elementary' in params50(getattr(cusp30,name50))
+    for node50 in ast.walk(tree50):
+        if isinstance(node50,ast.Name) and node50.id=='elementary':
+            elementary_ok50 &= isinstance(node50.ctx,ast.Load)
+        if (isinstance(node50,ast.Call) and isinstance(node50.func,ast.Name)
+                and node50.func.id in cusp_functions48):
+            callee50 = getattr(cusp30,node50.func.id)
+            if 'elementary' not in params50(callee50):
+                continue
+            if dead_node50(node50,parents50(tree50),name50):
+                continue
+            position50 = params50(callee50).index('elementary')
+            values50 = [kw.value for kw in node50.keywords if kw.arg=='elementary']
+            elementary_ok50 &= (
+                len(node50.args)<=position50 and len(values50)==1
+                and ((isinstance(values50[0],ast.Constant) and values50[0].value is True)
+                     or (own50 and isinstance(values50[0],ast.Name)
+                         and values50[0].id=='elementary')))
+        if isinstance(node50,(ast.Import,ast.ImportFrom)):
+            elementary_ok50 &= ast.unparse(node50) in (
+                'import mpmath as mp','from fractions import Fraction')
+    local50 = ({n.id for n in ast.walk(tree50) if isinstance(n,ast.Name)
+                and isinstance(n.ctx,ast.Store)}
+               | {a.arg for f in ast.walk(tree50) if isinstance(f,ast.FunctionDef)
+                  for a in f.args.args+f.args.kwonlyargs}
+               | {f.name for f in ast.walk(tree50) if isinstance(f,ast.FunctionDef)}
+               | {(al.asname or al.name) for n in ast.walk(tree50)
+                  if isinstance(n,(ast.Import,ast.ImportFrom)) for al in n.names})
+    for node50 in ast.walk(tree50):
+        if (isinstance(node50,ast.Name) and isinstance(node50.ctx,ast.Load)
+                and node50.id in vars(cusp30) and node50.id not in cusp_functions48):
+            elementary_ok50 &= (node50.id in local50
+                                or node50.id=='_elementary_precision_shortcuts')
+elementary_ok50 &= 'elementary' not in params50(cusp30.elementary_global_coordinates)
+rep('C50h elementary=True in every executed frame (premise of the C48 dead arms)',
+    elementary_ok50)
+
+# C50d: every cited check exists.  Each label C<n><x>, N<n> or L<n> named
+# in the four C50 tables (C50, C50b, C50c, C50f) must occur as the start of a rep() label in
+# chart_identities.py (C), node_remainder.py (N) or lemmas_1d.py (L).
+import re as re50
+base50 = os.path.dirname(os.path.abspath(cusp30.__file__))
+texts50 = {'C':open(os.path.join(base50,'sym','chart_identities.py')).read(),
+           'N':open(os.path.join(base50,'sym','node_remainder.py')).read(),
+           'L':open(os.path.join(base50,'sym','lemmas_1d.py')).read()}
+cited50 = set()
+for table50 in (classify50,branch_calls50,primitive_calls50,census50):
+    for value50 in table50.values():
+        cited50 |= set(re50.findall(r'\b([CNL]\d+[a-z]?\d?)\b',value50))
+def label_exists50(label):
+    text = texts50[label[0]]
+    return bool(re50.search(r"rep\(f?['\"]"+re50.escape(label)+r"[a-z0-9 ]",text)
+                or re50.search(r"['\"]\(?"+re50.escape(label)+r"[a-z0-9]*[) ]",text))
+missing50 = sorted(l for l in cited50 if not label_exists50(l))
+rep('C50d every check cited in the classification exists',not missing50)
+if missing50:
+    print('C50d missing labels:',missing50)
 
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

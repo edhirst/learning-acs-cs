@@ -97,6 +97,19 @@ This completes §0's finite elementary inverse-pair certificate, subject to
 human review. The fixed products are enormous and have not been evaluated
 numerically. This work does not resolve the old evaluator's I3–I5/T14 flags.
 
+**Direct certificate (2026-10-13-EH-1):** programme §11.9 states, for human
+review, that \(J_{\mathrm{cl}}=G_{\mathrm{cl}}^*J_Y\) is a well-defined smooth
+tensor on the round S⁴ × T² with \(J^2=-\mathrm{Id}\) and \(N_J=0\), assuming
+the written arguments listed there (programme §§10.6, 11.2–11.6 and the
+flatness calculus). In every chart \(J=(Dh)^{-1}J_0Dh\). C30i's identity
+reduces \(J^2+\mathrm{Id}\) and all 216 Nijenhuis components to zero for every
+\(C^2\) map \(h\) with invertible \(Dh\).
+Under those written hypotheses, `sym/chart_identities.py` C34, C38–C50 and
+`sym/node_remainder.py` N9 certify the smoothness of the whole pinned source
+path seam by seam (no guard fires, and every conditional, branch cut and
+non-smooth operation is classified), and C49 certifies the invertibility
+of \(DG_{\mathrm{cl}}\). The counts are fixed but impractically large.
+
 `docs/s4t2_symbolic_programme.md` gives the block-by-block symbolic specification of F and G (§3) and the lemma
 list with status (§6.1). The following table records the original fitted-lift
 architecture; the completed, separate two-way construction is in §11. Summary:
@@ -482,13 +495,26 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   mismatch does not depend on the hemisphere reference, and the
   two stereographic charts of the finite logarithm agree
   exactly on the band.
-  **Next unchecked T16 tasks:** promote the remaining
-  one-chamber checks to whole-seam statements: the collar
-  log cut (C34) and the cusp height-cell and central-fibre
-  charts; then bind a guarded six-real second-jet circuit to
-  every remaining production source branch and the global
-  determinant/overlap bounds. The listed joins are research
-  targets, not certificates.
+  **Direct certificate (2026-10-12-EH-8, EH-9; 2026-10-13-EH-1):** C48
+  shows that no domain guard on the \(G\) path fires: the 26 path functions are checked
+  against the call graph, and each of their 25 raises has its bound. C49
+  proves \(DG_{\mathrm{cl}}\) invertible at every point by a
+  factorization. C50 pins the path source (C50a) and classifies its 111
+  distinct tests, every implicit branch cut and locally constant integer,
+  and every division, root, `log1p` and `abs` (C50f). C50e shows that the
+  central fibres are not seams, and C50g carries the collar log cut (C34,
+  generic along the whole cut) and the final-phase cut through the
+  restoration. C50h checks that `elementary` is True in every frame.
+  **Proposed completion, by a change of route (2026-10-13-EH-1):**
+  programme §11.9 assembles C38–C50, N9 and C30i/C10 into the direct
+  certificate. It replaces the per-branch second-jet circuit asked for
+  above by C30i's identity, which holds for every \(C^2\) chart map with
+  invertible differential, together with the seam-by-seam smoothness
+  (C38–C50) and invertibility (C49) certificates; C50a pins the certified
+  source. **Open:** the task owner's agreement to this change of route;
+  human review of §11.9 and of the written hypotheses it lists; a
+  practical evaluation (the fixed counts have 8001 and 16004 digits);
+  simplifying the counts.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.
@@ -545,3 +571,9 @@ can start now, in parallel.
   the new block tests include 4560 inverse targets, exact axes and quadrature gauge changes. The
   complete quadrature evaluator and a finite elementary formula remain separate further tasks.
   See EH-17 onward for review qualifications and final regression results. No commit or push requested.
+* 2026-10-12/13 (EH/Claude Code, T16 assembly): C34, C38–C50 and N9, under the written hypotheses of
+  programme §11.9, certify every source seam of the pinned G path along its whole length, show that no
+  guard fires, prove DG_cl invertible everywhere and classify every conditional, branch cut and
+  non-smooth operation. Programme §11.9 states the direct certificate
+  (J_cl well defined, J² = −Id, N_J = 0), for human review. **T16: proposed completion by a change of
+  route, pending the owner's agreement and human review.** See ledger entries 2026-10-12-EH-1 to EH-9 and 2026-10-13-EH-1. Commits are local; push only with approval.

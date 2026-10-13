@@ -153,8 +153,18 @@
 > independent of the hemisphere Hopf reference. The two stereographic
 > charts of the finite logarithm agree exactly, and its start constant is
 > one fixed point per band.
+> **Direct certificate (2026-10-13-EH-1):** §11.9 assembles C38–C50,
+> N9 and C30i/C10 into a global statement: under the listed written
+> hypotheses, \(J_{\mathrm{cl}}\) is a well-defined smooth tensor on the
+> round \(S^4\times T^2\), with \(J^2=-\mathrm{Id}\) and \(N_J=0\) exactly.
+> No guard on the path fires (C48), \(DG_{\mathrm{cl}}\) is invertible
+> everywhere (C49), and the pinned source is classified test by test,
+> cut by cut and operation by operation (C50). It replaces T16's
+> per-branch circuit by a generic identity, a change of route that needs
+> the owner's agreement. This is a mathematical statement for human
+> review.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
-> **Resume point: complete T16's exact branch circuit and second-jet checks, then simplify the fixed counts.**
+> **Resume point: human review of §11.9 (T16) and of the written certificates it cites; then simplify the fixed counts.**
 
 ## 0. What is being built, in one paragraph
 
@@ -3035,8 +3045,9 @@ derivatives are numerical observations, type (d).
 | C45a–c, height moment and cells (a,b,c) | The executed bodies of `inverse_height_moment`, `_height_R` and `_height_terminal_forward` are bound to the source. Every alternative of a stable rewrite is the same function: \(x=e^2\operatorname{expm1}(2(a-\delta)/(c-a))=\varphi(a)\), the softplus forms, \(c\ell/(1+\ell)=\psi^{-1}(S)\), the positive root of \(x-1/x=L\), and \(\delta+c\ell/(2(2+\ell))=\varphi^{-1}(x)\). Both terminal branches equal \(z_c-\eta/\log(E_0+M)\), since \(1+F(e^U-1)=e^{E_z-E_0}(1+D)\). At \(|b|=2/5\) the interior composite equals the outer formula once \(T=\mathrm{id}\), and \(T-\mathrm{id}=\eta\ell/(L(L+\ell))\) is flat. At \(|b|=1/5\), \(R(a)-a=c\,l/(L(L+l))\) with \(l\) a smooth function of \(w=e^{-L}\) vanishing at \(0\). The \(|b|=1/10\) join is §11.2's written blow-up argument. The \(R^{-1}\) switch at \(|b|=b^*(q,\lambda)\in(0.15,0.2)\), where \(h(R(b^*))=c\), is flat because \(R-\mathrm{id}\) is; and \(h(2/5)>c\) since \(G_*(c)<0.446<0.4485<z_c\). Height-cell seams: core \(A=e^{2a-1}\) at \(a=1/2\) and \(Y=e^{-2a-1}\) at \(a=-1/2\) on both cells; collar \(\rho\) equal on both cells for every \(\kappa\): ALL PASS. |
 | C46a–e, pole-cap internals (a,c,d) | Whole cap, both signs. Full bodies of `elementary_pole_patch`, `_elementary_pole_radial` (with its signature default) and `elliptic_pole_raw_inverse` are bound, and all 32 conditionals are classified. The identities are checked by executing the bound source statements under sympy, recording both alternatives of each symbolic if-expression. Both signs share the height \(\tan(2\pi h)=2\pi p_2/(1-2\pi p_0)\), and the executed height is \(\pm\operatorname{Arg}\) of the dominant coordinate; the \(AA\) and \(yy\) alternatives are identical (also for a symbolic \(q>0\)); \(|p_S|=s\); the executed chain gives \(|t_c|^2=K\,uu/\mathrm{den}\) with the positive root in den; `source_pc` is the Hopf vector of the slice pair \((\nu\bar x,y)\); and the returned pair has \(|\mathrm{out}|^2=s\). On the whole raw domain \(0<u\le10^{-4}\): \(|h|\le1.0008\cdot10^{-4}<1/10\), the height argument stays in the right half-plane, and \(|tc|^2<4.9\cdot10^{-7}\); the projection length (from (11.11)) satisfies \(|w|^2/u\ge0.9999\). The radial maps are \(S=\psi^{-1}T\varphi\) and \(S^{-1}=\varphi^{-1}T^{-1}\psi\), with identical rewrite alternatives; both outer seams have exact flat-factor forms \(t^2\ell/(c+t\ell)\), \(\ell=\log(1+QD(Q))\), \(Q=e^{-c/t}\); the inner-seam inputs of §11.3 are checked. Cap margins: \(r_L<1.6667\cdot10^{-6}\) (bound \(1.7\cdot10^{-6}\)); \(|z_S|^2<1.7003\cdot10^{-6}\) (bound \(2\cdot10^{-6}\)); four-seed \(A,Y<2\cdot10^{-6}\): ALL PASS. C46e, numerical (d), 32 production points: slice versus patch \(8.8\cdot10^{-105}\); flat defects at the seams scale as predicted. |
 | C47a–f, slab phase band and its selectors (a,b,c,d) | The full bodies of `_elementary_corrected_section`, `elementary_phase_family`, `elementary_projection_section`, `_elementary_unit` and `_elementary_pole_inclusion` are bound. All 52 conditionals are classified, and all 8 raises sit in guards. Dataflow checks: `cap_band` feeds only the work estimate, and the diagnostics never reach an output. The band cutoff at \(1-|X|=\alpha\) is a flat join: the weight is \(s(1-u)\), with explicit derivative constants for \(k\le4\) and a written induction for all orders. The mismatch is unchanged under \(xx\mapsto\lambda xx\), since both sections are \(S^1\)-equivariant. The two stereographic chart values of \(\Theta\) agree exactly on the connected band \(|n_2|<3/5\): every identity of the argument is checked, including the radius bounds and the equator correction. The constant \(\operatorname{Arg}g(\mathrm{north},\mathrm{anchor})\) is one fixed point per sign: ALL PASS. C47f, numerical (d), reduced counts (a different map): the charts agree on the overlap, and the band selector behaves as stated. |
-| C48, domain guards (a,b,c) | The functions executed by `elementary_global_coordinates` are listed (26) and the list is checked against the static call graph: every other reachable function of `cusp.py` (seven `elliptic_*` functions of the legacy path) is called only in an arm that the elementary path never enters. The 25 `raise` statements of the 26 functions are read from the source and each is matched with the bound that excludes it, so the list is complete (25/25). The bounds: the slab satisfies \(1-|X|\ge\alpha/2\); the fold overlaps exceed \(1/2\) (\(2L/N<1/2\) with the exact integers of (11.14)); the phase increments have \(\operatorname{Re}>7/8\) (\(4L_g/K<1/2\)); the hemisphere chart radius is \(\le1\); \(|a|<3/5\), and \(b<-21/50\) in core cell 1 (\(\cos(4\pi/25)<9/10\)); the core \(q<1/8\) (L13d) and the collar \(q>1/1375\) (C43b); the four-seed inputs satisfy \(\max(A,Y)<4\) in every cell; the cap radii are \(<2\cdot10^{-6}\); and on pure-middle data \(b_0=b_i=0\) exactly (C42a), so the height-free torus pair is never formed. Implicit divisions are excluded by the same bounds: ALL PASS. |
-| C49a–c, invertible differential everywhere (a,b) | On the slab \(G_W\) is \(S^1\)-equivariant (fold step, start vector, band correction and final phase), so \(\det DG_W=\det D\Lambda\). The orbit map \(\Lambda\) factors into: the raw base \((n,X)\mapsto R(X)O^{-1}n\) with \(R'/R=2/(\sqrt{2-X^2}(1-X^2))>0\); the conformal inverse stereographic map; \((u_1,u_2)\mapsto(u_1/u_2,\Arg u_2)\) and its north counterpart \((u_2/u_1,\Arg u_1)\); the profile \(t=Rg(|R|^2)\), with Jacobian \(g(g+2rg')>0\); the height maps with derivatives \(-f_a(1\mp f/R)/2\), \(-f_a/(2R)\) and, in core cell 1, \(2f_a/(R(R-f))\), nonzero since \(f_a>0\) by (11.13c); and \(\partial x_4/\partial\rho=\pm1/P\) or \(\partial x_4/\partial\alpha=1/(2\pi)\). The restoration is invertible iff \(\det(e_2,e_3)\ne0\) (cusp) or the lattice determinant is \(\ne0\) (middle), independently of \(D\). On the cap, the radial map increases, the patch has \(\det=SS'/r>0\) (N10) and the raw \(g_j\) has \(\sigma_{\min}>0.99\) by (11.11): ALL PASS. The identities are type (a); the cited inputs (11.13c), (11.11), N10, §11.6 and C38–C47, C50 are types (b)/(c). With §11.6's bijectivity, \(G_{\mathrm{cl}}\) is a diffeomorphism. |
+| C48, domain guards (a,b,c) | The functions executed by `elementary_global_coordinates` are listed (26) and the list is checked against the static call graph: every other reachable function of `cusp.py` (seven `elliptic_*` functions of the legacy path) is called only in an arm that the elementary path never enters. The 25 `raise` statements of the 26 functions are read from the source and each is matched with the bound that excludes it, so the list is complete (25/25). The bounds: the slab satisfies \(1-|X|\ge\alpha/2\); the fold overlaps exceed \(1/2\) (\(2L/N<1/2\) with the exact integers of (11.14)); the phase increments have \(\operatorname{Re}>7/8\) (\(4L_g/K<1/2\)); the hemisphere chart radius is \(\le1\); \(|a|<3/5\), and \(b<-21/50\) in core cell 1 (\(\cos(4\pi/25)<9/10\)); the core \(q<1/8\) (L13d) and the collar \(q>1/1375\) (C43b); the four-seed inputs satisfy \(\max(A,Y)<4\) in every cell; the cap radii are \(<2\cdot10^{-6}\); and on pure-middle data \(b_0=b_i=0\) exactly (C42a), so the height-free torus pair is never formed: ALL PASS. The dead-arm argument assumes `elementary` is True in every frame (C50h); implicit divisions, roots and `abs` are covered by C50f. |
+| C49a–c, invertible differential everywhere (a,b) | On the slab \(G_W\) is \(S^1\)-equivariant (fold step, start vector, band correction and final phase), so \(\det DG_W=\det D\Lambda\). The orbit map \(\Lambda\) factors into: the raw base \((n,X)\mapsto R(X)O^{-1}n\) with \(R'/R=2/(\sqrt{2-X^2}(1-X^2))>0\); the conformal inverse stereographic map; \((u_1,u_2)\mapsto(u_1/u_2,\Arg u_2)\) and its north counterpart \((u_2/u_1,\Arg u_1)\); the profile \(t=Rg(|R|^2)\), with Jacobian \(g(g+2rg')>0\); the height maps with derivatives \(-f_a(1\mp f/R)/2\), \(-f_a/(2R)\) and, in core cell 1, \(2f_a/(R(R-f))\), nonzero since \(f_a>0\) by (11.13c) and the coordinate \(A\) or \(Y\) is chosen by the sign of \(f\) (C50e); and \(\partial x_4/\partial\rho=\pm1/P\) or \(\partial x_4/\partial\alpha=1/(2\pi)\). The restoration is invertible iff \(\det(e_2,e_3)\ne0\) (cusp) or the lattice determinant is \(\ne0\) (middle), independently of \(D\). On the cap, the radial map increases, the patch has \(\det=SS'/r>0\) (N10) and the raw \(g_j\) has \(\sigma_{\min}>0.99\) by (11.11): ALL PASS. The identities are type (a); the cited inputs (11.13c), (11.11) and §11.6 are types (b)/(c), N10 is a script check (types (a)/(b)), and C38–C47, C50 are type (a) with (d) observations. With §11.6's bijectivity, \(G_{\mathrm{cl}}\) is a diffeomorphism. |
+| C50, C50a–h, the whole \(G\) path classified (a,b,c) | C50a pins the whole text of `cusp.py` (SHA-256 of its token stream; short digests localise changes in the 26 path functions) and checks that the runtime function objects are those the text defines; the certified object is that text read in exact arithmetic (§11.9): `elementary_global_coordinates(Z,X,phi,max_work=None)` with the shortcuts off and `force_slab=False`. For it: no `while`, `try`, `match`, `lambda`, comprehension filter, `%` or `//`; every comparison is a test or defines one of eight flags used only as tests or flag arguments; every call is a path function, local helper, listed builtin or listed mpmath function. C50: the 111 distinct tests (142 occurrences) are classified: 29 static, 24 guards (C48, C42a), 9 working-precision shortcuts (§11.7), 14 identical rewrites (C39a, C41a–b, C45a, C46b–c, C47c), 17 flat joins or weights (C41b–c, C44c, C45b, C46c, C47b, L13), 4 chart choices (C41, C44), 14 seams (N9, C38, C41–C47). C50b: the 29 `arg`/`log`/`atan` calls (implicit cuts) have positive or constant arguments, or a cut certified by C34 or C42. C50c: the 22 `floor`/`nint`/`sign`/`int`/`min`/`max` calls are precision settings, diagnostics, a guard, height cells (C45c), zero-weight torus-pair shifts (C41b), the principal-log normalization (C34, C42), a sign used only for \(|a|>1/10\), or unreachable. C50e: in the core (\(\lambda=0\)) the moment has the sign of \(b\) (\(f=b\), \(|f|\ge1/10\), \(|f|\ge e^{-1/5}-e^{1/5}/8\) on the three branches), the cell is 0 or 1, and the roots \(\sqrt{A/e}\), \(\sqrt Y\) are positive off the node, so the central fibres are not seams. C50f: all 280 divisions, square roots, `log1p`, `abs` and non-integer powers have their argument in the domain where they are smooth: 111 occurrences are recognised automatically (constant, inside a test, dead arm, \(|z|^2\)), and the other 169 occurrences (139 distinct) are listed with a reason. C50g: across the collar logarithm cut and the final-phase Arg cut the restored outputs differ by \(k\,e_4(L)+\tfrac{k(k-1)}2e_1\), \(0\) or \(e_1\). C50h: `elementary` is True in every executed frame. C50d: every check label cited in the four C50 tables exists: ALL PASS. |
 | m1–m3, formula-branch source audit and observations (d) | The checker identifies and gates all six working-precision identity returns, and checks nested/exception restoration: ALL PASS. Two strict interior type-(d) samples have exact-formula value gaps \(9.0129315017\cdot10^{-99}\) (pole radial) and \(3.23193414504\cdot10^{-92}\) (height radial) from the default identity returns, evaluated at 240 digits. Sample size two; m3 reproduces the observations. This does not evaluate the fixed-count global tensor. |
 | N9a–i, cap/slab overlap (a,c) | for both signs, exact phase telescoping, source-linked raw-reference/projector identification, matching cusp inputs, torus restoration and first/second jets: ALL PASS, conditional on the written §11.3, §11.5 and §10.6 bounds; the post-raw radial margin is checked in N9b |
 | N10a–d, radial shell (a,b) | source-linked finite elementary \(S,S^{-1}\) nodes, exact scalar inverse and derivative identities, 16 first and 64 second entries for each radial direction, and \(\det DD=S(r)S'(r)/r>0\) on \(10^{-8}<r<1.5\cdot10^{-8}\): ALL PASS; the raw pole and torus stages are not composed here |
@@ -4023,3 +4034,160 @@ certificates above; the reduced-count forward and tensor checks are numerical
 safety checks. The fixed products (11.14) have not been numerically executed,
 and no smaller counts have been certified. Legacy I3–I5/T14 remain open for
 their original fitted evaluator.
+
+### 11.9 The direct global certificate of \(J_{\mathrm{cl}}\) (T16)
+
+This subsection assembles the checks of §11.8 into a global statement. It
+is a mathematical statement for human review. It takes a different route
+from the one T16 specified, so it also needs the task owner's agreement:
+instead of a branch-circuit checker that differentiates each actual
+branch, it combines a generic integrability identity with seam-by-seam
+smoothness and global invertibility certificates.
+
+**The object.** \(G_{\mathrm{cl}}\) is (11.18): the function defined by
+the text of `elementary_global_coordinates(Z,X,phi,max_work=None)` in
+`cusp.py`, with `force_slab=False` and all working-precision shortcuts off
+(`elementary_formula_branches()`, section (m) of `symbolic_identities.py`),
+read in exact real arithmetic. Decimal literals are rationals
+(`mp.mpf('.3')`\(=3/10\)), `mp.pi` and `mp.e` are \(\pi\) and \(e\), the `mp`
+functions are the mathematical functions, and `workdps`, `max(dps)` and
+unary `+` are identities. An mpmath run of the same text is a numerical
+evaluation (d) of this function, not the function itself; C48 and C50
+classify the exact reading (in it, for example, `lam==1` in the collar
+and the `cell==-1` alternative are never taken). C50a pins the whole text
+of `cusp.py` and checks that the runtime objects the scripts inspect are
+the ones it defines. \(J_{\mathrm{cl}}=G_{\mathrm{cl}}^*J_Y\)
+on the round \(S^4\times T^2\subset\mathbb R^5\times\mathbb R^2\times\mathbb R^2\).
+In every local chart it is
+\[
+ J_{\mathrm{cl}}=(Dh)^{-1}J_0\,Dh,\qquad
+ h=\phi_\beta\circ G_{\mathrm{cl}},
+\]
+where \(\phi_\beta\) is one of the paper's holomorphic charts (the cusp
+charts c0, ci or the middle chart). On each open cell of its selectors,
+each \(h\) is a finite composition of arithmetic, positive square roots,
+\(\exp\), \(\operatorname{expm1}\), \(\log\), \(\operatorname{log1p}\),
+\(\arctan\), \(\sinh\), \(\operatorname{asinh}\), the principal
+\(\operatorname{Arg}\) off its cut, \(|\cdot|\) off zero, the flat step and
+locally constant integers (`floor`, `nint`, `sign`), with the fixed integer
+counts (11.14). (11.19) and its seven-tuple rules give every coefficient of
+\(J_{\mathrm{cl}}\) without a differentiation operator.
+
+**Hypotheses (written arguments, for human review).** The statement uses
+the following written type-(b)/(c) certificates and calculus arguments,
+which the scripts check only in their arithmetic or identities:
+- the projector bound (11.13), the height bounds (11.13a)–(11.13c), and
+  §11.2's terminal bounds and its blow-up argument at \(|b|=1/10\);
+- the raw-lift bounds (11.8)–(11.11), §11.3's inner-seam blow-up (C46c3)
+  and §11.5's cap estimate (G2's initial overlap, G14);
+- §11.5's derivative propagation behind G3: \(\|D\xi\|\le10\),
+  \(\|De_0\|\le4L\), \(|A_j-A_{j-1}|\le8L\), \(\|DE\|\le(5+8N)L\) and
+  \(\|Dg_j\|\le(9+8N)L<L_g\);
+- §10.6's two-chart logarithm (C47d) and §11.6's bijectivity;
+- the all-order flatness of the flat joins: the written calculus of C46c2,
+  the written induction of C47b, the smoothness of the moment in
+  \(\lambda\) used by C41c and C44, and C45b;
+- C43b's collar \(q\) bounds;
+- the tensoriality step of item 3 below.
+
+**Guard bounds.** C48 matches each `raise` on the path with one of:
+G1 the slab margin \(1-|X|\ge\alpha/2>10^{-9}\); G2 fold overlaps
+\(>1/2\) ((11.13)–(11.14)); G3 phase increments with
+\(\operatorname{Re}>7/8\) ((11.14), (11.16)); G4 hemisphere chart radius
+\(\le1\); G5 \(|X|<1\) on the slab; G6 only the node has \(r=0\), and it is
+the pole; G7 \(|a|<3/5\) on the \(|t_c|\le3/10\) branch, \(b<-21/50\) in core
+cell 1; G8 the core reference domain \(|t|\le3/10\), \(|a|<3/5\); G9 the
+collar \(3/10<|t_c|<1/2\); G10 \(|b|\le1/2\), \(q<1/8\), and \(q>1/2500\) where
+\(\lambda>0\); G11 four-seed inputs \(rr\le1/4\), \(\max(A,Y)<4\), \(q<1/8\);
+G12 cap radius \(<2\cdot10^{-6}\) and \(|h|<1/10\) on the cap (C46); G13 the
+radial maps see only radii \(>10^{-8}\) and nonzero raw outputs; G14
+(11.11) and §11.5's cap estimate; G15 \(q>0\) in the collar (from G10);
+G16 \(b_0=b_i=0\) exactly on pure-middle data (C42a).
+
+**Theorem (direct certificate).** Under these hypotheses:
+
+1. *Well defined.* \(G_{\mathrm{cl}}\) is a diffeomorphism
+   \(S^4\times T^2\to Y\), so \(J_{\mathrm{cl}}\) is a smooth
+   \((1,1)\)-tensor field, independent of the chart.
+   - No guard on the path is ever triggered (C48). `elementary` is True
+     in every executed frame (C50h), so the legacy arms are dead.
+   - Every argument of a division, square root, `log1p`, `abs` or
+     non-integer power lies where that operation is smooth (C50f), and
+     every implicit branch cut and locally constant integer is classified
+     (C50b, C50c).
+   - Every one of the 111 distinct tests on the path (142 occurrences) is
+     static, a guard, a precision shortcut, an identical rewrite, a flat
+     join, a chart choice or a certified seam (C50), and no selector is
+     hidden in another construct (C50a).
+   - The genuine seams are:
+     - the pole cap and slab (N9, C46);
+     - the phase band and its hemisphere charts (C47);
+     - the argument charts (C38, C43);
+     - the cusp/middle switch (C41) and the core gauge seam \(a=0\)
+       (C41b's identity, for all \(t_c\neq0\));
+     - the pure middle, including its \(|t|=1\) selector and argument and
+       logarithm cuts (C42);
+     - the collar logarithm cut (C34, whose identities are generic in
+       \((\operatorname{Re}t,\operatorname{Im}t,\rho,H,\mathrm{one},\mathrm{four})\)
+       along the whole cut, with the restoration in C50g);
+     - the final-phase \(\operatorname{Arg}\) cut (C42d in the middle,
+       C50g in the collar);
+     - the collar/middle joins (C44);
+     - the height moment and height cells (C45).
+
+   - The central fibres \(t_c=0\) are not seams: they lie in the core,
+     where the reference has no division by a vanishing coordinate (C50e).
+   - Across each seam the restored outputs in the two charts differ by one
+     of the paper's holomorphic transitions: \(\Phi\), \(\Theta\), the cusp
+     deck \(T\), or a lattice translation.
+   - The differential is invertible at every point (C49).
+
+   This also discharges the premise "smooth final fold vector" of
+   C40–C44. Every seam of the projector \(P(n,h)\) is certified on the whole
+   meridian domain \(S^2\times[X_-,X_+]\), \(X_\pm=\pm(1-10^{-9})\),
+   including the band \(1-|h|<\alpha/2\) where the fold and the mismatch
+   evaluate it (the certificates are generic in \(|t_c|<1/2\)). So \(P\) is
+   smooth there, and each \(P_j=P(n,X_-+j(X-X_-)/N)\) is smooth in
+   \((n,X)\). All denominators exceed \(1/2\) (G2), so \(E\) is smooth by
+   induction over the fixed count (C30, section (k) of
+   `symbolic_identities.py`). \(E_c\) is then smooth by G3, G4, G14 and
+   C47b–e.
+2. *\(J_{\mathrm{cl}}^2=-\mathrm{Id}\).* In each chart, \(J=(Dh)^{-1}J_0Dh\)
+   with \(J_0^2=-\mathrm{Id}\).
+3. *\(N_{J_{\mathrm{cl}}}=0\).* Let \(h\) be \(C^2\) near \(p\) with \(Dh(p)\)
+   invertible. A constant linear change of the domain coordinates
+   normalizes \(Dh(p)\) to the identity without changing the Nijenhuis
+   equations (tensoriality, a written step). In that normalization C30i
+   shows exactly that all 36 entries of \(J^2+\mathrm{Id}\) and its
+   derivative, and all 216 Nijenhuis components of \((Dh)^{-1}J_0Dh\),
+   vanish for an arbitrary symmetric second jet. C10a–b is the same
+   identity in the forward convention \(A J_0A^{-1}\), and C10c is a
+   non-coordinate control with \(N\neq0\), so the cancellation is not
+   vacuous. These are exact polynomial identities in the first and second
+   derivatives (type (a)). The direct circuits (l), (g), (h), (f), N8 and
+   the pure-middle check apply them to the actual \(h\) on chosen cells.
+
+T16 asked for a circuit computing the second jet of each actual branch.
+Items 1–3 replace that per-branch computation. C30i holds for every
+\(C^2\) map \(h\) with invertible \(Dh\), so no branch-by-branch jet
+reduction is needed once each \(h\) is known to be smooth (C38–C50) with
+invertible differential (C49).
+
+**What is computed exactly.** Every identity named above is checked by
+`sym/chart_identities.py` (C1–C50), `sym/node_remainder.py`,
+`sym/lemmas_1d.py`, `sym/i2_margins.py` and `symbolic_identities.py`, each
+printing `ALL PASS`. Inequalities are manifest (type (b)) or have explicit
+constants (type (c)), written next to the check that verifies their
+arithmetic. The reasons in C50f's table are types (b)/(c) and cite the
+bounds they use. Numerical evaluations are labelled observations (d) and
+are not used in the proof.
+
+**Limits.** The counts (11.14) are fixed integers with 8001 and 16004
+decimal digits. The formula is finite and explicit, and every claim above
+is proved by identities and induction over these counts, not by
+evaluating them. A practical evaluation of \(J_{\mathrm{cl}}\) at a point
+of the slab is not feasible with these counts; smaller counts give
+different maps, which are not certified. The checks of C48 and C50 are
+censuses of the pinned text: any change to `cusp.py` invalidates them until
+they are redone. The written hypotheses, the change of route
+and the global statement require human review.

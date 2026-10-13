@@ -2892,3 +2892,128 @@ in `AGENTS.md` §5.
 - **Open points:** the following are cited: \(f_a>0\) (11.13c), (11.11), N10
   (other script), §11.6's bijectivity, and the smoothness of \(G_W\) across
   the seams (C38–C47, C50).
+
+### 2026-10-13-EH-1 — Classify the whole pinned G path and state the direct certificate (T16)
+- **Date:** 2026-10-13
+- **Collaborator:** Edward Hirst
+- **Agent:** Claude Code (Claude Opus 5.5), with independent reviewer subagents
+- **Type:** statement
+- **Based on:** 03b7f3f
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (new section
+  C50, C50a–h; one comment in C48), docs/s4t2_symbolic_programme.md
+  (status line, resume point, §11.8 rows for C48–C50, new §11.9),
+  SYMBOLIC_CAMPAIGN.md (§1.2 status, T16, status log). No manuscript or
+  construction file changed.
+- **Change:**
+  - Added C50 and C50a–h:
+    - C50a pins the whole text of `cusp.py` by the SHA-256 of its token
+      stream, with short per-function digests for the 26 path functions.
+      It checks that the runtime function objects are those the text
+      defines: no `__wrapped__`, the code is at the line of the def, the
+      globals are the module's, and the defaults are the literals. The
+      certified object is that text read in exact real arithmetic
+      (§11.9): `elementary_global_coordinates(Z,X,phi,max_work=None)`
+      with the shortcuts off and `force_slab=False`. For it, C50a also
+      checks that there is no `while`, `try`, comprehension filter, `%` or
+      `//`; that every comparison is a test or defines one of eight flags,
+      used only as tests or flag arguments; and that every call is to a
+      listed function.
+    - C50 classifies the 111 distinct tests (142 occurrences): 29 static,
+      24 guards, 9 shortcuts, 14 identical rewrites, 17 flat joins,
+      4 chart choices and 14 certified seams.
+    - C50b classifies the 29 `arg`/`log`/`atan` calls (implicit cuts).
+    - C50c classifies the 22 `floor`/`nint`/`sign`/`int`/`min`/`max`
+      calls.
+    - C50e shows that in the core the moment has the sign of \(b\) on
+      its three branches, the cell is 0 or 1, and the roots are positive
+      off the node, so the central fibres are not seams.
+    - C50f checks all 280 divisions, square roots, `log1p`, `abs` and
+      non-integer powers: 111 are recognised automatically, and 139 are
+      listed with the reason their argument is in the domain.
+    - C50g carries the collar logarithm cut and the final-phase
+      \(\operatorname{Arg}\) cut through the restoration. The outputs
+      differ by \(k\,e_4(L)+\tfrac{k(k-1)}2e_1\), \(0\) or \(e_1\), with
+      \(D=cc+Hc\) on every branch.
+    - C50h checks that `elementary` is True in every executed frame,
+      which is the premise of C48's dead arms.
+    - C50d checks that every cited label exists.
+  - Added §11.9, the direct certificate, for human review. Under the
+    written hypotheses it lists:
+    - \(G_{\mathrm{cl}}\) is a diffeomorphism, so
+      \(J_{\mathrm{cl}}=(Dh)^{-1}J_0Dh\) is a well-defined smooth tensor;
+    - \(J^2=-\mathrm{Id}\) and \(N_J=0\) follow from C30i's exact identity
+      (C10 is the forward-convention version, C10c the control), which
+      holds for every \(C^2\) chart map with invertible differential.
+  - This replaces T16's per-branch second-jet circuit, a change of route
+    that needs the task owner's agreement. T16 is marked "proposed
+    completion".
+  - The premise "smooth final fold vector" of C40–C44 is discharged.
+  - Row48 and row49 were corrected: implicit divisions are now covered
+    by C50f; the claim types of row49's cited inputs are fixed; and the
+    sign of \(f\) behind the \(A/Y\) choice is cited (C50e).
+- **Why:** the collaborator asked that the campaign be continued until a
+  complex structure on \(S^4\times T^2\) is obtained whose whole tensor is
+  symbolic and explicit, with exact computations showing that it is well
+  defined, squares to \(-1\) and has zero Nijenhuis tensor.
+- **Verification:** `python3 extra/s4t2_explicit/sym/chart_identities.py`:
+  **ALL PASS** (C1–C50). Independent reviewer subagent on §11.9 and C48–C50:
+  sound with caveats, not acceptable as first written. It confirmed the
+  overall argument, that the induction is not circular, and that C34 is
+  generic along the whole cut. Its 12 defects are addressed as follows:
+  - Its mutant with a non-`if` jump (\(10^{-60}\) across
+    \(\operatorname{Re}t_c=0\)) passed the whole earlier suite. It now
+    fails C50a and C50f.
+  - Its mutants reassigning `elementary` and dropping `elementary=True`
+    now fail C50a and C50h. A duplicated `sign` call fails C50c.
+  - The other fixes:
+    - the C30i citation and the tensoriality step;
+    - the restoration across the collar log cut (C50g);
+    - the missing seams (the core gauge \(a=0\), the final-phase cut);
+    - the meridian domain of \(P\), including the band;
+    - the full list of written hypotheses;
+    - the certified object;
+    - the census of divisions and roots (C50f);
+    - the `sign` label;
+    - a substantive C50e;
+    - the T16 framing.
+
+  The earlier mutants (an added raise, a changed core test, a duplicated
+  test, an ungated legacy call, a new raising helper) each fail C48 or C50.
+
+  Second independent reviewer, on the revised C50a–h and §11.9: sound with
+  caveats. It checked all 139 C50f reasons against the source, inspected
+  the 111 automatic nodes one by one, and re-derived C50e, C50g and C50h.
+  It found that module-level code could bypass the per-function pin:
+  wrapper rebinding via `functools.wraps`, an mpmath monkeypatch, runtime
+  defaults, or a no-op formula mode. All four now fail C50a, through the
+  whole-module pin and the object checks; so do runtime rebinding and
+  default changes made from outside `cusp.py`. Its other points are
+  fixed:
+  - the exact-arithmetic reading of the object;
+  - the §11.5 derivative bounds behind G3 added to the hypotheses;
+  - G1–G16 defined in §11.9;
+  - C50g cited in C50b;
+  - the status wording ("C34, C38–C50 and N9, under the written
+    hypotheses");
+  - row wording;
+  - the C50f test-division gate is now checked;
+  - the unreachable tag;
+  - the C50d label regex.
+
+  Unchanged by this entry and run on the same `cusp.py`: `sym/lemmas_1d.py`,
+  `sym/i2_margins.py`, `sym/node_remainder.py` and `symbolic_identities.py`
+  print **ALL PASS**. `verify_construction.py`: `all checks passed`;
+  `sphere_products.py`: `Dimension 8 check passed`. `git diff --check`: pass.
+  LaTeX: **not run**. The legacy safety net was not run (no construction
+  file changed).
+- **Open points:** the task owner's agreement to the change of route, and
+  human review of the global statement (type `statement`). The written
+  hypotheses listed in §11.9 are cited, not re-proved: (11.13),
+  (11.13a)–(11.13c), §11.2's terminal bounds and blow-up at \(|b|=1/10\),
+  (11.8)–(11.11), §11.3's inner seam, §11.5's cap estimate, §10.6,
+  §11.6's bijectivity, the all-order flatness calculus, C43b's \(q\)
+  bounds, §11.5's derivative propagation and the tensoriality step.
+  C50f's reasons are types (b)/(c). The counts (11.14) have 8001 and 16004
+  digits: the formula is finite and explicit, but not practically
+  evaluable on the slab. Any edit of `cusp.py` invalidates C50a until the
+  censuses are redone.
