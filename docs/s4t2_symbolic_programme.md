@@ -2379,7 +2379,29 @@ proved bound; this is evidence (d), not part of the certificate.
    d(1+X√(2−X²))=(1−X²)², d≥δ²/2. The derivatives of
    (1−X²)n and X√(2−X²) have norms at most 2. Thus
    ||Dw||≤12δ⁻⁴ and ||Du||≤24δ⁻⁴<100δ⁻⁴; inverse stereographic
-   projection has derivative norm ≤2. On the zero cusp the dominant |u₂|>1/2,
+   projection has derivative norm ≤2.
+
+   In fact the raw-base derivative in this first step has a uniform
+   bound, independent of δ. Write n′=O⁻¹n and
+   b=(1+X√(2−X²))/(1−X²), so w=bn′ and y=bn′+(0,1,0). C52a
+   checks b′=(1+b²)/√(2−X²). Inverse stereographic projection is
+   conformal with derivative factor 2/D, where
+   D=1+|y|²=b²+2+2bn′₂. The X and sphere directions in Dy are
+   orthogonal, with lengths b′ and b; also b′>b because
+   1+b²≥2b and √(2−X²)≤√2<2. Thus
+
+     ||Du||=2b′/D<6.
+
+   Indeed D≥d_min:=b²−2b+2 and
+   3d_min−(1+b²)=2(b−3/2)²+1/2>0, while √(2−X²)≥1.
+   This type-(a)/(b) improvement is not used in the much coarser
+   final bound (11.13). C52b checks the two sum-of-squares identities,
+   and C52c checks conformality of the inverse stereographic map.
+   In a 20001-point one-variable sample of the angular worst case
+   n′₂=−1, the largest ||Du|| was 3.814212, a measured margin
+   greater than 2.185788 below 6 (C52d, type (d)).
+
+   On the zero cusp the dominant |u₂|>1/2,
    and on the infinity cusp |u₁|>1/2. On .3≤|t|≤10/3 both are >1/4.
    To check this last bound, use 144<A<160, 1<B<55 and
    144r²/(1+160r²)≤|t k_A(r)|²≤(160+55r²)/144 for .3≤r≤4.
@@ -3099,6 +3121,7 @@ derivatives are numerical observations, type (d).
 | C49a–c, invertible differential everywhere (a,b) | On the slab \(G_W\) is \(S^1\)-equivariant (fold step, start vector, band correction and final phase), so \(\det DG_W=\det D\Lambda\). The orbit map \(\Lambda\) factors into: the raw base \((n,X)\mapsto R(X)O^{-1}n\) with \(R'/R=2/(\sqrt{2-X^2}(1-X^2))>0\); the conformal inverse stereographic map; \((u_1,u_2)\mapsto(u_1/u_2,\Arg u_2)\) and its north counterpart \((u_2/u_1,\Arg u_1)\); the profile \(t=Rg(|R|^2)\), with Jacobian \(g(g+2rg')>0\); the height maps with derivatives \(-f_a(1\mp f/R)/2\), \(-f_a/(2R)\) and, in core cell 1, \(2f_a/(R(R-f))\), nonzero since \(f_a>0\) by (11.13c) and the coordinate \(A\) or \(Y\) is chosen by the sign of \(f\) (C50e); and \(\partial x_4/\partial\rho=\pm1/P\) or \(\partial x_4/\partial\alpha=1/(2\pi)\). The restoration is invertible iff \(\det(e_2,e_3)\ne0\) (cusp) or the lattice determinant is \(\ne0\) (middle), independently of \(D\). On the cap, the radial map increases, the patch has \(\det=SS'/r>0\) (N10) and the raw \(g_j\) has \(\sigma_{\min}>0.99\) by (11.11): ALL PASS. The identities are type (a); the cited inputs (11.13c), (11.11) and §11.6 are types (b)/(c), N10 is a script check (types (a)/(b)), and C38–C47, C50 are type (a) with (d) observations. With §11.6's bijectivity, \(G_{\mathrm{cl}}\) is a diffeomorphism. |
 | C50, C50a–h, the whole \(G\) path classified (a,b,c) | C50a pins the whole text of `cusp.py` (SHA-256 of its token stream; short digests localise changes in the 26 path functions) and checks that the runtime function objects are those the text defines; the certified object is that text read in exact arithmetic (§11.9): `elementary_global_coordinates(Z,X,phi,max_work=None)` with the shortcuts off and `force_slab=False`. For it: no `while`, `try`, `match`, `lambda`, comprehension filter, `%` or `//`; every comparison is a test or defines one of eight flags used only as tests or flag arguments; every call is a path function, local helper, listed builtin or listed mpmath function. C50: the 111 distinct tests (142 occurrences) are classified: 29 static, 24 guards (C48, C42a), 9 working-precision shortcuts (§11.7), 14 identical rewrites (C39a, C41a–b, C45a, C46b–c, C47c), 17 flat joins or weights (C41b–c, C44c, C45b, C46c, C47b, L13), 4 chart choices (C41, C44), 14 seams (N9, C38, C41–C47). C50b: the 29 `arg`/`log`/`atan` calls (implicit cuts) have positive or constant arguments, or a cut certified by C34 or C42. C50c: the 22 `floor`/`nint`/`sign`/`int`/`min`/`max` calls are precision settings, diagnostics, a guard, height cells (C45c), zero-weight torus-pair shifts (C41b), the principal-log normalization (C34, C42), a sign used only for \(|a|>1/10\), or unreachable. C50e: in the core (\(\lambda=0\)) the moment has the sign of \(b\) (\(f=b\), \(|f|\ge1/10\), \(|f|\ge e^{-1/5}-e^{1/5}/8\) on the three branches), the cell is 0 or 1, and the roots \(\sqrt{A/e}\), \(\sqrt Y\) are positive off the node, so the central fibres are not seams. C50f: all 280 divisions, square roots, `log1p`, `abs` and non-integer powers have their argument in the domain where they are smooth: 111 occurrences are recognised automatically (constant, inside a test, dead arm, \(|z|^2\)), and the other 169 occurrences (139 distinct) are listed with a reason. C50g: across the collar logarithm cut and the final-phase Arg cut the restored outputs differ by \(k\,e_4(L)+\tfrac{k(k-1)}2e_1\), \(0\) or \(e_1\). C50h: `elementary` is True in every executed frame. C50d: every check label cited in the four C50 tables exists: ALL PASS. |
 | C51a–d, south-band phase shortcut (a,c,d) | C51a checks the Pauli projector norm factor, C51b the cancellation in each phase increment, C51c the monotone south radius and C51d the rational endpoint constants: ALL PASS. The type-(c) bound (11.15a) gives \(|\Theta_0|\le2300/2812499471<10^{-6}\) on the whole south band, independently of the fixed fold and phase counts. C47f's two reduced-count south samples are only type-(d) observations; a north-band shortcut remains open. |
+| C52a–d, raw meridional derivative (a,b,d) | C52a checks the exact derivative of the stereographic radius, C52b the two manifest squares and C52c the conformal inverse stereographic identity, giving \(\|Du\|<6\) uniformly on the slab: ALL PASS. C52d is a separate type-(d) sample at 20001 values of \(X\), each with its worst angular direction; its maximum is below 3.814212, leaving a measured margin above 2.185788. The bound improves only the first factor of the deliberately coarse projector certificate (11.13). |
 | m1–m3, formula-branch source audit and observations (d) | The checker identifies and gates all six working-precision identity returns, and checks nested/exception restoration: ALL PASS. Two strict interior type-(d) samples have exact-formula value gaps \(9.0129315017\cdot10^{-99}\) (pole radial) and \(3.23193414504\cdot10^{-92}\) (height radial) from the default identity returns, evaluated at 240 digits. Sample size two; m3 reproduces the observations. This does not evaluate the fixed-count global tensor. |
 | N9a–i, cap/slab overlap (a,c) | for both signs, exact phase telescoping, source-linked raw-reference/projector identification, matching cusp inputs, torus restoration and first/second jets: ALL PASS, conditional on the written §11.3, §11.5 and §10.6 bounds; the post-raw radial margin is checked in N9b |
 | N10a–d, radial shell (a,b) | source-linked finite elementary \(S,S^{-1}\) nodes, exact scalar inverse and derivative identities, 16 first and 64 second entries for each radial direction, and \(\det DD=S(r)S'(r)/r>0\) on \(10^{-8}<r<1.5\cdot10^{-8}\): ALL PASS; the raw pole and torus stages are not composed here |

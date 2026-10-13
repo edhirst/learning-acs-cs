@@ -10809,5 +10809,46 @@ rep('C51d south phase constants and strict cut margin',
      phase51==sp.Rational(2300,2812499471) and
      phase51<sp.Rational(1,1000000)))
 
+# C52: the exact raw-base derivative cancels the apparent pole singularity
+# in the separate bounds for the two stereographic factors in §11.4.
+x52 = sp.symbols('x52', real=True)
+b52 = (1+x52*sp.sqrt(2-x52*x52))/(1-x52*x52)
+rep('C52a raw meridional radius derivative',
+    sp.simplify(sp.diff(b52,x52)
+                -(1+b52*b52)/sp.sqrt(2-x52*x52))==0)
+t52 = sp.symbols('t52', real=True)
+d52 = t52*t52-2*t52+2
+rep('C52b manifest squares for the uniform inverse-stereographic bound',
+    (sp.expand(1+t52*t52-2*t52-(t52-1)**2)==0 and
+     sp.expand(3*d52-(1+t52*t52)
+               -(2*(t52-sp.Rational(3,2))**2+sp.Rational(1,2)))==0))
+y52 = sp.symbols('y52_0:3', real=True)
+den52 = 1+sum(yy*yy for yy in y52)
+u52 = sp.Matrix([(1-sum(yy*yy for yy in y52))/den52] +
+                [2*yy/den52 for yy in y52])
+ju52 = u52.jacobian(y52)
+rep('C52c inverse stereographic projection is conformal',
+    all(sp.cancel(den52**2*entry)==0 for entry in
+        ju52.T*ju52-4/den52**2*sp.eye(3)))
+
+# Numerical observation only: n'_2=-1 minimizes D at each X.  The
+# half-step grid excludes the poles and samples 20001 distinct X values.
+import math as _math52
+max52 = (0.0,None)
+samples52 = 20001
+for j52 in range(samples52):
+    xx52 = -1+2*(j52+0.5)/samples52
+    ss52 = _math52.sqrt(2-xx52*xx52)
+    aa52 = 1-xx52*xx52
+    bb52 = (aa52/(1-xx52*ss52) if xx52<0 else
+            (1+xx52*ss52)/aa52)
+    val52 = 2*(1+bb52*bb52)/(ss52*(bb52*bb52-2*bb52+2))
+    if val52>max52[0]:
+        max52 = (val52,xx52)
+print('C52d raw-base derivative samples (d):',samples52,
+      'maximum',max52,'margin to 6',6-max52[0])
+rep('C52d 20001-point raw-base sample (numerical, d)',
+    max52[0]<3.814212 and 6-max52[0]>2.185788)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

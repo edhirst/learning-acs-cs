@@ -3168,3 +3168,42 @@ in `AGENTS.md` §5.
   `git diff --check`: pass. LaTeX: **not run**.
 - **Open points:** all three T17 gates; human review of the changed task
   status and the §11.9 certificate.
+
+### 2026-10-14-TSG-1 — Remove the artificial pole factor from the raw-base derivative
+- **Date:** 2026-10-14
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6.1-sol)
+- **Type:** addition
+- **Based on:** `baf51e7`
+- **Where:** `docs/s4t2_symbolic_programme.md` §11.4, target-coordinate
+  step and C52 row of §11.8; `extra/s4t2_explicit/sym/chart_identities.py`,
+  C52a–d. The manuscript and construction code are unchanged.
+- **Change:** prove the exact uniform bound `||Du||<6` for the raw
+  S⁴-meridional-to-S³ map, independent of the slab pole cutoff. Preserve
+  the older coarse projector certificate and its fixed counts. Add
+  SymPy checks of the radius derivative, the two manifest squares, and
+  inverse-stereographic conformality, plus a separately labelled
+  20001-point numerical observation.
+- **Why:** writing `w=b O^-1 n` gives
+  `b'=(1+b²)/sqrt(2-X²)`. The inverse stereographic derivative has
+  conformal factor `2/(b²+2+2b n'_2)`; its radial input is orthogonal
+  to the sphere inputs and longer than either. The exact operator norm
+  is therefore `2b'/D`. The lower denominator bound
+  `D>=b²-2b+2` and identity
+  `3(b²-2b+2)-(1+b²)=2(b-3/2)²+1/2` prove `||Du||<6`.
+  The sample maximum was 3.8142111629746043, leaving measured margin
+  2.1857888370253957. This removes one avoidable source of huge
+  constants but does not yet make the whole projector bound practical.
+- **Verification:** independently differentiated the radius and inverse
+  stereographic formulas. `.venv/bin/python3 -B
+  extra/s4t2_explicit/sym/chart_identities.py`: **ALL PASS** (C1–C52);
+  `.venv/bin/python3 -B extra/s4t2_explicit/sym/i2_margins.py`:
+  **ALL PASS**; `.venv/bin/python3 -B
+  manuscript_draft/code/verify_construction.py`: **all checks passed**;
+  `.venv/bin/python3 -B manuscript_draft/code/sphere_products.py`:
+  **Dimension 8 check passed**. `git diff --check`: pass. LaTeX:
+  **not run** (`latexmk` unavailable); the manuscript was not touched.
+- **Open points:** the height and embedding parts of the global projector
+  derivative remain enormously overbounded, and the north-band phase and
+  practical complete evaluator remain open. Human mathematical review is
+  requested for the new bound.
