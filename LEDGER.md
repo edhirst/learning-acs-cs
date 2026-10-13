@@ -2648,3 +2648,71 @@ in `AGENTS.md` §5.
 - **Open points:** the \(|b|=1/10\) join and the smoothness of the moment in
   \(\lambda\) remain the written §11.2 arguments. The global
   \(J_{\mathrm{cl}}\) statement still requires human review.
+
+### 2026-10-12-EH-6 — Certify the pole-cap internals on the whole cap
+- **Date:** 2026-10-12
+- **Collaborator:** Edward Hirst
+- **Agent:** Claude Code (Claude Opus 5.5); section drafted by a subagent, reviewed and integrated by the main agent, with one independent reviewer subagent
+- **Type:** addition
+- **Based on:** 452e54e
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (new section C46a–e
+  at the end), docs/s4t2_symbolic_programme.md (status line, §11.8 table
+  row and certificate paragraph), SYMBOLIC_CAMPAIGN.md (T16 status). No
+  manuscript or construction file changed.
+- **Change:** added C46, which certifies the pole-cap branch of the slice
+  (\(1-|X|<\alpha/2\)) at both signs as one smooth map. The checks
+  execute the bound production statements under sympy and record both
+  alternatives of every symbolic if-expression.
+  - All 32 conditionals of `elementary_pole_patch`,
+    `_elementary_pole_radial` and `elliptic_pole_raw_inverse` are
+    classified.
+  - The raw inverse is one branch: both signs share the height
+    \(\tan(2\pi h)=2\pi p_2/(1-2\pi p_0)\), and the rationalized
+    alternatives are identical.
+  - The guards are inactive with explicit margins on the whole raw domain
+    \(u\le10^{-4}\): \(|h|\le1.0008\cdot10^{-4}\), argument off its cut,
+    \(|t_c|^2<4.9\cdot10^{-7}\), projection length \(\ge0.9999u\) by (11.11).
+  - The radial maps are exactly \(\psi^{-1}T\varphi\) and
+    \(\varphi^{-1}T^{-1}\psi\), with flat-factor forms at both outer
+    seams; the \(S^{-1}\) form is new.
+  - The cap margins hold: \(r_L<1.6667\cdot10^{-6}\),
+    \(|z_S|^2<1.7003\cdot10^{-6}\), and every four-seed input is linear.
+  - After the review (C46b4 and the binding of the signature default):
+    the executed height and ratio are checked against the dominant
+    coordinate. The \(t_c\) chain is executed (\(|t_c|^2=K\,uu/\mathrm{den}\),
+    with the positive root). `source_pc` is checked to be the Hopf vector of
+    the slice pair \((\nu\bar x,y)\), and the returned pair satisfies
+    \(|\mathrm{out}|^2=s\). The \(AA/yy\) alternatives are rechecked
+    with \(q\) a positive symbol.
+- **Why:** this is the last region of the source path whose internal
+  branches had been checked only in single chambers (TSG-3/4/7/9: N10 and
+  sections (f), (g), (h)).
+- **Verification:** `python3 extra/s4t2_explicit/sym/chart_identities.py`:
+  **ALL PASS** (C1–C46). 14 mutation tests (a wrong source line or
+  constant) each make their check fail. C46e, numerical (d), sample size
+  32: slice versus patch \(8.8\cdot10^{-105}\); the inner and outer flat
+  defects scale as predicted; \(|S-\mathrm{id}|/r\) is below the §11.7 bound;
+  the rewrite alternatives agree to \(5\cdot10^{-88}\). Independent
+  reviewer subagent: sound, with caveats. It re-derived every constant
+  and identity by hand and checked production in formula mode against an
+  independent \(D^{-1}gD\) (agreement \(<10^{-40}\) at 79 of 80 points).
+  Five of its mutations (north height sign, the sign of the root in den,
+  `source_pc` without the conjugate, the factor, and the radial default)
+  passed C46a–d before the fixes. After the fixes each of the five fails
+  C46a–d, and an equivalent rewrite of \(e\) passes.
+  `verify_construction.py`: `all checks passed`; `sphere_products.py`:
+  `Dimension 8 check passed`. `git diff --check`: pass. LaTeX: **not run**.
+  The legacy safety net was not run (no construction block changed).
+- **Open points:** the following rest on written arguments and are cited:
+  the inner-seam smoothness to all orders (§11.3 blow-up); the
+  smoothness of \(D_0,D_1\) at \(Q=0\); and the bounds (11.9)–(11.11),
+  \(|H_j|^2\le\max(c,r+80r^2)\) and \(S(r)\le r\). The global
+  \(J_{\mathrm{cl}}\) statement still requires human review.
+  The reviewer found two numerical issues in production, both outside the
+  exact claims. (i) The south raw inverse forms \(\operatorname{Re}u_1=(1-s_2)/(1+s_2)\approx u\)
+  as a difference of \(O(1)\) numbers (`cusp.py`, south branch). Its
+  output loses about \(\log_{10}(1/u)\) digits; this is fixed in a
+  separate entry by the identical form \(-(aa^2+bb^2+cc^2+2bb)\).
+  (ii) Formula mode does not terminate in thin neighbourhoods of the
+  outer seams, where \(\exp(-f)\) has \(f\approx e^{c/(c-r)}\). So formula
+  mode is not a practical evaluator there; C46e's points avoid them.

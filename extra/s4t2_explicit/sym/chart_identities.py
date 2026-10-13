@@ -7447,5 +7447,1040 @@ return x,t/x
 rep('C45c core and collar height-cell seams: equal analytic cell formulas',
     cells45 and source45)
 
+# C46: pole-cap internals, whole cap, at both signs (south c0, north ci).
+# The production cap branch of elementary_global_slice (used when
+# 1-|X|<alpha/2, alpha=1e-5) computes
+#   z_L=U_j^* Z/sqrt(s_j(1+|X|sqrt(2-X^2))),  zz=H_j(z_L),
+#   H_j=D^-1 o g_j o D  (identity on |z_L|^2<=a=1e-8),
+#   return (conj(zz0)/nu_j,zz1),
+# (programme (11.12h), (11.17)).  C46 proves that this is ONE smooth map on
+# the whole cap: every conditional on its call path is (i) a static choice,
+# (ii) a guard proved never to fire on the cap, (iii) a working-precision
+# shortcut (bypassed by elementary_formula_branches; its error bound is the
+# type (c) argument of programme section 11.7, and symbolic_identities (m1)
+# counts it), (iv) a rewrite whose two alternatives are the same function
+# (type (a)), or (v) a flat radial join (type (a) identities plus the
+# written calculus of section 11.3).  C46a binds the source and classifies
+# all 32 conditionals; C46b-C46d prove the classification; C46e is a
+# numerical observation (d) only.  Out of scope: the cap/slab selector
+# distance<alpha/2 itself (the open overlap of section 11.6, N9).
+import copy as copy46
+
+# ---------------------------------------------------------------- C46a
+# Source binding (exact AST equality of complete function bodies; type (a)
+# in the sense of a source identity).  Docstrings are stripped by
+# body_dump41, comments are not part of the AST.
+patch_body46 = '''
+import mpmath as mp
+with mp.workdps(max(mp.mp.dps,dps)+50):
+    pair = tuple(map(mp.mpc,z))
+    inner = mp.mpf('1e-8')
+    outer = mp.mpf('1.5e-8')
+    radius = sum(abs(a)**2 for a in pair)
+    if radius<=inner:
+        return pair
+    if radius<(inner+outer)/2:
+        x = mp.exp(3)*mp.expm1(3*(radius-inner)/(outer-radius))
+        if _elementary_precision_shortcuts.get():
+            if x-1/x<=-(dps+10)*mp.log(10):
+                return pair
+    compressed = _elementary_pole_radial(pair)
+    raw = elliptic_pole_raw_inverse(compressed,infinity,dps=dps,elementary=True)
+    return _elementary_pole_radial(raw,inverse=True)
+'''
+radial_body46 = '''
+import mpmath as mp
+z = tuple(map(mp.mpc,pair))
+radius = sum(abs(w)**2 for w in z)
+a,c = mp.mpf('1e-8'),mp.mpf('1.5e-8')
+if radius>=c:
+    return z
+if _elementary_precision_shortcuts.get():
+    if c/(c-radius)>(mp.mp.dps+10)*mp.log(10):
+        return z
+if inverse:
+    if radius<=0:
+        raise ValueError('radial inverse requires positive radius')
+    y = mp.e*mp.expm1(radius/(c-radius))
+    L = (y+mp.log1p(-mp.exp(-y)) if y>1 else mp.log(mp.expm1(y)))
+    x = 2/(mp.sqrt(L*L+4)-L) if L<0 else (L+mp.sqrt(L*L+4))/2
+    ell = mp.log1p(x/mp.exp(3))
+    new_radius = a+c*ell/(3*(3+ell))
+else:
+    if radius<=a:
+        raise ValueError('radial compression requires radius greater than 1e-8')
+    x = mp.exp(3)*mp.expm1(3*(radius-a)/(c-radius))
+    f = x-1/x
+    y = mp.log1p(mp.exp(f)) if f<0 else f+mp.log1p(mp.exp(-f))
+    ell = mp.log1p(y/mp.e)
+    new_radius = c*ell/(1+ell)
+factor = mp.sqrt(new_radius/radius)
+return tuple(+(factor*w) for w in z)
+'''
+raw_body46 = '''
+import mpmath as mp
+with mp.workdps(max(mp.mp.dps,dps)+20):
+    z0,z1 = map(mp.mpc,z)
+    radius = abs(z0)**2+abs(z1)**2
+    if not 0<radius<=mp.mpf('1e-4'):
+        raise ValueError('raw pole inverse requires 0<|z|^2<=1e-4')
+    pc = 2*z0*mp.conj(z1)
+    p = (pc.real,pc.imag,abs(z0)**2-abs(z1)**2)
+    scale = mp.pi if infinity else 2*mp.pi
+    v = tuple(scale*w for w in ((p[2],-p[1],p[0]) if infinity
+                                else (-p[1],-p[2],p[0])))
+    aa,bb,cc = v[0],-v[2],-v[1]
+    if infinity:
+        s2 = aa*aa+bb*bb+cc*cc
+        den = 1+2*bb+2*s2
+        u1 = mp.mpc(-1-2*bb,2*aa)/den
+        u2 = mp.mpc(2*(bb+s2),2*cc)/den
+        ratio = u2/u1
+        height = -mp.arg(-u1)/(2*mp.pi)
+    else:
+        s2 = aa*aa+(bb+1)**2+cc*cc
+        u1 = mp.mpc(1-s2,2*aa)/(1+s2)
+        u2 = mp.mpc(2*(bb+1),2*cc)/(1+s2)
+        ratio = u1/u2
+        height = mp.arg(u2)/(2*mp.pi)
+    A,B = (4*mp.pi)**2,mp.exp(4)
+    uu = abs(ratio)**2
+    den = A*(1-uu)+mp.sqrt(A*A*(1-uu)**2+4*B*uu)
+    tc = ratio*mp.sqrt((2*B if infinity else 2)/den)
+    nu = mp.exp(-2) if infinity else mp.mpf(1)
+    if elementary:
+        if abs(height)>=mp.mpf('.1'):
+            raise ValueError('elementary pole inverse left its certified height region')
+        e = mp.exp(-4*abs(tc)**2/(1-abs(tc)**2))
+        q = e*nu*nu*abs(tc)**2
+        R = mp.sqrt(height*height+4*q)
+        AA = 2*q/(R-height) if height<0 else (R+height)/2
+        yy = 2*q/(R+height) if height>=0 else (R-height)/2
+        xx = AA/e
+        moment,source_radius = xx-yy,xx+yy
+    elif tc == 0:
+        rr = elliptic_axis_radius(height)
+        moment = mp.sign(height)*rr
+        source_radius = rr
+    else:
+        rho = (elementary_cusp_logradius if elementary else elliptic_cusp_logradius)(height,tc,nu,dps=dps)
+        yy = mp.exp(2*rho)
+        xx = nu*nu*abs(tc)**2/yy
+        moment,source_radius = xx-yy,xx+yy
+    source_pc = 2*nu*mp.conj(tc)
+    w0 = ((source_radius+moment)*z0+source_pc*z1)/(2*source_radius)
+    w1 = (mp.conj(source_pc)*z0+(source_radius-moment)*z1)/(2*source_radius)
+    length = mp.sqrt(abs(w0)**2+abs(w1)**2)
+    if length == 0:
+        raise ValueError('local Hopf projections became orthogonal')
+    factor = mp.sqrt(source_radius)/length
+    return (+(factor*w0),+(factor*w1))
+'''
+inclusion_body46 = '''
+import mpmath as mp
+a,b = xi
+pair = ((a+b)/mp.sqrt(2),(a-b)/mp.sqrt(2)) if infinity else (
+    (a-mp.j*b)/mp.sqrt(2),(a+mp.j*b)/mp.sqrt(2))
+result = [mp.mpc(0)]*10
+start = 4 if infinity else 0
+result[start:start+2] = pair
+return tuple(result)
+'''
+branches_body46 = '''
+token = _elementary_precision_shortcuts.set(False)
+try:
+    yield
+finally:
+    _elementary_precision_shortcuts.reset(token)
+'''
+cap_test46 = 'distance<alpha/2 and not force_slab'
+cap_body46 = '''
+inf = X>0
+scale = mp.pi if inf else 2*mp.pi
+den = mp.sqrt(scale*(1+abs(X)*mp.sqrt(2-X*X)))
+pair = _elementary_pole_inclusion(Z,inf)[4:6] if inf else _elementary_pole_inclusion(Z)[:2]
+zz = elementary_pole_patch(tuple(a/den for a in pair),inf,dps=dps)
+nu = mp.exp(-2) if inf else mp.mpf(1)
+return ('ci' if inf else 'c0',(mp.conj(zz[0])/nu,zz[1]))
+'''
+slice_prefix46 = '''
+Z = tuple(map(mp.mpc,Z))
+X = mp.mpf(X)
+alpha = mp.mpf('1e-5')
+distance = 1-abs(X)
+'''
+patch_tree46 = source_tree30(cusp30.elementary_pole_patch)
+radial_tree46 = source_tree30(cusp30._elementary_pole_radial)
+raw_tree46 = source_tree30(cusp30.elliptic_pole_raw_inverse)
+inclusion_tree46 = source_tree30(cusp30._elementary_pole_inclusion)
+branches_tree46 = source_tree30(cusp30.elementary_formula_branches)
+cap_nodes46 = [node for node in slice_with37[0].body
+               if isinstance(node,ast.If)
+               and ast.dump(node.test,include_attributes=False)
+               ==ast.dump(ast.parse(cap_test46,mode='eval').body,
+                          include_attributes=False)]
+source46 = (
+    body_dump41(patch_tree46)==text_dump41(patch_body46)
+    and body_dump41(radial_tree46)==text_dump41(radial_body46)
+    and body_dump41(raw_tree46)==text_dump41(raw_body46)
+    and body_dump41(inclusion_tree46)==text_dump41(inclusion_body46)
+    and body_dump41(branches_tree46)==text_dump41(branches_body46)
+    and len(slice_with37)==1
+    # the cap test is the first branch after the four prefix statements,
+    # and its body (ending in a return) is exactly the cap formula
+    and [ast.dump(node,include_attributes=False)
+         for node in slice_with37[0].body[:4]]==text_dump41(slice_prefix46)
+    and len(cap_nodes46)==1 and slice_with37[0].body[4] is cap_nodes46[0]
+    and exact_if_body37(slice_tree30,cap_test46,cap_body46)
+    and isinstance(cap_nodes46[0].body[-1],ast.Return))
+
+# Classification of EVERY If/IfExp on the cap call path (multiset of test
+# ASTs; the source must contain exactly these, no more, no fewer).
+# Classes: static = fixed on each cap / by the call site; guard = raise
+# never reached on the cap (C46b,C46d); precision = dps shortcut (bypassed
+# in formula-branch mode, programme 11.7); same = identical alternatives
+# (C46b2,C46c); join = flat radial join (C46c); noop = no effect in
+# formula-branch mode (C46a2); unexec = not on the elementary=True path.
+classes46 = {
+    'cap': [('IfExp','inf','static')]*4,
+    'inclusion': [('IfExp','infinity','static')]*2,
+    'patch': [('If','radius<=inner','join'),
+              ('If','radius<(inner+outer)/2','noop'),
+              ('If','_elementary_precision_shortcuts.get()','precision'),
+              ('If','x-1/x<=-(dps+10)*mp.log(10)','precision')],
+    'radial': [('If','radius>=c','join'),
+               ('If','_elementary_precision_shortcuts.get()','precision'),
+               ('If','c/(c-radius)>(mp.mp.dps+10)*mp.log(10)','precision'),
+               ('If','inverse','static'),
+               ('If','radius<=0','guard'),
+               ('IfExp','y>1','same'),
+               ('IfExp','L<0','same'),
+               ('If','radius<=a','guard'),
+               ('IfExp','f<0','same')],
+    'raw': [('If',"not 0<radius<=mp.mpf('1e-4')",'guard'),
+            ('IfExp','infinity','static'),
+            ('IfExp','infinity','static'),
+            ('If','infinity','static'),
+            ('IfExp','infinity','static'),
+            ('IfExp','infinity','static'),
+            ('If','elementary','static'),
+            ('If',"abs(height)>=mp.mpf('.1')",'guard'),
+            ('IfExp','height<0','same'),
+            ('IfExp','height>=0','same'),
+            ('If','tc == 0','unexec'),
+            ('IfExp','elementary','unexec'),
+            ('If','length == 0','guard')]}
+def conditionals46(tree):
+    return sorted((type(node).__name__,
+                   ast.dump(node.test,include_attributes=False))
+                  for node in ast.walk(tree)
+                  if isinstance(node,(ast.If,ast.IfExp)))
+def expected46(rows):
+    return sorted((kind,ast.dump(ast.parse(test,mode='eval').body,
+                                 include_attributes=False))
+                  for kind,test,_ in rows)
+cap_module46 = ast.Module(body=cap_nodes46[0].body,type_ignores=[])
+classified46 = (
+    conditionals46(cap_module46)==expected46(classes46['cap'])
+    and conditionals46(inclusion_tree46)==expected46(classes46['inclusion'])
+    and conditionals46(patch_tree46)==expected46(classes46['patch'])
+    and conditionals46(radial_tree46)==expected46(classes46['radial'])
+    and conditionals46(raw_tree46)==expected46(classes46['raw']))
+count46 = sum(len(rows) for rows in classes46.values())
+# The arguments that make 'inverse' and 'elementary' static: the bound
+# patch body calls D as _elementary_pole_radial(pair), D^-1 with
+# inverse=True and the raw inverse with elementary=True; D's
+# inverse=False is the signature default, bound here too.
+signature46 = (
+    ast.dump(radial_tree46.args,include_attributes=False)
+    ==ast.dump(ast.parse('def f(pair,inverse=False): pass').body[0].args,
+               include_attributes=False)
+    and matching_assignment30(patch_tree46,'compressed',
+                              '_elementary_pole_radial(pair)')
+    and matching_assignment30(patch_tree46,'raw',
+        'elliptic_pole_raw_inverse(compressed,infinity,dps=dps,elementary=True)'))
+rep(f'C46a full pole-cap source bound; all {count46} conditionals classified',
+    source46 and classified46 and count46==32 and signature46)
+
+# C46a2.  (noop) In elementary_pole_patch the block under
+# radius<(inner+outer)/2 only assigns x and then tests the precision
+# shortcut; x is never read afterwards.  So with the shortcut disabled the
+# block has no effect.  (precision) The opt-in context manager switches
+# the ContextVar read by both shortcut gates.  Source checks + a runtime
+# check of the state; the shortcut error bounds themselves are the type (c)
+# argument of programme 11.7.
+patch_with46 = [node for node in patch_tree46.body
+                if isinstance(node,ast.With)][0].body
+noop_index46 = [i for i,node in enumerate(patch_with46)
+                if isinstance(node,ast.If)
+                and ast.dump(node.test,include_attributes=False)
+                ==ast.dump(ast.parse('radius<(inner+outer)/2',mode='eval')
+                           .body,include_attributes=False)]
+noop46 = (
+    len(noop_index46)==1
+    and [type(node).__name__ for node in patch_with46[noop_index46[0]].body]
+        ==['Assign','If']
+    and not any(isinstance(node,ast.Name) and node.id=='x'
+                for later in patch_with46[noop_index46[0]+1:]
+                for node in ast.walk(later)))
+gates46 = [node for tree in (patch_tree46,radial_tree46)
+           for node in ast.walk(tree)
+           if isinstance(node,ast.If)
+           and ast.dump(node.test,include_attributes=False)
+           ==ast.dump(ast.parse('_elementary_precision_shortcuts.get()',
+                                mode='eval').body,include_attributes=False)]
+state_default46 = cusp30._elementary_precision_shortcuts.get()
+with cusp30.elementary_formula_branches():
+    state_formula46 = cusp30._elementary_precision_shortcuts.get()
+gate_ok46 = (len(gates46)==2
+             and all(len(node.body)==1 and isinstance(node.body[0],ast.If)
+                     and isinstance(node.body[0].body[0],ast.Return)
+                     and not node.orelse for node in gates46)
+             and state_default46 is True and state_formula46 is False
+             and cusp30._elementary_precision_shortcuts.get() is True)
+rep('C46a2 x-block is a no-op and both shortcuts are formula-mode gated',
+    noop46 and gate_ok46)
+
+# ---------------------------------------------------------------- C46b
+# Symbolic execution of the bound source statements.  Each statement node
+# of the actual source tree is executed with sympy: `import mpmath` is
+# dropped, `mp.*` is a sympy stand-in, `.real/.imag` become re/im, and an
+# IfExp whose test is not a Python/sympy boolean records BOTH alternatives
+# (then proceeds with the else-alternative).  Static IfExps (a Python bool
+# test) pick their branch.  So the identities below are identities of the
+# source expressions themselves, type (a).
+class SymMp46:
+    pi = sp.pi
+    e = sp.E
+    j = sp.I
+    sqrt = staticmethod(sp.sqrt)
+    exp = staticmethod(sp.exp)
+    log = staticmethod(sp.log)
+    conj = staticmethod(sp.conjugate)
+    arg = staticmethod(sp.Function('Arg46'))
+    @staticmethod
+    def mpc(re_part,im_part=0):
+        return re_part+sp.I*im_part
+    @staticmethod
+    def mpf(value):
+        return sp.Rational(value) if isinstance(value,str) else sp.sympify(value)
+    @staticmethod
+    def expm1(value):
+        return sp.exp(value)-1
+    @staticmethod
+    def log1p(value):
+        return sp.log(1+value)
+
+
+class SymSource46(ast.NodeTransformer):
+    def visit_Import(self,node):
+        return None
+    def visit_Attribute(self,node):
+        self.generic_visit(node)
+        if node.attr in ('real','imag'):
+            return ast.Call(func=ast.Name(id='re46' if node.attr=='real'
+                                          else 'im46',ctx=ast.Load()),
+                            args=[node.value],keywords=[])
+        return node
+    def visit_IfExp(self,node):
+        self.generic_visit(node)
+        return ast.Call(func=ast.Name(id='choose46',ctx=ast.Load()),
+                        args=[node.test,node.body,node.orelse],keywords=[])
+
+
+alternatives46 = []
+def choose46(test,first,second):
+    try:
+        flag = bool(test)
+    except TypeError:
+        alternatives46.append((first,second))
+        return second
+    return first if flag else second
+
+
+def namespace46(**values):
+    ns = {'mp':SymMp46,'re46':sp.re,'im46':sp.im,'choose46':choose46}
+    ns.update(values)
+    return ns
+
+
+def run46(nodes,ns):
+    for node in nodes:
+        module = ast.Module(body=[SymSource46().visit(copy46.deepcopy(node))],
+                            type_ignores=[])
+        exec(compile(ast.fix_missing_locations(module),'sym46','exec'),ns)
+    return ns
+
+
+def stmt46(body,text):
+    wanted = ast.dump(ast.parse(text).body[0],include_attributes=False)
+    found = [node for node in body
+             if ast.dump(node,include_attributes=False)==wanted]
+    assert len(found)==1, text
+    return found[0]
+
+
+raw_with46 = [node for node in raw_tree46.body
+              if isinstance(node,ast.With)][0].body
+x0_46,y0_46,x1_46,y1_46 = sp.symbols('x0_46 y0_46 x1_46 y1_46',real=True)
+zr46 = x0_46**2+y0_46**2+x1_46**2+y1_46**2
+aa46,bb46,cc46 = sp.symbols('aa46 bb46 cc46',real=True)
+infinity_if46 = [node for node in raw_with46
+                 if isinstance(node,ast.If)
+                 and ast.dump(node.test,include_attributes=False)
+                 ==ast.dump(ast.parse('infinity',mode='eval').body,
+                            include_attributes=False)][0]
+prefix_texts46 = ['pc = 2*z0*mp.conj(z1)',
+                  'p = (pc.real,pc.imag,abs(z0)**2-abs(z1)**2)',
+                  'scale = mp.pi if infinity else 2*mp.pi',
+                  'v = tuple(scale*w for w in ((p[2],-p[1],p[0]) if infinity '
+                  'else (-p[1],-p[2],p[0])))',
+                  'aa,bb,cc = v[0],-v[2],-v[1]']
+stereo46 = True
+height_num46 = {}
+den_min46 = {}
+for north46 in (False,True):
+    alternatives46.clear()
+    ns46 = run46([stmt46(raw_with46,text) for text in prefix_texts46],
+                 namespace46(z0=x0_46+sp.I*y0_46,z1=x1_46+sp.I*y1_46,
+                             infinity=north46))
+    p46 = ns46['p']
+    sj46 = sp.pi if north46 else 2*sp.pi
+    # Hopf: |p|^2=|z|^4, so every |p_k|<=u=|z|^2 (polynomial identity).
+    stereo46 &= (sp.expand(sum(w**2 for w in p46)-zr46**2)==0
+                 and ns46['scale']==sj46 and not alternatives46)
+    # The rotated, scaled vector: bb=-s_j p0 at both signs; the height
+    # numerators cc (south) and 2aa (north) are both 2 pi p2.
+    stereo46 &= (sp.expand(ns46['bb']+sj46*p46[0])==0
+                 and sp.expand(ns46['aa']**2+ns46['bb']**2+ns46['cc']**2
+                               -sj46**2*sum(w**2 for w in p46))==0)
+    height_num46[north46] = sp.expand(2*ns46['aa'] if north46 else ns46['cc'])
+    den_min46[north46] = sp.expand(1+2*ns46['bb'] if north46 else 1+ns46['bb'])
+    # Execute the selected stereographic branch with aa,bb,cc symbolic.
+    branch46 = infinity_if46.body if north46 else infinity_if46.orelse
+    nb46 = run46(branch46,namespace46(aa=aa46,bb=bb46,cc=cc46))
+    u1_46,u2_46 = nb46['u1'],nb46['u2']
+    norm46 = sp.simplify(sp.re(u1_46)**2+sp.im(u1_46)**2
+                         +sp.re(u2_46)**2+sp.im(u2_46)**2-1)==0
+    if north46:
+        dom46 = -u1_46                     # dominant coordinate (ratio=u2/u1)
+        den46 = nb46['den']
+        stereo46 &= (
+            norm46
+            and sp.simplify(sp.re(dom46)*den46-(1+2*bb46))==0
+            and sp.simplify(sp.im(dom46)*(1+2*bb46)+sp.re(dom46)*2*aa46)==0
+            and sp.expand(den46-(1+2*bb46)-2*(aa46**2+bb46**2+cc46**2))==0
+            and sp.simplify((sp.re(u2_46)**2+sp.im(u2_46)**2)*den46**2
+                            -4*((bb46+nb46['s2'])**2+cc46**2))==0
+            and sp.simplify((sp.re(u1_46)**2+sp.im(u1_46)**2)*den46**2
+                            -((1+2*bb46)**2+4*aa46**2))==0
+            # tc=0 and height=0 force u2=0 and aa=0, then bb(1+bb)=0
+            and sp.factor((bb46+nb46['s2']).subs({aa46:0,cc46:0}))
+                ==bb46*(bb46+1))
+    else:
+        dom46 = u2_46                      # dominant coordinate (ratio=u1/u2)
+        s2_46 = nb46['s2']
+        stereo46 &= (
+            norm46
+            and sp.simplify(sp.re(dom46)*(1+s2_46)/2-(1+bb46))==0
+            and sp.simplify(sp.im(dom46)*(1+bb46)-sp.re(dom46)*cc46)==0
+            and sp.expand(s2_46-1-(aa46**2+bb46**2+cc46**2)-2*bb46)==0
+            and sp.simplify((sp.re(u1_46)**2+sp.im(u1_46)**2)*(1+s2_46)**2
+                            -((1-s2_46)**2+4*aa46**2))==0
+            and sp.simplify((sp.re(u2_46)**2+sp.im(u2_46)**2)*(1+s2_46)**2
+                            -4*((1+bb46)**2+cc46**2))==0
+            # tc=0 and height=0 force u1=0 and cc=0, then bb(bb+2)=0
+            and sp.factor((s2_46-1).subs({aa46:0,cc46:0}))==bb46*(bb46+2))
+    # The executed height/ratio statements of the branch use exactly this
+    # dominant coordinate: height=+-Arg(dom)/(2 pi), ratio = other/dom.
+    stereo46 &= (
+        sp.expand(nb46['height']-(-1 if north46 else 1)
+                  *SymMp46.arg(dom46)/(2*sp.pi))==0
+        and sp.expand(nb46['ratio']-(u2_46/u1_46 if north46
+                                     else u1_46/u2_46))==0)
+# Both signs share the SAME height formula in p=Hopf(z):
+#   tan(2 pi height)=2 pi p2/(1-2 pi p0),  dominant real part ~ 1-2 pi p0.
+stereo46 &= (sp.expand(height_num46[False]-height_num46[True])==0
+             and sp.expand(den_min46[False]-den_min46[True])==0
+             and sp.expand(den_min46[False]-(1-2*sp.pi*p46[0]))==0
+             and sp.expand(height_num46[False]-2*sp.pi*p46[2])==0)
+rep('C46b raw stereographic/height source: identities at both signs',
+    stereo46 and source46)
+
+# C46b2.  The elementary=True block, executed symbolically on the source
+# statements (guard excluded; it is proved inactive in C46b3).  With
+# R^2=h^2+4q the two alternatives of AA and of yy are the same functions
+# (R+h)/2 and (R-h)/2 (type (a)); xx*yy=nu^2|tc|^2, so the source vector
+# p_S=(Re source_pc,Im source_pc,moment) has |p_S|=source_radius exactly.
+# The Hopf projection: |w|^2=(r+n_S.Hopf(z))/2+(|p_S|^2-s^2)r/(4s^2), so
+# |w|^2=r(1+n_S.n_L)/2 (programme (11.10), C22b,c).
+elem_if46 = [node for node in raw_with46
+             if isinstance(node,ast.If)
+             and ast.dump(node.test,include_attributes=False)
+             ==ast.dump(ast.parse('elementary',mode='eval').body,
+                        include_attributes=False)][0]
+h46 = sp.Symbol('h46',real=True)
+tr46,ti46 = sp.symbols('tr46 ti46',real=True)
+elem_ok46 = (isinstance(elem_if46.body[0],ast.If)
+             and isinstance(elem_if46.body[0].body[0],ast.Raise)
+             and len(elem_if46.body)==8)
+for north46 in (False,True):
+    alternatives46.clear()
+    nu46 = sp.exp(-2) if north46 else sp.Integer(1)
+    ne46 = run46(elem_if46.body[1:],
+                 namespace46(height=h46,tc=tr46+sp.I*ti46,nu=nu46))
+    pairs46 = list(alternatives46)
+    elem_ok46 &= (len(pairs46)==2
+                  and all(sp.simplify(sp.radsimp(first)-second)==0
+                          for first,second in pairs46))
+    run46([stmt46(raw_with46,'source_pc = 2*nu*mp.conj(tc)')],ne46)
+    T46 = tr46**2+ti46**2
+    elem_ok46 &= (
+        sp.expand(ne46['AA']*ne46['yy']-ne46['q'])==0
+        and sp.simplify(ne46['xx']*ne46['yy']-nu46**2*T46)==0
+        and sp.simplify(sp.re(ne46['source_pc'])**2+sp.im(ne46['source_pc'])**2
+                        +ne46['moment']**2-ne46['source_radius']**2)==0)
+s46,m46,sr46,si46 = (sp.Symbol('s46',positive=True),sp.Symbol('m46',real=True),
+                     sp.Symbol('sr46',real=True),sp.Symbol('si46',real=True))
+nw46 = run46([stmt46(raw_with46,text) for text in (
+    'w0 = ((source_radius+moment)*z0+source_pc*z1)/(2*source_radius)',
+    'w1 = (mp.conj(source_pc)*z0+(source_radius-moment)*z1)/(2*source_radius)')],
+    namespace46(z0=x0_46+sp.I*y0_46,z1=x1_46+sp.I*y1_46,source_radius=s46,
+                moment=m46,source_pc=sr46+sp.I*si46))
+length2_46 = sp.expand(sum(sp.re(w)**2+sp.im(w)**2
+                           for w in (nw46['w0'],nw46['w1'])))
+proj46 = sp.expand(4*s46**2*(length2_46-(zr46+(sr46*p46[0]+si46*p46[1]
+                                               +m46*p46[2])/s46)/2)
+                   -(sr46**2+si46**2+m46**2-s46**2)*zr46)==0
+nS46 = sp.symbols('nS0_46 nS1_46 nS2_46',real=True)
+nL46 = sp.symbols('nL0_46 nL1_46 nL2_46',real=True)
+unit46 = sp.expand(1-sum((a-b)**2 for a,b in zip(nS46,nL46))/4
+                   -(1+sum(a*b for a,b in zip(nS46,nL46)))/2
+                   +(sum(a*a for a in nS46)-1)/4+(sum(b*b for b in nL46)-1)/4)==0
+# The AA/yy alternatives again, with q a positive symbol (independent of
+# the particular e): both pairs are identical for every q>0.
+qs46 = sp.Symbol('qs46',positive=True)
+alternatives46.clear()
+nq46 = run46([stmt46(elem_if46.body,text) for text in (
+    'R = mp.sqrt(height*height+4*q)',
+    'AA = 2*q/(R-height) if height<0 else (R+height)/2',
+    'yy = 2*q/(R+height) if height>=0 else (R-height)/2')],
+    namespace46(height=h46,q=qs46))
+elem_ok46 &= (len(alternatives46)==2
+              and all(sp.simplify(sp.radsimp(first)-second)==0
+                      for first,second in alternatives46)
+              and sp.expand(nq46['AA']*nq46['yy']-qs46)==0)
+# The tc chain, executed with a symbolic ratio: |tc|^2=K uu/den with
+# K=2B (north), 2 (south), and den>=2A(1-uu) is used in C46b3.
+rx46,ry46 = sp.symbols('rx46 ry46',real=True)
+dd46 = sp.Symbol('dd46',positive=True)
+tc_ok46 = True
+for north46 in (False,True):
+    alternatives46.clear()
+    nt46 = run46([stmt46(raw_with46,text) for text in (
+        'A,B = (4*mp.pi)**2,mp.exp(4)',
+        'uu = abs(ratio)**2',
+        'den = A*(1-uu)+mp.sqrt(A*A*(1-uu)**2+4*B*uu)',
+        'nu = mp.exp(-2) if infinity else mp.mpf(1)')],
+        namespace46(ratio=rx46+sp.I*ry46,infinity=north46))
+    # tc with den a positive symbol (den>0 is shown in C46b3)
+    ntc46 = run46([stmt46(raw_with46,
+                          'tc = ratio*mp.sqrt((2*B if infinity else 2)/den)')],
+                  namespace46(ratio=rx46+sp.I*ry46,infinity=north46,
+                              B=nt46['B'],den=dd46))
+    Kt46 = 2*sp.exp(4) if north46 else 2
+    tc_ok46 &= (
+        not alternatives46
+        and sp.expand(nt46['uu']-(rx46**2+ry46**2))==0
+        and sp.expand(ntc46['tc']*sp.conjugate(ntc46['tc'])
+                      -Kt46*(rx46**2+ry46**2)/dd46)==0
+        and nt46['A']==16*sp.pi**2 and nt46['B']==sp.exp(4)
+        # den=A(1-uu)+sqrt(A^2(1-uu)^2+4B uu) with the positive root
+        and sp.expand(nt46['den']-16*sp.pi**2*(1-nt46['uu'])
+                      -sp.sqrt(256*sp.pi**4*(1-nt46['uu'])**2
+                               +4*sp.exp(4)*nt46['uu']))==0
+        and nt46['nu']==(sp.exp(-2) if north46 else 1))
+# source_pc is the Hopf vector of the slice pair (nu conj(x), y) of the
+# docstring, with tc=xy: 2 (nu conj x) conj(y)=2 nu conj(tc).
+xs46,ys46 = sp.symbols('xs46 ys46')
+for nu46 in (sp.Integer(1),sp.exp(-2)):
+    npc46 = run46([stmt46(raw_with46,'source_pc = 2*nu*mp.conj(tc)')],
+                  namespace46(tc=xs46*ys46,nu=nu46))
+    tc_ok46 &= sp.expand(npc46['source_pc']
+                         -2*(nu46*sp.conjugate(xs46))*sp.conjugate(ys46))==0
+# The output: length, factor and the returned pair have |out|^2=source_radius
+# (length>0 is shown in C46b3; it enters below as a positive symbol).
+wr46 = sp.symbols('w0r46 w0i46 w1r46 w1i46',real=True)
+ll46 = sp.Symbol('ll46',positive=True)
+wsq46 = sum(w**2 for w in wr46)
+no46 = run46([stmt46(raw_with46,'length = mp.sqrt(abs(w0)**2+abs(w1)**2)')],
+             namespace46(w0=wr46[0]+sp.I*wr46[1],w1=wr46[2]+sp.I*wr46[3]))
+nf46 = run46([stmt46(raw_with46,'factor = mp.sqrt(source_radius)/length')],
+             namespace46(w0=wr46[0]+sp.I*wr46[1],w1=wr46[2]+sp.I*wr46[3],
+                         source_radius=s46,length=ll46))
+ret46 = stmt46(raw_with46,'return (+(factor*w0),+(factor*w1))')
+ret_out46 = eval(compile(ast.fix_missing_locations(ast.Expression(
+    SymSource46().visit(copy46.deepcopy(ret46.value)))),'sym46','eval'),nf46)
+out_ok46 = (sp.expand(no46['length']-sp.sqrt(wsq46))==0
+            and len(ret_out46)==2
+            and sp.expand(sum(w*sp.conjugate(w) for w in ret_out46)
+                          -s46*wsq46/ll46**2)==0)
+# so with ll46=length, |out|^2=s46 |w|^2/length^2=s46.
+rep('C46b2 elementary path: AA/yy alternatives identical, |p_S|=s, |w|^2',
+    elem_ok46 and proj46 and unit46)
+rep('C46b4 executed tc chain, slice Hopf vector, output norm |out|^2=s',
+    tc_ok46 and out_ok46)
+
+# C46b3.  Explicit constants (type (c)) on the whole raw domain
+# 0<u=|z|^2<=U=1e-4, which contains every compressed cap radius
+# u=S(r_L)<=r_L<1.7e-6 (C46d2) and u>0 (S>0, C46c).  Constants: 3<pi<4,
+# e^4<55, A=(4 pi)^2>144, and |atan x|<=|x| (atan(0)=0, 0<atan'<=1).
+#  * guard 0<radius<=1e-4: holds (u in (0,U]).
+#  * dominant real part: Re u2 (south), Re(-u1) (north) have the sign of
+#    1-2 pi p0>=1-8U>0 (C46b), so u2 resp. u1 is nonzero (ratio defined),
+#    the north stereographic den>=1-8U>0, and arg is taken in the open
+#    right half-plane, where Arg=atan(Im/Re) is smooth: height is smooth.
+#  * |height|=|atan(2 pi p2/(1-2 pi p0))|/(2 pi)<=u/(1-8u)<=U/(1-8U)<1/10:
+#    the guard abs(height)>=.1 never fires (margin recorded below).
+#  * uu=|ratio|^2: south <=((4pi^2u^2+4pi u)^2+(4pi u)^2)/(4(1-2pi u)^2),
+#    north <=4((pi u+pi^2u^2)^2+(pi u)^2)/(1-2pi u)^2 (C46b identities,
+#    |aa|,|bb|,|cc|<=s_j u); both <UU below.  The profile denominator is
+#    >=2A(1-uu)>0 (sqrt(A^2(1-uu)^2+4Buu)>=A(1-uu)), so
+#    |tc|^2<=max(1,B)uu/(A(1-uu))<55 UU/(144(1-UU))<1/100: e is defined.
+#  * R>0: tc=0 and height=0 would force (aa,bb,cc)=0 (C46b factor checks
+#    with 1+bb>0, 1+2bb>0), i.e. p=0, u=0.  Hence (R+h)/2, (R-h)/2 are
+#    smooth, source_radius=(R+h)/(2e)+(R-h)/2>0 and both w denominators
+#    are positive; D^-1's guard radius<=0 never fires (|g_j|^2=source_radius).
+#  * length: by (11.9)-(11.11) (written type (c) bounds of section 11.3,
+#    constants checked by I2u) |n_S-n_L|<=200u, so
+#    |w|^2/u=(1+n_S.n_L)/2=1-|n_S-n_L|^2/4>=1-10^4 u^2>=1-10^4 U^2>0;
+#    the guard length==0 never fires.
+U46 = sp.Rational(1,10**4)
+PI_LO46,PI_HI46,E4_HI46 = 3,4,55
+height_bound46 = U46/(1-2*PI_HI46*U46)
+UUs46 = ((PI_HI46**2*U46**2+PI_HI46*U46)**2*16+(4*PI_HI46*U46)**2)\
+        /(4*(1-2*PI_HI46*U46)**2)
+UUn46 = 4*((PI_HI46*U46+PI_HI46**2*U46**2)**2+(PI_HI46*U46)**2)\
+        /(1-2*PI_HI46*U46)**2
+UU46 = max(UUs46,UUn46)
+tc2_46 = E4_HI46*UU46/(144*(1-UU46))
+const_b46 = (
+    sp.pi>PI_LO46 and sp.pi<PI_HI46 and sp.exp(4)<E4_HI46
+    and (4*sp.pi)**2>144
+    and 1-2*PI_HI46*U46>0
+    and height_bound46<sp.Rational(1,10)
+    and UU46<1 and tc2_46<sp.Rational(1,100)
+    and 1-10**4*U46**2>0
+    and sp.Rational(17,10**7)<=U46)
+print('C46b3 margins on u<=1e-4: |height|<=',sp.N(height_bound46,6),
+      '(guard 1/10); |ratio|^2<',sp.N(UU46,4),'; |tc|^2<',sp.N(tc2_46,4),
+      '; |w|^2/u>=',sp.N(1-10**4*U46**2,8),
+      '; at the cap radius 1.7e-6: |height|<=',
+      sp.N(sp.Rational(17,10**7)/(1-8*sp.Rational(17,10**7)),6))
+rep('C46b3 raw guards inactive, Arg off its cut, R>0, |tc|<1, length>0',
+    const_b46 and stereo46 and elem_ok46 and tc_ok46)
+
+# ---------------------------------------------------------------- C46c
+# C46c.  The production radial maps ARE the section 11.3 maps.  Symbolic
+# execution of the bound statements of _elementary_pole_radial (type (a)):
+#   forward:  x=phi(r)=E(r)-e^3, y=T(x)=log(1+exp(x-1/x)),
+#             new=psi^-1(y)=c(1-1/log(y+e))            (a<r<c),
+#   inverse:  y=psi(s)=E(s)-e, L=log(e^y-1)=F(T^-1(y)), x-1/x=L,
+#             new=phi^-1(x)=c(1-1/log(x+e^3))          (0<s<c),
+# with E(t)=exp(c/(c-t)), a=1e-8, c=3a/2.  The IfExp alternatives f<0,
+# y>1, L<0 are identical functions: exp of both log forms agree (both
+# arguments real), and the quadratic root is rationalized.  So S and S^-1
+# have no seams other than r=c (and r=a for the patch).
+radial_inverse_if46 = [node for node in radial_tree46.body
+                       if isinstance(node,ast.If)
+                       and ast.dump(node.test,include_attributes=False)
+                       ==ast.dump(ast.parse('inverse',mode='eval').body,
+                                  include_attributes=False)][0]
+r46,sv46 = sp.symbols('r46 sv46',positive=True)
+X46,Y46 = sp.symbols('X46 Y46',positive=True)
+L46 = sp.Symbol('L46',real=True)
+rc46 = run46([stmt46(radial_tree46.body,"a,c = mp.mpf('1e-8'),mp.mpf('1.5e-8')")],
+             namespace46())
+a46,c46 = rc46['a'],rc46['c']
+E46 = lambda t: sp.exp(c46/(c46-t))
+def exp_equal46(lhs,rhs):
+    # lhs, rhs are products of exponentials: equal iff exponents agree
+    left = sp.powsimp(sp.expand(lhs),combine='exp',force=True)
+    right = sp.powsimp(sp.expand(rhs),combine='exp',force=True)
+    return (left.func==sp.exp and right.func==sp.exp
+            and sp.cancel(left.args[0]-right.args[0])==0)
+radial_ok46 = (a46==sp.Rational(1,10**8) and c46==3*a46/2
+               and isinstance(radial_inverse_if46.body[0],ast.If)
+               and isinstance(radial_inverse_if46.orelse[0],ast.If)
+               and len(radial_inverse_if46.body)==6
+               and len(radial_inverse_if46.orelse)==6)
+# forward branch: statements 1..5 of the else block
+fwd46 = radial_inverse_if46.orelse[1:]
+alternatives46.clear()
+nf46 = run46(fwd46[:1],namespace46(radius=r46,a=a46,c=c46))
+radial_ok46 &= exp_equal46(nf46['x']+sp.exp(3),E46(r46))
+nf46 = run46(fwd46[1:3],namespace46(x=X46,a=a46,c=c46))
+radial_ok46 &= (len(alternatives46)==1
+                and sp.expand(sp.exp(alternatives46[0][0])
+                              -sp.expand(sp.exp(alternatives46[0][1])))==0
+                and sp.simplify(alternatives46[0][0]
+                                -sp.log(1+sp.exp(X46-1/X46)))==0)
+nf46 = run46(fwd46[3:],namespace46(y=Y46,a=a46,c=c46))
+radial_ok46 &= sp.simplify(nf46['new_radius']-c46*(1-1/sp.log(Y46+sp.E)))==0
+# inverse branch: statements 1..5 of the if block
+inv46 = radial_inverse_if46.body[1:]
+alternatives46.clear()
+ni46 = run46(inv46[:1],namespace46(radius=sv46,a=a46,c=c46))
+radial_ok46 &= exp_equal46(ni46['y']+sp.E,E46(sv46))
+ni46 = run46(inv46[1:2],namespace46(y=Y46,a=a46,c=c46))
+radial_ok46 &= (len(alternatives46)==1
+                and sp.expand(sp.expand(sp.exp(alternatives46[0][0]))
+                              -sp.exp(alternatives46[0][1]))==0
+                and sp.simplify(alternatives46[0][1]
+                                -sp.log(sp.exp(Y46)-1))==0)
+alternatives46.clear()
+ni46 = run46(inv46[2:3],namespace46(L=L46,a=a46,c=c46))
+xroot46 = ni46['x']
+radial_ok46 &= (len(alternatives46)==1
+                and sp.simplify(sp.radsimp(alternatives46[0][0])
+                                -alternatives46[0][1])==0
+                and sp.simplify(xroot46-1/xroot46-L46)==0)
+ni46 = run46(inv46[3:],namespace46(x=X46,a=a46,c=c46))
+radial_ok46 &= sp.simplify(ni46['new_radius']
+                           -c46*(1-1/sp.log(X46+sp.exp(3))))==0
+# Hence T(T^-1(y))=log(1+exp(F(x)))=log(1+exp(L))=y: the inverse branch
+# is phi^-1 o T^-1 o psi with the T^-1 just checked (x-1/x=L=log(e^y-1)).
+psi_inverse46 = nf46['new_radius']             # source psi^-1(Y46)
+rep('C46c source radial maps are psi^-1 T phi and phi^-1 T^-1 psi; '
+    'rewrites same',radial_ok46 and source46)
+
+# C46c2.  Outer seams (flat joins, type (a) identities + written calculus).
+# Put t=c-r>0 (resp. t=c-s) and Q=exp(-c/t), A3=e^3.  Using the source
+# forms just identified:
+#   S(c-t):     1+ell=log(y+e)=c/t+log(1+Q D0(Q)),
+#               D0=e-A3-Q/(1-A3 Q)+log(1+exp(-1/Q+A3+Q/(1-A3 Q)))
+#               ((11.12i), C28b, here from the SOURCE x=e^3 expm1(.)),
+#   S^-1(c-t):  log(x+e^3)=c/t+log(1+Q D1(Q)),  with  m=-e+log(1-e^e e^(-1/Q)),
+#               K=sqrt((1+Qm)^2+4Q^2),  D1=e^3+m+2Q/(K+1+Qm)
+#               (new; source y=e expm1(.), y>1 branch, L>=0 root),
+#   and for either, c(1-1/(c/t+l))-(c-t)=t^2 l/(c+t l).
+# What is proved (written, section 11.3 style): D0 and D1 are C^infinity on
+# [0,Q0): the rational parts have nonvanishing denominators near Q=0
+# (1-A3 Q -> 1, K+1+Qm -> 2, and K>|1+Qm| always) and the remaining terms
+# are log(1+(flat)) with exp(-1/Q) flat at 0+.  So l(Q)=log(1+Q D(Q)) is
+# smooth with l(0)=0, Q(t) is flat at t=0+, and S-id, S^-1-id are flat at
+# c from the left.  The radial factors sqrt(S(r)/r) (S=id on r>=c) and
+# sqrt(S^-1(v)/v) are therefore C^infinity in r resp. v near c; since r=|z|^2
+# and v=|g_j(D z)|^2 are smooth (C46b), D and D^-1 o g_j o D are smooth
+# across {r=c} and {v=c}: ALL jets match.  What is checked symbolically: the
+# identities below.
+t46,Q46 = sp.symbols('t46 Q46',positive=True)
+mm46 = sp.Symbol('mm46',real=True)
+K46 = sp.Symbol('K46',positive=True)
+A3_46 = sp.exp(3)
+xS46 = run46(fwd46[:1],namespace46(radius=c46-t46,a=a46,c=c46))['x']
+seam_ok46 = sp.simplify(xS46-(1/sp.exp(-c46/t46)-A3_46))==0
+xQ46 = 1/Q46-A3_46
+alternatives46.clear()
+yQ46 = run46(fwd46[1:3],namespace46(x=xQ46,a=a46,c=c46))['y']
+seam_ok46 &= len(alternatives46)==1            # yQ46: the source f>=0 form
+D0_46 = sp.E-A3_46-Q46/(1-A3_46*Q46)\
+        +sp.log(1+sp.exp(-1/Q46+A3_46+Q46/(1-A3_46*Q46)))
+seam_ok46 &= sp.simplify(sp.E+yQ46-1/Q46-D0_46)==0
+ell46 = sp.Symbol('ell46',positive=True)
+seam_ok46 &= sp.simplify(c46*(1-1/(c46/t46+ell46))-(c46-t46)
+                         -t46**2*ell46/(c46+t46*ell46))==0
+ySinv46 = run46(inv46[:1],namespace46(radius=c46-t46,a=a46,c=c46))['y']
+seam_ok46 &= sp.simplify(ySinv46-(1/sp.exp(-c46/t46)-sp.E))==0
+yQi46 = 1/Q46-sp.E
+alternatives46.clear()
+run46(inv46[1:2],namespace46(y=yQi46,a=a46,c=c46))
+seam_ok46 &= len(alternatives46)==1
+LQ46 = alternatives46[0][0]                    # the source y>1 form
+mQ46 = -sp.E+sp.log(1-sp.exp(sp.E)*sp.exp(-1/Q46))
+seam_ok46 &= sp.simplify(LQ46-(1/Q46+mQ46))==0
+Lm46 = (1+Q46*mm46)/Q46
+Krel46 = (1+Q46*mm46)**2+4*Q46**2
+# sqrt(L^2+4)=K/Q: equal squares and K/Q>0.
+seam_ok46 &= sp.simplify(((K46/Q46)**2-(Lm46**2+4)).subs(K46,sp.sqrt(Krel46)))==0
+xK46 = (Lm46+K46/Q46)/2
+# xK46 is the source L>=0 root at L=Lm46: (x-L/2)^2=(L^2+4)/4=K^2/(4Q^2),
+# both x-L/2 and K/(2Q) positive.
+seam_ok46 &= (sp.expand((xroot46.subs(L46,Lm46)-Lm46/2)**2
+                        -Krel46/(4*Q46**2))==0
+              and (xroot46-L46/2).is_positive is True)
+D1_46 = A3_46+mm46+2*Q46/(K46+1+Q46*mm46)
+numer46 = sp.numer(sp.together(Q46*(xK46+A3_46)-1-Q46*D1_46))
+seam_ok46 &= (sp.expand(sp.expand(numer46).subs(K46**2,Krel46))==0
+              and sp.expand(numer46-(K46**2-Krel46))==0)
+# K>|1+Qm|, hence K+1+Qm>0 (manifest: K^2-(1+Qm)^2=4Q^2>0).
+seam_ok46 &= sp.expand(Krel46-(1+Q46*mm46)**2-4*Q46**2)==0
+rep('C46c2 outer seams r=c of D and v=c of D^-1: exact flat-factor forms',
+    seam_ok46 and radial_ok46)
+
+# C46c3.  Inner seam |z|^2=a (patch identity piece).  What is proved: the
+# section 11.3 inner spinor seam argument (blow-up z=sqrt(u) xi, the
+# parameterized inverse function theorem, and the W-equation whose identity
+# is C28c) gives that H_j joins the identity with ALL jets at |z|^2=a;
+# that argument is written, not re-derived here.  Its scalar inputs are
+# checked on the SOURCE forms (type (a)): phi(a)=0 with phi'(a)=6e^3/a>0
+# (simple zero), psi(0)=0 with psi'(0)=e/c>0 (so h0(t)=(exp(psi(t))-1)/t
+# is smooth and positive at 0), and S(a+t)=psi^-1(T(phi(a+t))) is flat at
+# t=0+ because T(x)=log(1+exp(x)exp(-1/x)) is flat at x=0+ and psi^-1
+# is analytic at 0 with psi^-1(0)=0 (written).
+xsrc46 = run46(fwd46[:1],namespace46(radius=r46,a=a46,c=c46))['x']
+ysrc46 = run46(inv46[:1],namespace46(radius=sv46,a=a46,c=c46))['y']
+inner_ok46 = (
+    sp.simplify(xsrc46.subs(r46,a46))==0
+    and sp.simplify(sp.diff(xsrc46,r46).subs(r46,a46)-6*sp.exp(3)/a46)==0
+    and sp.simplify(ysrc46.subs(sv46,0))==0
+    and sp.simplify(sp.diff(ysrc46,sv46).subs(sv46,0)-sp.E/c46)==0
+    and sp.simplify(psi_inverse46.subs(Y46,0))==0
+    and sp.simplify(sp.diff(psi_inverse46,Y46).subs(Y46,0)-c46/sp.E)==0)
+rep('C46c3 inner seam |z|^2=a: simple zero of phi, psi(0)=0, psi\'(0)=e/c',
+    inner_ok46)
+
+# ---------------------------------------------------------------- C46d
+# C46d.  Symbolic execution of the bound cap branch (type (a)) with a
+# symbolic round point (Z,X), X=-Xm (south) or X=+Xm (north), Xm>0, and
+# the bound _elementary_pole_inclusion executed symbolically.
+# elementary_pole_patch is replaced by a recorder returning symbols.
+# Checks: inf=X>0 evaluates to the static value on each sign class; the
+# patch receives U_j^* Z/den with |U_j^* Z|^2=|Z|^2 (unitary inclusion),
+# den^2=s_j(1+|X|sqrt(2-X^2)), infinity=inf; the return is
+# (kind,(conj(zz0)/nu_j,zz1)) with kind c0/ci and nu_j=1/e^-2.
+Xm46 = sp.Symbol('Xm46',positive=True)
+Zr46 = sp.symbols('Za0_46 Zb0_46 Za1_46 Zb1_46',real=True)
+Zsym46 = (Zr46[0]+sp.I*Zr46[1],Zr46[2]+sp.I*Zr46[3])
+W46 = sp.symbols('Wa0_46 Wb0_46 Wa1_46 Wb1_46',real=True)
+Wsym46 = (W46[0]+sp.I*W46[1],W46[2]+sp.I*W46[3])
+inclusion_ns46 = namespace46()
+run46([inclusion_tree46],inclusion_ns46)       # defines the function
+patch_calls46 = []
+def patch_recorder46(pair,infinity,dps=50):
+    patch_calls46.append((pair,infinity))
+    return Wsym46
+cap_ok46 = True
+for north46 in (False,True):
+    patch_calls46.clear()
+    alternatives46.clear()
+    Xv46 = Xm46 if north46 else -Xm46
+    nc46 = run46(cap_nodes46[0].body[:-1],
+                 namespace46(X=Xv46,Z=Zsym46,dps=50,
+                             _elementary_pole_inclusion=
+                             inclusion_ns46['_elementary_pole_inclusion'],
+                             elementary_pole_patch=patch_recorder46))
+    ret46 = eval(compile(ast.fix_missing_locations(ast.Expression(
+        SymSource46().visit(copy46.deepcopy(cap_nodes46[0].body[-1].value)))),
+        'sym46','eval'),nc46)
+    sj46 = sp.pi if north46 else 2*sp.pi
+    nuj46 = sp.exp(-2) if north46 else sp.Integer(1)
+    zL46,infarg46 = patch_calls46[0]
+    den46 = nc46['den']
+    cap_ok46 &= (
+        bool(nc46['inf'])==north46 and not alternatives46
+        and nc46['scale']==sj46 and len(patch_calls46)==1
+        and bool(infarg46)==north46
+        and sp.simplify(den46**2-sj46*(1+Xm46*sp.sqrt(2-Xm46**2)))==0
+        and sp.expand(sum(sp.re(w*den46)**2+sp.im(w*den46)**2 for w in zL46)
+                      -sum(v**2 for v in Zr46))==0
+        and ret46[0]==('ci' if north46 else 'c0')
+        and sp.simplify(ret46[1][0]-sp.conjugate(Wsym46[0])/nuj46)==0
+        and sp.simplify(ret46[1][1]-Wsym46[1])==0
+        and nc46['nu']==nuj46)
+# The round cap identity |X|sqrt(2-X^2)=sqrt(1-|Z|^4) when |Z|^2=1-X^2
+# (N8a0): equal squares, both sides nonnegative.
+cap_ok46 &= sp.expand(Xm46**2*(2-Xm46**2)-(1-(1-Xm46**2)**2))==0
+rep('C46d cap branch source: static inf, unitary U_j, den^2, return',
+    cap_ok46 and source46)
+
+# C46d2.  Explicit constants (type (c)) on the cap 1-|X|<alpha/2, |Z|^2+X^2=1.
+#  * |X|>1-alpha/2>0: X!=0, so inf=X>0 is constant on each of the two cap
+#    components (static) and |X|=+-X is smooth there.
+#  * 2-X^2>=1, so sqrt(2-X^2)>=1 is smooth and
+#    1+|X|sqrt(2-X^2)>=1+|X|>2-alpha/2>0: den>0 and smooth.
+#  * |Z|^2=1-X^2=(1-|X|)(1+|X|)<(alpha/2)*2=alpha.
+#  * r_L=|z_L|^2=|Z|^2/(s_j(1+|X|sqrt(2-X^2)))<alpha/(pi(2-alpha/2))
+#        <alpha/(3(2-alpha/2))<1.7e-6=:RL (s_j>=pi>3; programme 11.6).
+#    Hence the patch's D is called only for a<r_L<RL<=1e-4 (guard
+#    radius<=a never fires), and u=S(r_L)<=r_L (S<r on (a,c), S=id on
+#    r>=c) lies in (0,1e-4] (C46b3 applies).
+#  * |zz|^2<=max(c,r_L+80r_L^2) (written bound after (11.12j), type (c))
+#    <max(c,RL+80RL^2)<2e-6<(.0098)^2.
+#  * Four-seed restoration (source43, source_cusp_ok30): x_s=conj(zz0)/nu,
+#    y_s=zz1, A=nu^2 e|x_s|^2=e|zz0|^2<=|zz|^2<2e-6<1, Y=|zz1|^2<2e-6<1,
+#    q=AY<(1e-6)^2<1/8, rr=|x_s y_s|^2<=e^4(|zz|^2/2)^2<55e-12<1/4,
+#    every seed argument A,qA,Y,qY<1/16 (linear branch), and the cusp
+#    Cramer determinant +-(1-rr^2)!=0.
+alpha46 = sp.Rational(1,10**5)
+RL46 = sp.Rational(17,10**7)
+zz_max46 = sp.Rational(2,10**6)
+nu_s46 = sp.Symbol('nu_s46',positive=True)
+ee46 = sp.Symbol('ee46',positive=True)
+zq46 = sp.symbols('zq0_46 zq1_46')
+const_d46 = (
+    1-alpha46/2>0 and 2-alpha46/2>0
+    and alpha46/(PI_LO46*(2-alpha46/2))<RL46
+    and RL46<=U46
+    and max(c46,RL46+80*RL46**2)<zz_max46
+    and zz_max46<sp.Rational(98,10**4)**2
+    and zz_max46<1 and zz_max46<sp.Rational(1,16)
+    and (zz_max46/2)**2<sp.Rational(1,8)
+    and E4_HI46*(zz_max46/2)**2<sp.Rational(1,4)
+    and E4_HI46*(zz_max46/2)**2<sp.Rational(9,100)
+    and 1-(E4_HI46*(zz_max46/2)**2)**2>0
+    # A=nu^2 e |conj(zz0)/nu|^2 = e |zz0|^2 for nu>0
+    and sp.simplify(nu_s46**2*ee46*sp.Abs(sp.conjugate(zq46[0])/nu_s46)**2
+                    -ee46*sp.Abs(zq46[0])**2)==0
+    and source43 and source_cusp_ok30)
+print('C46d2 margins: r_L<',sp.N(alpha46/(PI_LO46*(2-alpha46/2)),8),
+      '(<1.7e-6); |zz|^2<',sp.N(max(c46,RL46+80*RL46**2),8),
+      '(<2e-6); four-seed max(A,Y)<2e-6 (domain <=4, seeds linear <=1/16)')
+rep('C46d2 cap denominators, r_L<1.7e-6, |zz|^2<2e-6, four-seed A,Y<1',
+    const_d46 and cap_ok46)
+
+# ---------------------------------------------------------------- C46e
+# C46e is solely a reproducible numerical observation (d); C46a-d do not
+# use it.  Under elementary_formula_branches (no dps shortcut), at 100
+# digits (pole patch internal 150-170), both signs, two spinor directions:
+#  (e1) production cap formula (elementary_global_slice at the round point
+#       (11.17a) of z_L) at |z_L|^2=a(1+-eps), eps in {1e-3,2e-4}, and
+#       |z_L|^2=c(1+-eps), eps in {1/30,1/100} (this crossing contains
+#       both the D seam r=c and the nearby D^-1 seam v=c).  Recorded: slice
+#       vs direct (conj(H0)/nu,H1); jump |H(z+)-H(z-)|/|z+-z-| (O(eps)
+#       difference, ratio ~1); exact identity on the inside of the inner
+#       seam and exact D=id outside the outer seam; and the flat defects
+#       |H(z)-z|/|z| (inner) and |H(z)-D^-1 g(z)|/|z| (outer).
+#       Sample size 2 signs x 2 directions x 4 eps x 2 sides = 32.
+#  (e2) the radial factors alone at r=c(1-eps) against the section 11.7
+#       bound 176q, q=exp(-1/eps), and the rewrite alternatives evaluated
+#       both ways.
+def cap_point46(zL,north):
+    sj = mp41.pi if north else 2*mp41.pi
+    h = sj*(abs(zL[0])**2+abs(zL[1])**2)
+    X = (1 if north else -1)*(1-h)/mp41.sqrt(1+h*h)
+    g = mp41.sqrt(2*sj/(1+h*h))
+    a,b = ((zL[0]+zL[1])/mp41.sqrt(2),
+           ((zL[0]-zL[1])/mp41.sqrt(2) if north
+            else mp41.j*(zL[0]-zL[1])/mp41.sqrt(2)))
+    return (g*a,g*b),X
+
+
+rows46 = []
+sample_ok46 = True
+with mp41.workdps(100), cusp30.elementary_formula_branches():
+    a_n46,c_n46 = mp41.mpf('1e-8'),mp41.mpf('1.5e-8')
+    dirs46 = ((mp41.mpc(1,2),mp41.mpc(3,-1)),(mp41.mpc(-2,1),mp41.mpc(0,1)))
+    for north46 in (False,True):
+        nu_n46 = mp41.exp(-2) if north46 else mp41.mpf(1)
+        for d46 in dirs46:
+            dn46 = mp41.sqrt(abs(d46[0])**2+abs(d46[1])**2)
+            xi46 = (d46[0]/dn46,d46[1]/dn46)
+            for seam46,r0_46,epss46 in (('inner',a_n46,('1e-3','2e-4')),
+                                        ('outer',c_n46,('1/30','1/100'))):
+                for eps_s46 in epss46:
+                    eps46 = mp41.mpf(eps_s46) if '/' not in eps_s46 else \
+                        mp41.mpf(1)/int(eps_s46.split('/')[1])
+                    side46 = {}
+                    for sgn46 in (1,-1):
+                        rr46 = r0_46*(1+sgn46*eps46)
+                        zL46n = (mp41.sqrt(rr46)*xi46[0],mp41.sqrt(rr46)*xi46[1])
+                        Zp46,Xp46 = cap_point46(zL46n,north46)
+                        kind46,out46 = cusp30.elementary_global_slice(
+                            Zp46,Xp46,dps=80)
+                        H46 = cusp30.elementary_pole_patch(zL46n,north46,dps=80)
+                        direct46 = (mp41.conj(H46[0])/nu_n46,H46[1])
+                        cons46 = max(abs(u-v) for u,v in zip(out46,direct46))
+                        if seam46=='inner':
+                            ref46 = zL46n
+                        else:
+                            # D^-1 o g_j at the patch's own working precision
+                            # (max(100,80)+50), so that D=id gives equality
+                            with mp41.workdps(150):
+                                ref46 = cusp30._elementary_pole_radial(
+                                    cusp30.elliptic_pole_raw_inverse(
+                                        zL46n,north46,dps=80,elementary=True),
+                                    inverse=True)
+                        defect46 = (mp41.sqrt(sum(abs(u-v)**2 for u,v
+                                                   in zip(H46,ref46)))
+                                    /mp41.sqrt(rr46))
+                        side46[sgn46] = (zL46n,H46,cons46,defect46,kind46,
+                                         1-abs(Xp46))
+                    zp46,Hp46 = side46[1][:2]
+                    zm46,Hm46 = side46[-1][:2]
+                    jump46 = (mp41.sqrt(sum(abs(u-v)**2 for u,v in zip(Hp46,Hm46)))
+                              /mp41.sqrt(sum(abs(u-v)**2 for u,v in zip(zp46,zm46))))
+                    # inside of the inner seam / outside of the outer seam the
+                    # formula is exactly the identity / exactly D^-1 g
+                    exact_side46 = side46[-1] if seam46=='inner' else side46[1]
+                    flat_side46 = side46[1] if seam46=='inner' else side46[-1]
+                    rows46.append((north46,seam46,eps_s46,jump46,
+                                   flat_side46[3],exact_side46[3],
+                                   max(side46[1][2],side46[-1][2])))
+                    sample_ok46 &= (
+                        side46[1][4]==('ci' if north46 else 'c0')
+                        and side46[-1][4]==side46[1][4]
+                        and max(side46[1][5],side46[-1][5])<mp41.mpf('5e-6')
+                        and max(side46[1][2],side46[-1][2])<mp41.mpf('1e-90')
+                        and exact_side46[3]==0
+                        and abs(jump46-1)<mp41.mpf('1e-3'))
+    inner_def46 = {e:max(r[4] for r in rows46 if r[1]=='inner' and r[2]==e)
+                   for e in ('1e-3','2e-4')}
+    outer_def46 = {e:max(r[4] for r in rows46 if r[1]=='outer' and r[2]==e)
+                   for e in ('1/30','1/100')}
+    # flatness: the defect collapses by many orders when eps shrinks
+    sample_ok46 &= (inner_def46['1e-3']<mp41.mpf('1e-6')
+                    and inner_def46['2e-4']<inner_def46['1e-3']*mp41.mpf('1e-10')
+                    and outer_def46['1/30']<mp41.mpf('1e-10')
+                    and outer_def46['1/100']<outer_def46['1/30']*mp41.mpf('1e-20'))
+    print('C46e production cap observations (d), sample size',2*len(rows46),':')
+    print('    max |slice-direct| =',mp41.nstr(max(r[6] for r in rows46),4),
+          ' max |jump ratio-1| =',mp41.nstr(max(abs(r[3]-1) for r in rows46),4))
+    print('    inner flat defect |H(z)-z|/|z| at eps=1e-3, 2e-4:',
+          mp41.nstr(inner_def46['1e-3'],4),mp41.nstr(inner_def46['2e-4'],4),
+          ' (exactly 0 inside)')
+    print('    outer flat defect |H(z)-D^-1 g(z)|/|z| at eps=1/30, 1/100:',
+          mp41.nstr(outer_def46['1/30'],4),mp41.nstr(outer_def46['1/100'],4),
+          ' (exactly 0 outside)')
+    # (e2) radial factors at the outer seam vs 176q, and rewrites both ways
+    radial_rows46 = []
+    for n_eps46 in (30,100):
+        eps46 = mp41.mpf(1)/n_eps46
+        q46 = mp41.exp(-1/eps46)
+        rr46 = c_n46*(1-eps46)
+        Sz46 = cusp30._elementary_pole_radial((mp41.sqrt(rr46),mp41.mpc(0)))
+        Si46 = cusp30._elementary_pole_radial((mp41.sqrt(rr46),mp41.mpc(0)),
+                                              inverse=True)
+        relS46 = abs(abs(Sz46[0])**2-rr46)/rr46
+        relSi46 = abs(abs(Si46[0])**2-rr46)/rr46
+        radial_rows46.append((n_eps46,relS46,relSi46,176*q46))
+        sample_ok46 &= relS46<176*q46 and relSi46<176*q46 and relS46>0
+    rew46 = mp41.mpf(0)
+    for hh46 in (mp41.mpf('1e-7'),mp41.mpf('-1e-7'),mp41.mpf('3e-3'),
+                 mp41.mpf('-3e-3')):
+        for qq46 in (mp41.mpf('1e-14'),mp41.mpf('1e-9')):
+            RR46 = mp41.sqrt(hh46*hh46+4*qq46)
+            rew46 = max(rew46,abs(2*qq46/(RR46-hh46)-(RR46+hh46)/2)/RR46,
+                        abs(2*qq46/(RR46+hh46)-(RR46-hh46)/2)/RR46)
+    for ff46 in (mp41.mpf('-30'),mp41.mpf('-.5'),mp41.mpf('.5'),mp41.mpf('30')):
+        rew46 = max(rew46,abs(mp41.log1p(mp41.exp(ff46))
+                              -(ff46+mp41.log1p(mp41.exp(-ff46))))
+                    /mp41.log1p(mp41.exp(ff46)))
+    for yv46 in (mp41.mpf('.3'),mp41.mpf('1.5'),mp41.mpf('5')):
+        rew46 = max(rew46,abs(yv46+mp41.log1p(-mp41.exp(-yv46))
+                              -mp41.log(mp41.expm1(yv46)))/abs(mp41.log(mp41.expm1(yv46))))
+    for Lv46 in (mp41.mpf('-40'),mp41.mpf('-.7'),mp41.mpf('.7'),mp41.mpf('40')):
+        rew46 = max(rew46,abs(2/(mp41.sqrt(Lv46**2+4)-Lv46)
+                              -(Lv46+mp41.sqrt(Lv46**2+4))/2)
+                    /((Lv46+mp41.sqrt(Lv46**2+4))/2))
+    sample_ok46 &= rew46<mp41.mpf('1e-60')
+    print('    radial |S(r)-r|/r, |S^-1(r)-r|/r at r=c(1-eps) vs 176q:',
+          [(f'1/{n}',mp41.nstr(a,4),mp41.nstr(b,4),mp41.nstr(cq,4))
+           for n,a,b,cq in radial_rows46])
+    print('    rewrite alternatives evaluated both ways, max relative gap:',
+          mp41.nstr(rew46,4))
+rep('C46e production cap formula across the radial seams (numerical, d)',
+    sample_ok46)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

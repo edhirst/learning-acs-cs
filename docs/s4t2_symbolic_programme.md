@@ -141,6 +141,13 @@
 > of the terminal map) are exact identities. The joins at \(|b|=2/5\)
 > and \(1/5\) are flat. The core and collar height-cell seams are
 > equalities of analytic cell formulas on open intervals.
+> **Pole-cap internals (2026-10-12-EH-6):** C46 certifies the whole
+> cap branch at both signs as one smooth map. Its 32 conditionals are
+> classified. The raw inverse is a single branch with identical
+> rationalized alternatives, and its guards are inactive with explicit
+> margins. The production radial maps are exactly
+> \(\psi^{-1}T\varphi\) and \(\varphi^{-1}T^{-1}\psi\), with flat-factor
+> forms at their outer seams.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
 > **Resume point: complete T16's exact branch circuit and second-jet checks, then simplify the fixed counts.**
 
@@ -3021,6 +3028,7 @@ derivatives are numerical observations, type (d).
 | C43a–f, argument selector for \(|t_c|<1/2\) (a,b,c,d) | On the lower overlap \(-\pi<\Arg p<-5\pi/6\), where the half-centred chart has \(a_1=a_0+1\), at both cusp signs and for every \(|t_c|<1/2\): the two charts give the same ten-slot projector. For a smooth common final fold vector (a premise resting on the other seams), the restored outputs are related by the cusp deck \(T\) of C38d in the core and by \(+e_4\) (south) or \(-e_4\) (north) in the collar. Ingredients: \(K(u)+K(1/u)=1\) and linear seeds give \(H_f(\hat\psi p)=H_f(p)+1\) on \(1/4<Y_0<2\) for every \(q<1/8\); \(Y_0\in(1/4,2)\) in core and collar (collar \(q\in(1/1375,1/8)\) proved; measured \(Y_0\in[0.580,0.996]\)); \((x_1,y_1)=\hat\psi(x_0,y_0)\) for every moment \(f\); in the collar \(\rho_1=\rho_0+P\) and \((-iP,0)=\pm(e_4-c\cdot e)\mp(\theta/2\pi)e_1\), the ten-vector changes by \(e^{-i\theta_c}\), the corrected \(\mathrm{one}\) is unchanged mod 1, and \(D\) is invariant: ALL PASS. Exact witnesses at \(|t_c|=1/5,\,2/5\) on both sides of the selector, both signs. C43f, numerical (d), sample size 8: projector difference \(\le8.6\cdot10^{-122}\), deck residual \(\le1.7\cdot10^{-120}\), measured \(\Delta\mathrm{four}=+1\) south and \(-1\) north. |
 | C44a–e, collar/pure-middle joins (a,b,c,d) | Along the whole seams \(|t|=1/2\) (south, selector `abs(t)<.5`) and \(|\mathrm{small}|=1/2\) (north, selector `inf`), for every argument chart of \(a\) and every fixed branch of \(\log t\). At \(\lambda=1\) every moment branch gives \(f=2\sqrt q\sinh(kb)\), so \(\rho=P(a+1/2)\), the source's \(\lambda=1\) return. With the C43 lattice identity, the \(\lambda=1\) collar data \(M_1\) have \(x_4=\xi_4+a+1/2\) (south) or \(-(a+1/2)\) (north); the actual collar data differ by flat terms, using §11.2's smoothness of the moment in \(\lambda\) up to \(1\). These equal the pure-middle \(x_4\) modulo an integer, while \(x_1\) differs by a real gauge. Hence the projectors agree, the corrected \(x_1\) agree modulo \(1\), and, for a smooth final fold vector, the restored outputs differ by a holomorphic lattice translation. \(1-\lambda\) and the cusp weight are flat at the seam: ALL PASS. Exact witnesses lie at \(|t|,|\mathrm{small}|\in\{499/1000,1/2,501/1000\}\). C44e, numerical (d), sample size 36: across both seams, for nine \((\Arg,a)\) choices including the half-centred chart and two with \(\Arg t\in(-3\pi/4,-\pi/4)\) (where the projector sees \(x_4\)), the \(\Psi\) jump is an integer lattice vector plus a residual of order \(\varepsilon\) (\(10^{-12}\to10^{-24}\)), as is the projector jump. |
 | C45a–c, height moment and cells (a,b,c) | The executed bodies of `inverse_height_moment`, `_height_R` and `_height_terminal_forward` are bound to the source. Every alternative of a stable rewrite is the same function: \(x=e^2\operatorname{expm1}(2(a-\delta)/(c-a))=\varphi(a)\), the softplus forms, \(c\ell/(1+\ell)=\psi^{-1}(S)\), the positive root of \(x-1/x=L\), and \(\delta+c\ell/(2(2+\ell))=\varphi^{-1}(x)\). Both terminal branches equal \(z_c-\eta/\log(E_0+M)\), since \(1+F(e^U-1)=e^{E_z-E_0}(1+D)\). At \(|b|=2/5\) the interior composite equals the outer formula once \(T=\mathrm{id}\), and \(T-\mathrm{id}=\eta\ell/(L(L+\ell))\) is flat. At \(|b|=1/5\), \(R(a)-a=c\,l/(L(L+l))\) with \(l\) a smooth function of \(w=e^{-L}\) vanishing at \(0\). The \(|b|=1/10\) join is §11.2's written blow-up argument. The \(R^{-1}\) switch at \(|b|=b^*(q,\lambda)\in(0.15,0.2)\), where \(h(R(b^*))=c\), is flat because \(R-\mathrm{id}\) is; and \(h(2/5)>c\) since \(G_*(c)<0.446<0.4485<z_c\). Height-cell seams: core \(A=e^{2a-1}\) at \(a=1/2\) and \(Y=e^{-2a-1}\) at \(a=-1/2\) on both cells; collar \(\rho\) equal on both cells for every \(\kappa\): ALL PASS. |
+| C46a–e, pole-cap internals (a,c,d) | Whole cap, both signs. Full bodies of `elementary_pole_patch`, `_elementary_pole_radial` (with its signature default) and `elliptic_pole_raw_inverse` are bound, and all 32 conditionals are classified. The identities are checked by executing the bound source statements under sympy, recording both alternatives of each symbolic if-expression. Both signs share the height \(\tan(2\pi h)=2\pi p_2/(1-2\pi p_0)\), and the executed height is \(\pm\operatorname{Arg}\) of the dominant coordinate; the \(AA\) and \(yy\) alternatives are identical (also for a symbolic \(q>0\)); \(|p_S|=s\); the executed chain gives \(|t_c|^2=K\,uu/\mathrm{den}\) with the positive root in den; `source_pc` is the Hopf vector of the slice pair \((\nu\bar x,y)\); and the returned pair has \(|\mathrm{out}|^2=s\). On the whole raw domain \(0<u\le10^{-4}\): \(|h|\le1.0008\cdot10^{-4}<1/10\), the height argument stays in the right half-plane, and \(|tc|^2<4.9\cdot10^{-7}\); the projection length (from (11.11)) satisfies \(|w|^2/u\ge0.9999\). The radial maps are \(S=\psi^{-1}T\varphi\) and \(S^{-1}=\varphi^{-1}T^{-1}\psi\), with identical rewrite alternatives; both outer seams have exact flat-factor forms \(t^2\ell/(c+t\ell)\), \(\ell=\log(1+QD(Q))\), \(Q=e^{-c/t}\); the inner-seam inputs of §11.3 are checked. Cap margins: \(r_L<1.6667\cdot10^{-6}\) (bound \(1.7\cdot10^{-6}\)); \(|z_S|^2<1.7003\cdot10^{-6}\) (bound \(2\cdot10^{-6}\)); four-seed \(A,Y<2\cdot10^{-6}\): ALL PASS. C46e, numerical (d), 32 production points: slice versus patch \(8.8\cdot10^{-105}\); flat defects at the seams scale as predicted. |
 | m1–m3, formula-branch source audit and observations (d) | The checker identifies and gates all six working-precision identity returns, and checks nested/exception restoration: ALL PASS. Two strict interior type-(d) samples have exact-formula value gaps \(9.0129315017\cdot10^{-99}\) (pole radial) and \(3.23193414504\cdot10^{-92}\) (height radial) from the default identity returns, evaluated at 240 digits. Sample size two; m3 reproduces the observations. This does not evaluate the fixed-count global tensor. |
 | N9a–i, cap/slab overlap (a,c) | for both signs, exact phase telescoping, source-linked raw-reference/projector identification, matching cusp inputs, torus restoration and first/second jets: ALL PASS, conditional on the written §11.3, §11.5 and §10.6 bounds; the post-raw radial margin is checked in N9b |
 | N10a–d, radial shell (a,b) | source-linked finite elementary \(S,S^{-1}\) nodes, exact scalar inverse and derivative identities, 16 first and 64 second entries for each radial direction, and \(\det DD=S(r)S'(r)/r>0\) on \(10^{-8}<r<1.5\cdot10^{-8}\): ALL PASS; the raw pole and torus stages are not composed here |
@@ -3777,6 +3785,48 @@ both cells give \(A=e^{2a-1}\), and at \(a=-1/2\) both give
 \(Y=e^{-2a-1}\). In the collar, for every \(\kappa\), the logradius
 values \(\log Y(b)/2\) and \(P+\log Y(b-1)/2\) coincide. These are
 equalities of analytic functions on \(|a\mp1/2|<1/10\), so all jets agree.
+
+C46 certifies the pole-cap branch of the slice (\(1-|X|<\alpha/2\)) at
+both signs as one smooth map. The bodies of `elementary_pole_patch`,
+`_elementary_pole_radial` and `elliptic_pole_raw_inverse` are bound to the
+source. Their 32 conditionals are each static, a guard, a precision
+shortcut (gated by `elementary_formula_branches`), an identical
+alternative, a flat join, a no-op, or unexecuted. The identities are
+checked by executing the bound source statements under sympy: an
+if-expression with a symbolic test records both alternatives, so the
+identities hold for the production expressions themselves. This covers
+the selected height and ratio, the \(t_c\) chain, `source_pc`, and the
+returned pair; the default `inverse=False` of the radial map, on which
+the call for \(D\) relies, is bound as well.
+
+In \(p=\operatorname{Hopf}(z)\) both signs share the height
+\(\tan(2\pi h)=2\pi p_2/(1-2\pi p_0)\). The real part of the dominant
+coordinate has the sign of \(1-2\pi p_0\ge1-8u>0\), so the principal
+argument never meets its cut. The two alternatives of \(AA\) and of \(yy\)
+are the identical functions \((R\pm h)/2\), \(xx\cdot yy=\nu^2|t_c|^2\)
+gives \(|p_S|=s\), and
+\(|w|^2=r(1+n_S\cdot n_L)/2+(|p_S|^2-s^2)r/(4s^2)\). On the whole raw
+domain \(0<u\le10^{-4}\) the explicit constants are:
+\(|h|\le u/(1-8u)\le1.0008\cdot10^{-4}<1/10\); \(|\mathrm{ratio}|^2<1.283\cdot10^{-6}\);
+\(|t_c|^2<4.9\cdot10^{-7}\); \(R,s>0\); and, citing (11.9)–(11.11),
+\(|w|^2/u\ge0.9999\). So no guard fires (C46b–b4). The returned pair has
+\(|\mathrm{out}|^2=s\) exactly (C46b4).
+
+The production radial maps are exactly \(S=\psi^{-1}T\varphi\) and
+\(S^{-1}=\varphi^{-1}T^{-1}\psi\), and their \(f<0\), \(y>1\), \(L<0\)
+alternatives are identical. At \(r=c\) and \(v=c\), with \(Q=e^{-c/t}\),
+\[
+ S(c-t)-(c-t)=\frac{t^2\ell}{c+t\ell},\qquad \ell=\log\bigl(1+QD(Q)\bigr),
+\]
+with an explicit \(D_0\) for \(S\) and \(D_1=e^3+m+2Q/(K+1+Qm)\) for
+\(S^{-1}\) (C46c–c2). The smoothness of \(D_0,D_1\) at \(Q=0\), hence the
+flatness, is written calculus. The inner seam \(|z|^2=10^{-8}\) rests on
+§11.3's blow-up argument; C46c3 checks its scalar inputs, namely the
+simple zero of \(\varphi\) with \(\varphi'(a)=6e^3/a\), and \(\psi(0)=0\)
+with \(\psi'(0)=e/c\). On the cap, \(|X|>1-\alpha/2\), the denominator
+exceeds \(2-\alpha/2\), \(r_L<1.6667\cdot10^{-6}\) and
+\(|z_S|^2<1.7003\cdot10^{-6}\), and every four-seed input is \(<2\cdot10^{-6}\),
+on its linear branch (C46d–d2). C46e is a numerical observation (d).
 
 On the checked south raw-pole annulus, write \(r=|Z_0|^2+|Z_1|^2\) and
 \(z_L=(Z_0-iZ_1,Z_0+iZ_1)/\sqrt{4\pi(1+\sqrt{1-r^2})}\). Let \(w=g_0(z_L)\)

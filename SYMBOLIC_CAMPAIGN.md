@@ -473,11 +473,14 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   the inverse-first moment (all its stable rewrites and its
   joins at \(|b|=2/5,1/5\)) and the core and collar height-cell
   seams are one smooth function.
+  **Pole-cap internals (2026-10-12-EH-6):** C46 certifies the
+  whole cap branch at both signs: all 32 conditionals classified,
+  the raw inverse a single branch with inactive guards, and the
+  radial maps exact with flat outer seams.
   **Next unchecked T16 tasks:** promote the remaining
-  one-chamber checks to whole-seam statements: the radial
-  pole shells and raw annuli (N10, g, h, f), the collar
-  log cut (C34) and the cusp height-cell and central-fibre
-  charts; then bind a guarded six-real second-jet circuit to
+  one-chamber checks to whole-seam statements: the slab
+  phase band, the collar log cut (C34) and the cusp
+  height-cell and central-fibre charts; then bind a guarded six-real second-jet circuit to
   every remaining production source branch and the global
   determinant/overlap bounds. The listed joins are research
   targets, not certificates.
