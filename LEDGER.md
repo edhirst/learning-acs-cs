@@ -2837,3 +2837,58 @@ in `AGENTS.md` §5.
   are cited. The dead-arm argument for the legacy functions is a source
   check of the `elementary` flag and of the core return, not an execution
   trace.
+
+### 2026-10-12-EH-9 — Prove the differential of G_cl invertible everywhere
+- **Date:** 2026-10-12
+- **Collaborator:** Edward Hirst
+- **Agent:** Claude Code (Claude Opus 5.5), with one independent reviewer subagent
+- **Type:** addition
+- **Based on:** 8ddb40d
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (new section
+  C49a–c), docs/s4t2_symbolic_programme.md (§11.8 table row). No
+  manuscript or construction file changed.
+- **Change:** added C49, a general (not chamber-wise) proof that
+  \(DG_{\mathrm{cl}}\) is invertible at every point.
+  - On the slab \(G_W\) is \(S^1\)-equivariant: the fold step, the start
+    vector and the band correction are bound to the source, and the final
+    updates are bound in C41a. So \(\det DG_W=\det D\Lambda\).
+  - The orbit map \(\Lambda\) factors into invertible maps:
+    - the raw base, with \(R'/R=2/(\sqrt{2-X^2}(1-X^2))>0\);
+    - the conformal inverse stereographic map;
+    - \((u_1,u_2)\mapsto(u_1/u_2,\Arg u_2)\) and its north counterpart
+      \((u_2/u_1,\Arg u_1)\);
+    - the monotone profile, with Jacobian \(g(g+2rg')>0\);
+    - the height maps, with derivatives \(-f_a(1\mp f/R)/2\),
+      \(-f_a/(2R)\) and, in core cell 1, \(2f_a/(R(R-f))\), nonzero since
+      \(f_a>0\) by (11.13c);
+    - the Cramer step \(\partial x_4/\partial\rho=\pm1/P\).
+  - The torus restoration is invertible iff the orbit directions are
+    transverse to the slice: \(\det(e_2,e_3)\ne0\) or the lattice
+    determinant \(\ne0\), independently of the correction \(D\).
+  - On the cap: the radial map increases, the patch has
+    \(\det=SS'/r>0\) (N10), and the raw \(g_j\) has \(\sigma_{\min}>0.99\)
+    by (11.11).
+  - Together with §11.6's bijectivity, \(G_{\mathrm{cl}}\) is a
+    diffeomorphism. The identities are type (a); the cited inputs are
+    types (b)/(c).
+- **Why:** C36 and C37 factored the determinant in single cells only;
+  the direct certificate needs it everywhere.
+- **Verification:** `python3 extra/s4t2_explicit/sym/chart_identities.py`:
+  **ALL PASS**. Independent reviewer subagent: sound, with caveats. It
+  re-derived (a)–(d), including the \(T^2\)-equivariant transversality
+  argument and the identity \(1/\mathrm{small}_i=\mathrm{small}_d\) at the
+  dominant-ratio switch. Its defects are fixed:
+  - the cap margin was corrected from \(1999/2000\) to \(0.99\);
+  - the citation was corrected (C30k; C9a, C17d);
+  - the band correction is now bound;
+  - the north chart and core-cell factors were added;
+  - the cited inputs are named, with their claim types.
+
+  It noted that several algebraic checks (block determinant, shear,
+  ratio chart) only confirm the written argument; the local-diffeomorphism
+  claim rests on the cited results. `verify_construction.py`: `all checks
+  passed`; `sphere_products.py`: `Dimension 8 check passed`.
+  `git diff --check`: pass. LaTeX: **not run**.
+- **Open points:** the following are cited: \(f_a>0\) (11.13c), (11.11), N10
+  (other script), §11.6's bijectivity, and the smoothness of \(G_W\) across
+  the seams (C38–C47, C50).

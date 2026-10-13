@@ -9703,5 +9703,158 @@ rep('C48 every raise on the G path is excluded by a stated bound (25/25)',
     and g1_12_48 and call_graph48)
 print('C48 guard map:',sorted({v.split(' ')[0].rstrip(':') for v in certificate48.values()}))
 
+# C49: the differential of the whole G_cl is invertible at every point of
+# the round S^4 x T^2.  The argument is general, not a chamber check.
+# (a) On the free slab, G_W is S^1-equivariant (the finite fold, the phase
+#     band correction and the final phase are all equivariant), so in
+#     adapted coordinates (orbit point, fibre angle) DG_W is block
+#     triangular with fibre entry 1 and det DG_W = det DLambda.
+# (b) Lambda factors into: the raw base (n,X)->w=R(X)O^-1 n (R'>0), the
+#     inverse stereographic map, (u1,u2)->(u1/u2,Arg u2), the monotone
+#     profile ratio->t, the height map a->Y, A or rho (derivatives
+#     -f_a(1-f/R)/2, f_a(1+f/R)/2, -f_a/(2R), with f_a>0 by (11.13c)),
+#     and, in the collar, rho->x4 with d x4/d rho=+-1/P (C43d).  In the
+#     pure middle the last factor is x4=Arg(u_j)/(2pi)+(function of t).
+# (c) The torus restoration is the T^2-action applied to a slice point; it
+#     is a local diffeomorphism iff the orbit directions are transverse to
+#     the slice: det_R(e2,e3)=+-(1-|t_c|^4) in a cusp chart (C30k; the
+#     determinant itself C9a, C17d) and
+#     the lattice determinant (1+|t|^2)((|t|^2-1)log|t|+2|t|^2)>0 in the
+#     middle (C34b), independently of the correction D.
+# (d) The cap map is the radial reparametrization z_L of the round cap
+#     (increasing), the patch H_j (N10: det DD=S S'/r>0; by (11.11),
+#     ||Dg_j-I||<=5000 r with r<1.7e-6 on the cap, so sigma_min>0.99), a
+#     linear map and (c).
+# Claim types: (a) for the identities checked here, (b)/(c) for the cited
+# inputs f_a>0 (11.13c), (11.11), N10 (node_remainder.py), section 11.6's
+# bijectivity, and the smoothness of G_W across the seams (C38-C47, C50).
+# Hence G_cl is a local diffeomorphism everywhere; with the bijectivity of
+# section 11.6 it is a diffeomorphism.
+# (a) Equivariance of one fold step and of the start vector.
+lam49 = sp.Symbol('lam49',real=True)
+gl49 = sp.exp(sp.I*lam49)
+r49 = sp.symbols('r0_49 r1_49')
+v49 = sp.symbols('v0_49 v1_49')
+def step49(ref,vec):
+    ph = inner41(ref,vec)
+    return [x*ph for x in ref], ph
+st_v49,ph_v49 = step49(r49,v49)
+st_lv49,ph_lv49 = step49(r49,[gl49*x for x in v49])
+equivariant49 = (
+    sp.simplify(sp.expand(ph_lv49-gl49*ph_v49))==0
+    # |lam*ph|=|ph|, so the normalized update ref*ph/|ph| scales by lam
+    and all(sp.simplify(sp.expand(a-gl49*b))==0 for a,b in zip(st_lv49,st_v49))
+    and matching_statement31(project_tree30,
+        'vector = tuple(a*phase/abs(phase) for a in ref)')
+    and matching_assignment30(project_tree30,'phase',
+        '_elementary_inner(ref,vector)')
+    and matching_assignment30(project_tree30,'vector',
+        '_elementary_pole_inclusion(xi)')
+    # band correction: an S^1-invariant unit factor (theta depends on (n,X))
+    and matching_assignment30(correct_tree30,'result',
+        'tuple(a*mp.exp(-mp.j*weight*theta) for a in result)')
+    # final updates: (conj(p)x,p y) and one+Arg(p)/(2pi) (bound in C41a)
+    and source41)
+# Block-triangular determinant: fibre entry 1 below a 3x3 orbit block.
+D49 = sp.Matrix(3,3,sp.symbols('d49_0:9'))
+row49 = sp.Matrix(1,3,sp.symbols('w49_0:3'))
+blk49 = sp.Matrix.vstack(sp.Matrix.hstack(D49,sp.zeros(3,1)),
+                         sp.Matrix.hstack(row49,sp.ones(1,1)))
+block49 = sp.expand(blk49.det()-D49.det())==0
+rep('C49a G_W is S^1-equivariant; det DG_W equals det DLambda on the slab',
+    equivariant49 and block49)
+
+# (b) Factors of DLambda.  Raw radius R(X)=(1-X^2)/(1-X sqrt(2-X^2)),
+# R'/R=2/(sqrt(2-X^2)(1-X^2))>0; (n,X)->R(X)n has Jacobian R^2 R' on
+# S^2 x interval.  Inverse stereographic R^3->S^3 is conformal with factor
+# 2/(1+|y|^2).
+Xb49 = sp.Symbol('Xb49',real=True)
+Rr49 = (1-Xb49**2)/(1-Xb49*sp.sqrt(2-Xb49**2))
+y49 = sp.Matrix(sp.symbols('y0_49 y1_49 y2_49',real=True))
+sy49 = sum(v**2 for v in y49)
+U49 = sp.Matrix([(1-sy49)/(1+sy49),2*y49[0]/(1+sy49),
+                 2*y49[1]/(1+sy49),2*y49[2]/(1+sy49)])
+JU49 = U49.jacobian(list(y49))
+stereo49 = (
+    sp.simplify(sp.diff(Rr49,Xb49)/Rr49
+                -2/(sp.sqrt(2-Xb49**2)*(1-Xb49**2)))==0
+    and all(sp.simplify((JU49.T*JU49-4/(1+sy49)**2*sp.eye(3))[i,j])==0
+            for i in range(3) for j in range(3)))
+# (u1,u2)->(R=u1/u2,alpha=Arg u2) is a diffeomorphism of S^3 cap {u2!=0}
+# onto C x S^1: inverse u2=e^(i alpha)/sqrt(1+|R|^2), u1=R u2.
+Rx49,Ry49,al49 = sp.symbols('Rx49 Ry49 al49',real=True)
+Rc49 = Rx49+sp.I*Ry49
+u2b49 = sp.exp(sp.I*al49)/sp.sqrt(1+Rx49**2+Ry49**2)
+u1b49 = Rc49*u2b49
+ratio_coords49 = (
+    sp.simplify(sp.expand(u1b49*sp.conjugate(u1b49)+u2b49*sp.conjugate(u2b49)))==1
+    and sp.simplify(u1b49/u2b49-Rc49)==0)
+# The north and |t|>1 charts use (u2/u1, Arg u1) on {u1!=0} symmetrically:
+u1n49 = sp.exp(sp.I*al49)/sp.sqrt(1+Rx49**2+Ry49**2)
+u2n49 = Rc49*u1n49
+ratio_coords49 &= (
+    sp.simplify(sp.expand(u1n49*sp.conjugate(u1n49)+u2n49*sp.conjugate(u2n49)))==1
+    and sp.simplify(u2n49/u1n49-Rc49)==0)
+# Profile: t=R g(|R|^2) has real Jacobian g(g+2 r g'), r=|R|^2, which is
+# (|t|/|R|) d|t|/d|R|>0 because s=|t|^2 increases with r: C39 gives
+# r=(Bs^2+As)/(1+As), dr/ds>0 (direct branch), and C40 the reciprocal.
+gf49 = sp.Function('gf49',real=True)
+tmap49 = sp.Matrix([sp.re(sp.expand_complex(Rc49*gf49(Rx49**2+Ry49**2))),
+                    sp.im(sp.expand_complex(Rc49*gf49(Rx49**2+Ry49**2)))])
+rr49 = sp.Symbol('rr49',positive=True)
+profile49 = (
+    sp.simplify(tmap49.jacobian([Rx49,Ry49]).det()
+                -(gf49(Rx49**2+Ry49**2)**2
+                  +2*(Rx49**2+Ry49**2)*gf49(Rx49**2+Ry49**2)
+                  *sp.Subs(sp.diff(gf49(rr49),rr49),rr49,Rx49**2+Ry49**2)))==0
+    and band_bounds39 and profile40)
+# Height maps (f=f(a) increasing, R=sqrt(f^2+4q)>|f|):
+fa49 = sp.Function('fa49')
+aa49,qq49 = sp.symbols('aa49 qq49',positive=True)
+Rh49 = sp.sqrt(fa49(aa49)**2+4*qq49)
+fp49 = sp.diff(fa49(aa49),aa49)
+height49 = (
+    sp.simplify(sp.diff((Rh49-fa49(aa49))/2,aa49)
+                -fp49*(fa49(aa49)/Rh49-1)/2)==0
+    and sp.simplify(sp.diff((Rh49+fa49(aa49))/2,aa49)
+                    -fp49*(fa49(aa49)/Rh49+1)/2)==0
+    and sp.simplify(sp.diff(sp.log((Rh49-fa49(aa49))/2)/2,aa49)
+                    +fp49/(2*Rh49))==0
+    # core cell 1: A=2/(R-f), dA/da=2 f_a/(R(R-f))>0
+    and sp.simplify(sp.diff(2/(Rh49-fa49(aa49)),aa49)
+                    -2*fp49/(Rh49*(Rh49-fa49(aa49))))==0)
+# Collar: rho->x4 at fixed t has derivative 1/P (south) or -1/P (north),
+# the e4-coefficient of (-i,0) in the C43d identity (linear in rho).
+collar49 = lattice_shift43
+# Pure middle: x4=Arg(u2)/(2pi)+xi4(t)+1/2 or Arg(u1)/(2pi)-(function of
+# t): at fixed t, d x4/d alpha=1/(2pi) since Arg u1=Arg R+alpha.
+middle49 = sp.diff(al49/(2*sp.pi)+sp.Function('xi49')(Rx49,Ry49),al49)==1/(2*sp.pi)
+rep('C49b DLambda factors into invertible raw, ratio, profile, height, Cramer maps',
+    stereo49 and ratio_coords49 and profile49 and height49 and collar49
+    and middle49)
+
+# (c) Restoration.  The action map Psi(slice point, C)=C.(slice point) is a
+# local diffeomorphism iff the orbit tangents are transverse to the slice;
+# for the cusp slice w_c=0 this is det_R(e2,e3)!=0, for the middle slice
+# (two=three=0) it is det_R[2 pi e1,e4,e2,e3]!=0 (the lattice determinant,
+# up to the factor 2 pi).  Column operations show the correction D (which
+# only adds torus directions) does not change it.
+cols49 = sp.Matrix(4,4,sp.symbols('m49_0:16'))
+add49 = sp.symbols('k49_0:4')
+shear49 = cols49.copy()
+shear49[:,0] = cols49[:,0]+add49[0]*cols49[:,2]+add49[1]*cols49[:,3]
+shear49[:,1] = cols49[:,1]+add49[2]*cols49[:,2]+add49[3]*cols49[:,3]
+restore49 = (
+    sp.expand(shear49.det()-cols49.det())==0
+    and basis_ok30 and cramer34
+    and sp.factor(R34.det()-det_expected34)==0)
+# (d) Cap radial map: |z_L|^2=r/(s(1+sqrt(1-r^2))), r=|Z|^2, increases.
+rc49 = sp.Symbol('rc49',positive=True)
+cap49 = sp.simplify(sp.diff(rc49/(1+sp.sqrt(1-rc49**2)),rc49)
+                    -((1+sp.sqrt(1-rc49**2))+rc49**2/sp.sqrt(1-rc49**2))
+                    /(1+sp.sqrt(1-rc49**2))**2)==0
+rep('C49c restoration and cap factors are invertible; G_cl is a local diffeo',
+    restore49 and cap49)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'
