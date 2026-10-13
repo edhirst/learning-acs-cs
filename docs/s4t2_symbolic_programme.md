@@ -2677,6 +2677,56 @@ by <4L_g/K<1/2. Telescoping proves exp(iΘ_j)=g_j; the connected-overlap
 argument of §10.6 proves exact real agreement of its two sphere charts.
 The anchor argument is a constant, so its branch cannot create a variable seam.
 
+On the **south band** the phase walk in this formula has an equivalent
+single-argument expression:
+
+  Θ₀(n,X)=Arg g₀(n,X),       |Θ₀(n,X)|<10⁻⁶.             (11.15a)
+
+This does not change the defined map. Here is a type-(c) certificate, with
+the algebraic identities checked by C51. Put R=1/150000 and ε=100R=1/1500.
+For every south-band mesh point, the cap estimate above gives r=|p_L|≤R.
+The source is in the unshifted south cusp cell: (11.9) gives
+|p_S|≤r+80r²<10⁻⁵; (11.7) gives |a|≤u+v=|p_S|<1/4,
+and, since ν₀=1, p_S,1+ip_S,2=2conj(t_c) gives
+|t_c|≤|p_S|/2<.3;
+the other cusp-frame weight is zero. Thus
+P(r)=I₀Π(p_S(r)/|p_S(r)|)I₀* and
+Q=I₀Π(p_L/r)I₀* is independent of r. By (11.9),
+||P−Q||≤100r≤ε. With p_L=rn and p_S=rn+η, the same bound gives
+|η|≤80r², |η′|≤100r and |p_S|≥r(1−80R). Projecting
+p_S′=n+η′ perpendicular to p_S/|p_S|, the contribution of n is
+at most |η|/r≤80r. The Pauli-matrix identity therefore yields
+
+  ||P′(r)||≤90/(1−80R)<91.
+
+Fix q=I₀ξ, a unit vector spanning Q, and set
+f(r)=P(r)q/|P(r)q|. Its denominator is at least √(1−ε²),
+|q*f(r)| is that positive real denominator, and
+||f(r)−q||²=2(1−|P(r)q|)≤2ε²; in particular
+||f(r)−q||<2ε. Differentiating the normalization gives
+||f′(r)||≤||P′(r)||/√(1−ε²)<92. The radii of the mesh
+increase with X: (11.17a) has
+dX/dh=(1+h)/(1+h²)^(3/2)>0 for h=2πr. Hence
+Σ_j||f(r_j)−f(r_(j−1))||≤V:=92R=23/37500.
+
+Write e_j=c_j f(r_j) in (11.15), so c₀=1 and
+c_j/c_(j−1)=〈f(r_j),f(r_(j−1))〉/
+|〈f(r_j),f(r_(j−1))〉|. Since 〈q,f(r)〉 is real,
+the imaginary part of each numerator equals that of
+〈f(r_j)−q,f(r_(j−1))−f(r_j)〉. Its magnitude is at most
+2ε||f(r_j)−f(r_(j−1))||, while the real part is at least
+1−V²/2>0. The sum of the principal increments is consequently
+bounded by
+
+  2εV/(1−V²/2)=2300/2812499471<10⁻⁶,
+
+with proved margin greater than 1.82·10⁻⁷. This sum is a continuous
+real lift of g₀. Its principal argument is the sum itself. The lift
+defined above has the same exponential and agrees at the north-point
+anchor, so connectedness of S² times the band proves (11.15a).
+For comparison only, C47f's two south samples at reduced counts have
+|Θ₀|≤3.54·10⁻¹⁸ (type (d)); they are not used in the bound.
+
 Set χ₀=1−s(((X+1)−α/2)/(α/2)) and
 χ_∞=1−s(((1−X)−α/2)/(α/2)), using each only in its band, and put
 
@@ -3048,6 +3098,7 @@ derivatives are numerical observations, type (d).
 | C48, domain guards (a,b,c) | The functions executed by `elementary_global_coordinates` are listed (26) and the list is checked against the static call graph: every other reachable function of `cusp.py` (seven `elliptic_*` functions of the legacy path) is called only in an arm that the elementary path never enters. The 25 `raise` statements of the 26 functions are read from the source and each is matched with the bound that excludes it, so the list is complete (25/25). The bounds: the slab satisfies \(1-|X|\ge\alpha/2\); the fold overlaps exceed \(1/2\) (\(2L/N<1/2\) with the exact integers of (11.14)); the phase increments have \(\operatorname{Re}>7/8\) (\(4L_g/K<1/2\)); the hemisphere chart radius is \(\le1\); \(|a|<3/5\), and \(b<-21/50\) in core cell 1 (\(\cos(4\pi/25)<9/10\)); the core \(q<1/8\) (L13d) and the collar \(q>1/1375\) (C43b); the four-seed inputs satisfy \(\max(A,Y)<4\) in every cell; the cap radii are \(<2\cdot10^{-6}\); and on pure-middle data \(b_0=b_i=0\) exactly (C42a), so the height-free torus pair is never formed: ALL PASS. The dead-arm argument assumes `elementary` is True in every frame (C50h); implicit divisions, roots and `abs` are covered by C50f. |
 | C49a–c, invertible differential everywhere (a,b) | On the slab \(G_W\) is \(S^1\)-equivariant (fold step, start vector, band correction and final phase), so \(\det DG_W=\det D\Lambda\). The orbit map \(\Lambda\) factors into: the raw base \((n,X)\mapsto R(X)O^{-1}n\) with \(R'/R=2/(\sqrt{2-X^2}(1-X^2))>0\); the conformal inverse stereographic map; \((u_1,u_2)\mapsto(u_1/u_2,\Arg u_2)\) and its north counterpart \((u_2/u_1,\Arg u_1)\); the profile \(t=Rg(|R|^2)\), with Jacobian \(g(g+2rg')>0\); the height maps with derivatives \(-f_a(1\mp f/R)/2\), \(-f_a/(2R)\) and, in core cell 1, \(2f_a/(R(R-f))\), nonzero since \(f_a>0\) by (11.13c) and the coordinate \(A\) or \(Y\) is chosen by the sign of \(f\) (C50e); and \(\partial x_4/\partial\rho=\pm1/P\) or \(\partial x_4/\partial\alpha=1/(2\pi)\). The restoration is invertible iff \(\det(e_2,e_3)\ne0\) (cusp) or the lattice determinant is \(\ne0\) (middle), independently of \(D\). On the cap, the radial map increases, the patch has \(\det=SS'/r>0\) (N10) and the raw \(g_j\) has \(\sigma_{\min}>0.99\) by (11.11): ALL PASS. The identities are type (a); the cited inputs (11.13c), (11.11) and §11.6 are types (b)/(c), N10 is a script check (types (a)/(b)), and C38–C47, C50 are type (a) with (d) observations. With §11.6's bijectivity, \(G_{\mathrm{cl}}\) is a diffeomorphism. |
 | C50, C50a–h, the whole \(G\) path classified (a,b,c) | C50a pins the whole text of `cusp.py` (SHA-256 of its token stream; short digests localise changes in the 26 path functions) and checks that the runtime function objects are those the text defines; the certified object is that text read in exact arithmetic (§11.9): `elementary_global_coordinates(Z,X,phi,max_work=None)` with the shortcuts off and `force_slab=False`. For it: no `while`, `try`, `match`, `lambda`, comprehension filter, `%` or `//`; every comparison is a test or defines one of eight flags used only as tests or flag arguments; every call is a path function, local helper, listed builtin or listed mpmath function. C50: the 111 distinct tests (142 occurrences) are classified: 29 static, 24 guards (C48, C42a), 9 working-precision shortcuts (§11.7), 14 identical rewrites (C39a, C41a–b, C45a, C46b–c, C47c), 17 flat joins or weights (C41b–c, C44c, C45b, C46c, C47b, L13), 4 chart choices (C41, C44), 14 seams (N9, C38, C41–C47). C50b: the 29 `arg`/`log`/`atan` calls (implicit cuts) have positive or constant arguments, or a cut certified by C34 or C42. C50c: the 22 `floor`/`nint`/`sign`/`int`/`min`/`max` calls are precision settings, diagnostics, a guard, height cells (C45c), zero-weight torus-pair shifts (C41b), the principal-log normalization (C34, C42), a sign used only for \(|a|>1/10\), or unreachable. C50e: in the core (\(\lambda=0\)) the moment has the sign of \(b\) (\(f=b\), \(|f|\ge1/10\), \(|f|\ge e^{-1/5}-e^{1/5}/8\) on the three branches), the cell is 0 or 1, and the roots \(\sqrt{A/e}\), \(\sqrt Y\) are positive off the node, so the central fibres are not seams. C50f: all 280 divisions, square roots, `log1p`, `abs` and non-integer powers have their argument in the domain where they are smooth: 111 occurrences are recognised automatically (constant, inside a test, dead arm, \(|z|^2\)), and the other 169 occurrences (139 distinct) are listed with a reason. C50g: across the collar logarithm cut and the final-phase Arg cut the restored outputs differ by \(k\,e_4(L)+\tfrac{k(k-1)}2e_1\), \(0\) or \(e_1\). C50h: `elementary` is True in every executed frame. C50d: every check label cited in the four C50 tables exists: ALL PASS. |
+| C51a–d, south-band phase shortcut (a,c,d) | C51a checks the Pauli projector norm factor, C51b the cancellation in each phase increment, C51c the monotone south radius and C51d the rational endpoint constants: ALL PASS. The type-(c) bound (11.15a) gives \(|\Theta_0|\le2300/2812499471<10^{-6}\) on the whole south band, independently of the fixed fold and phase counts. C47f's two reduced-count south samples are only type-(d) observations; a north-band shortcut remains open. |
 | m1–m3, formula-branch source audit and observations (d) | The checker identifies and gates all six working-precision identity returns, and checks nested/exception restoration: ALL PASS. Two strict interior type-(d) samples have exact-formula value gaps \(9.0129315017\cdot10^{-99}\) (pole radial) and \(3.23193414504\cdot10^{-92}\) (height radial) from the default identity returns, evaluated at 240 digits. Sample size two; m3 reproduces the observations. This does not evaluate the fixed-count global tensor. |
 | N9a–i, cap/slab overlap (a,c) | for both signs, exact phase telescoping, source-linked raw-reference/projector identification, matching cusp inputs, torus restoration and first/second jets: ALL PASS, conditional on the written §11.3, §11.5 and §10.6 bounds; the post-raw radial margin is checked in N9b |
 | N10a–d, radial shell (a,b) | source-linked finite elementary \(S,S^{-1}\) nodes, exact scalar inverse and derivative identities, 16 first and 64 second entries for each radial direction, and \(\det DD=S(r)S'(r)/r>0\) on \(10^{-8}<r<1.5\cdot10^{-8}\): ALL PASS; the raw pole and torus stages are not composed here |

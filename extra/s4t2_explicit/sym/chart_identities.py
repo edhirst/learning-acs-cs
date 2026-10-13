@@ -10772,5 +10772,42 @@ rep('C50d every check cited in the classification exists',not missing50)
 if missing50:
     print('C50d missing labels:',missing50)
 
+# C51: south-band phase shortcut (programme (11.15a)).  The projector
+# estimate itself is the written type-(c) argument; these are its exact
+# matrix/phase identities and rational endpoint comparisons.
+v51 = sp.symbols('v51_0:3', real=True)
+sigma51 = sp.Matrix([[v51[2],v51[0]+sp.I*v51[1]],
+                     [v51[0]-sp.I*v51[1],-v51[2]]])
+rep('C51a Pauli square and projector norm factor',
+    all(sp.expand(entry)==0 for entry in
+        sigma51*sigma51-sum(x*x for x in v51)*sp.eye(2)))
+
+a51 = sp.symbols('a51_0:5', real=True)
+b51 = sp.symbols('b51_0:5', real=True)
+q51 = sp.Matrix([1,0,0])
+f51 = sp.Matrix([a51[0],a51[1]+sp.I*a51[2],a51[3]+sp.I*a51[4]])
+g51 = sp.Matrix([b51[0],b51[1]+sp.I*b51[2],b51[3]+sp.I*b51[4]])
+inner51 = lambda x,y: (sp.conjugate(x).T*y)[0]
+rep('C51b phase-imaginary-part cancellation in a unitary q-frame',
+    sp.simplify(sp.im(inner51(f51,g51))
+                -sp.im(inner51(f51-q51,g51-f51)))==0)
+
+h51 = sp.symbols('h51', positive=True)
+south_x51 = -(1-h51)/sp.sqrt(1+h51*h51)
+rep('C51c south radius increases with round X',
+    sp.simplify(sp.diff(south_x51,h51)
+                -(1+h51)/(1+h51*h51)**sp.Rational(3,2))==0)
+
+R51 = sp.Rational(1,150000)
+eps51 = 100*R51
+V51 = 92*R51
+phase51 = 2*eps51*V51/(1-V51*V51/2)
+rep('C51d south phase constants and strict cut margin',
+    (90/(1-80*R51)<91 and
+     sp.Rational(91,92)**2<1-eps51**2 and
+     V51==sp.Rational(23,37500) and
+     phase51==sp.Rational(2300,2812499471) and
+     phase51<sp.Rational(1,1000000)))
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

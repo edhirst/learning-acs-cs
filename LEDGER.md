@@ -3104,3 +3104,40 @@ in `AGENTS.md` §5.
   LaTeX: **not run** (manuscript untouched).
 - **Open points:** the task owner's agreement to T16's change of route;
   human review of programme §11.9 and of the written hypotheses it lists.
+
+### 2026-10-13-TSG-1 — Bound the south-band phase by one principal argument
+- **Date:** 2026-10-13
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6.1-sol)
+- **Type:** addition
+- **Based on:** `6017628`
+- **Where:** `docs/s4t2_symbolic_programme.md` §11.5, (11.15a), and
+  the C51 row of §11.8; `extra/s4t2_explicit/sym/chart_identities.py`, C51a–d.
+  The manuscript and construction code are unchanged.
+- **Change:** prove that the existing real phase lift on the whole south band
+  equals `Arg g_0` and has magnitude at most
+  `2300/2812499471 < 10^-6`. This removes the auxiliary K-step phase
+  logarithm when evaluating that band, without changing `G_cl`. Add exact
+  checks of the Pauli, phase-cancellation, meridional monotonicity, and
+  rational-constant identities.
+- **Why:** all south-band projectors lie in the unshifted cusp frame and
+  differ by at most `100r` from a fixed Hopf line. Along the monotone radial
+  mesh their normalized representatives have total variation at most
+  `92/150000`; the imaginary part of each projection pairing is bounded by
+  its distance from the fixed line times that variation. Summing gives the
+  displayed bound independently of N and K. The proved margin below
+  `10^-6` exceeds `1.82·10^-7`; C47f's two reduced-count observations had
+  magnitude at most `3.54·10^-18` and are not used in the proof.
+- **Verification:** re-derived the projection, normalization and phase
+  estimates using (11.7), (11.9) and (11.17a); C51a–d check the algebra and
+  exact rational comparisons. `.venv/bin/python3 -B
+  extra/s4t2_explicit/sym/chart_identities.py`: **ALL PASS** (C1–C51).
+  `.venv/bin/python3 -B extra/s4t2_explicit/sym/lemmas_1d.py`:
+  **ALL PASS**. `.venv/bin/python3 -B
+  manuscript_draft/code/verify_construction.py`: **all checks passed**.
+  `.venv/bin/python3 -B manuscript_draft/code/sphere_products.py`:
+  **Dimension 8 check passed**. `git diff --check`: pass. LaTeX:
+  **not run** (`latexmk` unavailable); the manuscript was not touched.
+- **Open points:** a comparable north-band shortcut and laptop-scale
+  uniform meridional derivative bounds remain open. The statement and
+  certificate need human mathematical review.
