@@ -469,6 +469,10 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   and pure-middle data agree modulo \(x_4\mapsto x_4+n\) and a
   circle gauge; the projectors agree, and for a smooth final
   fold vector the outputs differ by a lattice translation.
+  **Height moment and cells (2026-10-12-EH-5):** C45 shows that
+  the inverse-first moment (all its stable rewrites and its
+  joins at \(|b|=2/5,1/5\)) and the core and collar height-cell
+  seams are one smooth function.
   **Next unchecked T16 tasks:** promote the remaining
   one-chamber checks to whole-seam statements: the radial
   pole shells and raw annuli (N10, g, h, f), the collar

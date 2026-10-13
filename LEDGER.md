@@ -2597,3 +2597,54 @@ in `AGENTS.md` §5.
   checks to whole-seam statements and to bind the all-branch six-real
   circuit with global determinant and overlap bounds. The global
   \(J_{\mathrm{cl}}\) statement still requires human review.
+
+### 2026-10-12-EH-5 — Certify the height moment and height cells as one smooth function
+- **Date:** 2026-10-12
+- **Collaborator:** Edward Hirst
+- **Agent:** Claude Code (Claude Opus 5.5), with one independent reviewer subagent
+- **Type:** addition
+- **Based on:** 1075022
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (new section C45a–c
+  at the end), docs/s4t2_symbolic_programme.md (status line, §11.8 table
+  row and certificate paragraph), SYMBOLIC_CAMPAIGN.md (T16 status). No
+  manuscript or construction file changed.
+- **Change:** added C45. The executed bodies of `inverse_height_moment`,
+  `_height_R` and `_height_terminal_forward` are bound to the source.
+  - Every stable-rewrite alternative is the same function as the
+    specified (11.3)/(11.3b) map: \(\varphi\), the softplus forms,
+    \(\psi^{-1}\circ S\), the positive root of \(x-1/x=L\), and
+    \(\varphi^{-1}\).
+  - The two terminal branches agree, via \(1+F(e^U-1)=e^{E_z-E_0}(1+D)\).
+  - The joins inside the moment are flat. At \(|b|=2/5\), \(T-\mathrm{id}\)
+    has the flat form \(\eta\ell/(L(L+\ell))\), and \(h(2/5)>c\) since
+    \(G_*(c)<0.446<0.4485<z_c\). At \(|b|=1/5\),
+    \(R-a=c\,l/(L(L+l))\) with \(l\) smooth in \(w=e^{-L}\). The \(R^{-1}\)
+    switch at \(|b|=b^*\) is flat because \(R-\mathrm{id}\) is. The join at
+    \(|b|=1/10\) is §11.2's written argument.
+  - The core and collar height-cell seams are equalities of analytic
+    functions on open intervals.
+- **Why:** the moment has internal branches (rewrites, terminal and
+  radial joins, cells) that no earlier check bound to the source. It
+  enters every collar and core reference.
+- **Verification:** `python3 extra/s4t2_explicit/sym/chart_identities.py`:
+  **ALL PASS** (C1–C45). An independent reviewer subagent re-derived every
+  rewrite and terminal identity against `cusp.py`. It ran mutation
+  tests (\(\delta\), \(c\), \(e\leftrightarrow e^2\), \(C_0\), \(C_1\), the
+  exponents), all of which fail, and formula-mode numerics: forward and
+  inverse \(R\) versus the naive (11.3b) to \(7\cdot10^{-80}\); both terminal
+  branches versus the naive \(T\) to \(1.2\cdot10^{-79}\); flat-join decay
+  faster than any power at \(|b|=0.4,0.2,0.1\) and at \(b^*\); cell-seam
+  derivative jumps of order \(h\). Verdict: sound, with caveats. Fixed in
+  this commit:
+  - the \(R^{-1}\) join at \(b^*\) and the step \(h(2/5)>c\) are added;
+  - `_terminal_height_data` is now bound in full;
+  - the header claim is narrowed (the remaining conditionals are C41,
+    C44a and C50);
+  - the analytic-continuation step for positive symbols is stated.
+  The full script was rerun after these fixes: ALL PASS. `verify_construction.py`: `all checks
+  passed`; `sphere_products.py`: `Dimension 8 check passed`.
+  `git diff --check`: pass. LaTeX: **not run**. The legacy safety net was
+  not run (no construction block changed).
+- **Open points:** the \(|b|=1/10\) join and the smoothness of the moment in
+  \(\lambda\) remain the written §11.2 arguments. The global
+  \(J_{\mathrm{cl}}\) statement still requires human review.

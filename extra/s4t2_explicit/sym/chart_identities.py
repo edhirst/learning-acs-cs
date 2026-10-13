@@ -7127,5 +7127,325 @@ with mp41.workdps(120), cusp30.elementary_formula_branches():
 rep('C44e production points across both collar/middle seams (numerical, d)',
     sample_ok44)
 
+# C45: the inverse-first height moment f(b,q,lambda) and the cusp height
+# cells, as one smooth function.  Every conditional executed by
+# inverse_height_moment, _height_R (forward and inverse) and
+# _height_terminal_forward on the G path is a domain guard, a
+# working-precision shortcut (bypassed by elementary_formula_branches,
+# certified in section 11.7), a pair of algebraically identical stable
+# rewrites (C45a), a flat join of the written section 11.2 type (C45b), or
+# the lam==1 test (C44a; never true in the collar).  The height cells of
+# elementary_cusp_reference and elementary_cusp_logradius are equal
+# analytic cell formulas on open intervals (C45c); their other
+# conditionals (f>=0, a>0, lam==1, amp==0, lam==0) are C41a-b and C44a.
+# The full classification is C50.  Identities checked with positive
+# symbols are identities of analytic functions (or algebraic ones) and
+# extend by analytic continuation to the source's other sign ranges.
+moment_body45 = '''
+import mpmath as mp
+a,q,lam = mp.mpf(a),mp.mpf(q),mp.mpf(lam)
+if (abs(a)>mp.mpf('.5') or not 0<=q<=mp.mpf('.125') or
+        not 0<=lam<=1 or (lam>0 and q<mp.mpf(1)/2500)):
+    raise ValueError('inverse moment is outside the certified (q,lam) domain')
+data = _terminal_height_data(q,lam)
+kappa,amp,d,B,C,z0,_,_,_,_,_,_ = data
+aa = abs(a)
+if lam==1 or aa<=mp.mpf('.1'):
+    return _height_G(a,amp,d)
+if aa>=mp.mpf('.4'):
+    return mp.sign(a)*(B*mp.exp(kappa*aa)-C*mp.exp(-kappa*aa))
+u = _height_R(aa)
+delta_z = B*mp.expm1(kappa*u)-C*mp.expm1(-kappa*u)
+v = _height_terminal_forward(delta_z,data)
+return mp.sign(a)*_height_G(_height_R(_height_G(v,amp,d,inverse=True),inverse=True),amp,d)
+'''
+radial_body45 = '''
+import mpmath as mp
+delta,c = mp.mpf('.1'),mp.mpf('.2')
+if inverse:
+    if value<=0:
+        return delta
+elif value<=delta:
+    return mp.mpf(0)
+if value>=c:
+    return value
+if _elementary_precision_shortcuts.get():
+    if c/(c-value)>(mp.mp.dps+10)*mp.log(10):
+        return value
+if inverse:
+    y = mp.e*mp.expm1(value/(c-value))
+    L = y+mp.log1p(-mp.exp(-y)) if y>1 else mp.log(mp.expm1(y))
+    x = (2/(mp.sqrt(L*L+4)-L) if L<0 else
+         (L+mp.sqrt(L*L+4))/2)
+    ell = mp.log1p(x/mp.exp(2))
+    return delta+c*ell/(2*(2+ell))
+x = mp.exp(2)*mp.expm1(2*(value-delta)/(c-value))
+F = x-1/x
+soft = (mp.log1p(mp.exp(F)) if F<0 else
+        F+mp.log1p(mp.exp(-F)))
+ell = mp.log1p(soft/mp.e)
+return c*ell/(1+ell)
+'''
+terminal_body45 = '''
+import mpmath as mp
+_,_,_,_,_,z0,zcut,eta,E0,Acut,Lambda,mu = data
+gap0 = zcut-z0
+if delta_z<=0:
+    return mp.mpf(0)
+if delta_z>=gap0:
+    return z0+delta_z
+gap = gap0-delta_z
+L = eta/gap
+Ez = mp.exp(L)
+C0,C1 = 1+mu-2*Lambda,Lambda-mu
+K = 1+abs(C0)*mp.exp(E0)+abs(C1)*mp.exp(E0+Acut)
+if _elementary_precision_shortcuts.get():
+    if Ez>(mp.mp.dps+20)*mp.log(10)+mp.log(K):
+        return z0+delta_z
+if Ez>50:
+    D = C0*mp.exp(E0-Ez)+C1*mp.exp(E0+Acut-2*Ez)
+    correction = mp.log1p(D)
+    ell = mp.log1p(correction/Ez)
+    z = z0+delta_z
+    return z+eta*ell/(L*(L+ell))
+x = Acut*mp.expm1(eta*delta_z/(gap*gap0))
+u = mp.expm1(x)
+F = (Lambda*u*u+mu*u)/(1+u)
+M = mp.log1p(F)
+ell = mp.log1p(M/E0)
+return zcut*ell/(eta/zcut+ell)
+'''
+terminal_data_body45 = '''
+import mpmath as mp
+if lam==0:
+    kappa,amp,d = mp.mpf(2),mp.mpf(0),mp.mpf(1)
+else:
+    if q<=0:
+        raise ValueError('positive collar weight requires q>0')
+    k = -mp.log(q)
+    kappa = 2+lam*(k-2)
+    amp = lam*k
+    d = 1-lam+2*lam*mp.sqrt(q)*k
+B,C = mp.exp(-kappa/2),q*mp.exp(kappa/2)
+z0 = B-C
+zcut = B*mp.exp(mp.mpf('.4')*kappa)-C*mp.exp(-mp.mpf('.4')*kappa)
+eta = mp.mpf('.01')
+E0 = mp.exp(eta/zcut)
+Acut = mp.exp(eta/(zcut-z0))
+Lambda = mp.exp(Acut-E0)
+Eprime0 = E0*eta/zcut**2
+Eprime_z0 = Acut*eta/(zcut-z0)**2
+mu = d*Eprime0/(kappa*(B+C)*Eprime_z0)
+return kappa,amp,d,B,C,z0,zcut,eta,E0,Acut,Lambda,mu
+'''
+radial_tree45 = source_tree30(cusp30._height_R)
+terminal_fwd_tree45 = source_tree30(cusp30._height_terminal_forward)
+source45 = (
+    source41
+    and body_dump41(moment_tree36)==text_dump41(moment_body45)
+    and body_dump41(radial_tree45)==text_dump41(radial_body45)
+    and body_dump41(terminal_fwd_tree45)==text_dump41(terminal_body45)
+    and body_dump41(terminal_tree36)==text_dump41(terminal_data_body45))
+
+# C45a.  Identical rewrites (identity type (a)).  With delta=1/10, c=1/5,
+# E_h(a)=exp(c/(c-a)), phi=E_h-e^2, psi=E_h-e, S(x)=log(1+e^(x-1/x)),
+# R=psi^-1 S phi with psi^-1(v)=c-c/log(e+v), R^-1=phi^-1 S^-1 psi:
+#  forward: x=e^2 expm1(2(a-delta)/(c-a))=phi(a); log1p(e^F)=
+#    F+log1p(e^-F); c ell/(1+ell)=psi^-1(S) for ell=log1p(S/e);
+#  inverse: e expm1(v/(c-v))=psi(v); y+log1p(-e^-y)=log(expm1 y);
+#    2/(sqrt(L^2+4)-L)=(L+sqrt(L^2+4))/2 (positive root of x-1/x=L);
+#    delta+c ell/(2(2+ell))=phi^-1(x) for ell=log1p(x/e^2);
+#  terminal: both branches equal z_c-eta/log(E0+M(E_t(z)-A0)) (11.3);
+#    the Ez>50 branch is its (11.3a) form with v=exp(-U), U=Ez-Acut,
+#    Lambda=exp(Acut-E0), C0=1+mu-2Lambda, C1=Lambda-mu.
+av45,vv45,Fv45,yv45,Lv45,xv45,sv45 = sp.symbols(
+    'av45 vv45 Fv45 yv45 Lv45 xv45 sv45',positive=True)
+dl45,cc45 = sp.Rational(1,10),sp.Rational(1,5)
+Eh45 = sp.exp(cc45/(cc45-av45))
+rewrites45 = (
+    # e^2 expm1(2(a-delta)/(c-a)) = E_h-e^2: the exponents agree
+    sp.simplify(2+2*(av45-dl45)/(cc45-av45)-cc45/(cc45-av45))==0
+    and sp.simplify(sp.expand_log(sp.log(1+sp.exp(Fv45)),force=True)
+                    -(Fv45+sp.log(1+sp.exp(-Fv45))))==0
+    and sp.simplify(cc45*sp.log(1+sv45/sp.E)/(1+sp.log(1+sv45/sp.E))
+                    -(cc45-cc45/sp.log(sp.E+sv45)))==0
+    and sp.simplify(sp.E*(sp.exp(vv45/(cc45-vv45))-1)
+                    -(sp.exp(cc45/(cc45-vv45))-sp.E))==0
+    and sp.simplify(sp.exp(yv45+sp.log(1-sp.exp(-yv45)))-(sp.exp(yv45)-1))==0
+    and sp.simplify(2/(sp.sqrt(Lv45**2+4)-Lv45)
+                    -(Lv45+sp.sqrt(Lv45**2+4))/2)==0
+    and sp.simplify(((Lv45+sp.sqrt(Lv45**2+4))/2)
+                    -1/((Lv45+sp.sqrt(Lv45**2+4))/2)-Lv45)==0
+    and sp.simplify(dl45+cc45*sp.log(1+xv45/sp.exp(2))
+                    /(2*(2+sp.log(1+xv45/sp.exp(2))))
+                    -(cc45-cc45/sp.log(sp.exp(2)+xv45)))==0)
+# Terminal map.  Put E0,Acut>0, Lambda=exp(Acut-E0), eta>0, U=Ez-Acut and
+# M(U)=log(1+F(e^U-1)), F(u)=(Lambda u^2+mu u)/(1+u).  Then
+# 1+F(e^U-1)=Lambda e^U (1+A1 v+A2 v^2), v=e^-U, with the C0,C1 above,
+# so E0+M=Ez+log(1+D), D=C0 e^(E0-Ez)+C1 e^(E0+Acut-2Ez).  With
+# L=log Ez=eta/gap, both returns equal z_c-eta/log(E0+M).
+E0t45,Act45,mut45,Ezt45,etat45,zct45 = sp.symbols(
+    'E0t45 Act45 mut45 Ezt45 etat45 zct45',positive=True)
+Lamt45 = sp.exp(Act45-E0t45)
+Ut45 = Ezt45-Act45
+ut45 = sp.exp(Ut45)-1
+Ft45 = (Lamt45*ut45**2+mut45*ut45)/(1+ut45)
+C0t45,C1t45 = 1+mut45-2*Lamt45,Lamt45-mut45
+Dt45 = C0t45*sp.exp(E0t45-Ezt45)+C1t45*sp.exp(E0t45+Act45-2*Ezt45)
+Mt45 = sp.log(1+Ft45)
+terminal45 = (
+    # 1+F(e^U-1)=e^(Ez-E0)(1+D), hence E0+M=Ez+log(1+D)
+    sp.simplify(sp.expand(1+Ft45)
+                -sp.expand(sp.exp(Ezt45-E0t45)*(1+Dt45)))==0)
+Lt45 = sp.log(Ezt45)
+ellA45 = sp.Symbol('ellA45',positive=True)       # = log1p(log1p(D)/Ez)
+ellB45 = sp.Symbol('ellB45',positive=True)       # = log1p(M/E0)
+zt45 = zct45-etat45/Lt45
+terminal_returns45 = (
+    # direct branch: z_c ell/(eta/z_c+ell) with log(E0+M)=eta/z_c+ell
+    sp.simplify(zct45*ellB45/(etat45/zct45+ellB45)
+                -(zct45-etat45/(etat45/zct45+ellB45)))==0
+    # Ez>50 branch: z+eta ell/(L(L+ell)) with log(E0+M)=L+ell
+    and sp.simplify(zt45+etat45*ellA45/(Lt45*(Lt45+ellA45))
+                    -(zct45-etat45/(Lt45+ellA45)))==0
+    # and E0=exp(eta/z_c): log(E0+M)=log E0+log1p(M/E0)
+    and sp.simplify(sp.expand_log(sp.log(sp.exp(etat45/zct45)
+                    *(1+sp.Symbol('Mq45',positive=True)
+                      /sp.exp(etat45/zct45))),force=True)
+                    -(etat45/zct45+sp.log(1+sp.Symbol('Mq45',positive=True)
+                                          /sp.exp(etat45/zct45))))==0
+    # and log(Ez+log1p D)=log Ez+log1p(log1p(D)/Ez)
+    and sp.simplify(sp.expand_log(sp.log(Ezt45*(1+sp.Symbol('cq45',positive=True)
+                                                /Ezt45)),force=True)
+                    -(Lt45+sp.log(1+sp.Symbol('cq45',positive=True)/Ezt45)))==0
+    # and E_t(z)-A0=Acut*expm1(eta dz/(gap gap0)), gap=gap0-dz,
+    # Acut=exp(eta/gap0): the exponents differ by eta dz/(gap gap0)
+    and sp.simplify(etat45/(sp.Symbol('g0q45',positive=True)
+                            -sp.Symbol('dzq45',positive=True))
+                    -etat45/sp.Symbol('g0q45',positive=True)
+                    -etat45*sp.Symbol('dzq45',positive=True)
+                    /((sp.Symbol('g0q45',positive=True)
+                       -sp.Symbol('dzq45',positive=True))
+                      *sp.Symbol('g0q45',positive=True)))==0)
+rep('C45a stable rewrites in R, R^-1 and both terminal branches are identities',
+    source45 and rewrites45 and terminal45 and terminal_returns45)
+
+# C45b.  The joins inside the moment (written section 11.2 arguments, types
+# (b)/(c); the identities they use are checked here).  (i) |b|>=2/5: with
+# R=id (b>=c) and T=id (z>=z_c=g(2/5)), the interior composite equals
+# the outer formula: B expm1(kappa u)-C expm1(-kappa u)=g(u)-z0 and
+# G(G^-1(g))=g; the switch at |b|=2/5 is a flat join because T-id is
+# flat at z_c: by C45a, T(z)-z=eta*ell/(L(L+ell)), ell=log1p(log1p(D)/Ez)
+# with D=O(exp(-Ez)), Ez=exp(L), L=eta/(z_c-z).  (ii) |b|=c=1/5: R-id is
+# flat at c: with L=c/(c-a), w=1/E_h=exp(-L),
+#   R(a)-a = c*l/(L(L+l)),  l=log(w(e+S(1/w-e^2))),
+# and w(e+S(1/w-e^2)) = 1+(e-e^2)w-w^2/(1-e^2 w)+w log(1+exp(-1/w+e^2
+# +w/(1-e^2 w))), a smooth function of w at 0+ equal to 1 there (the last
+# term is flat); hence every a-derivative of R-a is a polynomial in L
+# times a flat function of L.  (iii) |b|=1/10: (11.4) glues to G to all
+# orders by the section 11.2 blow-up argument (R(1/10+s)=A(s)exp(-1/(20e^2 s)),
+# h(x)=x+x^2B); this is cited, not re-derived.  (iv) The R^-1 switch
+# `value>=c` sits at |b|=b*(q,lambda), where h(R(b*))=c (b* lies in
+# (0.15,0.2)): R^-1-id is flat at c because R-id is (written, type (b):
+# from R(a)=a+phi(a) with phi flat at c, R^-1(y)=y-phi(R^-1(y)) and every
+# derivative of phi o R^-1 vanishes there).  (i) also needs R^-1=id on
+# [2/5,1/2], i.e. h(2/5)>c: G_*(c)<=(3/10)sinh(8/5)/(8/5)<446/1000 (d<3/2,
+# gamma c<=8/5, sinh(x)/x increasing), whereas z_c=g(2/5)>4485/10000
+# (section 11.2: the minimum on 2<=kappa<=8 of e^(-kappa/10)-e^(-9kappa/10)
+# is at kappa=8), so G_*^-1(z_c)>c.
+gq45,kq45,aq45 = sp.symbols('gq45 kq45 aq45',positive=True)
+Bq45 = sp.exp(-kq45/2)
+Cq45 = gq45*sp.exp(kq45/2)
+uq45 = sp.Symbol('uq45',positive=True)
+wq45 = sp.Symbol('wq45',positive=True)
+Lq45 = sp.Symbol('Lq45',positive=True)
+xq45 = 1/wq45-sp.exp(2)
+Sq45 = sp.log(1+sp.exp(xq45-1/xq45))
+lq45 = sp.log(wq45*(sp.E+Sq45))
+joins45 = (
+    sp.simplify(sp.expand((Bq45*(sp.exp(kq45*uq45)-1)-Cq45*(sp.exp(-kq45*uq45)-1)))
+                -sp.expand((Bq45*sp.exp(kq45*uq45)-Cq45*sp.exp(-kq45*uq45))
+                           -(Bq45-Cq45)))==0
+    # R-a in the (w,L) variables: a=c-c/L and R=c-c/log(e+S(phi)),
+    # with phi=E_h-e^2=1/w-e^2 and log E_h=L=-log w.
+    and sp.simplify((cc45-cc45/(Lq45+lq45))-(cc45-cc45/Lq45)
+                    -cc45*lq45/(Lq45*(Lq45+lq45)))==0
+    and sp.simplify(sp.expand(wq45*(sp.E+xq45-1/xq45))
+                    -(1+(sp.E-sp.exp(2))*wq45
+                      -wq45**2/(1-sp.exp(2)*wq45)))==0
+    # S(x)-(x-1/x)=log(1+exp(-(x-1/x))) (the flat term): for real F both
+    # sides are real logarithms of positive numbers with equal exponentials
+    and sp.simplify(sp.expand((1+sp.exp(sp.Symbol('Fr45',real=True)))
+                              *sp.exp(-sp.Symbol('Fr45',real=True)))
+                    -(1+sp.exp(-sp.Symbol('Fr45',real=True))))==0
+    and matching_if_test32(moment_tree36,"aa>=mp.mpf('.4')")
+    and exact_if_body37(radial_tree45,'value>=c','return value')
+    and exact_if_body37(terminal_fwd_tree45,'delta_z>=gap0',
+                        'return z0+delta_z')
+    and sp.Rational(3,10)*sp.sinh(sp.Rational(8,5))/sp.Rational(8,5)
+        <sp.Rational(446,1000)
+    and sp.exp(-sp.Rational(4,5))-sp.exp(-sp.Rational(36,5))
+        >sp.Rational(4485,10000)
+    and sp.Rational(446,1000)<sp.Rational(4485,10000))
+rep('C45b moment joins at |b|=2/5, 1/5 and b* are flat; 11.2 identities',
+    joins45 and source45)
+
+# C45c.  Height-cell seams (identity type (a)).  Core (lambda=0, kappa=2,
+# B=e^-1, C=qe, outer branch on |b|>=2/5): at a=1/2 the cell-0 a>0 formula
+# A=(R+f)/2 with b=a and the cell-1 formula A=2/(R-f) with b=a-1 are both
+# e^(2a-1); at a=-1/2 the cell-0 Y=(R-f)/2 and the cell-(-1) Y=2/(R+f)
+# are both e^(-2a-1).  Collar (any kappa): across a=1/2 the logradius
+# 0*P+log(Y(b))/2 (b=a) and P+log(Y(b-1))/2 coincide: on the outer branch
+# Y(b)=q e^(-kappa(b-1/2)) for b>2/5 and Y(b')=e^(-kappa(b'+1/2)) for
+# b'<-2/5, with P=log(q)/2.  These are equalities of analytic functions
+# on the open intervals |a-+1/2|<1/10, so all jets agree.
+ac45 = sp.Symbol('ac45',real=True)
+qc45 = sp.Symbol('qc45',positive=True)
+fpos45 = sp.exp(2*ac45-1)-qc45*sp.exp(1-2*ac45)        # b=a>0, kappa=2
+fneg45 = -(sp.exp(1-2*ac45)-qc45*sp.exp(2*ac45-1))     # b=a-1<0
+Rpos45 = sp.exp(2*ac45-1)+qc45*sp.exp(1-2*ac45)
+Rneg45 = sp.exp(1-2*ac45)+qc45*sp.exp(2*ac45-1)
+gneg45 = -(sp.exp(-2*ac45-1)-qc45*sp.exp(1+2*ac45))    # b=a<0 near -1/2
+Rgneg45 = sp.exp(-2*ac45-1)+qc45*sp.exp(1+2*ac45)
+gpos45 = sp.exp(2*ac45+1)-qc45*sp.exp(-2*ac45-1)       # b=a+1>0
+Rgpos45 = sp.exp(2*ac45+1)+qc45*sp.exp(-2*ac45-1)
+kc45,bc45 = sp.symbols('kc45 bc45',positive=True)
+fcol45 = sp.exp(-kc45/2)*sp.exp(kc45*bc45)-qc45*sp.exp(kc45/2)*sp.exp(-kc45*bc45)
+Rcol45 = sp.exp(-kc45/2)*sp.exp(kc45*bc45)+qc45*sp.exp(kc45/2)*sp.exp(-kc45*bc45)
+bn45 = bc45-1                                           # b'=b-1<0
+fcoln45 = -(sp.exp(-kc45/2)*sp.exp(-kc45*bn45)
+            -qc45*sp.exp(kc45/2)*sp.exp(kc45*bn45))
+Rcoln45 = (sp.exp(-kc45/2)*sp.exp(-kc45*bn45)
+           +qc45*sp.exp(kc45/2)*sp.exp(kc45*bn45))
+cells45 = (
+    sp.simplify(sp.expand(Rpos45**2-fpos45**2-4*qc45))==0
+    and sp.simplify(sp.expand(Rneg45**2-fneg45**2-4*qc45))==0
+    and sp.simplify((Rpos45+fpos45)/2-sp.exp(2*ac45-1))==0
+    and sp.simplify(2/(Rneg45-fneg45)-sp.exp(2*ac45-1))==0
+    and sp.simplify(sp.expand(Rgneg45**2-gneg45**2-4*qc45))==0
+    and sp.simplify(sp.expand(Rgpos45**2-gpos45**2-4*qc45))==0
+    and sp.simplify((Rgneg45-gneg45)/2-sp.exp(-2*ac45-1))==0
+    and sp.simplify(2/(Rgpos45+gpos45)-sp.exp(-2*ac45-1))==0
+    and sp.simplify(sp.expand(Rcol45**2-fcol45**2-4*qc45))==0
+    and sp.simplify(sp.expand(Rcoln45**2-fcoln45**2-4*qc45))==0
+    and sp.simplify(2*qc45/(Rcol45+fcol45)
+                    -qc45*sp.exp(-kc45*(bc45-sp.Rational(1,2))))==0
+    and sp.simplify((Rcoln45-fcoln45)/2
+                    -sp.exp(-kc45*(bn45+sp.Rational(1,2))))==0
+    and sp.simplify(sp.expand_log(sp.log(qc45*sp.exp(-kc45*(bc45-sp.Rational(1,2)))),
+                                  force=True)/2
+                    -(sp.log(qc45)/2+sp.expand_log(
+                        sp.log(sp.exp(-kc45*(bn45+sp.Rational(1,2)))),
+                        force=True)/2))==0
+    and exact_if_body37(core_tree37,'a>0','''
+A = 2/(R-f) if cell==1 else (R+f)/2
+x = mp.sqrt(A/e)/nu
+return x,t/x
+''')
+    and matching_statement31(core_tree37,
+        "Y = 2/(R+f) if cell==-1 else (R-f)/2"))
+rep('C45c core and collar height-cell seams: equal analytic cell formulas',
+    cells45 and source45)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'
