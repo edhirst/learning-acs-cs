@@ -6907,5 +6907,225 @@ with mp41.workdps(120), cusp30.elementary_formula_branches():
 rep('C43f eight production points at the selector (numerical, d)',
     sample_ok43)
 
+# C44: the two collar/pure-middle source joins along their whole seams:
+# south |t|=1/2 (selector abs(t)<.5) and north |small|=1/2, i.e. |t|=2
+# (selector inf=inverse_ratio and abs(small)<.5).  N13 and C40 checked one
+# chamber each.  Let M1 be the collar formulas with lambda=1 and the cusp
+# weight b0 (south) or bi (north) set to 0 (bm=1).  C44 proves: the
+# collar source differs from M1 by terms flat at the seam; M1 and the
+# pure-middle source give W-data with the same four modulo an integer and
+# one differing by a smooth real gauge; hence the same ten-slot projector
+# and, for a smooth final fold vector E (a premise resting on the other
+# seams), restored outputs differing by a holomorphic lattice
+# translation (C42d).  It holds for every argument chart of a and every
+# fixed branch of log t.
+
+# C44a.  At lambda=1 the source moment is f=2 sqrt(q) sinh(kb) on every
+# branch: the |b|<=1/10 and lam==1 branch is G=d sinh(amp b)/amp with
+# amp=k, d=2 sqrt(q) k; the outer branch has B=C=sqrt(q), kappa=k; the
+# interior terminal map is the identity (C40c).  With root=2 sqrt(q)
+# cosh(kb), both source Y formulas give Y=sqrt(q) e^(-kb), so
+# rho=nP+log(Y)/2=P(a+1/2) (P=log(q)/2=-k/2): this is the lam==1
+# return of elementary_cusp_logradius.  Left of the seam
+# lambda=s((|tc|-3/10)/(1/5)) and b0 or bi equal 1-s, flat at u=1.
+qb44,kb44 = sp.symbols('qb44 kb44',positive=True)
+bb44,nn44 = sp.symbols('bb44 nn44',real=True)
+sq44 = sp.sqrt(qb44)
+f44 = 2*sq44*sp.sinh(kb44*bb44)
+lam1_44 = (
+    sp.simplify((2*sq44*kb44*sp.sinh(kb44*bb44)/kb44)-f44)==0
+    and sp.simplify((sq44*sp.exp(kb44*bb44)-qb44/sq44*sp.exp(-kb44*bb44))-f44)==0
+    and sp.simplify(sp.expand((f44**2+4*qb44)
+                    -(2*sq44*sp.cosh(kb44*bb44))**2).rewrite(sp.exp))==0
+    and sp.simplify((2*qb44/(2*sq44*sp.cosh(kb44*bb44)+f44))
+                    -sq44*sp.exp(-kb44*bb44))==0
+    and sp.simplify(((2*sq44*sp.cosh(kb44*bb44)-f44)/2)
+                    -sq44*sp.exp(-kb44*bb44))==0
+    # rho=nP+log(Y)/2, log Y=log(q)/2-kb=-k/2-kb (q=e^-k), P=-k/2,
+    # equals P(n+b+1/2)
+    and sp.simplify(sp.log(sp.sqrt(sp.exp(-kb44)))+kb44/2)==0
+    and sp.expand(nn44*(-kb44/2)+(-kb44/2-kb44*bb44)/2
+                  -(-kb44/2)*(nn44+bb44+sp.Rational(1,2)))==0
+    and exact_if_body37(logradius_tree34,'lam==1',
+        "return +(P*(a+mp.mpf('.5')))")
+    and matching_if_test32(moment_tree36,"lam==1 or aa<=mp.mpf('.1')")
+    and height_join40 and selector_source40 and source41
+    # outer branch (C43b domain43) and the interior composition: at
+    # lambda=1 the terminal T is the identity (C40c), G^-1 undoes G, and
+    # R^-1(R(aa))=aa by the C29g inverse identities (repeated here).
+    and domain43
+    and ordered_nodes37(moment_tree36.body,[
+        'u = _height_R(aa)',
+        'delta_z = B*mp.expm1(kappa*u)-C*mp.expm1(-kappa*u)',
+        'v = _height_terminal_forward(delta_z,data)',
+        'return mp.sign(a)*_height_G(_height_R(_height_G(v,amp,d,'
+        'inverse=True),inverse=True),amp,d)'])
+    and sp.simplify(sp.exp(sg29)-1-sp.exp(wg29))==0
+    and sp.factor(wg29**2+4-(xg29+1/xg29)**2)==0
+    and sp.simplify(cg29-cg29/sp.log(sp.exp(2)+sp.exp(ellg29)-sp.exp(2))
+                    -rg29)==0
+    and sp.simplify(cg29-cg29/sp.log(sp.E+sp.exp(ellg29)-sp.E)-rg29)==0)
+rep('C44a lambda=1 collar height is P(a+1/2) on every moment branch',
+    lam1_44)
+
+# C44b.  Lattice data of M1.  South: (zm,wm)=canonical+(a+1/2)(-iP,0), and
+# (-iP,0)=e4-c.e-(th/2pi)e1 (C43d), so four=xi4+a+1/2 and
+# one=xi1-(a+1/2)th/(2pi).  The pure middle (|t|<=1 branch) has
+# four=Arg(u2)/(2pi)+xi4+1/2, one=0, and a=Arg(u2)/(2pi)+j with j an
+# integer (j=0 principal chart; j in {0,1} half-centred).  North:
+# (zm,wm)=(a+1/2)(-iP,0)=(a+1/2)(-e4+c.e+(th/2pi)e1), so four=-(a+1/2),
+# one=(a+1/2)th/(2pi); the pure middle (|t|>=8/5, where lam=0) has
+# four=Arg(u1)/(2pi)-1, and a=1/2-Arg(u1)/(2pi)+j, since
+# Arg(-conj u1)=pi-Arg u1 modulo 2 pi.  In both cases the fours differ by
+# an integer and the ones by a smooth real gauge g.
+au44,x4_44,j44 = sp.symbols('au44 x4_44 j44',real=True)
+jint44 = sp.Symbol('jint44',integer=True)
+south_four44 = x4_44+(au44/(2*sp.pi)+jint44)+sp.Rational(1,2)
+south_right44 = au44/(2*sp.pi)+x4_44+sp.Rational(1,2)
+north_a44 = sp.Rational(1,2)-au44/(2*sp.pi)+jint44
+north_four44 = -(north_a44+sp.Rational(1,2))
+north_right44 = -(-au44/(2*sp.pi)+0+sp.Rational(1,2))-sp.Rational(1,2)
+lattice44 = (
+    lattice_shift43
+    and sp.simplify(south_four44-south_right44-jint44)==0
+    and sp.simplify(north_four44-north_right44+jint44)==0
+    # pure middle near |t|=2: lam=1-s((r-6/5)/(2/5))=0 for r>=8/5
+    and (sp.Rational(8,5)-sp.Rational(6,5))/sp.Rational(2,5)==1
+    # chart facts at exact points of both half-planes: south a-Arg(u2)/2pi
+    # and north a-(1/2-Arg(u1)/2pi) are integers in both source charts
+    # (principal a=Arg(p)/2pi; half-centred a=1/2+Arg(-p)/2pi).
+    and all(sp.simplify(chart-target).is_integer
+            for ang in (sp.pi/7,5*sp.pi/6,-sp.pi/7,-5*sp.pi/6,sp.pi)
+            for (chart,target) in (
+                (sp.arg(sp.exp(sp.I*ang))/(2*sp.pi),
+                 sp.arg(sp.exp(sp.I*ang))/(2*sp.pi)),
+                (sp.Rational(1,2)+sp.arg(-sp.exp(sp.I*ang))/(2*sp.pi),
+                 sp.arg(sp.exp(sp.I*ang))/(2*sp.pi)),
+                (sp.arg(-sp.conjugate(sp.exp(sp.I*ang)))/(2*sp.pi),
+                 sp.Rational(1,2)-sp.arg(sp.exp(sp.I*ang))/(2*sp.pi)),
+                (sp.Rational(1,2)+sp.arg(sp.conjugate(sp.exp(sp.I*ang)))
+                 /(2*sp.pi),
+                 sp.Rational(1,2)-sp.arg(sp.exp(sp.I*ang))/(2*sp.pi)))))
+rep('C44b M1 and pure-middle fours differ by an integer at both seams',
+    lattice44 and source42)
+
+# C44c.  Projector, phase and restoration.  At the seam the cusp pair of
+# M1 has weight 0 and bm=1, so the ten-vector is the two angular slots
+# exp(i(2 pi one-beta9 four)) times the weights: M1 = exp(2 pi i g) times
+# the pure-middle one (an integer change of four is invisible, C42b).
+# Hence the projectors agree; p_M1=exp(-2 pi i g)p_R (conjugate-linear
+# slot), so the corrected one agrees modulo 1, four differs by an integer
+# and Psi by a lattice vector.  Both restorations have C=phi (the cusp
+# weight is 0 for M1 and exactly 0 on the pure middle), so the restored
+# outputs differ by a lattice translation, holomorphic with determinant 1.
+g44 = sp.Symbol('g44',real=True)
+Vr44 = sp.symbols('Vr0_44 Vr1_44')
+Er44 = sp.symbols('Er0_44 Er1_44')
+pR44 = inner41(Vr44,Er44)
+pM44 = sp.expand(inner41(tuple(sp.exp(2*sp.pi*sp.I*g44)*v for v in Vr44),Er44))
+gauge44 = (
+    sp.simplify(pM44-sp.exp(-2*sp.pi*sp.I*g44)*pR44)==0
+    and embedding42 and lattice42 and commute42 and deck_det42)
+# Flatness from the left: with u=(|tc|-3/10)/(1/5), 1-lambda=b0 (or bi)
+# =1-s(u) and its first two derivatives tend to 0 as u->1-, by the
+# symmetry s(1-u)=1-s(u) and C41c.
+flat_left44 = (
+    sp.simplify(flat_actual34.subs(p34,1-u41)+flat_actual34.subs(p34,u41)-1)==0
+    and flat_limits41 and flat_two_jets41)
+rep('C44c same projector, ones agree mod 1, outputs differ by a lattice vector',
+    gauge44 and flat_left44)
+
+# C44d.  Exact witnesses: the C42e family u1=i/Q, u2=k/Q (theta=pi/2,
+# a=0) at |t|=499/1000,1/2,501/1000 (south seam; inverse branch with
+# p=1/|t|^2, p^2<16.3<50<B, |small|=1/|t|>1/2), and the C41e north family
+# at |small|=499/1000,1/2,501/1000 (p=|small|^2, inf iff |small|<1/2).
+# Both have |X|<3/5 (C41e, C42e).
+witness44 = (
+    witness42 and stereo41 and slab41 and witness_roots41
+    and (1/sp.Rational(499,1000)**2)**2<sp.Rational(163,10)
+    and sp.Rational(163,10)<50<sp.exp(4)
+    and 1/sp.Rational(501,1000)>sp.Rational(1,2)
+    and sp.Rational(499,1000)<sp.Rational(1,2)<sp.Rational(501,1000)
+    and sp.Rational(501,1000)**4<sp.exp(4))
+rep('C44d exact witnesses on and across both seams',witness44)
+
+# C44e is solely a reproducible numerical observation (d).  At each seam
+# it takes production points at |t| (south) or |small| (north) equal to
+# 1/2-eps and 1/2+eps for several (Arg, a), including the half-centred
+# chart, a common E=V(q+), and records the integer lattice vector nearest
+# to Psi(q+)-Psi(q-), the residual and the projector jump, for eps=1e-12
+# and 1e-24.  Sample size 36 (nine choices, two eps, two sides).  Only
+# for Arg t in (-3pi/4,-pi/4) does the angular projector see four; the
+# last two choices are there.  At eps<=1e-12 the collar side already
+# has lambda=1 and zero cusp weight in floating point, so C44e compares
+# M1 with the pure middle; the flat regime itself is C44c.
+# It is not used by C44a-d.
+def seam_point44(side_abs,arg_t,aa,north):
+    A,B = (4*mp41.pi)**2,mp41.exp(4)
+    if north:
+        p = side_abs**2
+        k = mp41.sqrt((p**2+A*p)/(A*p+B)); Q = mp41.sqrt(1+k**2)
+        u1 = -mp41.conj(mp41.exp(2*mp41.pi*mp41.j*aa))/Q
+        u2 = k*u1*mp41.exp(-mp41.j*arg_t)
+    else:
+        p = 1/side_abs**2
+        k = mp41.sqrt((p**2+A*p)/(A*p+B)); Q = mp41.sqrt(1+k**2)
+        u2 = k*mp41.exp(2*mp41.pi*mp41.j*aa)/Q
+        u1 = mp41.exp(mp41.j*(arg_t+2*mp41.pi*aa))/Q
+    d = 1+u1.real
+    w = (u1.imag/d,u2.real/d-1,u2.imag/d)
+    R = mp41.sqrt(sum(v*v for v in w))
+    X = (R-1)/mp41.sqrt(1+R**2)
+    n = (w[0]/R,-w[2]/R,-w[1]/R)
+    return cusp30.elliptic_raw_base_reference(
+        tuple((1-X**2)*v for v in n),X,dps=110,elementary=True)
+rows44 = []
+sample_ok44 = True
+with mp41.workdps(120), cusp30.elementary_formula_branches():
+    choices44 = ((False,mp41.mpf('0.7'),mp41.mpf('0.1')),
+                 (False,mp41.mpf('-2.5'),mp41.mpf('-0.3')),
+                 (False,mp41.mpf('2.9'),mp41.mpf('0.35')),
+                 (False,mp41.mpf('1.3'),mp41.mpf('0.55')),
+                 (True,mp41.mpf('0.7'),mp41.mpf('0.1')),
+                 (True,mp41.mpf('-2.5'),mp41.mpf('-0.3')),
+                 (True,mp41.mpf('1.9'),mp41.mpf('0.55')),
+                 (False,mp41.mpf('-1.2'),mp41.mpf('0.2')),
+                 (True,mp41.mpf('-1.9'),mp41.mpf('-0.15')))
+    for north44,arg44,aa44 in choices44:
+        res44 = []
+        for eps44 in (mp41.mpf('1e-12'),mp41.mpf('1e-24')):
+            kp,dp = seam_point44(mp41.mpf(1)/2+eps44,arg44,aa44,north44)
+            km,dm = seam_point44(mp41.mpf(1)/2-eps44,arg44,aa44,north44)
+            Vp = cusp30.elliptic_bundle_embedding(kp,dp,dps=110,elementary=True)
+            Vm = cusp30.elliptic_bundle_embedding(km,dm,dps=110,elementary=True)
+            Pj = max(abs(a*mp41.conj(b)-c*mp41.conj(d))
+                     for a,c in zip(Vp,Vm) for b,d in zip(Vp,Vm))
+            psi = []
+            for data,V in ((dp,Vp),(dm,Vm)):
+                tt,oo,ff,ll = data[:4]
+                ph = cusp30._elementary_inner(V,Vp)
+                o1 = oo+mp41.arg(ph)/(2*mp41.pi)
+                psi.append((2*mp41.pi*o1-mp41.j*ll*ff,2*tt*ff,tt,ll))
+            dz,dw = psi[0][0]-psi[1][0],psi[0][1]-psi[1][1]
+            tt,ll = psi[1][2],psi[1][3]
+            nn = int(mp41.nint((dw/(2*tt)).real))
+            mm = int(mp41.nint(((dz+mp41.j*ll*nn)/(2*mp41.pi)).real))
+            res = max(abs(dz-(2*mp41.pi*mm-mp41.j*ll*nn)),abs(dw-2*tt*nn))
+            res44.append((mm,nn,res,Pj,len(dp),len(dm)))
+            sample_ok44 &= (kp=='mid' and km=='mid' and res<1000*eps44
+                            and Pj<1000*eps44)
+        sample_ok44 &= (res44[0][:2]==res44[1][:2]
+                        and res44[1][2]<res44[0][2]*mp41.mpf('1e-9')
+                        and {res44[0][4],res44[0][5]}=={4,5})
+        rows44.append((north44,arg44,aa44,res44))
+    print('C44e production observations (d), sample size 36:')
+    for north44,arg44,aa44,res44 in rows44:
+        print('   ','north' if north44 else 'south',mp41.nstr(arg44,3),
+              mp41.nstr(aa44,3),' lattice (m,n)=',res44[0][:2],
+              ' residual=',[mp41.nstr(r[2],3) for r in res44],
+              ' |P jump|=',[mp41.nstr(r[3],3) for r in res44])
+rep('C44e production points across both collar/middle seams (numerical, d)',
+    sample_ok44)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

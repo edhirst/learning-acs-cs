@@ -462,11 +462,20 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   \(\pm e_4\) (collar). An exact four-seed deck shift on
   \(1/4<Y<2\), for every \(q<1/8\), replaces C38's
   \(q<1/100\) computation.
-  **Next unchecked T16 tasks:** the joins of the pure middle
-  with the collars at \(|t|=1/2\) and \(|t|=2\) outside the
-  N13 and C40 chambers; then bind a guarded six-real
-  second-jet circuit to every remaining production source
-  branch and the global determinant/overlap bounds. The listed joins are research
+  **Collar/middle joins (2026-10-12-EH-4):** C44 checks both
+  collar/pure-middle selectors, \(|t|=1/2\) and
+  \(|\mathrm{small}|=1/2\), along their whole seams: at
+  \(\lambda=1\) the collar height is \(P(a+1/2)\), so the collar
+  and pure-middle data agree modulo \(x_4\mapsto x_4+n\) and a
+  circle gauge; the projectors agree, and for a smooth final
+  fold vector the outputs differ by a lattice translation.
+  **Next unchecked T16 tasks:** promote the remaining
+  one-chamber checks to whole-seam statements: the radial
+  pole shells and raw annuli (N10, g, h, f), the collar
+  log cut (C34) and the cusp height-cell and central-fibre
+  charts; then bind a guarded six-real second-jet circuit to
+  every remaining production source branch and the global
+  determinant/overlap bounds. The listed joins are research
   targets, not certificates.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13

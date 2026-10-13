@@ -2525,3 +2525,75 @@ in `AGENTS.md` §5.
   all-branch six-real circuit with global determinant and overlap
   bounds. The global \(J_{\mathrm{cl}}\) statement still requires human
   review.
+
+### 2026-10-12-EH-4 — Certify both collar/pure-middle joins along their whole seams
+- **Date:** 2026-10-12
+- **Collaborator:** Edward Hirst
+- **Agent:** Claude Code (Claude Opus 5.5), with one independent reviewer subagent
+- **Type:** addition
+- **Based on:** 5f48fff
+- **Where:** extra/s4t2_explicit/sym/chart_identities.py (new section C44a–e
+  at the end), docs/s4t2_symbolic_programme.md (status line, §11.8 table
+  row and certificate paragraph), SYMBOLIC_CAMPAIGN.md (T16 status and
+  next tasks). No manuscript or construction file changed.
+- **Change:** added C44, which covers the two joins of the collars with
+  the pure middle along their whole seams: \(|t|=1/2\) (south, selector
+  `abs(t)<.5`) and \(|\mathrm{small}|=1/2\), i.e. \(|t|=2\) (north, selector
+  `inf`). N13 and C40 had checked one chamber of each. Let \(M_1\) be the
+  collar formulas with \(\lambda=1\) and the cusp weight set to \(0\).
+  - The collar source differs from \(M_1\) by flat terms.
+  - At \(\lambda=1\) every moment branch gives \(f=2\sqrt q\sinh(kb)\), so
+    \(\rho=P(a+1/2)\), the source's \(\lambda=1\) return.
+  - By the C43 lattice identity the \(M_1\) data have
+    \(x_4=\xi_4+a+1/2\) (south) or \(-(a+1/2)\) (north), equal to the
+    pure-middle \(x_4\) modulo an integer, while \(x_1\) differs by a real
+    gauge.
+  - Hence the projectors agree and the corrected \(x_1\) agree modulo
+    \(1\). For a smooth final fold vector (a stated premise), the
+    restored outputs differ by a holomorphic lattice translation.
+- **Why:** with C41–C43 this completes the artificial radial and
+  argument selectors of the raw reference between the two cusp cores.
+  The lattice identity already proved for C43 reduces each join to an
+  integer ambiguity of \(x_4\) and a circle gauge, so whole seams are
+  certified rather than chambers.
+- **Verification:** `python3 extra/s4t2_explicit/sym/chart_identities.py`:
+  **ALL PASS** (C1–C44). C44d gives exact witnesses at
+  \(|t|,|\mathrm{small}|\in\{499/1000,1/2,501/1000\}\), with \(|X|<3/5\).
+  C44e, numerical observation (d), sample size 36: at both seams and for
+  nine choices of \((\Arg,a)\), including the half-centred chart and two
+  with \(\Arg t\in(-3\pi/4,-\pi/4)\), where the projector sees \(x_4\), the
+  \(\Psi\) jump between production points at distance \(\varepsilon\) is
+  an integer lattice vector plus a residual of order \(\varepsilon\): at
+  most \(2.2\cdot10^{-11}\) at \(\varepsilon=10^{-12}\), and \(10^{-12}\)
+  times smaller at \(\varepsilon=10^{-24}\). The projector jump is also
+  of order \(\varepsilon\) (\(5.5\cdot10^{-12}\) in the informative south
+  case). An independent reviewer subagent audited C44.
+  It re-derived every claim against `cusp.py`. It checked the
+  \(\lambda\to1^-\) limit of the moment numerically on all branches,
+  through third one-sided differences, at 13 values of \(b\); the
+  production lattice data of \(M_1\); and the decay
+  \(\approx0.1\,e^{-1/(5\delta)}\) of the collar-minus-\(M_1\) difference.
+  It ran 816 production crossings (dps 130; eleven values of \(\Arg t\),
+  including the log cut; 17 values of \(a\), including both chart
+  boundaries and the \(u\)-cuts; \(\varepsilon=10^{-15}\) and \(10^{-30}\)),
+  with projector jump \(\le6.5\varepsilon\), \(\Psi\) residual
+  \(\le21.6\varepsilon\) and restored-output residual \(\le45\varepsilon\),
+  plus 100 end-to-end crossings through the reduced-count production
+  fold. Verdict: sound, with minor caveats. Fixed in this commit:
+  - C44a now binds the outer and interior moment branches and repeats
+    the C29g inverse identities needed for \(R^{-1}\circ R=\mathrm{id}\);
+  - C44b checks the chart facts at exact points of both half-planes;
+  - C44e adds two choices where the projector is informative;
+  - dead code is removed and three doc wordings are corrected.
+  The full script was rerun after these fixes: ALL PASS. `verify_construction.py`:
+  `all checks passed`; `sphere_products.py`: `Dimension 8 check passed`.
+  `git diff --check`: pass. LaTeX: **not run** (no manuscript change).
+  The legacy numerical safety net was not run (no construction block
+  changed).
+- **Open points:** the smoothness of the moment in \(\lambda\) up to
+  \(\lambda=1\) is cited from §11.2 and C40c, not re-proved here. As for
+  C40–C43, the restored-output conclusion rests on a smooth final fold
+  vector. The remaining T16 work is to promote the other one-chamber
+  checks to whole-seam statements and to bind the all-branch six-real
+  circuit with global determinant and overlap bounds. The global
+  \(J_{\mathrm{cl}}\) statement still requires human review.
