@@ -10977,5 +10977,66 @@ rep('C54d rational comparisons and the four interval totals',
      1+q54(18,5)+q54(10,36)+q54(2,3)
        +18*q54(7,50)<10))
 
+# C55: a reproducible reduced-count warning for a direct north Arg.
+# These six endpoint evaluations do not certify either the intermediate
+# angular arc or the production count N=4*10**8000+1.
+with mp.workdps(40):
+    z55 = mp.mpf(395)/480
+    theta55 = 2*mp.pi*437*mp.mpf('0.6180339887498948482')
+    X55 = 1-mp.mpf('1e-5')
+    samples55 = []
+    for steps55 in (400,800,1600):
+        pair55 = []
+        for shift55 in (0,mp.mpf(1)/20):
+            angle55 = theta55+shift55
+            radius55 = mp.sqrt(1-z55*z55)
+            n55 = (radius55*mp.cos(angle55),
+                   radius55*mp.sin(angle55),z55)
+            v55 = mp.sqrt((1+z55)/2)
+            xi55 = (v55,mp.mpc(n55[0],-n55[1])/(2*v55))
+            diagnostics55 = {}
+            section55 = cusp30.elementary_projection_section(
+                xi55,X55,steps55,dps=40,diagnostics=diagnostics55)
+            P55 = cusp30.elliptic_meridian_projector(
+                n55,X55,dps=40,elementary=True)
+            pole55 = cusp30._elementary_unit(
+                P55*mp.matrix(cusp30._elementary_pole_inclusion(xi55,True)))
+            g55 = cusp30._elementary_inner(pole55,section55)
+            pair55.append((g55,diagnostics55['minimum_projection_norm']))
+        samples55.append(pair55)
+print('C55a north reduced-count cut samples (d), six endpoints:',
+      [(steps,[(round(float(mp.arg(g)),6),round(float(margin),6))
+               for g,margin in pair])
+       for steps,pair in zip((400,800,1600),samples55)])
+rep('C55a six reduced-count north endpoint observations (numerical, d)',
+    all(pair[0][0].real<mp.mpf('-.9')
+            and pair[1][0].real<mp.mpf('-.9')
+            and pair[0][0].imag>mp.mpf('.17')
+            and pair[1][0].imag<mp.mpf('-.17')
+            and min(pair[0][1],pair[1][1])>mp.mpf('.59')
+        for pair in samples55))
+with mp.workdps(50):
+    z55b = mp.mpf(3)/4
+    angle55b = 2*mp.pi*10*mp.mpf('0.6180339887498948482')
+    radius55b = mp.sqrt(1-z55b*z55b)
+    n55b = (radius55b*mp.cos(angle55b),
+            radius55b*mp.sin(angle55b),z55b)
+    def sample_ref55b(index):
+        h = -1+mp.mpf('1e-9')+(X55+1-mp.mpf('1e-9'))*index/64
+        kind,data = cusp30.elliptic_raw_base_reference(
+            tuple((1-h*h)*a for a in n55b),h,dps=50,elementary=True)
+        return kind,cusp30.elliptic_bundle_embedding(
+            kind,data,dps=50,elementary=True)
+    before55b,eb55b = sample_ref55b(51)
+    after55b,ea55b = sample_ref55b(52)
+    zero55b = cusp30._elementary_inner(ea55b,eb55b)
+print('C55b N=64 adjacent disjoint-support sample (d):',
+      before55b,after55b,'inner product',zero55b)
+rep('C55b one reduced-count disjoint-support observation (numerical, d)',
+    before55b=='c0' and after55b=='mid'
+    and all(v==0 for v in eb55b[4:])
+    and all(v==0 for v in ea55b[:8])
+    and zero55b==0)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

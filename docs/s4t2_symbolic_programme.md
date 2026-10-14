@@ -2791,6 +2791,20 @@ by <4L_g/K<1/2. Telescoping proves exp(iΘ_j)=g_j; the connected-overlap
 argument of §10.6 proves exact real agreement of its two sphere charts.
 The anchor argument is a constant, so its branch cannot create a variable seam.
 
+There is a reduced-count numerical warning (d), not a certificate for the
+fixed count (11.14). C55a evaluates g∞ at two directions on
+the same latitude, separated by azimuth 1/20, at each of
+N=400, 800, 1600. Both real parts are below −.9, while the
+imaginary parts have opposite signs and magnitudes above .17;
+the sampled projection norms exceed .59. Thus those nearby endpoint
+principal arguments lie on opposite sides of their cut. C55b gives
+one N=64 meridian with adjacent pure-cusp and pure-middle
+embedding supports, whose inner product is exactly zero in the
+evaluated branches. These observations concern only the stated
+samples and reduced counts; they neither prove a cut crossing nor
+nonvanishing for the certified fold. A north-band one-Arg replacement
+requires its own global proof.
+
 On the **south band** the phase walk in this formula has an equivalent
 single-argument expression:
 
@@ -3191,6 +3205,7 @@ derivatives are numerical observations, type (d).
 | C29a–h, new height | quadratic F inverse/derivative, convex tail, tuned endpoint derivative, positive quadratic root/open seam, one-soft b_R′ and its inverse coordinates, unit-phase/Hopf recovery, and cusp torus reversal: ALL PASS |
 | C29i, numerical | 1999 fixed radial-derivative samples; max \|b_R′\|=3.301394, measured margin 6.698606 to the proved bound 10 |
 | C54a–d, sharper radial distortion (a–c) | Exact one-soft algebra, monotonicity derivatives, positive finite exponential series, and rational interval sums certify \|b_R′\|<10: ALL PASS |
+| C55a–b, reduced-count north observations (d) | Six fixed endpoint samples at N=400, 800, 1600 straddle the principal-Arg cut with projection norms above .59; one N=64 sample has adjacent disjoint cusp/middle supports and zero overlap. These are numerical warnings, not claims about the certified count: ALL PASS |
 | C30a–n, exact local second jets (a) | elementary, projection and phase second-jet identities; source checks that the certified counts reach the two recurrence sites; both cusp Cramer/torus-restoration signs and one open noncap branch of the four-seed height; inverse-map-convention \(J^2\) (36 entries) and \(N_J\) (216 entries): ALL PASS |
 | C31a–d, one pure-middle projector cell (a,c) | source-linked reciprocal dominant branch with exact witness \(t=(-1+2i)/3\), explicit rank-one projector and complete local second-jet chain: ALL PASS; the rational witness bounds are written in the script |
 | C32a–d, one two-active-pair cusp projector cell (a,b,c) | on \(1/10<H<1/4\), \(|xy|<3/10\), both cusp signs: the source frame and nonconstant flat weight give an explicit rank-one four-slot projector; all 80 first and 400 second source-coordinate entries, including mixed-partial symmetry, are checked: ALL PASS; \(t=1/10,H=1/5\) is an exact nonempty-cell witness |

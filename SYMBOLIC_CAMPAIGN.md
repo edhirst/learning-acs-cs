@@ -544,6 +544,12 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   `10^-109<f_a<10^109` on the height transition. The downstream
   projector certificate deliberately retains its valid coarse bound;
   N and K are still astronomical.
+  **Reduced-count warning (2026-10-14-TSG-5):** C55 records an
+  N=64 disjoint-support projection and north-band principal-Arg
+  samples straddling its cut at N=400, 800, 1600. These type-(d)
+  observations do not decide the certified count, but a practical
+  fixed-count redesign must address both the projector overlaps and
+  the real north phase.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.

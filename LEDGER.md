@@ -3311,3 +3311,44 @@ in `AGENTS.md` §5.
 - **Open points:** T17's practical global projector bound or direct
   lift, north-band phase, and full source-linked tensor evaluator.
   Human review is required for this sharpened recorded inequality.
+
+### 2026-10-14-TSG-5 — Flag reduced-count fold and north-phase hazards
+- **Date:** 2026-10-14
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6.1-sol)
+- **Type:** flag
+- **Based on:** `a15d400`
+- **Where:** `docs/s4t2_symbolic_programme.md` §11.5 and C55 row
+  of §11.8; `extra/s4t2_explicit/sym/chart_identities.py` C55a–b;
+  `SYMBOLIC_CAMPAIGN.md` T17 status. The construction code and
+  manuscript are unchanged.
+- **Change:** record reproducible type-(d) observations that constrain
+  a practical replacement of the huge fixed projection and phase
+  counts. At one (N=64) meridian, adjacent sampled reference
+  embeddings use disjoint pure-cusp/pure-middle slots and have zero
+  inner product. At two nearby north-band directions, the reduced
+  (N=400,800,1600) mismatches have real parts below (-.9) and
+  imaginary parts with opposite signs and magnitudes above .17;
+  the six endpoint meshes have minimum sampled projection norm
+  above .59. No continuum or certified-count conclusion is claimed.
+- **Why:** shortening (11.15) requires control of all adjacent
+  projection overlaps, and replacing the north phase by one
+  principal Arg requires a proven branch-cut margin. These samples
+  show neither condition can simply be assumed from the south-band
+  shortcut or from a few benign points. The six north endpoint
+  values and one disjoint-support pair are separately printed by C55.
+- **Verification:** `.venv/bin/python3 -B
+  extra/s4t2_explicit/sym/chart_identities.py`: **ALL PASS**
+  (C1–C55, including the seven C55 observations);
+  `.venv/bin/python3 -B
+  extra/s4t2_explicit/sym/i2_margins.py`: **ALL PASS**;
+  `.venv/bin/python3 -B
+  manuscript_draft/code/verify_construction.py`: **all checks passed**;
+  `.venv/bin/python3 -B
+  manuscript_draft/code/sphere_products.py`: **Dimension 8 check
+  passed**. `git diff --check`: pass. LaTeX: **not run**
+  (`latexmk` unavailable; manuscript unchanged). Legacy numerical
+  safety-net scripts: **not run** (no construction code changed).
+- **Open points:** prove a practical uniform adjacent-overlap bound
+  or design a direct lift; prove a practical global real north phase
+  or redesign its gauge; build and check a laptop-scale full tensor.
