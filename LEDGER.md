@@ -3269,3 +3269,45 @@ in `AGENTS.md` §5.
   LaTeX: **not run**.
 - **Open points:** T17's global projector, north phase and practical
   source-linked tensor evaluator.
+
+### 2026-10-14-TSG-4 — Sharpen the one-soft height distortion bound
+- **Date:** 2026-10-14
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6.1-sol)
+- **Type:** statement
+- **Based on:** `caec55f`
+- **Where:** `docs/s4t2_symbolic_programme.md` §11.4 and the C29i/C54
+  rows of §11.8; `extra/s4t2_explicit/sym/chart_identities.py` C29i
+  and C54a–d; `SYMBOLIC_CAMPAIGN.md` T17 status. The construction
+  code and manuscript are unchanged.
+- **Change:** replace the recorded global one-soft estimate
+  `|b_R'|<200` by the proved `|b_R'|<10`; consequently sharpen the
+  height-transition bound from `10^-1819<f_a<10^1819` to
+  `10^-109<f_a<10^109`. The later, valid but coarser projector
+  constants and fixed fold counts are unchanged. The old loose inner
+  estimate was removed because the stronger interval proof replaces it.
+- **Why:** for `x<=1` the two terms of `S S''/(S')^2` lie in
+  `[0,1]` and `[0,13/10)`; for `1<=x<=3` each lies in
+  `[0,1]`. On `3<=x<13`, the exact rearrangement of `b_R'`
+  and three short intervals give totals below 10. C54 verifies
+  the algebra, derivative signs, finite exponential series, and
+  rational interval sums. The sampled maximum 3.301394 leaves
+  measured margin 6.698606, labelled numerical evidence rather
+  than proof. This bound is still insufficient for a laptop-scale
+  projector certificate.
+- **Verification:** independently re-derived the `b_R'` expression
+  from C29e and checked each interval's assumptions and endpoint
+  estimates. `.venv/bin/python3 -B
+  extra/s4t2_explicit/sym/chart_identities.py`: **ALL PASS**
+  (C1–C54); `.venv/bin/python3 -B
+  extra/s4t2_explicit/sym/i2_margins.py`: **ALL PASS**;
+  `.venv/bin/python3 -B
+  manuscript_draft/code/verify_construction.py`: **all checks passed**;
+  `.venv/bin/python3 -B
+  manuscript_draft/code/sphere_products.py`: **Dimension 8 check
+  passed**. `git diff --check`: pass. LaTeX: **not run**
+  (`latexmk` unavailable; manuscript unchanged). The legacy numerical
+  safety-net scripts were **not run** because no construction code changed.
+- **Open points:** T17's practical global projector bound or direct
+  lift, north-band phase, and full source-linked tensor evaluator.
+  Human review is required for this sharpened recorded inequality.

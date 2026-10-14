@@ -539,6 +539,11 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   ratio/profile bound `||D small||<480` and cusp orbit-coordinate bound
   `||Db||<961`. The global projector constant is still dominated by
   height and embedding estimates, so N and K are unchanged.
+  **Height distortion (2026-10-14-TSG-4):** C54 sharpens
+  `|b_R'|<200` to `|b_R'|<10`, giving
+  `10^-109<f_a<10^109` on the height transition. The downstream
+  projector certificate deliberately retains its valid coarse bound;
+  N and K are still astronomical.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.

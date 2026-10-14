@@ -1391,7 +1391,7 @@ rep('C29h cusp forward torus coefficients reverse tau_f restoration',
     and sp.simplify(xh29*sp.exp(Ah29)*sp.exp(-Ah29)-xh29)==0
     and sp.simplify(yh29*sp.exp(-Ah29)*sp.exp(Ah29)-yh29)==0)
 
-# A reproducible numerical margin for the independently proved <200 bound.
+# A reproducible numerical margin for the independently proved <10 bound.
 # This is a sample, not a proof of the inequality on the continuum.
 with mp.workdps(55):
     radial_max29 = mp.mpf(0)
@@ -1424,7 +1424,7 @@ with mp.workdps(55):
             radial_arg29 = radial_a29
 rep(f'C29i 1999 radial-derivative samples (numerical): max '
     f'{float(radial_max29):.6f} at a={float(radial_arg29):.7f}; '
-    f'margin to 200 is {float(200-radial_max29):.6f}', radial_max29<200)
+    f'margin to 10 is {float(10-radial_max29):.6f}', radial_max29<10)
 
 # C30: second-jet calculus for the fixed-count projection and phase recurrences.
 # These are local derivative identities and an induction step for any fixed
@@ -10913,6 +10913,69 @@ print('C53d profile derivative samples (d):',samples53,'per branch;',
       'reciprocal',mininf_53,'margin',mininf_53[0]-1/40)
 rep('C53d 20001-point profile samples per branch (numerical, d)',
     min0_53[0]>1/12+0.1312 and mininf_53[0]>1/40+0.0068)
+
+# C54: elementary comparisons in the sharper one-soft distortion proof.
+# C29e already checks the exact b_R' expression; these checks certify the
+# added rearrangement, monotonicity formulas, finite exp lower bounds and
+# rational interval arithmetic. Continuum inequalities use the written
+# monotonicity arguments in programme 11.4, not a numerical sample.
+L54,M54,v54,D54 = sp.symbols('L54 M54 v54 D54',positive=True)
+first54 = M54**2+M54-1-v54*M54*(M54-1)*(1+2/L54)/D54
+rearranged54 = (1+(1-v54/D54)*(M54**2+M54-2)
+                +2*(v54/D54)*(M54-1)*(1-M54/L54))
+rep('C54a exact rearrangement and square-completion identity',
+    sp.factor(first54-rearranged54)==0 and
+    sp.expand((L54-1)**2-4*(M54-1)*(L54-M54)
+              -(2*M54-L54-1)**2)==0)
+
+x54 = sp.symbols('x54',positive=True)
+small54 = 4*x54/(1+x54*x54)**2
+large54 = 4*x54*x54/(1+x54*x54)**2
+exp54 = x54*sp.exp(-x54+1/x54)
+rep('C54b exact derivatives and sharp one-variable maxima',
+    (sp.factor(sp.diff(small54,x54)
+               -4*(1-3*x54*x54)/(1+x54*x54)**3)==0 and
+     sp.factor(sp.diff(large54,x54)
+               -8*x54*(1-x54*x54)/(1+x54*x54)**3)==0 and
+     sp.simplify(sp.diff(exp54,x54)
+                 -sp.exp(-x54+1/x54)*(1-x54-1/x54))==0 and
+     sp.simplify(small54.subs(x54,1/sp.sqrt(3))
+                 -3*sp.sqrt(3)/4)==0 and
+     (3*sp.sqrt(3)/4)**2<sp.Rational(13,10)**2))
+
+from fractions import Fraction as _Fraction54
+from math import factorial as _factorial54
+def exp_partial54(value,order):
+    return sum(value**k/_Fraction54(_factorial54(k))
+               for k in range(order+1))
+exp_cases54 = (
+    (_Fraction54(3,4),2,2),
+    (_Fraction54(13,10),3,_Fraction54(7,2)),
+    (_Fraction54(9,5),6,6),
+    (_Fraction54(11,5),7,9),
+    (_Fraction54(8,3),4,12),
+    (_Fraction54(15,4),5,32),
+    (_Fraction54(35,6),6,180),
+    (_Fraction54(7,3),6,10))
+rep('C54c positive finite exponential partial sums',
+    all(exp_partial54(value,order)>target
+        for value,order,target in exp_cases54))
+
+q54=sp.Rational
+rep('C54d rational comparisons and the four interval totals',
+    (q54(11,4)**2-q54(11,4)+1<6 and
+     q54(1,8)+q54(64,289)<q54(7,20) and
+     q54(1,30)+q54(144,1369)<q54(7,50) and
+     q54(17,30)<q54(3,5) and
+     q54(199,100)+q54(273,160)*4*q54(9,64)
+       +q54(273,160)*q54(13,10)<6 and
+     q54(101,25)+q54(2,3)+q54(81,20)<10 and
+     1+q54(18,5)+q54(10,9)+q54(2,3)
+       +q54(21,4)*q54(61,100)<10 and
+     1+q54(18,5)+q54(10,16)+q54(2,3)
+       +q54(297,40)*q54(7,20)<10 and
+     1+q54(18,5)+q54(10,36)+q54(2,3)
+       +18*q54(7,50)<10))
 
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'

@@ -2549,13 +2549,6 @@ proved bound; this is evidence (d), not part of the certificate.
    Its first term is ≤1: for x≤1 use S≤exp(w), and for
    x≥1 use S<x and x exp(1−x)≤1. The second is <4 by
    the preceding S/σ bounds. Thus its absolute value is <5<6.
-   For E≤20, L≥2, M<3, x<13 and
-   F<e+x=E−(e²−e)<16. Since M<3 and
-   e>8/3 by its first four series terms, FM/e<18.
-   Also M−1=log(1+S/e)≤S/e. The three absolute
-   terms of (11.13b) are respectively <11,
-   (FM/e)(S/D)(1+2/L)/E<18·2·2=72<78, and
-   (FM/e)|SD′/D²|<18·6=108. Thus |b_R′|<197.
    For E≥20, x>.6E≥12, E−6<F<E
    (use S>x−1/x and e<11/4 from e⁴<55),
    1≤D≤1+x⁻², |D′|<3/x² and
@@ -2569,13 +2562,59 @@ proved bound; this is evidence (d), not part of the certificate.
    1−v/D≤6/E+3/E² and the decreasing function
    (log²E+log E)/E on E≥20. The remaining term is
    <(25/3)(log E)²/E<4, also decreasing there. Thus
-   |b_R′|<10 on this outer part and |b_R′|<200 globally;
-   the analytic slack of the inner estimate is 3. C29i samples 1999
-   fixed interior grid points, with maximum |b_R′|=3.301394 at
-   a=.1300000, measured margin 196.698606 to the proved bound 200.
-   This sample is numerical evidence (d), not the proof.
+   |b_R′|<10 on this outer part. The following sharper type-(c)
+   estimate closes E<20. C54 checks the rational comparisons and
+   finite exponential series used here. For x≤1, S<log 2<3/4,
+   F<7/2 and M<13/10, the last inequality following from
+   exp(13/10)>7/2. Also S/D≤2x²≤2 and, in the displayed formula
+   for SD′/D² above, its first nonnegative term is ≤1 while the
+   second is at most 4x/(1+x²)²≤3√3/4<13/10. Their difference
+   therefore has absolute value <13/10. Since E>64/9 and L≥2,
+   the three terms of (11.13b) have absolute values respectively
+   less than
+
+     199/100,   (273/160)·4·9/64,   (273/160)·13/10.
+
+   Their sum is <6. For 1≤x and E≤20, D≥1, F<E, and
+   1≤M≤L<3. Set v=F/E. The first two terms of the rearranged
+   expression are nonnegative; its second summand is at most
+   (L−1)²/(2L)<2/3, by
+   4(M−1)(L−M)≤(L−1)². For 1≤x≤3,
+   F<6, M<9/5 and the first summand is <101/25.
+   The two nonnegative terms in SD′/D² are each ≤1: for the
+   second, use S/σ≤2x and 4x²/(1+x²)²≤1. Their difference
+   has modulus ≤1, so the last term of (11.13b) has modulus
+   <(6·9/5)/(8/3)=81/20. The sum is <10.
+
+   For 3≤x and E≤20, x<13 and
+   1−v/D<6/E+1/x²: use x−S<1/x,
+   e²−e+1<6 and 1≤D≤1+x⁻². On E≥10,
+   (log² E+log E−2)/E<3/5. Indeed
+   log 10<7/3, and the derivative of
+   (3/5)E−(log² E+log E−2) is
+   3/5−(2log E+1)/E>0 for E≥10: the quotient decreases
+   since its derivative is (1−2log E)/E²<0, and at E=10
+   it is <17/30<3/5.
+   Consequently the first summand is <1+18/5+10/x².
+   The modulus of SD′/D² is at most
+   x exp(−x+1/x)+4x²/(1+x²)²; both terms decrease for x≥3.
+   On [3,4], [4,6], [6,13], respectively, the last term
+   of (11.13b) is bounded by
+
+     (21/4)·(61/100),   (297/40)·(7/20),   18·(7/50).
+
+   Here F<7,9,16 and M<2,11/5,3 respectively. The exponential
+   parts are <1/4, 1/8, 1/30 at the left endpoints; the rational
+   parts are at most 9/25, 64/289, 144/1369, with
+   1/8+64/289<7/20 and 1/30+144/1369<7/50.
+   Adding the first and second summands gives a total <10 on
+   all three intervals. The exponential comparisons follow from
+   the positive partial sums listed in C54. Hence |b_R′|<10
+   globally. C29i's 1999 fixed interior samples have maximum
+   |b_R′|=3.301394 at a=.1300000, measured margin 6.698606
+   to the proved bound 10; this type-(d) sample is not the proof.
    Since d log b_R/d log R=b_R′, if x=R(a), H=R⁻¹(h(x)),
-   then |log[b_R(H)/b_R(a)]|≤200|log[h(x)/x]|, including
+   then |log[b_R(H)/b_R(a)]|≤10|log[h(x)/x]|, including
    the identity branch above c. Also b_R(1/10)=0 and in fact
    0<b_R(H)<2 when H<c. For E≤20, M−1≤S/e,
    F/E<1, M/L²<3/4, S/D≤2x<26 and e>2 give
@@ -2585,14 +2624,14 @@ proved bound; this is evidence (d), not part of the certificate.
    The identity G_*′(h)=√[d²+(γ f₀)²] gives
    .3<G_*′(h)<9. From (11.13a), h_x and h/x both lie in
    [10⁻⁹,4·10⁸]. Consequently the distortion ratio lies between
-   10⁻¹⁸⁰⁰ and 10¹⁸⁰⁰. Since
+   10⁻⁹⁰ and 10⁹⁰. Since
    H_a=h_x(x/h)b_R(H)/b_R(a) and G_*′(H)∈(.3,9),
 
-     10⁻¹⁸¹⁹<f_a<10¹⁸¹⁹.                              (11.13c)
+     10⁻¹⁰⁹<f_a<10¹⁰⁹.                                (11.13c)
 
    The C23d derivative samples range from .466903 to 6.682791;
-   their measured lower and upper margins are .466903−10⁻¹⁸¹⁹ and
-   10¹⁸¹⁹−6.682791, respectively. These are evidence (d).
+   their measured lower and upper margins are .466903−10⁻¹⁰⁹ and
+   10¹⁰⁹−6.682791, respectively. These are evidence (d).
 
    Differentiating G_* by its integral sinh(γs)/γ shows
    |G_*,p(s)|/s<10⁷ for s=h or H. Here s<4 and
@@ -3150,7 +3189,8 @@ derivatives are numerical observations, type (d).
 | C27a–c | south raw-base quadratic jet, normalized-projector cubic jet and nonpolynomial real-plane component: ALL PASS |
 | C28a–d,h–i | elementary radial inverse, seam identities, raw-collar and cap-domain margins, rational north stereographic inversion and forward-cap identity: ALL PASS |
 | C29a–h, new height | quadratic F inverse/derivative, convex tail, tuned endpoint derivative, positive quadratic root/open seam, one-soft b_R′ and its inverse coordinates, unit-phase/Hopf recovery, and cusp torus reversal: ALL PASS |
-| C29i, numerical | 1999 fixed radial-derivative samples; max \|b_R′\|=3.301394, measured margin 196.698606 to the proved bound 200 |
+| C29i, numerical | 1999 fixed radial-derivative samples; max \|b_R′\|=3.301394, measured margin 6.698606 to the proved bound 10 |
+| C54a–d, sharper radial distortion (a–c) | Exact one-soft algebra, monotonicity derivatives, positive finite exponential series, and rational interval sums certify \|b_R′\|<10: ALL PASS |
 | C30a–n, exact local second jets (a) | elementary, projection and phase second-jet identities; source checks that the certified counts reach the two recurrence sites; both cusp Cramer/torus-restoration signs and one open noncap branch of the four-seed height; inverse-map-convention \(J^2\) (36 entries) and \(N_J\) (216 entries): ALL PASS |
 | C31a–d, one pure-middle projector cell (a,c) | source-linked reciprocal dominant branch with exact witness \(t=(-1+2i)/3\), explicit rank-one projector and complete local second-jet chain: ALL PASS; the rational witness bounds are written in the script |
 | C32a–d, one two-active-pair cusp projector cell (a,b,c) | on \(1/10<H<1/4\), \(|xy|<3/10\), both cusp signs: the source frame and nonconstant flat weight give an explicit rank-one four-slot projector; all 80 first and 400 second source-coordinate entries, including mixed-partial symmetry, are checked: ALL PASS; \(t=1/10,H=1/5\) is an exact nonempty-cell witness |
