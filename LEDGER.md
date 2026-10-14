@@ -3207,3 +3207,42 @@ in `AGENTS.md` §5.
   derivative remain enormously overbounded, and the north-band phase and
   practical complete evaluator remain open. Human mathematical review is
   requested for the new bound.
+
+### 2026-10-14-TSG-2 — Bound both inverse radial profiles on their source domains
+- **Date:** 2026-10-14
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6.1-sol)
+- **Type:** addition
+- **Based on:** `8c3da44`
+- **Where:** `docs/s4t2_symbolic_programme.md` §11.4, target-coordinate
+  step and C53 row of §11.8; `extra/s4t2_explicit/sym/chart_identities.py`,
+  C53a–d. The manuscript and construction code are unchanged.
+- **Change:** certify radial inverse norms below 12 and 40 for the direct
+  and reciprocal source profile branches. Combined with C52, this yields
+  `||D small||<480`, `||Dt||<1920` on the reciprocal non-infinity branch,
+  and `||Db||<961` for the cusp orbit coordinates. The existing coarse
+  projector certificate and fixed counts are retained.
+- **Why:** the dominant S³ coordinate makes the input ratio at most one.
+  Monotonicity places the inverse profile radii in `r²<1` and `r²<8`.
+  On those domains, lower numerator and upper denominator polynomials
+  reduce the derivative bounds to two quartics that have strictly
+  positive coefficients after `y=t/(1+t)` and `y=8t/(1+t)`.
+  The angular slopes and dominant-coordinate quotient give the stated
+  complex differential bounds. The source height argument has derivative
+  below 2, completing the cusp-coordinate estimate. The two 20001-point
+  derivative samples had minima 0.2145580812 and 0.0318077198, with
+  measured margins above 0.1312 and 0.0068 over the proved 1/12 and
+  1/40 bounds; these samples are not part of the proof.
+- **Verification:** independently differentiated both radial profiles and
+  checked the domain and angular inequalities. `.venv/bin/python3 -B
+  extra/s4t2_explicit/sym/chart_identities.py`: **ALL PASS** (C1–C53);
+  `.venv/bin/python3 -B extra/s4t2_explicit/sym/i2_margins.py`:
+  **ALL PASS**; `.venv/bin/python3 -B
+  manuscript_draft/code/verify_construction.py`: **all checks passed**;
+  `.venv/bin/python3 -B manuscript_draft/code/sphere_products.py`:
+  **Dimension 8 check passed**. `git diff --check`: pass. LaTeX:
+  **not run** (`latexmk` unavailable); the manuscript was not touched.
+- **Open points:** the global projector derivative still requires
+  practical bounds through the height and ten-slot embedding. A direct
+  or practical north-band phase and full source-linked evaluator remain
+  open. Human mathematical review is requested for the new constants.

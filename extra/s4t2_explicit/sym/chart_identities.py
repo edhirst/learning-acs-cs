@@ -10850,5 +10850,69 @@ print('C52d raw-base derivative samples (d):',samples52,
 rep('C52d 20001-point raw-base sample (numerical, d)',
     max52[0]<3.814212 and 6-max52[0]>2.185788)
 
+# C53: practical bounds for both branches of the source ratio/profile
+# inverse. The positive-coefficient substitutions are the written
+# type-(b) certificates; the observations at the end do not prove them.
+r53,A53,B53 = sp.symbols('r53 A53 B53', positive=True)
+y53 = r53*r53
+rad0_53 = r53*sp.sqrt((A53+B53*y53)/(1+A53*y53))
+radinf_53 = r53*sp.sqrt((y53+A53)/(A53*y53+B53))
+der0_53 = (A53+2*B53*y53+A53*B53*y53*y53)/(
+    (1+A53*y53)**sp.Rational(3,2)*sp.sqrt(A53+B53*y53))
+derinf_53 = (A53*y53*y53+2*B53*y53+A53*B53)/(
+    (A53*y53+B53)**sp.Rational(3,2)*sp.sqrt(y53+A53))
+rep('C53a exact direct and reciprocal radial-profile derivatives',
+    sp.simplify(sp.diff(rad0_53,r53)-der0_53)==0 and
+    sp.simplify(sp.diff(radinf_53,r53)-derinf_53)==0)
+
+yy53,tt53 = sp.symbols('yy53 tt53', nonnegative=True)
+num0_53 = 144+100*yy53+7200*yy53**2
+den0_53 = (1+160*yy53)**3*(160+55*yy53)
+numinf_53 = 144*yy53**2+100*yy53+7200
+deninf_53 = (160*yy53+55)**3*(yy53+160)
+q0_53 = sp.Poly(sp.cancel((1+tt53)**4*(144*num0_53**2-den0_53).subs(
+    yy53,tt53/(1+tt53))),tt53)
+qinf_53 = sp.Poly(sp.cancel((1+tt53)**4*(1600*numinf_53**2-deninf_53).subs(
+    yy53,8*tt53/(1+tt53))),tt53)
+rep('C53b positive-coefficient certificates for profile inverse bounds',
+    list(reversed(q0_53.all_coeffs()))==
+        [2985824,16013641,317849979,147378331,7082236169] and
+    list(reversed(qinf_53.all_coeffs()))==
+        [82917380000,348241629000,717234559000,
+         407299703000,74507626600])
+
+exp4partial53 = sum(sp.Rational(4**k,sp.factorial(k)) for k in range(8))
+rep('C53c profile domains and angular constants',
+    (exp4partial53==sp.Rational(16319,315) and
+     exp4partial53>50 and 55<64 and
+     sp.Rational(144,1335)>sp.Rational(1,16) and
+     sp.pi>3 and 960**2+4<961**2 and
+     sp.expand((A53+B53)-(1+A53)-(B53-1))==0 and
+     sp.expand(8*(8+A53)-(8*A53+B53)-(64-B53))==0 and
+     sp.expand((A53+B53*yy53)-(1+A53*yy53)-
+               ((B53-1)+(A53-B53)*(1-yy53)))==0))
+
+aval53=(4*_math52.pi)**2
+bval53=_math52.exp(4)
+samples53=20001
+min0_53=(float('inf'),None)
+mininf_53=(float('inf'),None)
+for j53 in range(samples53):
+    y0_53=(j53+0.5)/samples53
+    yi_53=8*(j53+0.5)/samples53
+    d0_53=(aval53+2*bval53*y0_53+aval53*bval53*y0_53*y0_53)/(
+        (1+aval53*y0_53)**1.5*_math52.sqrt(aval53+bval53*y0_53))
+    di_53=(aval53*yi_53*yi_53+2*bval53*yi_53+aval53*bval53)/(
+        (aval53*yi_53+bval53)**1.5*_math52.sqrt(yi_53+aval53))
+    if d0_53<min0_53[0]:
+        min0_53=(d0_53,y0_53)
+    if di_53<mininf_53[0]:
+        mininf_53=(di_53,yi_53)
+print('C53d profile derivative samples (d):',samples53,'per branch;',
+      'direct',min0_53,'margin',min0_53[0]-1/12,
+      'reciprocal',mininf_53,'margin',mininf_53[0]-1/40)
+rep('C53d 20001-point profile samples per branch (numerical, d)',
+    min0_53[0]>1/12+0.1312 and mininf_53[0]>1/40+0.0068)
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'
