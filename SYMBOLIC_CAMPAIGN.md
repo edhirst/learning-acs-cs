@@ -534,6 +534,11 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   formula; and run a source-linked second-jet circuit of the chosen map on
   every branch and overlap. Programme (11.15a) is a certified south-band
   phase shortcut for the existing G_cl, but its N-step fold remains.
+  **First derivative reductions (2026-10-14-TSG-1/2):** C52 proves a
+  uniform raw meridional bound `||Du||<6`; C53 proves the inverse
+  ratio/profile bound `||D small||<480` and cusp orbit-coordinate bound
+  `||Db||<961`. The global projector constant is still dominated by
+  height and embedding estimates, so N and K are unchanged.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.
@@ -603,3 +608,7 @@ can start now, in parallel.
   fully symbolic objective and allows a new pullback of Y. T17 records its acceptance criteria and
   open gates. Programme (11.15a), checked by C51, eliminates the K-step phase walk on the entire
   south band of the existing map; the remaining fold and north phase are still impractical.
+* 2026-10-14 (TSG/Codex, T17 derivative work): C52 and C53 replace the pole-dependent raw-base
+  estimate by `||Du||<6` and certify `||Db||<961` through both source ratio/profile branches.
+  These bounds are local factors of the existing projector certificate. Its height and embedding
+  factors, the north phase, and a practical full tensor evaluator remain open.

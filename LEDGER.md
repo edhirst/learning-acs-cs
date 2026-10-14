@@ -3246,3 +3246,26 @@ in `AGENTS.md` §5.
   practical bounds through the height and ten-slot embedding. A direct
   or practical north-band phase and full source-linked evaluator remain
   open. Human mathematical review is requested for the new constants.
+
+### 2026-10-14-TSG-3 — Record the practical derivative factors in T17
+- **Date:** 2026-10-14
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6.1-sol)
+- **Type:** edit
+- **Based on:** `07ff9ed`
+- **Where:** `SYMBOLIC_CAMPAIGN.md`, T17 status and status log only.
+- **Change:** record the C52 and C53 bounds and identify the remaining
+  height/embedding and north-phase gates. No mathematical construction,
+  statement, or script is changed.
+- **Why:** the campaign entry point should state precisely which factors
+  now have practical uniform bounds and avoid suggesting that the full
+  projector count has already been reduced.
+- **Verification:** compared the status text with programme §11.4 and
+  C52–C53. The preceding commit ran `sym/chart_identities.py` (C1–C53:
+  **ALL PASS**), `sym/i2_margins.py` (**ALL PASS**),
+  `verify_construction.py` (**all checks passed**) and
+  `sphere_products.py` (**Dimension 8 check passed**). Those scripts were
+  **not rerun** for this status-only change. `git diff --check`: pass.
+  LaTeX: **not run**.
+- **Open points:** T17's global projector, north phase and practical
+  source-linked tensor evaluator.
