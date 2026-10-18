@@ -3352,3 +3352,224 @@ in `AGENTS.md` §5.
 - **Open points:** prove a practical uniform adjacent-overlap bound
   or design a direct lift; prove a practical global real north phase
   or redesign its gauge; build and check a laptop-scale full tensor.
+
+### 2026-10-14-TSG-6 — Direct regional lifts, pole matching and a concrete radial phase target
+- **Date:** 2026-10-14
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6)
+- **Type:** addition
+- **Based on:** `5b8ef5a`
+- **Where:** `docs/s4t2_symbolic_programme.md` §12 and §11.8 check table;
+  `extra/s4t2_explicit/sym/chart_identities.py` C56–C61;
+  `SYMBOLIC_CAMPAIGN.md` T17 status.
+- **Change:** Implemented and certified separate finite elementary circle
+  lifts with adjoint inverses on the middle and on both cusps. C56 gives
+  the rank-one matrix identities for B=P A Π. C57 gives two middle
+  matrices with norm squares >1/480000 and >1/80000. C58 supplies the
+  angular phase correction and an exact positive-coefficient polynomial
+  certificate for overlap real part >1/48; the normalized blend has
+  norm square ≥1/2. C59 uses signed Hopf components and rotating height
+  frames to cover both punctured cusps, including the nonnode central
+  fibres; its height overlaps have real part >1/20. C60 changes the
+  first cusp matrix only in the small pole bands, with norm square
+  >0.98, to match the existing raw pole lift exactly. The existing
+  explicit cap replacement therefore applies. C61 corrects the middle
+  phase in both radial collars and specifies the remaining function
+  g=δ_n/δ_s on T². A conditional finite gluing is written out, contingent
+  on the still-unproved inequality Re g>0. No global new J, completed
+  diffeomorphism, or J/derivative benchmark is claimed.
+- **Why:** This replaces the astronomical projection and phase walks
+  regionally by fixed-size matrices, elementary scalar functions and
+  positive normalization. The middle sign certificate consists of 16
+  exact polynomial identities, each with 120 positive rational
+  Bernstein coefficients; every coefficient exceeds 1/8. It is a
+  manifest positive combination, not an interval-arithmetic or sampling
+  proof. The cusp proof uses the sign of the actual inverse-first
+  height, with an explicit overlap bound; the pole perturbation uses
+  the existing local inverse estimates. Review caught and fixed the
+  north collar integer: adding 1 in (12.22) is necessary to match the
+  interpolated middle phase at r=2. The frozen-phase grid has minimum
+  real part about 0.227442, but this is expressly numerical evidence,
+  not the missing uniform sign proof.
+- **Verification:** `.venv/bin/python3 -B
+  extra/s4t2_explicit/sym/chart_identities.py`: **ALL PASS** through
+  C61; the final C61 observation block is also run separately after
+  its output/assertion update. C57 samples 69632 local base points
+  and 192 actual-source points. C58 checks 324 glued middle points
+  and 84 seam pairs; inverse residual <3.2·10⁻⁶¹. C59 checks 1232
+  cusp points and 96 height-seam pairs; inverse residual <3.7·10⁻⁶¹.
+  C60 checks 40 pole-band points; inverse/inner-map residual
+  <6.5·10⁻⁶². C61 checks 2048 collar points and 32 seam pairs;
+  inverse/transition residual <3.6·10⁻⁶¹. The separate 1024-point
+  phase grid is labelled type (d), including its sampled phase sums.
+  C58e's 100 lift-value calls at 60 digits took about 0.18 seconds;
+  this does not evaluate J or derivatives. `sym/i2_margins.py` and
+  `sym/lemmas_1d.py`: **ALL PASS**. Manuscript
+  `code/verify_construction.py`: **all checks passed**;
+  `code/sphere_products.py`: **pass**, exit 0.
+  LaTeX: **not run** (`latexmk` unavailable; manuscript unchanged).
+  Legacy numerical safety net: **not run** (no runtime construction
+  file changed). `git diff --check`: pass. No files created, removed
+  or renamed; no fetch, pull or push, as requested by the collaborator.
+- **Open points:** prove (12.23), or supply a different certified radial
+  phase if that inequality fails; implement the resulting global map
+  and its inverse; build and run the source-linked J and first/second
+  derivative circuit on all branches and overlaps. Regional inverse
+  identities and sampled phase positivity do not complete T17.
+
+### 2026-10-14-TSG-7 — Practical global gluing, finite tensor jets and a source-bound certificate
+- **Date:** 2026-10-14
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6)
+- **Type:** statement
+- **Based on:** `5b8ef5a`, continuing the uncommitted TSG-6 addition.
+- **Where:** `docs/s4t2_symbolic_programme.md` §§12.7–12.11 and status/check
+  summaries; `extra/s4t2_explicit/sym/chart_identities.py` C62–C68;
+  `SYMBOLIC_CAMPAIGN.md` T17 status.
+- **Change:** Supplied a different radial phase construction, at exact cusp
+  radius 1/2, without assuming TSG-6's unproved Re g>0. Cancelled the source
+  embedding to two rows, extended the cusp maps across their vanishing radial
+  slot weights, and derived exact scalar lattice coordinates. Proved explicit
+  phase derivative bounds |g_theta|<1900, |g_phi|<2700 and zero winding by
+  separate elementary arguments on the two coordinate circles. The resulting
+  65536-term phase has adjacent real parts >31/32 and is smooth and periodic.
+  Written flat radial retreats join both capped cusp lifts to the middle.
+  Implemented the assembled global value map and inverse, and then an actual
+  finite six-variable second-jet circuit for its tensor. The phase derivatives
+  telescope to fixed-size endpoint formulas; no numerical differentiation is
+  used by `direct_tensor67`. C68 pins twenty new definitions and enumerates
+  all 56 geometric tests and seven vectorized selectors. Programme §12.11
+  states the resulting global well-definedness, inverse, square and Nijenhuis
+  certificate, with the inherited written hypotheses and the new inequalities.
+  **This new global statement requires human review under AGENTS.md §3.1.2.**
+  The old global runtime and its certificate remain unchanged.
+- **Why:** The previous impractical projection products are replaced by fixed
+  matrices and a practical scalar phase sum. The stronger sign inequality is
+  unnecessary for this route. The exact first/second phase derivative formulas
+  remove the phase loop from derivative propagation. Review also exposed a
+  real numerical defect in an initial binary64-only jet backend: near the
+  conjugated flat height transition H=±1/10, underflow erased the inverse
+  height slope. The retained jet backend uses arbitrary precision/exponent
+  arithmetic; the affected central-fibre cases now pass. Even powers of a
+  complex modulus are rewritten as smooth polynomials before differentiating.
+  The new source adapter uses isolated namespaces, without monkey-patching
+  the actual module. As in C50, exact mathematics has precision shortcuts
+  off; finite-precision runs and timings are observations, not rounding proofs.
+- **Verification:** Final full run of `.venv/bin/python3 -B
+  extra/s4t2_explicit/sym/chart_identities.py`: **ALL PASS**, C1–C68.
+  C62: 720 extension points, 60 seam pairs, 144 scalar/matrix comparisons;
+  old-map difference <3.6·10⁻⁶¹, inverse residual <3.2·10⁻⁶¹, seam residual
+  <8.4·10⁻⁶¹, float64 scalar error <9·10⁻¹⁶. C63 checks the exact lattice,
+  Hopf, derivative-budget, half-plane and winding endpoint identities.
+  C64: 24 full-count phase calls in about 0.89 seconds; exponential residual
+  <9.1·10⁻¹⁵, eight seam differences <4.3·10⁻¹⁵, measured adjacent real
+  part >0.9999999944 versus proved 31/32. C65: 65 global round trips in all
+  three chart kinds, including both nodes and eight nonnode central-fibre
+  points; residual <5.7·10⁻⁶⁰. This uses the same phase approximation in
+  both directions and is not a 60-digit phase-accuracy claim. C66: a specific
+  interpolation-point tensor has square residual <5.6·10⁻⁶⁰ and all 216 N
+  components <5.3·10⁻⁵⁸; two independent dJ differences have relative error
+  <3.5·10⁻⁷ at step 10⁻⁵. A separate half-step check gave <8.8·10⁻⁸.
+  C67: finite jets agree with that independent derivative calculation to
+  relative errors <6·10⁻¹⁶ (J) and <1.2·10⁻¹⁴ (dJ), in about 1.39 seconds.
+  Thirty-one further tensor points include radial joins, both cusps, both
+  nodes, eight central-fibre points and four cap-compression-annulus points:
+  scaled N <1.2·10⁻¹⁵, scaled square <7.7·10⁻¹⁶, symmetric Hessians.
+  C68's source pins, primitive bindings and complete new selector census pass.
+  `sym/lemmas_1d.py` and `sym/i2_margins.py`: **ALL PASS**.
+  Manuscript `code/verify_construction.py`: **all checks passed**;
+  `code/sphere_products.py`: **Dimension 8 check passed**.
+  LaTeX: **not run** (`latexmk` unavailable; manuscript unchanged).
+  Legacy numerical safety-net scripts: **not run** (the legacy runtime is
+  unchanged and is not replaced by the new prototype). `git diff --check`:
+  pass. No files created, removed or renamed; no fetch, pull, commit or push.
+- **Open points:** human review of the new global certificate and its inherited
+  written hypotheses; independent implementation review, particularly near
+  nested flat transitions and numerical precision shortcuts; packaging the
+  new evaluator separately from the all-checks script if the collaborator
+  authorizes new files or a runtime migration. Uniform floating-point error
+  and runtime guarantees are not claimed. The optional stronger phase sign
+  inequality (12.23) remains open; a suitable exact-boundary sign certificate
+  could simplify away the 65536-term value sum. Earlier ledger entries and
+  the manuscript are unchanged.
+
+### 2026-10-14-TSG-8 — Standalone tensor function and exact expression verifier
+- **Date:** 2026-10-14
+- **Collaborator:** Tancredi Schettini Gherardini
+- **Agent:** Codex (GPT-6)
+- **Type:** addition
+- **Based on:** `5b8ef5a`, continuing the uncommitted TSG-6/TSG-7 work.
+- **Where:** new `extra/s4t2_explicit/direct.py` and
+  `extra/s4t2_explicit/sym/direct_certificate.py`;
+  `docs/s4t2_symbolic_programme.md` §12.12 and current resume point;
+  `SYMBOLIC_CAMPAIGN.md` T17 status.
+- **Change:** Added `complex_structure(point)`, returning a 6×6 matrix in
+  the smooth global tangent identification (v,a,b)↦(v+a x,b). Its inverse,
+  hemisphere matrices, derivatives and noncommuting frame brackets are
+  checked exactly. The local coordinate API returns J, dJ, Dh, D²h and
+  N; a separate frame calculation includes the bracket terms. Thirty-nine
+  concrete geometric methods implement the earlier construction without
+  importing or executing the historical check script. Their complete bodies
+  are compared with the earlier source under an explicit specialization.
+  A second backend executes those same methods as exact real expression
+  assignments. SymPy differentiates each assignment, and the finite chain
+  rule assembles the named six-variable derivative program. The phase is
+  specified by its full fixed finite sum and its checked telescoping
+  endpoint derivative rule. The public symbolic matrix uses the same global
+  frame as the numerical matrix. D2 checks all 216 components of A N as
+  exact polynomials, without normalizing A to I, and binds the actual
+  symbolic tensor constructor to the checked formulas. Ten written contract
+  groups identify the remaining domain, inequality, seam and smoothness
+  arguments; the documentation explicitly distinguishes their human proof
+  from source correspondence and finite branch tests. The collaborator
+  explicitly authorized creation of the implementation and verifier in
+  response to the §1.3 question. No other file was created by this change.
+- **Why:** A reviewer can import one function, inspect its actual elementary
+  definition and differentiated expression program, and run a focused check.
+  The exact global representation follows from the invertible frame map;
+  its bracket terms prevent using a coordinate N formula in a noncoordinate
+  frame. Formula correspondence connects the packaged implementation to
+  the earlier proofs. Negative controls reject an incorrect second
+  derivative and detect a nonintegrable derivative assignment. This does
+  not promote TSG-7's global statement beyond its existing human-review
+  status. Numerical flat-tail behavior needed explicit treatment: literal
+  exact nested exponentials can exceed a short time guard or mpmath's
+  exponent-conversion capacity. `NumericalFormulas` retains six inherited
+  numerical shortcuts, while `Formulas` and symbolic tracing keep the
+  exact mathematical branches. Their value cutoffs do not constitute a
+  uniform error certificate for tensor derivatives.
+- **Verification:** `sym/chart_identities.py`: **ALL PASS**, C1–C68,
+  on the starting files this turn; that file was not changed by TSG-8.
+  Final full run of `sym/direct_certificate.py`: **ALL PASS**, 48.40 seconds;
+  source-binding additions are also run directly. Exact checks cover
+  the actual frame formulas and derivatives, primitive rules, complex
+  arithmetic, a six-variable comparison with direct SymPy differentiation,
+  39 formula correspondences, ten-contract coverage, the finite-phase rule,
+  the square and all 216 Nijenhuis reductions. Six actual symbolic branches
+  have 123–1521 active value assignments and 1722–20773 derivative assignments;
+  their independent symbolic/numerical jet evaluations agree after float64
+  rounding. D8: 32 tensor/inverse pairs, all three target chart kinds,
+  scaled N <1.2·10⁻¹⁵, scaled square <6.5·10⁻¹⁶ and inverse residual
+  <4·10⁻⁵⁴. The last figure shares the float64 phase between inverse
+  directions and is not a phase-accuracy claim. D9: five sphere chart
+  choices at three points, periodicity and both public pole calls;
+  relative chart/torus differences <3.9·10⁻¹⁵ / <5.2·10⁻¹⁵; frame N
+  agrees with transformed coordinate N to the stated scaled tolerance.
+  D11: public symbolic matrix and two-way numerical flat-tail regression,
+  including a separate 180-digit value comparison. The documentation's
+  numerical and symbolic examples run; the numerical call takes about
+  0.36 seconds here. All such residuals/timings are observations (d).
+  Manuscript `code/verify_construction.py`: **all checks passed**;
+  `code/sphere_products.py`: **Dimension 8 check passed**, both rerun.
+  LaTeX: **not run successfully** (`latexmk` unavailable; manuscript unchanged).
+  Legacy numerical safety net: **not run** (legacy construction unchanged).
+  New Python syntax/whitespace and `git diff --check`: pass.
+  No fetch, pull, commit or push; the collaborator handles Git synchronization.
+- **Open points:** human review of the ten written contracts and the global
+  certificate they support; certified numerical error bounds for derivative
+  shortcuts and conditioning. The focused executable check does not prove
+  the written global hypotheses merely by listing or matching them. Exact
+  symbolic tracing can be expensive at extreme flat-tail witnesses.
+  The optional phase simplification remains open. Earlier ledger entries,
+  the legacy runtime, manuscript and the existing `summary_claims.pdf` are
+  unchanged by this addition.

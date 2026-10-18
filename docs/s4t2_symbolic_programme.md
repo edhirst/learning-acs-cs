@@ -164,7 +164,12 @@
 > the owner's agreement. This is a mathematical statement for human
 > review.
 > Companion of `docs/s4t2_explicit_diffeo.md` (§12 = the numerical construction, §13 = the agreed scheme).
-> **Resume point: human review of §11.9 (T16) and of the written certificates it cites; then simplify the fixed counts.**
+> **Standalone implementation (2026-10-14-TSG-8):** §12.12 supplies
+> `direct.complex_structure(point)`, its exact local expression graph, and
+> `sym/direct_certificate.py`. The shared formula bodies, differentiated
+> scalar assignments, global tangent frame and square/Nijenhuis identities
+> are checked separately from the written global contracts.
+> **Resume point: review the ten block contracts in §12.12 against §12.11 and its cited proofs; the new callable and focused verifier are the practical entry points.**
 
 ## 0. What is being built, in one paragraph
 
@@ -3206,6 +3211,13 @@ derivatives are numerical observations, type (d).
 | C29i, numerical | 1999 fixed radial-derivative samples; max \|b_R′\|=3.301394, measured margin 6.698606 to the proved bound 10 |
 | C54a–d, sharper radial distortion (a–c) | Exact one-soft algebra, monotonicity derivatives, positive finite exponential series, and rational interval sums certify \|b_R′\|<10: ALL PASS |
 | C55a–b, reduced-count north observations (d) | Six fixed endpoint samples at N=400, 800, 1600 straddle the principal-Arg cut with projection norms above .59; one N=64 sample has adjacent disjoint cusp/middle supports and zero overlap. These are numerical warnings, not claims about the certified count: ALL PASS |
+| C56–C58, direct middle lift (a,b,c,d) | Section 12 specifies two direct local matrices, positive norm-square bounds >1/480000 and >1/80000, and a phase-corrected blend over the whole pure middle with norm square ≥1/2 and explicit adjoint inverse. The overlap sign follows from 16 exact positive-coefficient polynomial identities. Separately labelled source and seam samples pass. This is a regional replacement, with cusp/pole extension and the full J circuit still open. |
+| C59, direct cusp lifts (a,b,c,d) | Section 12.4 supplies separate circle lifts and adjoint inverses on both punctured cusps, including the nonnode central fibres. Signed Hopf components prove nonvanishing; rotating height frames give overlap real part >1/20 and blend norm square ≥1/2. The 1232 source samples and 96 height-seam pairs pass. Radial gluing, pole matching and the global tensor remain open. |
+| C60, pole matching (a,c,d) | The C59 first matrix is changed only inside the existing small pole bands. The matrix norm square stays >0.98 and its inner formula is exactly the existing raw pole lift, so the explicit cap replacement of §11.6 applies. Forty source samples have minimum norm square >0.9999999985. This closes the regional pole-matching task; radial gluing and the tensor circuit remain open. |
+| C61, radial overlaps and remaining phase (a,b,c,d) | The middle phase offset is extended through both source collars, with the north integer chosen to match at r=2. The existing coefficient certificate then applies on 49/100≤r≤100/49. The 2048 source tests and 32 seam pairs pass. A separate 32×32 phase grid suggests Re(δ_n/δ_s)>0; this sign is not proved and is the explicit next gluing gate in §12.6. |
+| C62–C64, practical radial phase (a,b,c,d) | At the different exact boundary radii 1/2 and 2, cancel the source embedding to two rows. The written derivative bounds are \(|g_θ|<1900\), \(|g_φ|<2700\); two explicit coordinate-circle arguments prove zero winding. A 65536-term phase sum has every adjacent real part >31/32 and is smooth and periodic. C62 checks 720 extension points, 60 seams and 144 scalar/matrix comparisons; C64 evaluates the full certified count. This proves the alternative gluing in §§12.7–12.9 without assuming C61's global sign. |
+| C65–C66, global value prototype and practical tensor test (a,d) | The assembled new map and inverse pass 65 round trips, including both caps and nonnode central fibres. C66a–b prove endpoint formulas for the phase's first/second derivatives. One actual tensor in the radial interpolation has square/N residuals <6·10⁻⁵⁸ and two independent finite-difference checks of dJ. This first evaluator uses numerical differentiation elsewhere; C67–C68 supply the finite circuit and source binding. |
+| C67–C68, finite tensor jets and source binding (a,d) | A six-variable finite second-jet algebra executes the same value source, using (12.36) for the phase jets and polynomial modulus squares at zero. All unary rules are differentiated symbolically; actual product/unary bodies are bound to the checked formulas. Twenty complete definition digests, all 56 new geometric tests and seven vectorized selectors are pinned. Regional tensor points include both nodes, central fibres, caps and radial joins. The written global certificate and numerical limitations are in §12.11, for human review. |
 | C30a–n, exact local second jets (a) | elementary, projection and phase second-jet identities; source checks that the certified counts reach the two recurrence sites; both cusp Cramer/torus-restoration signs and one open noncap branch of the four-seed height; inverse-map-convention \(J^2\) (36 entries) and \(N_J\) (216 entries): ALL PASS |
 | C31a–d, one pure-middle projector cell (a,c) | source-linked reciprocal dominant branch with exact witness \(t=(-1+2i)/3\), explicit rank-one projector and complete local second-jet chain: ALL PASS; the rational witness bounds are written in the script |
 | C32a–d, one two-active-pair cusp projector cell (a,b,c) | on \(1/10<H<1/4\), \(|xy|<3/10\), both cusp signs: the source frame and nonconstant flat weight give an explicit rank-one four-slot projector; all 80 first and 400 second source-coordinate entries, including mixed-partial symmetry, are checked: ALL PASS; \(t=1/10,H=1/5\) is an exact nonempty-cell witness |
@@ -4374,3 +4386,1256 @@ different maps, which are not certified. The checks of C48 and C50 are
 censuses of the pinned text: any change to `cusp.py` invalidates them until
 they are redone. The written hypotheses, the change of route
 and the global statement require human review.
+
+## 12. Direct matrix lift campaign (T17; practical radial gluing)
+
+The collaborator permits a different explicit pullback of the same Y. The
+current design retains §11's base, inverse, pole patches and torus restoration,
+and constructs a direct circle lift. The results below do **not** replace the
+runtime implementation of (11.15). Section 12.3 glues the local maps of §12.2 over
+the pure middle; §12.4 supplies separate lifts on both punctured cusps.
+Section 12.5 matches the existing pole formulas. Sections 12.7–12.9 give
+a certified finite radial phase and global gluing for review. Section 12.10
+assembles a value/inverse prototype and evaluates a specific tensor;
+§12.11 supplies its finite jet circuit and source binding. The resulting
+global certificate is a mathematical statement for human review; floating-point
+checks and timing observations are kept separate from it.
+
+### 12.1 A precise algebraic target
+
+Let Π=ξξ* be the standard Hopf projector, |ξ|=1, and let P be (11.1),
+evaluated at the corresponding base point. For a specified smooth elementary
+10×2 matrix A(n,X), put
+
+  B=P A Π,       q=tr(B*B),       L=B/√q.                  (12.1)
+
+If q>0, the identities B*B=qΠ and BB*=qP give the circle map
+ξ↦Lξ and its inverse e↦L*e. To derive the identities in any dimensions,
+write B=c e f* in arbitrary nonzero frames: q=|c|²(e*e)(f*f).
+C56a checks this factorization with independent symbolic frame components;
+C56b checks the normalization and inverse (type (a)). Thus the remaining
+design problem is a **specified small A with a proved positive margin**,
+including exact agreement with I₀ and I∞ on the required pole collars.
+The matrix dimensions alone impose no useful bound on the complexity of A.
+
+For two normalized such maps L₀,L₁ over the same base, define
+γ=tr(L₁*L₀). If Re γ≥0, their convex blend L=(1-w)L₀+wL₁, 0≤w≤1,
+has norm square on the Hopf line
+
+  (1-w)²+w²+2w(1-w)Re γ ≥ 1/2.                            (12.2)
+
+Normalization then gives another circle isomorphism with adjoint inverse.
+This is conditional: the transition inequality must be proved for the
+actual local maps before using the blend. C56b checks the square identity
+(1-w)²+w²=1/2+2(w-1/2)² (types (a)/(b)). Arbitrary local lifts cannot
+be glued by an unchecked convex combination.
+
+### 12.2 Two direct local matrices covering the pure middle
+
+Here 1/2≤r=|t|≤2, so P has only its last two angular slots. Write the
+raw S³ coordinates from §11.4 as
+
+  u₁=a exp(i(θ+φ)), u₂=b exp(iφ), a,b>0, a²+b²=1,
+  p=(a sin(θ+φ), -b sin φ, 1+a cos(θ+φ)-b cos φ),
+  R=|p|, n=p/R, z=u₂/b,
+  v₀=(1,0), v₁=(i(a+ib)(z-1),z+1)/2.                     (12.3)
+
+Angles describe the proof; v₁ uses the single-valued z and has no argument
+cut. Inverting the source stereographic formula gives
+R²=2(1+Re u₁)(1-Re u₂) and β=R/(1+Re u₁),
+X=(β-1)/√(1+β²). Its direction is exactly n in (12.3), with the source
+sign convention n=(Im u₁,-Im u₂,1+Re u₁-Re u₂)/R.
+C57a checks the squared-radius and frame identities:
+
+  |v₁|=1,       Hopf(v₁)=(-a sin φ,-b sin φ,-cos φ).        (12.4)
+
+The profile is |u₁/u₂|²=r²(A+Br²)/(1+Ar²), A=(4π)², B=e⁴.
+Its derivative with respect to r² has numerator A+2Br²+ABr⁴>0.
+Since A>144 and 16<B<55, its endpoint values give
+
+  1<|u₁/u₂|²<1456/577,
+  7/10<a<17/20,       1/2<b<3/4,       0<R<3.              (12.5)
+
+For the upper endpoint, 4(A+4B)/(1+4A) increases with B and decreases
+with A when B>16. The a,b bounds follow by dividing by 1+|u₁/u₂|²;
+R²<2(37/20)(7/4)<9. C57c–d check the derivative, endpoints and rational
+comparisons. The elementary bounds π>3, 16<e⁴<55 are also used in C53.
+
+Let η₀,η₁ be the ninth and tenth standard coordinate vectors of C¹⁰
+(indices 8,9 in Python). Define **two local candidates**
+
+  A₀=η₀v₀*, A₁=η₁v₁*, B_j=P A_j Π,
+  U₀={|Arg t|<5π/8}, U₁={|Arg(-t)|<5π/8}.               (12.6)
+
+The two open angular sets cover the annulus, including either argument
+cut. On U_j the corresponding source angular weight d_j is >1/2,
+since its flat-step argument is <1/2. The same weak weight bound holds
+on the closed angular domains. Therefore
+
+  η_j*Pη_j=d_j²/(d₀²+d₁²)≥1/8,
+  q_j=tr(B_j*B_j)=(η_j*Pη_j)(v_j*Πv_j).
+
+The following explicit estimates prove
+
+  v₀*Πv₀>1/60000 on cos θ≥-3/4,
+  v₁*Πv₁>1/10000 on cos θ≤1/2.                            (12.7)
+
+These domains contain the respective closed domains of (12.6):
+cos(5π/8)=-√(2-√2)/2>-3/4 and
+cos(3π/8)=√(2-√2)/2<1/2. Consequently
+
+  q₀>1/480000 on U₀,       q₁>1/80000 on U₁.              (12.8)
+
+Here is the complete type-(c) proof of (12.7). Put s=sin φ, c=cos φ,
+D=p₃, ε=1/20, c_*=399/400. For a unit Hopf vector m,
+v*Πv=(1+n·m)/2=|n+m|²/4. For v₀, if D≥0 the bound is 1/2.
+If D<0, then c>0 because D≥1-a-bc. When |s|≥ε,
+
+  v₀*Πv₀≥n₂²/4=b²s²/(4R²)>1/57600.
+
+Otherwise c>c_*. The alternative cos θ≥0 would imply
+D≥1-(17/20)ε-3/4>0. Thus -3/4≤cos θ<0 and |sin θ|>3/5,
+so |p₁|>(7/10)((3/5)c_*-ε)=:h₀ and
+v₀*Πv₀≥n₁²/4>h₀²/36>1/60000.
+
+For v₁ use m from (12.4). If |s|≥ε, the second components of n and m
+have the same sign and |n₂+m₂|=b|s|(1+1/R)>b|s|, giving
+v₁*Πv₁>1/6400. Otherwise |c|>c_*. If c<0, then D≥1-a>0;
+n₃ and m₃ are positive and |n₃+m₃|>|c|. If c>0 and cos θ≤-9/10,
+
+  D≤1-((9/10)(7/10)+1/2)c_*+(17/20)ε<0;
+
+now n₃ and m₃ are both negative and the same estimate applies.
+Both cases give norm square >c_*²/4. Finally, if
+-9/10<cos θ≤1/2, then |sin θ|>2/5, and
+
+  |p₁|>(7/10)((2/5)c_*-ε)=:h₁,
+  |n₁+m₁|>h₁/3-(17/20)ε>1/30.
+
+The norm square exceeds 1/3600. These exhaustive cases prove (12.7).
+C57b checks the projection formula, and C57d checks every rational
+comparison in this argument. C56 supplies each normalized local inverse.
+
+**Measured margins, type (d).** C57e uses 17 radial, 64 θ and 64 φ values
+(69632 base points); each closed angular domain contains 43520 samples.
+The minimum q₀ and q₁ are 0.06960246379 and 0.02865159099, with measured
+excesses over (12.8) greater than 0.0696003 and 0.0286390. C57f separately
+evaluates the actual `elliptic_raw_base_reference` and
+`elliptic_bundle_embedding` at 192 base points, then applies B_j and its
+adjoint inverse on each applicable patch (120 checks each). At 60 digits,
+the maximum profile/image/norm/inverse residual is <2.2·10⁻⁶⁰.
+These samples check the transcription; they are not used in (12.7).
+
+### 12.3 A direct lift and inverse on the whole pure middle
+
+The transition is essential. Put h=v₀*Πv₁ and k=i(a-ib), so |k|=1.
+For L_j=B_j/√q_j from (12.6), the source's two angular entries give
+
+  tr(L₁*L₀)=h/|h|                         when θ>0,
+  tr(L₁*L₀)=exp(-2πi x₄) h/|h|           when θ<0.          (12.9)
+
+Indeed tr(B₁*B₀)=P_(9,8) h, using zero-based indices, and
+P_(9,8)/|P_(9,8)| is respectively 1 or exp(-2πi x₄).
+This follows directly from (11.1); h is nonzero on the overlap by
+the rank-one identity |h|²=(v₀*Πv₀)(v₁*Πv₁).
+
+Use the real θ₁=Arg(-t)+π on U₁ and the logarithm ℓ₁=log r+iθ₁.
+In this paragraph ξ₄(t,ℓ₁) denotes the fourth real lattice coordinate
+of (πs(s-1),2ts), s=ℓ₁/(2πi), using that same logarithm in the
+lattice. Define
+
+  λ=1-smooth_step((r-6/5)/(2/5)),
+  C(r,θ₁)=(1-λ)θ₁/(2π)+λ ξ₄(t,ℓ₁)+λ/2,
+  w=smooth_step((θ₁-5π/8)/(3π/4)),
+  d=conj(k) exp(i w(π-2π C(r,θ₁))).                        (12.10)
+
+Here `smooth_step` is the existing flat step. Its name distinguishes it
+from the lattice variable s. C42's lattice identity gives
+ξ₄(θ+2π)=ξ₄(θ)+1, hence C(θ+2π)=C(θ)+1. The raw source formulas give
+x₄=φ/(2π)+C(r,θ) modulo integers on the principal θ chart. For r≤1
+this is ξ₄+1/2; for r>1 substitute Arg u₁=θ+φ modulo 2π into
+the source formula. C58c checks the substitution and the shift, including
+the harmless integer difference at r=1. Since λ=1 up to r=6/5, C is
+one smooth formula across r=1.
+
+Put χ=smooth_step((|Arg t|-3π/8)/(π/4)). Define
+
+  M=(1-χ)L₀+χ d L₁,       L_mid=M/√tr(M*M).                (12.11)
+
+Evaluate L₀ only when χ<1 and d L₁ only when χ>0. The corresponding
+closed domains satisfy (12.8). This is a fixed finite formula: no
+projection chain, quadrature, phase walk or root solve is present.
+
+**Nonvanishing certificate.** On the upper overlap 3π/8≤θ≤5π/8,
+w=0, and on the lower overlap -5π/8≤θ≤-3π/8, w=1. Thus the real
+part of the corrected transition is respectively
+Re(kh)/|h| and Re(-k exp(-iφ)h)/|h|. Both exceed 1/48, as proved
+below. Equation (12.2) therefore gives tr(M*M)≥1/2. It follows that
+L_mid*L_mid=Π and L_mid L_mid*=P; its circle inverse is L_mid*.
+These are type-(a)/(b) consequences of C56 and the following certificate.
+
+Write c=cos φ, s=sin φ, Cθ=cos θ, Sθ=sin θ, D=p₃. C58a checks
+
+  4R Re(kh) = F(R),
+  F(R)=(R+D)(1-c)+s²
+       +a(Sθ c+(Cθ+1)s)(b(1+c)-a s).                     (12.12)
+
+On the upper band |Cθ|<2/5 and Sθ>9/10. Also
+R²>2(3/20)(1/4)=3/40>(27/100)² by (12.5), so
+F(R)≥F(27/100). The following finite polynomial identity certificate
+proves F(27/100)>1/4 on the larger parameter box
+
+  a∈[7/10,17/20], b∈[1/2,3/4], Cθ∈[-2/5,2/5], Sθ∈[9/10,1].
+
+For σ=±1 substitute c=σ(1-y²)/(1+y²), s=σ 2y/(1+y²), |y|≤1.
+These two rational charts cover the entire φ circle. The expression
+
+  Q_σ=(1+y²)²(F(27/100)-1/4)
+
+is a polynomial. On each y-cell [-1+j/4,-1+(j+1)/4], j=0,…,7,
+rescale all five variables to [0,1]. Expand Q_σ in the tensor Bernstein
+basis of degrees (2,1,1,1,4): the basis functions are products of
+binomial(d,i) x^i(1-x)^(d-i), hence are nonnegative and sum to one.
+For power coefficients p_α the exact Bernstein coefficients are
+
+  b_β=Σ_(α≤β) p_α Π_l binomial(β_l,α_l)/binomial(d_l,α_l).
+
+C58b computes all 120 rational coefficients in each cell and converts
+them back to check equality of the entire polynomial. Their minima are:
+
+| σ | minima for j=0,…,7 |
+|---|---|
+| +1 | 29971/32000, 2939/16000, 18459/128000, 32491/128000, 3019/8000, 67337/128000, 3341/4000, 219087/128000 |
+| -1 | 140259/64000, 5081/2560, 15943/8000, 140141/64000, 261/100, 791509/256000, 14457/4000, 881/250 |
+
+Every coefficient exceeds 1/8. This is a manifest positive combination
+(type (b)), verified by polynomial identities (type (a)); no numerical
+sampling or interval arithmetic supplies the sign. Thus
+Re(kh)>1/(16R)>1/48. For the lower band, C58a checks
+h(-θ,-φ)=-exp(-iφ)h(θ,φ). It reduces its corrected real part to
+the same positive upper-band expression. Finally |h|≤1 because Π is
+an orthogonal projector and v₀,v₁ are unit. This proves the normalized
+transition bound used above.
+
+**Smoothness and scope.** The source P is smooth through the middle
+argument and lattice selectors by C42. Formula (12.3) for v₁ is periodic
+in φ. Near the θ=0 cut of θ₁, χ=0 on an open set; near the θ=±π cut
+of Arg t, χ=1 on an open set and only the θ₁ formula is used. Flatness
+of the two weights gives smooth joins at their plateau endpoints.
+All denominators are positive by (12.8) and (12.11), so (12.11)
+defines a smooth circle-bundle isomorphism throughout 1/2<|t|<2,
+with the same formulas and bounds at the two boundary tori.
+This proves a regional lift, not an extension to the cusps.
+
+**Implementation and observations (d).** C58's `direct_middle_matrix58`
+evaluates (12.11) using the actual source projector. At 324 base points
+(three radii, nine θ values, twelve φ values), the minimum blend norm
+square is 0.6904810986 and the minimum evaluated corrected overlap is
+0.3035001081. Their measured margins over 1/2 and 1/48 are >0.19048
+and >0.28266. Both inverse matrix identities have residual <3.2·10⁻⁶¹
+at 60 digits. The 84 comparisons across the θ and φ argument cuts
+have maximum residual <6.0·10⁻⁶⁰. The finite coefficient table is used
+only for proof, not during evaluation of the lift.
+C58e times 100 lift-value evaluations at r=1, θ=π/2, φ=j/100,
+j=0,…,99, at 60 digits, including the raw base and source projector.
+A separate run of this same loop took 0.1772 seconds on the working
+machine (type (d)); this is not a benchmark of J or its derivatives.
+
+**Next gate.** Extend the direct map across the two cusp collars,
+including the central fibres, and match the existing pole maps exactly.
+Then certify stable derivative evaluation and build the final
+source-linked J circuit. No new global tensor or global diffeomorphism
+is claimed by this middle-region result.
+
+### 12.4 Direct lifts on both cusps, including the nonnode central fibres
+
+This section gives separate regional maps, not their radial gluing to
+L_mid. Use the existing raw base, 0≤r=|t_c|<1/2, and exclude the node.
+Put ν=1 or e⁻², m=ν exp(-2r²/(1-r²)), φ=2πH, with
+-1/2<H<1/2 on the first height chart. In the south write
+u₁=a exp(i(θ+φ)), u₂=b exp(iφ); in the north write
+u₁=-a exp(-iφ), u₂=-b exp(i(θ-φ)). Here θ=arg t_c when r>0.
+The formulas below use u₁,u₂ themselves and extend to r=0.
+In both cases p=(Im u₁,-Im u₂,1+Re u₁-Re u₂), R=|p|, n=p/R.
+
+Let U_j be the existing unitary pole matrix, and put F=U_j(m conj x,y).
+C59a checks the exact Hopf vectors
+
+  Hopf(F)=(2m Im t_c,-f,2m Re t_c)              (south),
+  Hopf(F)=(f,2m Im t_c,2m Re t_c)               (north),
+  f=m²|x|²-|y|².                                        (12.13)
+
+On the first height chart f has the sign of H by the strictly increasing
+odd moment (11.4). Thus F's normalized second component (south), or first
+component (north), has the same strict sign as the corresponding component
+of n whenever H≠0. These vectors cannot be antipodal. At H=0 and r>0,
+their remaining sine components have the same sign. If sin θ=0, their
+third components have the same strict sign: 1+a-b>0 at θ=0 in the south,
+1-a+b>0 in the north, and 1-a-b<0 at θ=π in either case. The last
+inequality uses a,b>0 and a²+b²=1. At r=0, H≠0 the signed-height
+argument still applies. Therefore
+
+  (F/|F|)*Π(F/|F|)=|n+Hopf(F)/|F|²|²/4>0.              (12.14)
+
+This is a sum-of-squares nonvanishing proof (type (b)), using the checked
+identities (12.13); it gives strict positivity, not a uniform constant.
+
+Let E_{j,0}:C²→C¹⁰ insert into the first pair of cusp j, and let η_{j,1}
+be the first coordinate of its second pair (indices 2 and 6). Define
+
+  A_c,0=E_{j,0} diag(m/ν,1) U_j*,
+  A_c,1=η_{j,1} v(H₁)*,
+  H₁=1/2+Arg(-z)/(2π),
+  τ=(π/2)smooth_step((H₁-7/20)/(3/10)),
+  v(H₁)=U_j(cos τ,sin τ),                               (12.15)
+
+where z=u₂ in the south and z=-conj(u₁) in the north. H₁ lies in (0,1)
+on the second height chart. The maps B_c,j=P A_c,j Π, normalized as in
+(12.1), are denoted L_c,0 and L_c,1. Use the first on |H|<7/20 and
+the second on 3/10<H₁<7/10. These two domains cover the height circle.
+Their source weights are nonzero; the second height weight is exactly 1.
+The first map is nonzero by (12.14).
+
+Here are quantitative bounds for the second map and their derivation
+(type (c), rational identities/comparisons in C59c). The profile is
+increasing. At r=1/2 its south ratio square is (A+B/4)/(A+4),
+A=(4π)²>144, 16<B=e⁴<55. This decreases in A and increases in B;
+its value at A=144,B=55 is <5/4. Hence a<3/4 and b>2/3.
+In the north the ratio square is (A+1/4)/(A+4B)<1, giving b<3/4
+and a>2/3. Also R<3 by the triangle inequality. On the second height
+domain cos φ<0, so p₃>1/4 and n₃>1/12. C59b checks
+
+  Hopf(v)=(0,-cos(2τ),sin(2τ))             (south),
+  Hopf(v)=(cos(2τ),0,sin(2τ))              (north).
+
+Since 0≤τ≤π/2, Hopf(v)₃≥0. Thus v*Πv>1/576>1/600.
+The chosen source second-pair representative has positive height
+H₁∈(3/10,7/10), so m²|x₁|²>|y₁|², also across H₁=1/2 by the
+explicit endpoint chart in §11.2. As ν≥m, its first squared normalized
+component exceeds 1/2. Using V*V≤2 from (11.2),
+
+  tr(B_c,1*B_c,1)>β_j²/2400>0.                           (12.16)
+
+In particular this exceeds 1/2400 in the pure cusp r≤3/10.
+No positive constant independent of r is asserted as r approaches 1/2,
+where the source radial weight β_j vanishes.
+
+**Height overlap, without a phase walk.** On 3/10≤H≤7/20, τ=0
+and v=U_j(1,0). Choose the source circle gauge x>0, and write
+(m conj x,y)=(A₁,B₁ exp(iθ)), A₁>B₁≥0. In the U_j frame put
+Q=U_j*ΠU_j. Its first diagonal entry is (1+ε)/2, where
+ε=-n₂>0 in the south and ε=n₁>0 in the north. Its off-diagonal
+entry has magnitude √(1-ε²)/2. The source slot of A_c,1 contributes
+a positive factor νx. Consequently the phase of tr(L_c,1*L_c,0)
+is the phase of (A₁,B₁ exp(iθ))*Q(1,0), whose real part is at least
+
+  [A₁(1+ε)-B₁√(1-ε²)]/2 ≥ A₁ε/2.
+
+Its modulus is at most √(A₁²+B₁²)≤√2 A₁, so the normalized real
+part is ≥ε/(2√2). The inequality 1-√(1-ε²)≥0 is also the manifest
+identity ε²/(1+√(1-ε²))≥0, checked by C59c.
+On -7/20≤H≤-3/10, τ=π/2 and v=U_j(0,1). Choose y>0.
+Now B₁>A₁, and the second source chart has x₁=1/(my)>0 by the
+explicit deck map. Interchanging the two components gives the same bound.
+On either overlap sin(2π|H|)>4/5. For example its minimum is sin(3π/10),
+whose square is (3+√5)/8>16/25. With the amplitude bounds above and R<3,
+ε>8/45; since 2√2<3, this proves
+
+  Re tr(L_c,1*L_c,0)>1/20.                               (12.17)
+
+Set χ_c=smooth_step((|H|-3/10)/(1/20)) and
+
+  M_c=(1-χ_c)L_c,0+χ_c L_c,1,
+  L_c=M_c/√tr(M_c*M_c).                                  (12.18)
+
+Evaluate only the terms with nonzero weights. Equations (12.2) and
+(12.17) give tr(M_c*M_c)≥1/2. Thus L_c*L_c=Π, L_c L_c*=P,
+and the inverse is L_c*. These are consequences of C56 (type (a)/(b)).
+The first argument cut is surrounded by χ_c=1; the second by χ_c=0.
+The source projector is smooth across the central axes and deck seams by
+C41/C45. The matrices (12.15), positive denominators and flat weights
+therefore give a smooth map on each cusp with its node removed.
+
+**Executable observations (d).** C59d uses the actual source projector
+at 1232 points: both cusps, six radii (including zero and two collar
+radii), eight θ values and thirteen heights, excluding the two nodes.
+The minimum local norm square is 0.0001323368056; the minimum blended
+norm square is 0.9753386158 and the minimum overlap is 0.9506772316.
+The latter two exceed the proved bounds by >0.47533 and >0.90067.
+The two inverse matrix identities have residual <3.7·10⁻⁶¹; the 96
+height-seam comparisons have residual <4.6·10⁻⁵⁹, at 60 digits.
+The local minimum includes collar points, so it is not compared to
+the pure-cusp constant in (12.16).
+
+The remaining geometric tasks are radial gluing to §12.3 and exact
+agreement with the existing pole lifts before applying (11.17).
+Regional circle inverses do not establish a global diffeomorphism or
+the requested executable J and its derivatives.
+
+### 12.5 Exact agreement with the existing pole lifts
+
+The first cusp matrix admits a small correction that closes the regional
+pole-matching task. Put α=10⁻⁵, σ₀=-1, σ_∞=1 and d_X=1-σ_j X.
+Replace diag(m/ν,1) in (12.15) by
+
+  D_j=diag(1-λ_p(1-m/ν),1),
+  λ_p=smooth_step((d_X-α)/α).                             (12.19)
+
+It equals the previous diagonal for d_X≥2α and the identity for d_X≤α.
+Here is the explicit perturbation certificate (type (c), all rational
+comparisons checked by C60a). Throughout the support d_X<2α, the existing
+linear pole coordinate satisfies
+
+  r_L=|z_L|²≤2d_X/3<4α/3<10⁻⁴,
+  r_S=|p_S|≤r_L+80r_L²<1/70000,
+  |t_c|≤r_S/(2ν)<4r_S<10⁻⁴.
+
+These are (11.9) and (11.17); ν≥e⁻²>1/8 follows from e⁴<55<64.
+Also |H|≤r_S+38r_S³<1/10. Thus χ_c=0 here and the source embedding
+is entirely in the first cusp pair. The existing raw pole projection
+has squared norm at least 1-10000r_L²>(99/100)². Meanwhile
+
+  ||D_j-I||≤1-exp(-2|t_c|²/(1-|t_c|²))
+           ≤2|t_c|²/(1-|t_c|²)<10⁻⁷.
+
+The inequality 1-e⁻ˣ≤x for x≥0 follows by integrating
+1-e⁻ˣ≥0, or differentiating x-1+e⁻ˣ. Multiplying by orthogonal
+projectors and unitary matrices cannot increase this operator norm;
+the input Π has rank one, so it is also the needed Frobenius bound.
+Consequently the corrected matrix satisfies
+
+  tr(B_c,0*B_c,0)>(99/100-10⁻⁷)²>0.98.                  (12.20)
+
+Outside this band (12.14) supplies positivity. Flatness gives smooth
+joins between the formulas.
+
+On d_X≤α, (12.19) gives B_c,0=P I_j Π exactly, where
+I_j=E_{j,0}U_j*. Its normalization is the same minimal raw pole lift
+g_j used in (11.10). Therefore use the existing explicit (11.17) for
+d_X<α/2, and the corrected cusp formula elsewhere. On
+α/3<d_X<α/2 one has r_L>α/21>2ε, ε=10⁻⁸, hence H_j=g_j.
+The formulas agree on this open overlap, with all derivatives. The
+elementary inverse and positive differential of the pole replacement
+are already certified in §11.3; neither is changed here.
+
+C60b evaluates forty actual-source matrices: both pole signs, four
+distances and five Hopf directions, including axis directions. Their
+minimum norm square is 0.99999999850476, a measured excess >0.01999999
+over (12.20). The inverse identities and equality to the existing inner
+raw lift have maximum residual <6.5·10⁻⁶² at 65 digits (type (d)).
+
+This supplies capped regional lifts with elementary inverses. It does
+not join them to the middle lift. A global radial transition, followed
+by the actual tensor and derivative circuit, is still required.
+
+### 12.6 Radial overlaps and a specific remaining phase inequality
+
+The middle lift extends to 49/100≤r=|t|≤100/49 by correcting its
+phase offset in the two short cusp collars. Write φ=Arg u₂, use the
+same θ₁ as in (12.10), and let ρ(H,t_c,ν) be (11.5), including its
+deck extension. In the south collar r<1/2 replace C by
+
+  H=φ/(2π), P=log r-2r²/(1-r²),
+  C_s=ξ₄(t,log r+iθ₁)+ρ(H,t,1)/P-H.                     (12.21)
+
+In the north collar r>2 put r_c=1/r and replace C by
+
+  H=(π-θ₁-φ)/(2π), P=-2+log r_c-2r_c²/(1-r_c²),
+  C_n=1-ρ(H,1/t,e⁻²)/P-φ/(2π).                         (12.22)
+
+C15's exact slice identities give x₄=ξ₄+ρ/P in the south and
+x₄=-ρ/P in the north. Thus the lower angular transition still uses
+exp(-2πix₄)=exp[-iφ-2πiC]. C61b checks that C is unchanged under
+φ→φ+2π and increases by 1 under θ₁→θ₁+2π, using ρ(H+1)=ρ(H)+P.
+At either collar endpoint ρ=P(H+1/2). Equation (12.21) then equals
+ξ₄+1/2, and (12.22) equals θ₁/(2π), exactly as in (12.10).
+The **+1 in (12.22) is necessary**: dropping it would change the
+interpolated factor exp[-2πiwC] even though exp[-2πiC] is unchanged.
+C45's flat radial matching makes all endpoint derivatives agree.
+
+The bounds 7/10<a<17/20, 1/2<b<3/4 and R<3 still hold on this
+larger annulus. C61a checks the explicit endpoint inequalities
+
+  profile(49/100;144,16)>49/51,
+  profile(100/49;144,55)<289/111,
+  profile(r;A,B)=r²(A+Br²)/(1+Ar²).
+
+For the lower bound first decrease B to 16; the expression then
+increases in A at r=49/100, since 16r⁴<1. For the upper bound increase
+B to 55; it decreases in A at r=100/49. Combine with radial
+monotonicity. These are type-(c) bounds, with the derivative identities
+already checked in C57/C53. The source middle weight is ≥1/2 throughout
+the enlarged annulus. Therefore the local norm-square bounds in
+(12.8) may be divided by 4, and the same angular phase certificate
+still gives corrected real overlap >1/48 and blended norm square ≥1/2.
+This proves actual radial overlap domains for the middle and cusp maps.
+
+At a common base point define δ=tr(L_mid*L_c). Both maps are unit
+isomorphisms between the same complex lines, so |δ|=1 and
+L_c=L_mid δ (type (a), the rank-one algebra of C56). At fixed south
+radius r=49/100 call this δ_s(θ,φ); at fixed north radius
+r=100/49 call it δ_n(θ,φ), using the same global θ=Arg t and
+φ=Arg u₂ in both. These are single-valued smooth functions on T²
+by the seams already checked above. C61's `frozen_transition61`
+evaluates their explicit finite formulas.
+
+**Remaining proof gate.** A particularly short global gluing would
+follow from the specific inequality
+
+  Re g(θ,φ)>0 for every (θ,φ)∈T²,
+  g=δ_n/δ_s.                                             (12.23)
+
+This inequality is **not proved**. Conditional on it, the elementary
+real phase Θ=atan(Im g/Re g) is smooth and periodic, with exp(iΘ)=g.
+Use a radial flat step w_r=smooth_step((r-3/4)/(1/2)). In the region
+0<w_r<1 multiply L_mid by δ_s exp(iw_rΘ). This equals δ_s on
+the lower plateau and δ_n on the upper plateau.
+
+To match the actual radial dependence, rather than only the frozen
+boundary values, on the south end use δ_s evaluated at
+
+  R_s(r)=49/100+(r-49/100)
+                 [1-smooth_step((r-49/100)/(1/200))].
+
+It agrees with r to all orders at 49/100 and is exactly 49/100
+for r≥99/200, staying inside the common collar. At the north end
+use the same retreat in r_c=1/r. Both retreats are already constant
+on a neighbourhood of 0<w_r<1. Thus the plateau formulas join
+smoothly, with no phase walk. This is a conditional construction,
+not an assertion of (12.23) or a completed global map. Its algebraic
+inverse would again use the adjoint circle map and the existing
+two-way base and cap formulas.
+
+**Measurements, type (d).** C61c evaluates both frozen transitions
+on a 32×32 grid (2048 source points). The middle blend norm square
+is at least 0.6859041071 and its corrected angular overlap at least
+0.3364921174, with margins >0.18590 and >0.31565 over their proven
+bounds. Inverse and scalar-transition residuals are <3.6·10⁻⁶¹;
+32 seam pairs have residual <2.4·10⁻⁶⁰ at 60 digits.
+C61d records the separate grid values of g: its minimum real part is
+about 0.227442 and maximum principal-argument magnitude about 1.34135.
+All sampled sums of adjacent principal phase increments around either
+grid circle are zero to floating-point precision. These observations
+do **not** prove (12.23), a continuous winding number, or a global
+argument-cut margin. A proof of (12.23), or another certified radial
+phase construction if it fails, is the next geometric task. The
+source-linked executable J and its derivatives remain to be built.
+
+### 12.7 Cancelling the source embedding and freezing at the exact boundary
+
+There is an alternative to proving (12.23). It uses the exact radii
+`r_c=1/2` at both ends, a two-component scalar comparison, and a finite
+phase sum with **65536 terms**. The proof and value evaluator below do
+not require a sign for Re g on the whole torus. The earlier, stronger
+inequality (12.23), at the different radii 49/100 and 100/49, remains open.
+
+First cancel the positive source weights in the cusp matrices. For
+49/100≤r_c≤51/100 put t_c=r_c exp(iθ_c), ν=1 or e⁻²,
+m=ν exp[-2r_c²/(1-r_c²)] and P=log(mr_c). Use the existing height
+ρ for r_c<1/2 and set ρ=P(H+1/2) for r_c≥1/2. C45 proves flat
+matching of these formulas. Let y=exp ρ, x=t_c/y, and let e be the
+unit source embedding of this physical reference, expressed in the
+middle chart. With U_j as in (12.15), define unit rows
+
+  c₀ = F*Π / ||F*Π||,             F=U_j(m conjugate(x),y),
+  c₁ = exp(iη) v*Π / ||v*Π||,     η=θ_c if H≥0, otherwise 0,
+  v=U_j(cos τ,sin τ),             τ as in (12.15),
+  c = [(1-χ_c)c₀+χ_c c₁] / ||(1-χ_c)c₀+χ_c c₁||.         (12.24)
+
+Then L_c=e c. Only rows with nonzero weights are evaluated. Below
+1/2 this is exactly (12.18): in the first source pair the factor
+`diag(m/ν,1)` turns its row into F* times a positive scalar. In the
+second pair the first source coordinate has phase conjugate(x)/|x|
+for H≥0, and phase 1 for H<0, since the shifted x is 1/(my)>0.
+The projector column conjugates that phase. Normalization cancels
+all the remaining positive factors. Thus (12.24) extends the map
+even where those source slots have zero radial weight; it does not
+divide by a zero slot. This is the outer-product identity C62b (a).
+
+The positivity proof of §12.4 extends to this small collar. The
+profile bounds in §12.6 still hold there. In cusp coordinates the
+dominant amplitude is >2/3 and the other amplitude is <3/4:
+in the south, b²=1/(1+profile(r_c;A,B))>4/9, using
+profile(51/100;144,55)<5/4; in the north,
+|u₂/u₁|²=r_c²(r_c²+A)/(Ar_c²+B)<1, since r_c⁴<B,
+so a>1/√2>2/3 and b<1/√2<3/4. The south bound also gives
+a<√5/3<3/4. The first height has the sign of H; the second-frame
+hemisphere argument and overlap estimate (12.17) therefore apply
+unchanged (b,c). At the height cut e changes by exp(-iθ_c), while
+c₁ changes by exp(iθ_c), so their product agrees exactly. The
+existing logarithm transitions give the angular seam. Consequently
+the extended L_c is smooth throughout this collar.
+
+Here are explicit lattice formulas that remove a matrix solve from
+the comparison. Write t=r exp(iθ), ℓ=log r and P₀=ℓ-2r²/(1-r²).
+For (z,w)=(-iρ,0),
+
+  x₄=ρ/P₀,                    x₁=-θρ/(2πP₀).
+
+For Ξ=(πs(s-1),2ts), s=(ℓ+iθ)/(2πi),
+
+  ξ₄=θ/(2π)-ℓ/(2P₀),
+  ξ₁=-(θ²+ℓ²)/(8π²)-θ/(4π)
+        -ℓr²/[2π²(1+r²)]+θℓ/(4πP₀).                    (12.25)
+
+C62a verifies these by substituting into the full complex lattice
+equations, using the rotated real coordinates
+u=cosθ x₂+sinθ x₃, v=-sinθ x₂+cosθ x₃:
+
+  w/t=(1/r-r)u+i(1/r+r)v+2x₄,
+  z=2πx₁-rv+θx₄-i(ru+ℓx₄).
+
+At the exact boundary let h=log 2, c_s=1/(3h+2), k_s=h+2/3,
+k_n=h+8/3. Set θ=Arg t, φ=Arg u₂, θ_c=θ in the south and
+θ_c=-θ in the north. In the south H=Arg u₂/(2π); in the north
+H=Arg(-conjugate(u₁))/(2π). The unit version of F in (12.24) is
+
+  F=U_j (exp(k_j H-iθ_c), exp(-k_j H)) / √[2cosh(2k_j H)]. (12.26)
+
+The relevant physical source coordinates are
+
+  south: x₄=H+θ/(2π)+c_s,  x₁=ξ₁-θ(H+1/2)/(2π),
+  north: x₄=-H-1/2,        x₁=θ(H+1/2)/(2π),             (12.27)
+
+where ξ₁ in this display is (12.25) at r=1/2. The north sign uses
+P₀(1/r_c)=-[log r_c-2r_c²/(1-r_c²)-2], also checked by C62a.
+
+For the middle rows put m₀=e₁*Π/||e₁*Π||, and, with v₁ from
+(12.3),
+
+  m₁=(b-ia) exp{i[w(π-2πC)+(θ₁-θ)x₄]}
+                 v₁*Π/||v₁*Π||,
+  C=θ₁/(2π)+c_s (south), or θ₁/(2π) (north),
+  m=[(1-χ)m₀+χm₁]/||(1-χ)m₀+χm₁||.                     (12.28)
+
+The actual middle matrix is e exp(-2πix₁)m. Thus the boundary
+transition is the two-row expression
+
+  δ_j=exp(2πix₁) Σ_l conjugate(m_l)c_l,     g=δ_n/δ_s.   (12.29)
+
+This g is at r=1/2 and 2, unlike (12.23). It is a smooth unit
+function on T², by the regional identities and seams. C62b checks
+the exact cancellation of e. `boundary_transition62` implements
+(12.26)–(12.29) with two-component rows, avoiding a Hopf spinor
+chart and the ten-component embedding. Its float64 outputs are
+numerical evaluations of these elementary formulas, not proof data.
+
+**Measurements (d).** C62c checks 720 actual-source points at five
+cusp radii from .49 to .51. Below .5 the cancelled and original
+matrices differ by <3.6·10⁻⁶¹; inverse identities have residual
+<3.2·10⁻⁶¹. Sixty angular/height seam pairs have residual <8.4·10⁻⁶¹.
+At the exact boundary, 144 comparisons of the float64 scalar formula
+with the independent 60-digit matrix calculation differ by <9·10⁻¹⁶.
+
+### 12.8 A practical derivative bound and an exact winding certificate
+
+All estimates in this subsection are type (b)/(c); their algebra and
+rational comparisons are checked in C63. They concern only the two
+fixed boundary tori, not the derivatives of the full tensor.
+
+**Projection denominators.** The amplitude box in §12.6 gives
+R²=2(1+Re u₁)(1-Re u₂)>3/40>1/16. Hence R>1/4,
+||∂θ n||<4 and ||∂φ n||<6: the corresponding derivatives of p
+have norms a<1 and at most a+b≤√2<3/2. Consequently the operator
+norms of ∂θΠ and ∂φΠ are <2 and <3. C63b checks
+(∂Π)²=||∂n||²I/4.
+
+The first cusp row has the additional uniform bound
+
+  ||F*Π||²>1/576,                   ||F||=1.             (12.30)
+
+To see this, set E=tanh(2k_jH), T=sech(2k_jH), and ψ=2πH.
+C63a gives the unnormalized Hopf pairings
+
+  south: T[a cosψ+(1-b cosψ)cosθ_c]+bE sinψ,
+  north: T[b cosψ+(1-a cosψ)cosθ_c]+aE sinψ.
+
+If |H|≤1/12, E sinψ≥0 and each bracket is at least
+(a+b)cosψ-1>(6/5)(√3/2)-1>0. The projection norm square is
+therefore >1/2. If 1/12≤|H|≤7/20, the distinguished component
+of the target Hopf vector has the same sign as E and magnitude
+ε>(1/2)(1/2)/3=1/12. Two unit vectors with these same-sign
+components have scalar product at least -√(1-ε²). Thus their
+spinor projection norm square is at least
+(1-√(1-ε²))/2≥ε²/4>1/576. These cases cover the active first row.
+The second cusp row retains ||v*Π||²>1/600 from §12.4. The middle
+target row bounds are >1/60000 and >1/10000 from §12.2; source
+slot weights have already been cancelled.
+
+**Derivative budget.** For any nonzero complex row B,
+
+  ||D(B/||B||)||≤||DB||/||B||.
+
+C63b checks the derivative and its squared norm in four real
+coordinates, with the removed term a square. For (12.26), the
+H derivative has norm ≤k_j<4, and the θ_c derivative has norm ≤1.
+For example the first bound reduces to
+4k²z²/(1+z²)²≤k², with difference k²(z²-1)²/(1+z²)².
+The elementary bounds 2/3<h<7/10 follow from
+log 2=2Σ_{n≥0}(1/3)^(2n+1)/(2n+1), whose tail after 2/3 is
+<1/36. This also proves 0<c_s<1/4.
+
+On each active branch, |H_θ|,|H_φ|≤1/(2π)<1/6.
+The first cusp row derivatives are both bounded by
+24(5/3+2)=24(2/3+3)=88. The rotating v has angular derivative
+norm ≤5/3, since s′≤2 (L1); its phase has θ derivative ≤1 and
+φ derivative 0. The second row derivatives are therefore bounded
+by 25(5/3+2)+1<118 and 25(5/3+3)<118. The height cutoff has
+angular derivatives ≤20/π<7. Its blend has norm ≥1/√2, so
+
+  ||c_θ||, ||c_φ|| < (118+14)(3/2) < 200.
+
+For m₀ the bounds are 490 and 735, using √60000<245. For m₁
+the normalized projection contributes <200 and <400. Its additional
+phase in (12.28) has derivatives <5 and ≤1: on the support of w′,
+|π-θ₁-2πc_s|≤7π/8, |w′|≤8/(3π), |2πx₄,θ|=1, and
+|2πx₄,φ|=1. For the north put c_s=0 in this calculation. Thus
+the phase θ derivative is ≤7/3+1+1<5. The angular cutoff χ has
+|χ_θ|≤8/π<3, χ_φ=0. After normalization,
+
+  ||m_θ||<(490+6)(3/2)<745,     ||m_φ||<735(3/2)<1103.
+
+Finally (12.25)–(12.27) give |2πx₁,θ|≤2 and
+|2πx₁,φ|≤1/2. Applying the product rule to (12.29) yields
+
+  |∂θ g|<1900,                     |∂φ g|<2700.          (12.31)
+
+The estimates hold up to all seams by the already proved smooth
+regional matching. Inactive rows are omitted, so a zero inactive
+denominator is not differentiated.
+
+**The two winding numbers are zero.** Here is an elementary proof,
+independent of the numerical phase grids. Write A_j=atan(a_j/b_j),
+where j refers to the corresponding boundary radius.
+
+On φ=0, choose the continuous target spinor
+(cos(β_j/2),sin(β_j/2)), where
+β_j=arg[(1-b_j)+a_j exp(iθ)] is continuous on [-π,π] with
+β_j(±π)=±π. It exists with |β_j-θ|<π/2, because
+Re[a_j+(1-b_j)exp(-iθ)]>a_j+b_j-1>0. The middle row's phase
+μ_j is 0 for |θ|≤3π/8; on the two angular overlaps it is the
+continuous argument of (1-χ)+χ exp(-iA_j). In the remaining
+positive and negative portions respectively it is
+
+  μ_j=-A_j+w(π-θ-2πc_j),
+  μ_j=-A_j+(1-w)(π+θ+2πc_j),     c_j=c_s or 0.
+
+The formulas agree at 5π/8 and -5π/8; their endpoint difference
+is μ_j(π)-μ_j(-π)=-2πc_j.
+
+In the south H=0, χ_c=0. C63e gives exactly
+F=exp(-iθ/2)(cos(θ/2),sin(θ/2)), so F* times this target spinor
+has phase θ/2 and positive modulus cos((θ-β_s)/2). A continuous
+real phase of δ_s is therefore 2πξ₁-μ_s. Equation (12.25) gives
+2π[ξ₁(π)-ξ₁(-π)]=-2πc_s (C63f); this phase has equal endpoints.
+
+In the north H=1/2-θ/(2π) for θ>0 and H=-1/2-θ/(2π) for θ<0.
+Put c=cos(β_n/2)>0, s=sin(β_n/2), A=exp(k_nH)/√(2cosh(2k_nH)),
+B=exp(-k_nH)/√(2cosh(2k_nH)). The first-row scalar has
+
+  Re = [A cosθ(c+s)+B(c-s)]/√2,
+  Im = -A sinθ(c+s)/√2.                                 (12.32)
+
+For 0<θ<π its imaginary part is negative. The second-row scalar
+is a positive real multiple of exp(-iθ), so the blended phase has
+a continuous value in (-π,0). For -π<θ<0, A≤B, s<0, c>0,
+and c-s>|c+s|, so (12.32) has positive real part. The second-row
+scalar is positive real as well. Here the blended phase lies in
+(-π/2,π/2). The two values join at 0 with phase 0; at θ=π the
+phase is -π and at θ=-π it is 0. The source phase
+2πx₁=θ(H+1/2) has endpoint difference π, and μ_n has endpoint
+difference zero. Thus δ_n also has a continuous real phase with
+equal endpoints. This proves zero θ winding of g. C63d–f check
+all the half-plane and endpoint identities used here.
+
+For the other generator set θ=0. Then n₃>0 and a target spinor
+is (C,(a+ib)S) with C>0 and S having the sign of sinφ. In each
+active cusp row its coefficients before U_j are real; writing the
+result as (A,iD) in the south and (A,D) in the north gives A>0
+and DS≥0. This holds for both the exponential row and the rotating
+row: the sign of D is the sign of H, which agrees with sinφ on
+this circle. Their scalar projections are respectively
+
+  AC+bDS-iaDS,                     AC+aDS+ibDS.          (12.33)
+
+Consequently the south blended row has phase in [-atan(a_s/b_s),0]
+and the north one in [0,atan(b_n/a_n)]. Here m=m₀ has phase 0.
+The source phases are α₀=h(1/5-h/4)/π in the south and 0 in
+the north, with 0<α₀<1/100 (C63f). The profile is strictly
+increasing, so a_s/b_s<a_n/b_n and
+atan(a_s/b_s)+atan(b_n/a_n)<π/2. Hence g on this circle has
+phase in (-1/100,π/2), a single continuous periodic argument.
+Its φ winding is zero. C63g checks (12.33). This proves both
+winding statements using inequalities and endpoint identities;
+no sampled winding number is an input.
+
+### 12.9 A certified 65536-term phase and the radial gluing it supplies
+
+For θ,φ∈[-π,π], N=65536, define g_j=g(jθ/N,jφ/N), with g from
+(12.29), and
+
+  Θ(θ,φ)=-α₀+Σ_{j=1}^N atan[Im(g_j/g_{j-1})/
+                                      Re(g_j/g_{j-1})]. (12.34)
+
+By (12.31), every adjacent chord has length less than
+(22/7)(1900+2700)/65536<1/4. Since |g_j|=1, its ratio has
+real part >31/32. Thus each atan is on its smooth right-half-plane
+branch. C64a checks that its exponential is that ratio. The
+products telescope, and g(0,0)=exp(-iα₀), so exp(iΘ)=g exactly.
+This is a fixed finite elementary expression, with no implicit
+inverse, quadrature, infinite series or adaptive stopping rule.
+
+It is smooth and periodic. Indeed the sum is a continuous lift
+of g on the angle rectangle. Its values on opposite edges differ
+by a continuous integer multiple of 2π and therefore by a constant
+multiple. At φ=0 and θ=0 those multiples are zero by §12.8. Hence
+the values match. Locally any two lifts of the smooth function g
+differ by a constant multiple of 2π, so their derivatives of every
+order also agree. This proves smooth matching across both edges
+and their corners, rather than just matching sampled values.
+
+Here is the resulting radial correction. For 1/2≤r≤51/100 use
+
+  R_s(r)=1/2+(r-1/2)[1-smooth_step((r-1/2)/(1/100))],
+
+and set R_s=1/2 beyond 51/100. It stays in [1/2,51/100], agrees
+with r to all orders at 1/2, and is flatly constant after 51/100.
+Let Δ_s(r,θ,φ) be tr(L_mid* L_c) at radius R_s(r), using the
+extended (12.24). Define Δ_n by the same retreat in r_c=1/r,
+using the north matrices. Let w_r=smooth_step((r-3/4)/(1/2)).
+For 1/2≤r≤2 the global middle map is L_mid multiplied by
+
+  Δ_s(r,θ,φ),                         r≤3/4,
+  δ_s(θ,φ) exp[i w_r Θ(θ,φ)],          3/4<r<5/4,
+  Δ_n(r,θ,φ),                         r≥5/4.             (12.35)
+
+Both retreats are constant on neighbourhoods of the two interior
+joins, and (12.34) gives exp(iΘ)=δ_n/δ_s. Thus (12.35) matches
+to every order. At r=1/2 and 2 its jets equal the corresponding
+cusp lift because L_mid tr(L_mid*L_c)=L_c and the retreat matches
+the actual radius to all orders. Use the capped cusp maps of
+§§12.4–12.5 beyond these boundaries. This supplies a global smooth
+unit circle isomorphism covering the unchanged explicit orbit map;
+its circle inverse is its adjoint. The cap inverse and the orbit
+inverse remain the explicit ones in §11. The formula is a new
+construction for review; it makes no assertion that (12.23) holds.
+
+**Executed full-count phase check (d).** `boundary_phase64` evaluates
+(12.34) in vectorized float64 arithmetic. Twenty-four calls, each
+with the certified 65536 terms, took about 0.83 seconds in this
+environment. Eight endpoint exponential checks have residual
+<9.1·10⁻¹⁵; eight opposite-edge pairs differ by <4.3·10⁻¹⁵.
+The smallest measured adjacent real part is 0.9999999944859101,
+an excess >0.03124999 over the proved 31/32 bound. These are
+observations about phase values, not a tensor or derivative benchmark.
+Other term counts are labelled uncertified experiments by the helper.
+
+The regional algebra and the phase proof close the radial gluing design.
+The next subsection records the assembled value prototype and its first
+tensor evaluation, separately from the remaining symbolic implementation
+certificate.
+
+### 12.10 Global values and endpoint phase derivatives
+
+`direct_global_coordinates65` and `direct_global_forward65` assemble
+(12.35), the existing orbit and torus maps, and the existing cap pair.
+The numerical prototype evaluates the finite phase sum with NumPy;
+all other blocks use mpmath. In the collars it uses the cancelled
+(12.24) directly: a floating-point evaluation of the old expression
+`1-smooth_step` can round the source slot weight to zero immediately
+below r_c=1/2, before its algebraic cancellation. This changes no exact
+formula. It prevents that artificial zero denominator in the prototype.
+
+C65 checks 65 complete G-then-F values, with two nodes, eight nonnode
+central-fibre points, ten further pole-band points, and forty-five
+points at fifteen middle/cusp radii. All three holomorphic chart kinds
+occur. The maximum round-coordinate/torus residual is <5.7·10⁻⁶⁰
+at 60 digits (d). Because forward and inverse use the same numerical
+phase evaluator, this is an inverse-consistency observation, not a
+60-digit accuracy claim for the float64 phase.
+
+The first and second derivatives of the finite phase sum need no loop.
+Writing subscripts for derivatives in θ,φ, they are exactly
+
+  Θ_a = Im(g_a/g),
+  Θ_ab = Im(g_ab/g-g_a g_b/g²).                           (12.36)
+
+C66a differentiates atan(v/u) symbolically and verifies these formulas
+in a right-half-plane chart. C66b checks that the first and second
+logarithmic derivatives of each quotient g_j/g_{j-1} are the
+differences of those for g_j and g_{j-1}. Summation telescopes;
+g₀ is constant. The formulas consequently apply to the specific
+65536-term (12.34), including across its periodic seams (a).
+
+This gives a practical evaluation strategy for the actual tensor.
+In a round coordinate chart q, let h(q) be the holomorphic Y-chart
+coordinates returned by the assembled G. Put A=Dh, A_k=∂_k A and
+let J₀ be the three standard real 2×2 complex blocks. Then
+
+  J=A⁻¹J₀A,       ∂_kJ=A⁻¹(J₀A_k-A_kJ).                (12.37)
+
+The established generic identities C10/C30 apply to these expressions
+when A is invertible and A_k are the symmetric second jets of h.
+The global circle inverse, unchanged orbit inverse, torus inverse
+and cap inverse give invertibility for the mathematical construction.
+Binding all of the new implementation's derivatives to those formulas
+is still necessary for the requested direct executable certificate.
+
+`direct_tensor66` is a **numerical local evaluator**, not that completed
+certificate. It evaluates (12.36) at the endpoint with high-precision
+numerical derivatives, then substitutes a quadratic phase germ having
+those same two jets into the surrounding formula. Other derivatives
+use `mp.diff` in one fixed holomorphic chart. This avoids differentiating
+the float64 phase routine, which would incorrectly erase infinitesimal
+variations. The germ is only a device for evaluating the jets at its
+centre; it is not a replacement global map.
+
+At the strict interpolation point r=1.07, θ=.81, φ=-.63, Hopf
+phase .37 and torus coordinates (.17,-.23), C66c evaluates the
+specific J, its first derivative, and all 216 Nijenhuis components.
+The round chart omits coordinate 0 with positive sign. The measured
+square residual is <5.6·10⁻⁶⁰ and the maximum N component <5.3·10⁻⁵⁸.
+Computing the value, first and second coordinate jets took about
+0.58 seconds here. Two independent centred differences of the actual
+J evaluator, at step 10⁻⁵, agree with ∂J to relative error <3.5·10⁻⁷
+(d). A separate half-step comparison gives <8.8·10⁻⁸, consistent
+with the expected second-order finite-difference error. This is one
+interior tensor point, not global numerical coverage or a symbolic
+check of every new branch.
+
+**Next acceptance gate.** Implement the finite first/second jet circuit
+without numerical differentiation, bind it to the new global source
+formulas and every selector/overlap, and check the resulting specific
+J in the cusps, caps, central fibres and radial/argument seams. The
+large phase count is now a practical value computation; its derivatives
+are the fixed-size endpoint expressions (12.36). The legacy runtime
+and its certificates remain unchanged.
+
+### 12.11 Finite tensor circuit and the resulting certificate
+
+The next gate of §12.10 is addressed by C67–C68. `direct_tensor67`
+uses a finite second-jet algebra instead of numerical differentiation.
+For each scalar it stores its value, six first derivatives and a 6×6
+Hessian. Products use the two cross terms, and a unary function uses
+
+  D f(v)=f′(v)Dv,
+  D²f(v)=f′(v)D²v+f″(v)Dv⊗Dv.                          (12.38)
+
+C35 already verifies these generic composition rules. C67a checks the
+first and second derivatives of every analytic primitive in the new
+backend: powers, exp, expm1, log, log1p, sin, cos, sinh, cosh and asinh.
+C66 supplies Arg and the endpoint phase rule. C67b/C68b match the
+actual product and unary implementations to those checked expressions.
+Conjugation and real/imaginary parts act componentwise on real jets.
+Small matrix operations are the corresponding finite sums and products.
+The final 6×6 solves in (12.37) are rational operations, equivalently
+`adj(A)/det(A)`; no nonlinear equation or iterative inverse is used.
+
+The value functions are executed in an isolated namespace with this
+arithmetic. The source adapter changes the mpmath binding and rewrites
+`abs(z)**(2k)` as `(Re(z)²+Im(z)²)**k` for positive integers k.
+C68c checks that transformation and preservation of the other operations.
+This rewrite is essential at a central axis: differentiating abs and
+then squaring would introduce an artificial singularity. A genuinely
+singular intermediate jet is marked invalid; it may be discarded by an
+inactive flat branch, but a nonfinite output jet raises an error.
+No live module is monkey-patched and the frozen runtime source is unchanged.
+
+The inherited smooth base, source embedding, torus and cap blocks retain
+the C38–C50 certificates. C68 pins the twenty new value/jet definitions
+by their complete AST digests. It also enumerates **all 56 if/if-expression
+tests** in the new geometric value path and **all seven `where` selectors**
+in the vectorized boundary evaluator. Their classification is as follows;
+these written arguments are inputs to the source-identity checks, not
+consequences of a digest alone.
+
+| selector family | justification |
+|---|---|
+| `infinity`, `inf`, cusp chart kind | A fixed cusp label on each region. The cusp/middle representation changes are the existing holomorphic changes, C38–C45 and C50. |
+| Middle χ and cusp χ_c active-row tests | The weights are flat at 0 and 1. All active denominators are positive by §§12.2–12.4 and (12.30). The extra overlap computation only supplies diagnostics. |
+| Pole correction present/absent and its flat weight | In the actual cusp path the correction is supplied; outside its support it is identically the uncorrected matrix. Equation (12.20) and §12.5 give positivity and exact cap agreement. |
+| `phase_offset` and the two tests in `collar_offset61` | It is supplied precisely for r_c<1/2 in the extended collar. The south route has r<1/2; the north route has r>2. C61 proves exact phase and flat endpoint matching, so its exception is unreachable. |
+| `rc>=1/2` | The linear height extends the original height with all jets, C45 and (12.24). |
+| `H>=0` in the second cusp row | The row is inactive near H=0. At H=±1/2 its phase cancels the exact source deck phase, §12.7. |
+| Boundary `th>=0` | The logarithm representative switches inside the first angular plateau; the phase-corrected middle formula has the exact angular transitions of C58/C61. |
+| Vectorized step interval tests | On an inactive interval the result is exactly 0 or 1; its surrogate interior argument has no effect on the output. The endpoint joins are the flat-step joins of L1/C40/C45. |
+| Vectorized active-row normalization | Its zero-norm guard cannot fire on an active row by the four projection bounds in §12.8. Inactive rows have zero weight. The jet circuit uses the equivalent matrix formula and never differentiates an inactive zero norm. |
+| Phase count, angle and adjacent-ratio guards | The actual calls use exactly 65536, principal input angles, and Re ratio >31/32 from (12.31). C68e binds both call sites to that fixed default. |
+| Global r=1/2,2,3/4,5/4 and retreat selectors | Equation (12.35) and flatness prove complete jet matching. The additional r_c=49/100 implementation selector switches two exactly equal forms of L_c, by source-weight cancellation (12.24). |
+| `phase_local` callback | The value evaluator uses (12.34); the finite jet evaluator supplies its same value and its exact jets (12.36). It is not an arbitrary callback in the certified object. |
+| Cap distance and forward source-radius tests | These are the existing §11.6 cap domains and inverse selectors. C60 makes the new regional map agree exactly with their raw lift on the required open overlap. The forward cap returns the existing explicit cap inverse directly. |
+| Source circle Arg and middle/cusp return kind | The unit phase is nonzero by C56. Its argument changes x₁ by an integer or applies the existing cusp deck action. C30k and C38–C50 supply the holomorphic changes and torus restoration. The numerical unit-phase guard is identically false in exact arithmetic. |
+
+This classification includes tests inside local helpers. The census finds
+no while loop, try block or match statement in that geometric value path.
+The inherited numerical precision shortcuts have the same status as in
+C46/C48/C50: **they are off in the exact mathematical object**. Decimal
+literals denote rational numbers; pi/e and the elementary functions have
+their mathematical meanings; array storage, arithmetic precision casts
+and `workdps` have no mathematical effect. Float64/multiprecision runs
+are approximate evaluations of that object. This is not a claim of exact
+floating-point arithmetic or a certified rounding-error bound.
+
+**Certificate statement, for human review.** Assume the written elementary
+arguments for the unchanged base, two-way heights, torus maps and caps
+listed in §11.9, and the new inequalities and seam arguments in §§12.2–12.9.
+Then (12.35) with the capped cusp maps defines a smooth explicit
+diffeomorphism G_dir from round S⁴×T² to the same Y, with explicit inverse
+F_dir assembled in C65. In each of the ten round sphere charts, together
+with local torus angles, (12.37) defines a finite elementary tensor
+J_dir=G_dir*J_Y. The domains cover because some round coordinate is nonzero;
+the torus formulas are periodic by the inherited torus equivariance.
+The maps agree through the holomorphic changes of Y, so this tensor is
+globally well defined. Its coordinate first/second jets are obtained by
+the finite circuit (12.36)–(12.38), bound to the specified source by
+C67–C68 and the unchanged source certificates. Substitution in the exact
+six-dimensional identity C30i gives all 36 components of J_dir²+I and
+all 216 components of N_{J_dir} equal to zero. These conclusions use the
+written inequalities and source correspondence, not numerical residuals.
+
+There are no astronomical projection counts in this construction.
+Only phase values use the fixed 65536-term sum; first and second phase
+derivatives use the fixed-size endpoint expressions. The forward and
+inverse maps use the same circle isomorphism and its adjoint. The original
+§11 construction and its source remain a separate, unchanged reference.
+
+**Executable observations (d).** The finite jet circuit agrees with the
+independent C66 high-precision differentiation at its interpolation point
+to relative errors <6·10⁻¹⁶ in J and <1.2·10⁻¹⁴ in dJ. A call takes about
+1.4 seconds here, including source adaptation. C67c runs 31 more tensor
+points: nine radial points, eight nonnode central-fibre points, and fourteen
+cap/pole-band points including both nodes and four points in the actual
+cap compression annuli. All three target chart kinds
+occur. The largest observed scaled N residual is <1.2·10⁻¹⁵ and scaled
+square residual <7.7·10⁻¹⁶; the computed Hessians are symmetric. The N
+scale is `1+max|J| max|dJ|`; the square scale is `1+||J||²`. The maximum
+sampled coordinate-Jacobian condition number is <223.
+
+An initial binary64-only jet implementation failed near the height
+transition H=±1/10: underflow in the conjugated flat functions erased
+the recovered height derivative. The retained circuit uses arbitrary
+precision/exponent arithmetic for its jets; all eight central-fibre
+tests, including those four transition points, pass. The phase values
+remain vectorized float64 evaluations, and the final small matrices are
+converted to float64. The timing and residual figures are measurements,
+not uniform runtime, conditioning or floating-point error guarantees.
+
+Run the certificate with the existing command:
+
+    .venv/bin/python3 -B extra/s4t2_explicit/sym/chart_identities.py
+
+It must finish with `ALL PASS`, including C62–C68. For an evaluation
+session, `runpy.run_path` on that same file returns a namespace containing
+`direct_global_coordinates65`, `direct_global_forward65` and
+`direct_tensor67`. The latter takes four retained round coordinates and
+two torus coordinates, with `missing` in 0,…,4 and `sign` in {-1,1} for
+the reconstructed sphere coordinate. It returns J, dJ, Dh, D²h, the
+Nijenhuis components, and the selected holomorphic chart. The script's
+fixture `input66, missing66, sign66` is a reproducible interior example.
+
+The next work is review of this new global certificate, broader independent
+implementation checks (especially near the nested flat transitions), and
+simplification. The stronger single-argument inequality (12.23) is still
+open; proving a suitable inequality at the exact boundary could remove
+the 65536-term value sum altogether. No such simplification is assumed here.
+
+### 12.12 A standalone function and its exact symbolic definition
+
+The collaborator requested a callable whose subfunctions carry explicit
+mathematical contracts, followed by executable square and Nijenhuis checks,
+and authorized the two new files `extra/s4t2_explicit/direct.py` and
+`extra/s4t2_explicit/sym/direct_certificate.py`. The implementation is
+independent of the historical check script at import and evaluation time.
+It implements the same construction as §12.11; it does not change the
+global statement's written hypotheses or their human-review status.
+
+**Public interface.** From the repository root:
+
+```python
+from math import sqrt
+from extra.s4t2_explicit.direct import complex_structure
+
+point = [1 / sqrt(5)] * 5 + [0.17, -0.23]
+J = complex_structure(point)                 # a 6 by 6 numpy array
+symbolic = complex_structure(point, symbolic=True)
+J_exact = symbolic.matrix                   # a factored SymPy expression
+```
+
+The input is `(x0,x1,x2,x3,x4,t1,t2)`, with sum x_i²=1 and torus
+coordinates of period one. The numerical interface checks the sphere
+constraint to tolerance 10⁻¹² and reconstructs the largest sphere
+coordinate in its hemisphere chart. Exact mathematics uses the sphere
+constraint itself. The symbolic call keeps six chart coordinates free:
+the supplied point is a witness selecting formula branches, not a
+substitution turning the formula into six fixed constants. Branch choices
+are available in `symbolic.graph.choices` and must be interpreted with
+the domain and seam contracts below.
+
+**One global matrix convention (a; D1).** For x in S⁴, use the smooth
+identification
+
+  Φ_x(v,a,b)=(v+a x,b),       x·v=0,
+  Φ_x⁻¹(w,b)=(w-(x·w)x,x·w,b).                          (12.39)
+
+Here a,b are tangent components in the period-one torus coordinates.
+The public matrix is Φ_x J Φ_x⁻¹. If T is the matrix taking hemisphere
+coordinate components to (12.39), the returned expression is
+T A⁻¹J₀A T⁻¹. D1 checks both inverse identities for every omitted
+sphere coordinate, using the relation sum x_i²=1. It also differentiates
+the actual `frame_matrices` formula and checks `frame_derivatives`.
+The hemisphere domains cover: otherwise all five sphere coordinates
+would vanish, contradicting their squared norm one (b).
+
+This frame is not a coordinate frame. Its vector fields are
+E_i=(e_i-x_i x,x_i,0), i=0,…,4, and E_5=(0,0,1). Direct polynomial
+differentiation in D1 gives
+
+  [E_i,E_j]=x_i E_j-x_j E_i  (i,j<5),   [E_i,E_5]=0.     (12.40)
+
+For coordinate calculations, `coordinate_tensor(q,missing=…,sign=…)`
+returns J, its six derivatives, A, D²h and all Nijenhuis components.
+`global_frame_data(x,coordinate_tensor(...))` also returns the public
+matrix, its frame directional derivatives, and N with the bracket terms
+included. Thus the public matrix is not accidentally tested using a
+coordinate formula in a noncommuting frame. D9 compares that calculation
+with the tensor transformation of the coordinate N (numerical, d).
+
+**One definition, two arithmetic backends.** `Formulas` contains 39
+geometric methods. The finite `Jet` arithmetic propagates first and
+second derivatives by (12.38); its numerical shortcut subclass is described
+below. The `SymbolicArithmetic` backend executes
+the same methods using pairs of exact real SymPy expressions. Constants
+are rational numbers, π and e; even powers of a complex modulus are
+polynomials in its real and imaginary parts. `ExpressionGraph` retains
+named assignments rather than expanding the same large subexpression
+many times. To inspect the definition and its derivatives:
+
+```python
+values = symbolic.graph.active_assignments(symbolic.outputs)
+A, Hessians, derivative_assignments = symbolic.differentiate()
+J_coordinate, dJ_coordinate, _ = symbolic.tensor_expressions()
+phase_definition = symbolic.graph.finite_phase_definition()
+```
+
+Every assignment's first and second partials are computed by SymPy
+differentiation; the chain rule then assembles the six input derivatives.
+The six Hessians are exact named expressions, not numerical differences.
+D4/D10 check the actual primitive rules, complex arithmetic and mixed
+chain rule (a). D10 additionally compares the actual named derivative
+compiler with direct differentiation of an expanded six-variable
+expression, and deliberately corrupts a second derivative in an isolated
+copy: the checker rejects it. D5 builds actual symbolic expressions in
+both poles, a cusp interior, the phase interpolation, and both collars.
+Those six traces contain no floating constants or unevaluated derivatives.
+They are implementation checks on those branches; they do not constitute
+an exhaustive proof of global coverage.
+
+The phase value is the specified 65536-term elementary sum (12.34),
+available as an unexpanded finite `Sum`; the function called
+`boundary_mismatch` in that sum is the concrete `Formulas` method.
+Its local differential is that of an argument of its nonzero endpoint,
+as in (12.36). D3 differentiates this endpoint expression twice and
+checks the quotient cancellation underlying telescoping (a).
+The replacement is a rule for derivatives, not a replacement of the
+global phase value by principal Arg. Its validity uses the written
+nonvanishing, increment and winding proofs of §§12.8–12.9 (b,c).
+The scalar assignments and derivative assignments, together with this
+finite-sum definition, specify the factored matrix completely. Matrix
+inverse in this expression means the finite rational operation adj(A)/det(A).
+
+**Exact tensor check without choosing A=I (a; D2).** Write
+H_{aij}=∂_i∂_j h_a. Substitution of (12.37) in the coordinate N formula,
+followed by multiplication by A, gives
+
+  (AN)_{aij}=H_{aji}-H_{aij}
+    + Σ_{b,l}(J₀)_{ab}(J_{li}H_{bjl}-J_{lj}H_{bil}
+                         +H_{bli}J_{lj}-H_{blj}J_{li})
+    + Σ_{l,m}(-J_{li}H_{aml}J_{mj}+J_{lj}H_{aml}J_{mi}).  (12.41)
+
+To obtain the last two terms of the first sum, use AJ=J₀A on the
+outer J in the last two terms of N; use J₀²=-I on the resulting
+H_{aji}-H_{aij} term. Symmetry H_{aij}=H_{aji} cancels the first
+line and the first sum. Interchanging l,m cancels the last sum.
+D2 expands and reduces all 216 polynomials to zero with independent
+symbolic entries of J and symmetric H. The same check reduces
+(A⁻¹J₀A)² to -I, and executes the actual symbolic tensor constructor
+on formal A,H to bind its returned J and dJ to these formulas.
+It also executes the actual N routine on a symbolic
+symmetric-H example and a nonintegrable negative control. The hypotheses
+are that H is the Hessian of the implemented h and det A≠0; the named
+derivative program supplies the former, and the explicit inverse
+contracts supply the latter. Numerical residuals are not premises here.
+
+**What a reviewer must still read.** `proof_contracts()` associates every
+one of the 39 geometric methods with exactly one of the following ten
+groups. D6 verifies that coverage and compares every complete method body
+with its earlier source, using a displayed, limited AST rewrite: specialize
+the elementary construction, remove numerical shortcuts and unreachable
+legacy alternatives, rename dependencies, and replace even modulus powers.
+This establishes correspondence; neither the comparison nor the contract
+list proves inequalities or smoothness.
+
+| contract group | written facts to check | earlier checks and arguments |
+|---|---|---|
+| Flat step | Range, constant arms, flat endpoint joins. | L1; §§11.2, 11.9; C40/C45/C47. |
+| Two-way height | Positive arguments, monotonicity, explicit inverse, smooth central axes and all-order joins. | §11.2; C29/C43–C45/C49–C50. |
+| Pole inverse pair | Domains of the raw map, identity extension of the radial conjugation, both inverse identities and cap overlap. | §§11.3, 11.6; C25–C28/C46; N10. |
+| Orbit coordinates | Covering by the dominant-coordinate choices, their agreement and invertibility. | §§11.2, 11.6, 11.9; C38–C45/C49–C50; N11. |
+| Source line | Equivariance, chart changes, nonzero reference and normalization. | §11.1; C21–C22/C38–C45/C50. |
+| Torus restoration | Deck shifts, periodicity and the holomorphic changes of target chart. | §§10.2, 11.6, 11.9; C30k/C38/C41–C44/C50g. |
+| Regional lifts | Active rows nonzero, positive overlap bounds, normalized circle isomorphisms and adjoint inverses. | §§12.1–12.5; C56–C60. |
+| Boundary extension | Cancellation of vanishing source weights, angular transitions and all-order height joins. | §§12.6–12.7; C45/C61–C62. |
+| Periodic finite phase | Derivative bounds, zero winding, positive increments and periodic smooth lift. | §§12.8–12.9; C63–C64/C66. |
+| Global assembly | Flat radial retreats, cap agreement and reversal of orbit, circle and torus maps on the covering. | §§12.5, 12.9, 12.11; (12.20), (12.35). |
+
+These are the same written identity/inequality arguments used by §12.11,
+not new assumptions introduced by packaging. With them, each local h is
+smooth with invertible derivative, and target-chart changes are holomorphic.
+Composition and the chain rule then identify the local matrices on overlaps;
+(12.39) expresses their common tensor in one smooth global frame. Individual
+chart selectors need not be continuous as labels. Their mathematical
+outputs agree through the stated changes of representation. Once those
+contracts are checked, (12.41) is the executable exact algebraic end of
+the proof. The focused script alone is not a standalone proof of all ten
+contracts, and a proposed global certificate still requires human review.
+
+**Numerical evaluation and observed costs (d).** `NumericalFormulas` adds
+the six inherited flat-tail shortcuts explicitly, separately from exact
+`Formulas`. Literal nested exponentials can otherwise become impractical:
+an exploratory evaluation of the height radial map at 1/5-10⁻⁸ exceeded
+a three-second guard, and a terminal-tail evaluation encountered an
+mpmath exponent-conversion overflow. The numerical shortcut path passes
+the affected regional checks. D11 compares a less extreme height-tail
+value with a separate 180-digit evaluation. The value cutoffs described
+in §11.7 and `cusp.py` do not provide a uniform error bound for J or dJ;
+no such bound is claimed. Exact symbolic tracing uses the full formulas
+and can likewise be costly at extreme witness points.
+
+The focused check ran in about 49 seconds here. Its six actual symbolic
+graphs have 123–1521 active value assignments and 1722–20773 derivative
+assignments. Independently evaluating the named derivative expressions
+agrees with the jet backend after rounding to float64 at all six witnesses;
+this is not a 60-digit accuracy claim. D8 checks 32 regional tensor/inverse
+pairs, including both nodes, eight nonnode central-fibre points and the
+pole compression annuli. The largest scaled N residual is <1.2·10⁻¹⁵,
+scaled square residual <6.5·10⁻¹⁶ and inverse residual <4·10⁻⁵⁴.
+The inverse comparison shares the same float64 phase in both directions.
+D9 compares all five sphere charts at three points and integer torus
+changes: relative differences are <3.9·10⁻¹⁵ and <5.2·10⁻¹⁵.
+The public example above takes about 0.36 seconds for one call here.
+These are measurements, not uniform conditioning, runtime or rounding
+guarantees. Phase values and the final matrices are float64; intermediate
+jets use mpmath with 60 decimal digits by default.
+
+Run the focused verifier from the repository root:
+
+```sh
+.venv/bin/python3 -B extra/s4t2_explicit/sym/direct_certificate.py
+```
+
+It must print `ALL PASS`, with exact checks and numerical observations
+identified in its output. The earlier C1–C68 script remains the broader
+record of the construction's identities. The next review task is the ten
+written contracts and their source correspondence; a later numerical
+analysis task is a certified error bound for flat-tail derivative shortcuts.
+Neither task is replaced by observing small square or Nijenhuis residuals.

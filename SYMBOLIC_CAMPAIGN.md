@@ -550,6 +550,65 @@ argument and the script; the collaborator runs the script). Tasks marked **(code
   observations do not decide the certified count, but a practical
   fixed-count redesign must address both the projector overlaps and
   the real north phase.
+  **Direct middle lift (2026-10-14-TSG-6):** programme §12 and
+  C56–C58 give a new finite elementary circle lift and adjoint inverse
+  throughout the pure middle, using two explicit matrices and one
+  phase-corrected blend. Local norm squares exceed 1/480000 and
+  1/80000; the corrected transition has real part >1/48, certified
+  by exact positive polynomial coefficients, so the blend norm square
+  is ≥1/2. Evaluation uses no projection or phase loop. This is a
+  regional result. C59 and programme §12.4 also give separate direct
+  lifts on both punctured cusps, including the nonnode central fibres:
+  their height transitions have real part >1/20 and their blends
+  have norm square ≥1/2. C60 and §12.5 match the existing pole lifts
+  exactly, with corrected norm square >0.98. C61 extends the middle
+  formula to actual radial overlaps. Section 12.6 specifies the
+  remaining phase g=δ_n/δ_s and a conditional global gluing if Re g>0;
+  a 1024-point grid has minimum real part about 0.227442, but the
+  uniform sign is **not proved**. That phase certificate and the
+  source-linked tensor/derivative circuit remain open. The existing
+  global construction is unchanged.
+  **Practical global tensor certificate (2026-10-14-TSG-7; human review):**
+  programme §§12.7–12.11 and C62–C68 use different frozen radii,
+  exactly 1/2 and 2. The source embedding cancels to two rows.
+  Explicit derivative bounds and coordinate-circle arguments give a
+  smooth periodic phase with **65536 terms**, each adjacent ratio
+  having real part >31/32. This closes the alternative radial gluing
+  design, for human review, without assuming the earlier Re g>0.
+  Twenty-four full-count phase calls took about 0.83 seconds. The
+  assembled global value/inverse prototype passes 65 round trips,
+  including both caps and nonnode central fibres. Exact derivative
+  identities telescope the phase's first and second jets to endpoint
+  formulas. A specific tensor in the radial interpolation, including
+  its coordinate second jets, takes about 0.58 seconds; square and
+  Nijenhuis residuals are <6·10⁻⁵⁸, with independent dJ differences.
+  C67 then supplies a finite second-jet circuit without numerical
+  differentiation, independently compared with that first evaluator.
+  C68 binds twenty new definitions and all 56 geometric tests/seven
+  vectorized selectors to the written proof. The resulting global
+  well-definedness, inverse, square and Nijenhuis certificate is stated
+  in §12.11, with its inherited written hypotheses, for human review.
+  Finite tensor jets also pass in both cusps, caps and central fibres;
+  a generic interpolation-point call takes about 1.4 seconds. Timings
+  and residuals are numerical observations, not rounding-error or
+  uniform runtime guarantees. The original runtime remains unchanged;
+  the new executable functions live in `sym/chart_identities.py`.
+  **Standalone reviewer interface (2026-10-14-TSG-8):** programme §12.12
+  and the authorized new `extra/s4t2_explicit/direct.py` expose
+  `complex_structure(point)`, returning a 6×6 matrix in an explicitly
+  specified smooth global tangent frame. The symbolic backend executes
+  the same 39 geometric formula bodies and differentiates their named
+  elementary assignments exactly. `sym/direct_certificate.py` checks
+  the frame/inverse/derivative identities, all 216 Nijenhuis reductions,
+  actual derivative rules, complete formula correspondence and the ten
+  written contract groups. Six symbolic branches, 32 regional tensor and
+  inverse points, chart overlaps and torus representatives pass; the
+  focused run takes about 49 seconds here (numerical observation).
+  Exact `Formulas` and approximate `NumericalFormulas` are separate;
+  the latter retains the inherited flat-tail shortcuts. The ten written
+  global contracts still require mathematical review, and uniform errors
+  for numerical tensor derivatives are not certified. No earlier theorem
+  is promoted solely because this focused executable check passes.
 
 Historical dependencies in the original fitted-lift task list: T5 needs T3, T4 (and T2 for the cusp part); T8 and T11 need T5; T1, T2, T3, T6, T7, T9, T10, T13
 can start now, in parallel.

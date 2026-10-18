@@ -11038,5 +11038,1677 @@ rep('C55b one reduced-count disjoint-support observation (numerical, d)',
     and all(v==0 for v in ea55b[:8])
     and zero55b==0)
 
+# C56: direct bundle maps. The unknown global matrix A is NOT supplied by
+# this algebra. B=P A Pi has rank at most one and is c e f* in local frames.
+er56,ei56,fr56,fi56 = (sp.symbols(name+'_0:2',real=True)
+                     for name in ('er56','ei56','fr56','fi56'))
+e56=sp.Matrix([r+sp.I*i for r,i in zip(er56,ei56)])
+f56=sp.Matrix([r+sp.I*i for r,i in zip(fr56,fi56)])
+cr56,ci56=sp.symbols('cr56 ci56',real=True)
+B56=(cr56+sp.I*ci56)*e56*f56.conjugate().T
+en56=(e56.conjugate().T*e56)[0]
+fn56=(f56.conjugate().T*f56)[0]
+q56=(cr56**2+ci56**2)*en56*fn56
+rep('C56a rank-one direct map: trace, B*B=q Pi and BB*=q P',
+    sp.expand(sp.trace(B56.conjugate().T*B56)-q56)==0 and
+    all(sp.expand(v)==0 for v in
+        fn56*B56.conjugate().T*B56-q56*f56*f56.conjugate().T) and
+    all(sp.expand(v)==0 for v in
+        en56*B56*B56.conjugate().T-q56*e56*e56.conjugate().T))
+qpos56=sp.symbols('qpos56',positive=True)
+lam56,gamma56=sp.symbols('lam56 gamma56',real=True)
+blend56=(1-lam56)**2+lam56**2+2*lam56*(1-lam56)*gamma56
+rep('C56b normalized inverse and conditional positive-overlap blend',
+    sp.simplify(qpos56/sp.sqrt(qpos56)**2)==1 and
+    sp.expand(blend56-(sp.Rational(1,2)+2*(lam56-sp.Rational(1,2))**2
+                      +2*lam56*(1-lam56)*gamma56))==0)
+
+# C57: two DIRECT LOCAL maps covering the pure middle, not a glued lift.
+# The proofs of their uniform bounds and the outstanding transition are in
+# programme section 12. No production formula or default is changed.
+a57,b57,c57,s57,C57,S57=sp.symbols('a57 b57 c57 s57 C57 S57',real=True)
+relations57=[a57*a57+b57*b57-1,c57*c57+s57*s57-1,C57*C57+S57*S57-1]
+gb57=sp.groebner(relations57,a57,b57,c57,s57,C57,S57,domain=sp.QQ)
+def reduce57(expr):
+    return gb57.reduce(sp.expand(expr))[1]
+p57=sp.Matrix([a57*(S57*c57+C57*s57),-b57*s57,
+               1+a57*(C57*c57-S57*s57)-b57*c57])
+z57=c57+sp.I*s57
+v57=sp.Matrix([sp.I*(a57+sp.I*b57)*(z57-1)/2,(z57+1)/2])
+vh57=sp.Matrix([2*sp.re(sp.expand(v57[0]*sp.conjugate(v57[1]))),
+                2*sp.im(sp.expand(v57[0]*sp.conjugate(v57[1]))),
+                sp.expand(v57[0]*sp.conjugate(v57[0])
+                          -v57[1]*sp.conjugate(v57[1]))])
+rep('C57a raw direction, unit periodic frame and its Hopf vector',
+    reduce57(p57.dot(p57)-2*(1+a57*(C57*c57-S57*s57))*(1-b57*c57))==0
+    and reduce57((v57.conjugate().T*v57)[0]-1)==0
+    and all(reduce57(v)==0 for v in vh57-sp.Matrix([-a57*s57,-b57*s57,-c57])))
+beta57=sp.symbols('beta57',positive=True)
+X57=(beta57-1)/sp.sqrt(1+beta57**2)
+root57=(beta57+1)/sp.sqrt(1+beta57**2)
+rep('C57a2 inverse round radius with the positive square-root branch',
+    sp.factor(root57**2-(2-X57**2))==0 and
+    sp.factor((1-X57**2)/(1-X57*root57)-beta57)==0)
+nr57,ni57,nz57=sp.symbols('nr57 ni57 nz57',real=True)
+Pi57=sp.Matrix([[1+nz57,nr57+sp.I*ni57],
+                [nr57-sp.I*ni57,1-nz57]])/2
+pair57=sp.expand((v57.conjugate().T*Pi57*v57)[0])
+rep('C57b target projection norm (source-slot factorization uses C56)',
+    all(reduce57(sp.expand(pair57-(1-a57*s57*nr57-b57*s57*ni57-c57*nz57)/2)
+                 .coeff(n,1))==0 for n in (nr57,ni57,nz57)) and
+    reduce57(pair57.subs({nr57:0,ni57:0,nz57:0})-sp.Rational(1,2))==0)
+
+A57,Bp57,x57=sp.symbols('A57 Bp57 x57',positive=True)
+ratio57=x57*(A57+Bp57*x57)/(1+A57*x57)
+rep('C57c increasing profile and endpoint bounds used for 7/10<a<17/20',
+    sp.factor(sp.diff(ratio57,x57)
+              -(A57+2*Bp57*x57+A57*Bp57*x57*x57)/(1+A57*x57)**2)==0
+    and sp.factor(ratio57.subs(x57,sp.Rational(1,4))-1
+                  -(Bp57-16)/(4*A57+16))==0
+    and sp.factor(sp.diff(ratio57.subs(x57,4),A57)
+                  -4*(1-16*Bp57)/(1+4*A57)**2)==0)
+R57=sp.Rational
+eps57=R57(1,20)
+cmin57=1-eps57**2
+horizontal0_57=R57(7,10)*(R57(3,5)*cmin57-eps57)
+horizontal1_57=R57(7,10)*(R57(2,5)*cmin57-eps57)
+rep('C57d all rational comparisons in the two uniform projection bounds',
+    (R57(1,2)>R57(7,10)**2 and R57(1456,2033)<R57(17,20)**2
+     and R57(577,2033)>R57(1,2)**2 and R57(1,2)<R57(3,4)**2
+     and 2*R57(37,20)*R57(7,4)<9
+     and R57(1,57600)>R57(1,60000)
+     and 1-R57(17,20)*eps57-R57(3,4)>0
+     and R57(1,1)-R57(3,4)**2>R57(3,5)**2
+     and horizontal0_57**2/36>R57(1,60000)
+     and R57(1,6400)>R57(1,10000)
+     and cmin57**2/4>R57(1,10000)
+     and 1-(R57(9,10)*R57(7,10)+R57(1,2))*cmin57+R57(17,20)*eps57<0
+     and 1-R57(9,10)**2>R57(2,5)**2
+     and horizontal1_57/3-R57(17,20)*eps57>R57(1,30)
+     and R57(1,3600)>R57(1,10000)
+     and R57(1,4)/2==R57(1,8)
+     and bool((2-sp.sqrt(2))/4<R57(1,4))
+     and R57(1,4)<R57(3,4)**2))
+
+# Type (d): dense samples of the explicit LOCAL formulas, with the source
+# angular weights. No grid minimum is used in the preceding proof.
+import numpy as np57
+theta57=np57.arange(64)*2*np57.pi/64-np57.pi
+phi57=np57.arange(64)*2*np57.pi/64
+rr57,tt57,pp57=np57.meshgrid(np57.linspace(.5,2,17),theta57,phi57,indexing='ij')
+ratio2_57=rr57**2*((4*np57.pi)**2+np57.exp(4)*rr57**2)/(1+(4*np57.pi)**2*rr57**2)
+aa57=np57.sqrt(ratio2_57/(1+ratio2_57)); bb57=1/np57.sqrt(1+ratio2_57)
+u157=aa57*np57.exp(1j*(tt57+pp57)); u257=bb57*np57.exp(1j*pp57)
+raw57=np57.stack((u157.imag,-u257.imag,1+u157.real-u257.real),axis=-1)
+nn57=raw57/np57.linalg.norm(raw57,axis=-1)[...,None]
+target0_57=(1+nn57[...,2])/2
+target1_57=(1-aa57*np57.sin(pp57)*nn57[...,0]
+           -bb57*np57.sin(pp57)*nn57[...,1]-np57.cos(pp57)*nn57[...,2])/2
+ww0_57=np57.array([float(1-cusp30.scalar_flat_step((abs(t)-mp.pi/2)/(mp.pi/4)))
+                  for t in theta57])[None,:,None]
+ww1_57=np57.array([float(1-cusp30.scalar_flat_step((mp.pi-abs(t)-mp.pi/2)/(mp.pi/4)))
+                  for t in theta57])[None,:,None]
+mask0_57=np57.abs(tt57)<=5*np57.pi/8
+mask1_57=np57.pi-np57.abs(tt57)<=5*np57.pi/8
+local0_57=ww0_57**2/(ww0_57**2+ww1_57**2)*target0_57
+local1_57=ww1_57**2/(ww0_57**2+ww1_57**2)*target1_57
+mins57=(float(local0_57[mask0_57].min()),float(local1_57[mask1_57].min()))
+counts57=(int(mask0_57.sum()),int(mask1_57.sum()))
+print('C57e local-map norm-square samples (d): counts',counts57,'minima',mins57,
+      'margins',mins57[0]-1/480000,mins57[1]-1/80000)
+rep('C57e 69632-point grid, using only the applicable local domains (d)',
+    mins57[0]>1/480000 and mins57[1]>1/80000)
+
+# Type (d): use the ACTUAL source projector, independently of the preceding
+# two-slot norm formulas, and reverse each local map by its adjoint.
+with mp.workdps(60):
+    error57=mp.mpf(0); source_min57=[mp.inf,mp.inf]; source_count57=[0,0]
+    for rad57 in (mp.mpf(3)/5,mp.mpf(1),mp.mpf(9)/5):
+        R2=rad57**2*((4*mp.pi)**2+mp.exp(4)*rad57**2)/(1+(4*mp.pi)**2*rad57**2)
+        av,bv=mp.sqrt(R2/(1+R2)),1/mp.sqrt(1+R2)
+        for it57 in range(8):
+            th57=(it57-4)*mp.pi/4
+            for ip57 in range(8):
+                ph57=ip57*mp.pi/4
+                u1v=av*mp.exp(mp.j*(th57+ph57)); u2v=bv*mp.exp(mp.j*ph57)
+                pv=mp.matrix([u1v.imag,-u2v.imag,1+u1v.real-u2v.real])
+                nv=pv/mp.norm(pv); beta=mp.norm(pv)/(1+u1v.real)
+                Xv=(beta-1)/mp.sqrt(1+beta*beta)
+                kind57,data57=cusp30.elliptic_raw_base_reference(
+                    tuple((1-Xv*Xv)*z for z in nv),Xv,dps=60,elementary=True)
+                assert kind57=='mid'
+                ref57=mp.matrix(cusp30.elliptic_bundle_embedding(
+                    kind57,data57,dps=60,elementary=True))
+                Ps=ref57*ref57.H
+                Pt=mp.matrix([[1+nv[2],nv[0]+mp.j*nv[1]],
+                              [nv[0]-mp.j*nv[1],1-nv[2]]])/2
+                spin=cusp30._elementary_unit(Pt[:,0 if nv[2]>=0 else 1])
+                spin=mp.matrix(spin)
+                frame1=mp.matrix([mp.j*(av+mp.j*bv)*(mp.exp(mp.j*ph57)-1)/2,
+                                  (mp.exp(mp.j*ph57)+1)/2])
+                error57=max(error57,abs(data57[0]-rad57*mp.exp(mp.j*th57)))
+                for slot,frame,active in ((0,mp.matrix([1,0]),abs(th57)<5*mp.pi/8),
+                                          (1,frame1,mp.pi-abs(th57)<5*mp.pi/8)):
+                    if not active:
+                        continue
+                    candidate=Ps[:,8+slot]*frame.H*Pt
+                    normsq=mp.re(sum(abs(z)**2 for z in candidate))
+                    lifted=candidate*spin/mp.sqrt(normsq)
+                    reversed_spin=candidate.H*lifted/mp.sqrt(normsq)
+                    error57=max(error57,mp.norm(reversed_spin-spin),
+                                mp.norm(Ps*lifted-lifted),abs(mp.norm(lifted)-1))
+                    source_min57[slot]=min(source_min57[slot],normsq)
+                    source_count57[slot]+=1
+print('C57f actual-source local inverses (d): counts',source_count57,
+      'minima',[mp.nstr(v,14) for v in source_min57],
+      'maximum residual',mp.nstr(error57,5))
+rep('C57f 192 base points, source projector and both applicable local inverses (d)',
+    source_count57==[120,120] and error57<mp.mpf('1e-50')
+    and source_min57[0]>mp.mpf(1)/480000 and source_min57[1]>mp.mpf(1)/80000)
+
+# C58: glue the two DIRECT maps over the pure middle only. The positive
+# polynomial certificate is exact rational algebra, not numerical enclosure.
+R58=sp.symbols('R58',positive=True)
+gb58=sp.groebner(relations57,a57,b57,c57,s57,C57,S57,R58,domain=sp.QQ)
+k58=sp.I*(a57-sp.I*b57)
+h58=((R58+p57[2])*v57[0]+(p57[0]+sp.I*p57[1])*v57[1])/(2*R58)
+F58=((R58+p57[2])*(1-c57)+s57**2
+     +a57*(S57*c57+(C57+1)*s57)*(b57*(1+c57)-a57*s57))
+reflection58=sp.expand(4*R58*(h58.subs({S57:-S57,s57:-s57},simultaneous=True)
+                            +(c57-sp.I*s57)*h58))
+rep('C58a upper-band real part and lower-band reflection',
+    gb58.reduce(sp.expand(4*R58*sp.re(sp.expand(k58*h58))-F58))[1]==0
+    and gb58.reduce(sp.re(reflection58))[1]==0
+    and gb58.reduce(sp.im(reflection58))[1]==0)
+hg58=(Pi57*v57)[0]
+rankdef58=nr57**2+ni57**2+nz57**2-1
+rep('C58a2 rank-one overlap modulus and trace reduction',
+    all(sp.expand(x)==0 for x in Pi57*Pi57-Pi57-rankdef58*sp.eye(2)/4)
+    and sp.expand(hg58*sp.conjugate(hg58)-Pi57[0,0]*pair57
+                  -rankdef58*v57[1]*sp.conjugate(v57[1])/4)==0)
+
+from itertools import product as product58
+xx58=sp.symbols('x58_0:5')
+y58=sp.symbols('y58',real=True)
+def bernstein58(poly,variables):
+    """Exact tensor Bernstein coefficients; verify the basis identity too."""
+    poly=sp.Poly(poly,*variables,domain=sp.QQ)
+    degrees=poly.degree_list()
+    coeffs={}
+    for beta in product58(*(range(d+1) for d in degrees)):
+        coeffs[beta]=sum(co*sp.prod(sp.binomial(j,i)/sp.binomial(d,i)
+                                  for i,j,d in zip(alpha,beta,degrees))
+                         for alpha,co in poly.terms()
+                         if all(i<=j for i,j in zip(alpha,beta)))
+    # Convert back by expanding each univariate Bernstein factor. This
+    # checks the entire polynomial, including all cross terms.
+    restored={}
+    for beta,co in coeffs.items():
+        factors=[[(j,sp.binomial(d,i)*sp.binomial(d-i,j-i)*(-1)**(j-i))
+                  for j in range(i,d+1)] for i,d in zip(beta,degrees)]
+        for term in product58(*factors):
+            powers=tuple(j for j,_ in term)
+            restored[powers]=restored.get(powers,0)+co*sp.prod(v for _,v in term)
+    assert {p:c for p,c in restored.items() if c}==poly.as_dict()
+    return degrees,tuple(coeffs.values())
+
+boxes58={a57:R57(7,10)+R57(3,20)*xx58[0],
+         b57:R57(1,2)+R57(1,4)*xx58[1],
+         C57:-R57(2,5)+R57(4,5)*xx58[2],
+         S57:R57(9,10)+R57(1,10)*xx58[3]}
+minima58=[]
+for sign58 in (1,-1):
+    # Two rational parametrizations cover the phi circle, |y|<=1.
+    circle58={c57:sign58*(1-y58*y58)/(1+y58*y58),
+              s57:sign58*2*y58/(1+y58*y58),R58:R57(27,100)}
+    polynomial58=sp.cancel((F58.subs(circle58)-R57(1,4))*(1+y58*y58)**2)
+    polynomial58=sp.expand(polynomial58.subs(boxes58))
+    row58=[]
+    for j58 in range(8):
+        local58=sp.expand(polynomial58.subs(y58,-1+R57(j58,4)+xx58[4]/4))
+        degrees58,coefficients58=bernstein58(local58,xx58)
+        assert degrees58==(2,1,1,1,4) and len(coefficients58)==120
+        row58.append(min(coefficients58))
+    minima58.append(row58)
+print('C58b exact Bernstein minima (120 coefficients per cell):',minima58)
+rep('C58b 16 exact positive-coefficient identities imply F>1/4',
+    all(v>R57(1,8) for row in minima58 for v in row)
+    and R57(3,40)>R57(27,100)**2
+    and bool((2-sp.sqrt(2))/4<R57(2,5)**2)
+    and bool((2+sp.sqrt(2))/4>R57(9,10)**2))
+
+th58,ph58,xi58,la58,integer58=sp.symbols('th58 ph58 xi58 la58 integer58',real=True)
+Cshift58=(1-la58)*th58/(2*sp.pi)+la58*xi58+la58/2
+four58=(th58+ph58)/(2*sp.pi)-integer58-la58*(th58/(2*sp.pi)-xi58)-(1-la58)/2-sp.Rational(1,2)
+rep('C58c source x4 modulo integers and exact C(theta+2pi)=C(theta)+1',
+    sp.expand(four58-ph58/(2*sp.pi)-Cshift58+integer58+1)==0
+    and sp.expand(Cshift58.subs({th58:th58+2*sp.pi,xi58:xi58+1},simultaneous=True)
+                  -Cshift58-1)==0
+    and Cshift58.subs(la58,1)==xi58+sp.Rational(1,2))
+
+def direct_middle_matrix58(u1,u2,t,Ps,phase_offset=None):
+    """The candidate of (12.11), with the C61 collar offset when supplied.
+
+    Inputs use the existing raw base and its exact source projector.
+    Returns the normalized 10x2 map, its unnormalized norm square,
+    and the corrected overlap real part when both local maps are used.
+    Numerical evaluation uses mpmath at the caller's working precision.
+    """
+    a,b=abs(u1),abs(u2)
+    p=mp.matrix([u1.imag,-u2.imag,1+u1.real-u2.real]); n=p/mp.norm(p)
+    Pt=mp.matrix([[1+n[2],n[0]+mp.j*n[1]],
+                  [n[0]-mp.j*n[1],1-n[2]]])/2
+    th=mp.arg(t)
+    chi=cusp30.scalar_flat_step((abs(th)-3*mp.pi/8)/(mp.pi/4))
+    def local(slot,frame):
+        B=Ps[:,slot]*frame.H*Pt
+        return B/mp.sqrt(sum(abs(z)**2 for z in B))
+    out=mp.zeros(10,2); gamma_real=None
+    if chi<1:
+        L0=local(8,mp.matrix([1,0])); out+=(1-chi)*L0
+    if chi>0:
+        z=u2/b
+        v=mp.matrix([mp.j*(a+mp.j*b)*(z-1)/2,(z+1)/2])
+        th1=mp.arg(-t)+mp.pi
+        log1=mp.log(abs(t))+mp.j*th1
+        s=log1/(2*mp.j*mp.pi)
+        xi4=cusp30.scalar_lattice_coords(mp.pi*s*(s-1),2*t*s,t,log1)[3]
+        lam=1-cusp30.scalar_flat_step((abs(t)-mp.mpf('1.2'))/mp.mpf('.4'))
+        C=(1-lam)*th1/(2*mp.pi)+lam*xi4+lam/2
+        if phase_offset is not None:
+            C=phase_offset(th1)
+        w=cusp30.scalar_flat_step((th1-5*mp.pi/8)/(3*mp.pi/4))
+        k=mp.j*(a-mp.j*b)
+        d=mp.conj(k)*mp.exp(mp.j*w*(mp.pi-2*mp.pi*C))
+        L1=d*local(9,v); out+=chi*L1
+        if chi<1:
+            gamma_real=mp.re(sum(mp.conj(v)*w for v,w in zip(L1,L0)))
+    normsq=mp.re(sum(abs(z)**2 for z in out))
+    return out/mp.sqrt(normsq),normsq,gamma_real
+
+def source_middle_matrix58(rad,th,ph):
+    ratio2=rad**2*((4*mp.pi)**2+mp.exp(4)*rad**2)/(1+(4*mp.pi)**2*rad**2)
+    a,b=mp.sqrt(ratio2/(1+ratio2)),1/mp.sqrt(1+ratio2)
+    u1=a*mp.exp(mp.j*(th+ph)); u2=b*mp.exp(mp.j*ph)
+    p=mp.matrix([u1.imag,-u2.imag,1+u1.real-u2.real]); n=p/mp.norm(p)
+    beta=mp.norm(p)/(1+u1.real); X=(beta-1)/mp.sqrt(1+beta*beta)
+    kind,data=cusp30.elliptic_raw_base_reference(tuple((1-X*X)*z for z in n),X,
+                                               dps=60,elementary=True)
+    assert kind=='mid'
+    e=mp.matrix(cusp30.elliptic_bundle_embedding(kind,data,dps=60,elementary=True))
+    Ps=e*e.H
+    L,normsq,gamma=direct_middle_matrix58(u1,u2,data[0],Ps)
+    Pt=mp.matrix([[1+n[2],n[0]+mp.j*n[1]],
+                  [n[0]-mp.j*n[1],1-n[2]]])/2
+    return L,normsq,gamma,Pt,Ps
+
+with mp.workdps(60):
+    minnorm58=mp.inf; mingamma58=mp.inf; error58=mp.mpf(0); count58=0
+    for rad in (mp.mpf(3)/5,mp.mpf(1),mp.mpf(9)/5):
+        for it in (-8,-5,-4,-3,0,3,4,5,8):
+            for ip in range(12):
+                L,normsq,gamma,Pt,Ps=source_middle_matrix58(rad,it*mp.pi/8,ip*mp.pi/6)
+                minnorm58=min(minnorm58,normsq)
+                if gamma is not None:
+                    mingamma58=min(mingamma58,gamma)
+                error58=max(error58,mp.norm(L.H*L-Pt),mp.norm(L*L.H-Ps))
+                count58+=1
+    seam58=mp.mpf(0)
+    for rad in (mp.mpf(3)/5,mp.mpf(1),mp.mpf(9)/5):
+        for ip in range(12):
+            seam58=max(seam58,mp.norm(source_middle_matrix58(rad,-mp.pi,ip*mp.pi/6)[0]
+                                     -source_middle_matrix58(rad,mp.pi,ip*mp.pi/6)[0]))
+        for it in range(16):
+            th=(it-8)*mp.pi/8
+            seam58=max(seam58,mp.norm(source_middle_matrix58(rad,th,0)[0]
+                                     -source_middle_matrix58(rad,th,2*mp.pi)[0]))
+print('C58d glued middle map, numerical (d):',count58,'points, norm square',mp.nstr(minnorm58,14),
+      'corrected overlap',mp.nstr(mingamma58,14),'inverse residual',mp.nstr(error58,5),
+      '84 angular seam pairs',mp.nstr(seam58,5))
+rep('C58d actual-source middle map and inverse, including both argument cuts (d)',
+    count58==324 and minnorm58>=mp.mpf('.5') and mingamma58>mp.mpf(1)/48
+    and error58<mp.mpf('1e-50') and seam58<mp.mpf('1e-50'))
+
+# Timing is an observation, never an assertion about correctness or speed
+# on another machine. It includes the raw base and source projector, but
+# does not evaluate derivatives or the tensor J.
+from time import perf_counter as clock58
+with mp.workdps(60):
+    start58=clock58()
+    for j58 in range(100):
+        source_middle_matrix58(mp.mpf(1),mp.pi/2,mp.mpf(j58)/100)
+    elapsed58=clock58()-start58
+print('C58e timing (d), 100 actual-source lift values at 60 digits:',
+      round(elapsed58,6),'seconds; no J or derivatives in this benchmark')
+
+# C59: direct cusp lifts, including the nonnode central fibres. These are
+# regional maps; their radial transition to C58 and exact pole matching are
+# not claimed here. The source runtime construction remains unchanged.
+xr59,xi59,yr59,yi59=sp.symbols('xr59 xi59 yr59 yi59',real=True)
+mm59=sp.symbols('mm59',positive=True)
+xx59=xr59+sp.I*xi59; yy59=yr59+sp.I*yi59
+qq59=sp.Matrix([mm59*sp.conjugate(xx59),yy59])
+UU59=(sp.Matrix([[1,1],[sp.I,-sp.I]])/sp.sqrt(2),
+      sp.Matrix([[1,1],[1,-1]])/sp.sqrt(2))
+def hopf59(v):
+    z=sp.expand(v[0]*sp.conjugate(v[1]))
+    return sp.Matrix([2*sp.re(z),2*sp.im(z),
+                      sp.expand(v[0]*sp.conjugate(v[0])-v[1]*sp.conjugate(v[1]))])
+ff59=mm59**2*(xr59**2+xi59**2)-yr59**2-yi59**2
+tt59=sp.expand(xx59*yy59)
+rep('C59a both cusp Hopf vectors and their signed height component',
+    all(sp.simplify(z)==0 for z in hopf59(UU59[0]*qq59)
+        -sp.Matrix([2*mm59*sp.im(tt59),-ff59,2*mm59*sp.re(tt59)]))
+    and all(sp.simplify(z)==0 for z in hopf59(UU59[1]*qq59)
+        -sp.Matrix([ff59,2*mm59*sp.im(tt59),2*mm59*sp.re(tt59)])))
+tau59=sp.symbols('tau59',real=True)
+rot59=sp.Matrix([sp.cos(tau59),sp.sin(tau59)])
+rep('C59b rotating second frames stay in the closed northern hemisphere',
+    all(sp.trigsimp(z)==0 for z in hopf59(UU59[0]*rot59)
+        -sp.Matrix([0,-sp.cos(2*tau59),sp.sin(2*tau59)]))
+    and all(sp.trigsimp(z)==0 for z in hopf59(UU59[1]*rot59)
+        -sp.Matrix([sp.cos(2*tau59),0,sp.sin(2*tau59)])))
+AA59,BB59=sp.symbols('AA59 BB59',positive=True)
+south_ratio59=(AA59+BB59/4)/(AA59+4)
+north_ratio59=(AA59+sp.Rational(1,4))/(AA59+4*BB59)
+eps59=sp.symbols('eps59',positive=True)
+root59=sp.sqrt(1-eps59**2)
+radial59=sp.symbols('radial59',positive=True)
+north_profile59=radial59*(radial59+AA59)/(AA59*radial59+BB59)
+rep('C59c endpoint amplitudes, hemisphere margin and overlap comparisons',
+    sp.simplify(sp.diff(south_ratio59,AA59)-(4-BB59/4)/(AA59+4)**2)==0
+    and south_ratio59.subs({AA59:144,BB59:55})<sp.Rational(5,4)
+    and sp.simplify(1-north_ratio59-(4*BB59-sp.Rational(1,4))/(AA59+4*BB59))==0
+    and sp.Rational(5,9)<sp.Rational(9,16)
+    and sp.Rational(1,2)>sp.Rational(4,9)
+    and sp.Rational(1,576)>sp.Rational(1,600)
+    and sp.simplify(sp.diff(north_profile59,radial59)
+                   -(AA59*radial59**2+2*BB59*radial59+AA59*BB59)
+                   /(AA59*radial59+BB59)**2)==0
+    and (3+sp.sqrt(5))/8>sp.Rational(16,25)
+    and 2*sp.sqrt(2)<3
+    and sp.Rational(8,45)/3>sp.Rational(1,20)
+    and sp.simplify(1-root59-eps59**2/(1+root59))==0)
+
+def direct_cusp_matrix59(u1,u2,tc,Ps,infinity=False,pole_coordinate=None):
+    """Finite regional lift on |tc|<1/2, excluding the node.
+
+    All source phases come from the actual projector Ps. No new source
+    section is assumed. Optional pole_coordinate is the raw round X;
+    C60 then matches the minimal raw pole lift. The actual pole replacement
+    remains the existing elementary_pole_patch, not this matrix function.
+    """
+    p=mp.matrix([u1.imag,-u2.imag,1+u1.real-u2.real]); n=p/mp.norm(p)
+    Pt=mp.matrix([[1+n[2],n[0]+mp.j*n[1]],
+                  [n[0]-mp.j*n[1],1-n[2]]])/2
+    phase=-mp.conj(u1) if infinity else u2
+    H=mp.arg(phase)/(2*mp.pi)
+    H1=mp.mpf('.5')+mp.arg(-phase)/(2*mp.pi)
+    chi=cusp30.scalar_flat_step((abs(H)-mp.mpf('.3'))/mp.mpf('.05'))
+    U=(mp.matrix([[1,1],[1,-1]]) if infinity else
+       mp.matrix([[1,1],[mp.j,-mp.j]]))/mp.sqrt(2)
+    start=4 if infinity else 0
+    out=mp.zeros(10,2); gamma=None; norms=[]
+    if chi<1:
+        d=mp.exp(-2*abs(tc)**2/(1-abs(tc)**2))
+        if pole_coordinate is not None:
+            distance=1-(pole_coordinate if infinity else -pole_coordinate)
+            lam=cusp30.scalar_flat_step((distance-mp.mpf('1e-5'))/mp.mpf('1e-5'))
+            d=1-lam*(1-d)
+        D=mp.diag([d,1])
+        B=Ps[:,start:start+2]*D*U.H*Pt
+        q0=sum(abs(z)**2 for z in B)
+        L0=B/mp.sqrt(q0); out+=(1-chi)*L0; norms.append(q0)
+    if chi>0:
+        tau=mp.pi/2*cusp30.scalar_flat_step((H1-mp.mpf('.35'))/mp.mpf('.3'))
+        v=U*mp.matrix([mp.cos(tau),mp.sin(tau)])
+        B=Ps[:,start+2]*v.H*Pt
+        q1=sum(abs(z)**2 for z in B)
+        L1=B/mp.sqrt(q1); out+=chi*L1; norms.append(q1)
+        if chi<1:
+            gamma=mp.re(sum(mp.conj(v)*w for v,w in zip(L1,L0)))
+    normsq=sum(abs(z)**2 for z in out)
+    return out/mp.sqrt(normsq),normsq,gamma,min(norms)
+
+def source_cusp_matrix59(rad,th,H,infinity=False):
+    tc=rad*mp.exp(mp.j*th); ph=2*mp.pi*H
+    A,B=(4*mp.pi)**2,mp.exp(4)
+    if infinity:
+        ratio2=rad**2*(rad**2+A)/(A*rad**2+B)
+        a,b=1/mp.sqrt(1+ratio2),mp.sqrt(ratio2/(1+ratio2))
+        u1=-a*mp.exp(-mp.j*ph); u2=-b*mp.exp(mp.j*(th-ph))
+    else:
+        ratio2=rad**2*(A+B*rad**2)/(1+A*rad**2)
+        a,b=mp.sqrt(ratio2/(1+ratio2)),1/mp.sqrt(1+ratio2)
+        u1=a*mp.exp(mp.j*(th+ph)); u2=b*mp.exp(mp.j*ph)
+    p=mp.matrix([u1.imag,-u2.imag,1+u1.real-u2.real]); n=p/mp.norm(p)
+    # This fixture deliberately stays away from the node, where beta
+    # needs the separate north rationalization used by the production base.
+    beta=mp.norm(p)/(1+u1.real); X=(beta-1)/mp.sqrt(1+beta*beta)
+    kind,data=cusp30.elliptic_raw_base_reference(tuple((1-X*X)*z for z in n),X,
+                                               dps=60,elementary=True)
+    e=mp.matrix(cusp30.elliptic_bundle_embedding(kind,data,dps=60,elementary=True))
+    Ps=e*e.H
+    L,normsq,gamma,minlocal=direct_cusp_matrix59(u1,u2,tc,Ps,infinity)
+    Pt=mp.matrix([[1+n[2],n[0]+mp.j*n[1]],
+                  [n[0]-mp.j*n[1],1-n[2]]])/2
+    return L,normsq,gamma,minlocal,Pt,Ps
+
+with mp.workdps(60):
+    count59=0; mingamma59=mp.inf; minnorm59=mp.inf; minlocal59=mp.inf
+    error59=mp.mpf(0)
+    heights59=tuple(map(mp.mpf,('-.5','-.4','-.35','-.325','-.3','-.1',
+                              '0','.1','.3','.325','.35','.4','.5')))
+    for inf59 in (False,True):
+        for rad59 in map(mp.mpf,('0','.0001','.05','.3','.4','.45')):
+            for it59 in range(8):
+                for H59 in heights59:
+                    if rad59==0 and H59==0:
+                        continue
+                    L,q,g,local,Pt,Ps=source_cusp_matrix59(rad59,it59*mp.pi/4,H59,inf59)
+                    count59+=1; minnorm59=min(minnorm59,q); minlocal59=min(minlocal59,local)
+                    if g is not None:
+                        mingamma59=min(mingamma59,g)
+                    error59=max(error59,mp.norm(L.H*L-Pt),mp.norm(L*L.H-Ps))
+    seam59=mp.mpf(0)
+    for inf59 in (False,True):
+        for rad59 in map(mp.mpf,('0','.0001','.05','.3','.4','.45')):
+            for it59 in range(8):
+                seam59=max(seam59,mp.norm(
+                    source_cusp_matrix59(rad59,it59*mp.pi/4,mp.mpf('-.5'),inf59)[0]
+                    -source_cusp_matrix59(rad59,it59*mp.pi/4,mp.mpf('.5'),inf59)[0]))
+print('C59d actual-source cusp maps (d):',count59,'points, local norm square',mp.nstr(minlocal59,14),
+      'blend norm square',mp.nstr(minnorm59,14),'overlap',mp.nstr(mingamma59,14),
+      'inverse residual',mp.nstr(error59,5),'96 height seam pairs',mp.nstr(seam59,5))
+rep('C59d both cusp lifts, central fibres and adjoint inverses (d)',
+    count59==1232 and minlocal59>0 and minnorm59>=mp.mpf('.5')
+    and mingamma59>mp.mpf(1)/20 and error59<mp.mpf('1e-48') and seam59<mp.mpf('1e-48'))
+
+# C60: match the raw pole matrices exactly before reusing the existing
+# elementary cap replacement. The inequalities below are rational bounds,
+# not sampled substitutes for the positivity proof.
+alpha60=sp.Rational(1,100000)
+rL60=4*alpha60/3
+rS60=rL60+80*rL60**2
+tc60=4*rS60
+defect60=2*tc60**2/(1-tc60**2)
+rep('C60a pole-band rational constants and positive matrix perturbation',
+    rL60<sp.Rational(1,10000) and rS60<sp.Rational(1,70000)
+    and tc60<sp.Rational(1,10000) and defect60<sp.Rational(1,10000000)
+    and 1-10000*rL60**2>sp.Rational(99,100)**2
+    and (sp.Rational(99,100)-sp.Rational(1,10000000))**2>sp.Rational(98,100)
+    and rS60+38*rS60**3<sp.Rational(1,10)
+    and alpha60/21>2*sp.Rational(1,100000000))
+with mp.workdps(65):
+    caperr60=mp.mpf(0); capmin60=mp.inf; capcount60=0
+    for inf60 in (False,True):
+        for dist60 in map(mp.mpf,('0.000005','0.00001','0.000015','0.00002')):
+            X60=(1-dist60)*(1 if inf60 else -1)
+            for nv60 in ((1,0,0),(0,1,0),(0,0,1),(0,0,-1),
+                         (mp.mpf(1)/3,mp.mpf(2)/3,mp.mpf(2)/3)):
+                v60=tuple((1-X60*X60)*z for z in nv60)
+                kind60,data60=cusp30.elliptic_raw_base_reference(v60,X60,dps=65,elementary=True)
+                es60=mp.matrix(cusp30.elliptic_bundle_embedding(kind60,data60,dps=65,elementary=True))
+                Ps60=es60*es60.H
+                # Use the exact same raw stereographic chain as the source.
+                aa60=X60*mp.sqrt(2-X60*X60)
+                yy60=(v60[0]/(1-aa60),1-v60[2]/(1-aa60),-v60[1]/(1-aa60))
+                ss60=sum(z*z for z in yy60)
+                u160=mp.mpc(1-ss60,2*yy60[0])/(1+ss60)
+                u260=mp.mpc(2*yy60[1],2*yy60[2])/(1+ss60)
+                tcvalue60=data60[0]*data60[1]
+                LL60,blend60,gamma60,local60=direct_cusp_matrix59(
+                    u160,u260,tcvalue60,Ps60,inf60,pole_coordinate=X60)
+                Pt60=mp.matrix([[1+nv60[2],nv60[0]+mp.j*nv60[1]],
+                               [nv60[0]-mp.j*nv60[1],1-nv60[2]]])/2
+                caperr60=max(caperr60,mp.norm(LL60.H*LL60-Pt60),mp.norm(LL60*LL60.H-Ps60))
+                capmin60=min(capmin60,local60); capcount60+=1
+                if dist60<=mp.mpf('1e-5'):
+                    inc60=mp.matrix(10,2)
+                    for col60 in range(2):
+                        vv60=cusp30._elementary_pole_inclusion((1-col60,col60),inf60)
+                        for row60 in range(10):
+                            inc60[row60,col60]=vv60[row60]
+                    raw60=Ps60*inc60*Pt60
+                    raw60/=mp.sqrt(sum(abs(z)**2 for z in raw60))
+                    caperr60=max(caperr60,mp.norm(LL60-raw60))
+print('C60b pole-band matrices (d):',capcount60,'points, minimum norm square',mp.nstr(capmin60,14),
+      'inverse and exact-inner-map residual',mp.nstr(caperr60,5))
+rep('C60b pole-band matrices and exact agreement with the existing raw lift (d)',
+    capcount60==40 and capmin60>mp.mpf('.98') and caperr60<mp.mpf('1e-48'))
+
+# C61: extend the middle formula to two actual radial overlaps. The new
+# offset accounts for the nonlinear cusp height; using C58's middle-only
+# offset unchanged in a collar would be unjustified.
+lo61=sp.Rational(49,100); hi61=1/lo61
+profile61=lambda r,A,B:r*r*(A+B*r*r)/(1+A*r*r)
+rep('C61a collar endpoint bounds retain the C57/C58 amplitude box',
+    16*lo61**4<1 and 16*hi61**4>1
+    and profile61(lo61,144,16)>sp.Rational(49,51)
+    and profile61(hi61,144,55)<sp.Rational(289,111)
+    and sp.Rational(49,51)>sp.Rational(7,9)
+    and sp.Rational(289,111)<3)
+rho61,P61,H61,xx61,phi61,theta61=sp.symbols('rho61 P61 H61 xx61 phi61 theta61',real=True,nonzero=True)
+southC61=xx61+rho61/P61-H61
+northC61=1-rho61/P61-phi61/(2*sp.pi)
+rep('C61b collar phase offsets: height periodicity and logarithm monodromy',
+    sp.simplify(southC61.subs({rho61:rho61+P61,H61:H61+1},simultaneous=True)-southC61)==0
+    and sp.simplify(southC61.subs(xx61,xx61+1)-southC61-1)==0
+    and sp.simplify(northC61.subs({rho61:rho61-P61,phi61:phi61+2*sp.pi},simultaneous=True)-northC61)==0
+    and sp.simplify(northC61.subs(rho61,rho61-P61)-northC61-1)==0
+    and sp.simplify(southC61.subs(rho61,P61*(H61+sp.Rational(1,2)))-xx61-sp.Rational(1,2))==0
+    and sp.simplify(northC61.subs(rho61,P61*(H61+sp.Rational(1,2)))
+                   .subs(H61,(sp.pi-theta61-phi61)/(2*sp.pi))-theta61/(2*sp.pi))==0)
+
+def collar_offset61(t,u2,th1):
+    r=abs(t); ph=mp.arg(u2)
+    if r<mp.mpf('.5'):
+        H=ph/(2*mp.pi); P=mp.log(r)-2*r*r/(1-r*r)
+        rho=cusp30.elementary_cusp_logradius(H,t,dps=60)
+        log1=mp.log(r)+mp.j*th1; s=log1/(2*mp.j*mp.pi)
+        xi4=cusp30.scalar_lattice_coords(mp.pi*s*(s-1),2*t*s,t,log1)[3]
+        return xi4+rho/P-H
+    if r>2:
+        rc=1/r; H=(mp.pi-th1-ph)/(2*mp.pi)
+        P=-2+mp.log(rc)-2*rc*rc/(1-rc*rc)
+        rho=cusp30.elementary_cusp_logradius(H,1/t,mp.exp(-2),dps=60)
+        return 1-rho/P-ph/(2*mp.pi)
+    raise ValueError('the collar offset is only for r<1/2 or r>2')
+
+def frozen_transition61(th,ph,infinity=False):
+    rc=mp.mpf(49)/100; r=1/rc if infinity else rc
+    t=r*mp.exp(mp.j*th)
+    ratio2=r*r*((4*mp.pi)**2+mp.exp(4)*r*r)/(1+(4*mp.pi)**2*r*r)
+    a,b=mp.sqrt(ratio2/(1+ratio2)),1/mp.sqrt(1+ratio2)
+    u1=a*mp.exp(mp.j*(th+ph)); u2=b*mp.exp(mp.j*ph)
+    p=mp.matrix([u1.imag,-u2.imag,1+u1.real-u2.real]); n=p/mp.norm(p)
+    beta=mp.norm(p)/(1+u1.real); X=(beta-1)/mp.sqrt(1+beta*beta)
+    kind,data=cusp30.elliptic_raw_base_reference(tuple((1-X*X)*z for z in n),X,
+                                               dps=60,elementary=True)
+    es=mp.matrix(cusp30.elliptic_bundle_embedding(kind,data,dps=60,elementary=True)); Ps=es*es.H
+    Lc,_,_,_=direct_cusp_matrix59(u1,u2,1/t if infinity else t,Ps,infinity)
+    Lm,q,g=direct_middle_matrix58(u1,u2,t,Ps,phase_offset=lambda th1:collar_offset61(t,u2,th1))
+    Pt=mp.matrix([[1+n[2],n[0]+mp.j*n[1]],
+                  [n[0]-mp.j*n[1],1-n[2]]])/2
+    delta=sum(mp.conj(x)*y for x,y in zip(Lm,Lc))
+    error=max(abs(abs(delta)-1),mp.norm(Lm*delta-Lc),
+              mp.norm(Lm.H*Lm-Pt),mp.norm(Lm*Lm.H-Ps))
+    return delta,q,g,error
+
+with mp.workdps(60):
+    error61=mp.mpf(0); minq61=mp.inf; ming61=mp.inf
+    grid61=np57.empty((32,32),complex)
+    for it61 in range(32):
+        for ip61 in range(32):
+            th=-mp.pi+2*mp.pi*it61/32; ph=-mp.pi+2*mp.pi*ip61/32
+            ds,qs,gs,es=frozen_transition61(th,ph)
+            dn,qn,gn,en=frozen_transition61(th,ph,True)
+            error61=max(error61,es,en); minq61=min(minq61,qs,qn)
+            for gg in (gs,gn):
+                if gg is not None:
+                    ming61=min(ming61,gg)
+            grid61[it61,ip61]=complex(dn/ds)
+    seam61=mp.mpf(0)
+    for inf61 in (False,True):
+        for jj61 in range(8):
+            ang61=-mp.pi+2*mp.pi*jj61/8
+            seam61=max(seam61,abs(frozen_transition61(-mp.pi,ang61,inf61)[0]
+                                 -frozen_transition61(mp.pi,ang61,inf61)[0]),
+                       abs(frozen_transition61(ang61,-mp.pi,inf61)[0]
+                           -frozen_transition61(ang61,mp.pi,inf61)[0]))
+print('C61c actual collar transitions (d): 2048 points, middle blend norm square',mp.nstr(minq61,14),
+      'overlap',mp.nstr(ming61,14),'inverse/transition residual',mp.nstr(error61,5),
+      '32 seam pairs',mp.nstr(seam61,5))
+rep('C61c radial overlap values, circle transitions and their argument seams (d)',
+    minq61>=mp.mpf('.5') and ming61>mp.mpf(1)/48
+    and error61<mp.mpf('1e-48') and seam61<mp.mpf('1e-48'))
+# These sums are sampled phase changes, not a proof of a continuous winding
+# number or of a globally valid principal-Arg formula.
+windtheta61=np57.sum(np57.angle(np57.roll(grid61,-1,axis=0)/grid61),axis=0)/(2*np57.pi)
+windphi61=np57.sum(np57.angle(np57.roll(grid61,-1,axis=1)/grid61),axis=1)/(2*np57.pi)
+print('C61d numerical phase-grid observation only: theta sums',
+      (float(windtheta61.min()),float(windtheta61.max())),
+      'phi sums',(float(windphi61.min()),float(windphi61.max())),
+      'Re(dn/ds) range',(float(grid61.real.min()),float(grid61.real.max())),
+      'maximum principal-argument magnitude',float(np57.max(np57.abs(np57.angle(grid61)))))
+rep('C61d positive real part at 1024 phase samples only; global sign remains open (d)',
+    grid61.real.min()>.22 and np57.max(np57.abs(np57.angle(grid61)))<1.35
+    and np57.max(np57.abs(windtheta61))<1e-12 and np57.max(np57.abs(windphi61))<1e-12)
+
+# C62: cancel the source embedding before comparing the regional maps.
+# At the exact radii 1/2 and 2 the height is linear. The cusp row extends
+# across those radii even though its original source slots have zero weight.
+r62,ell62,th62,rho62=sp.symbols('r62 ell62 th62 rho62',real=True)
+P62=ell62-2*r62**2/(1-r62**2)
+xi4_62=th62/(2*sp.pi)-ell62/(2*P62)
+xi1_62=(-(th62**2+ell62**2)/(8*sp.pi**2)-th62/(4*sp.pi)
+         -ell62*r62**2/(2*sp.pi**2*(1+r62**2))+th62*ell62/(4*sp.pi*P62))
+# In the rotated lattice coordinates u=cos(theta)x2+sin(theta)x3,
+# v=-sin(theta)x2+cos(theta)x3, w/t=(1/r-r)u+i(1/r+r)v+2x4
+# and z=2pi*x1-r*v+theta*x4-i(r*u+ell*x4).
+def lattice_residual62(z,w_over_t,one,four):
+    u=(sp.re(w_over_t)-2*four)/(1/r62-r62)
+    v=sp.im(w_over_t)/(1/r62+r62)
+    return sp.factor(2*sp.pi*one-r62*v+th62*four
+                     -sp.I*(r62*u+ell62*four)-z)
+s62=(th62-sp.I*ell62)/(2*sp.pi)
+rep('C62a exact lattice coordinates for a physical cusp reference and Xi',
+    lattice_residual62(-sp.I*rho62,0,-th62*rho62/(2*sp.pi*P62),rho62/P62)==0
+    and lattice_residual62(sp.pi*s62*(s62-1),2*s62,xi1_62,xi4_62)==0
+    and sp.factor(P62.subs({r62:1/r62,ell62:-ell62},simultaneous=True)
+                  +(P62-2))==0)
+# The cancelled factors are positive real weights. No limiting division by
+# a vanishing slot is part of the extended formula.
+ee62=sp.Matrix(sp.symbols('ee62_0:3',complex=True))
+vv62=sp.Matrix(1,2,sp.symbols('vv62_0:2',complex=True))
+ww62=sp.Matrix(1,2,sp.symbols('ww62_0:2',complex=True))
+norme62=(ee62.conjugate().T*ee62)[0]
+pair62=sp.trace((ee62*vv62).conjugate().T*(ee62*ww62))
+rep('C62b outer-product phase comparison cancels the source vector',
+    sp.expand(pair62-norme62*(ww62*vv62.conjugate().T)[0])==0)
+rep('C62b2 extended collar amplitude constants',
+    profile61(sp.Rational(51,100),144,55)<sp.Rational(5,4)
+    and 55*sp.Rational(51,100)**4>1
+    and sp.Rational(51,100)**4<16
+    and sp.Rational(5,9)<sp.Rational(9,16)
+    and sp.Rational(1,2)>sp.Rational(4,9))
+
+def extended_cusp_matrix62(th,ph,rc,infinity=False):
+    """C59 with its positive source weights cancelled; 0.49<=rc<=0.51.
+
+    Returns the extended matrix and the independent middle matrix. Above
+    rc=1/2 use rho=P(H+1/2). Below it retain the actual elementary height.
+    This is a regional prototype, not the global round tensor evaluator.
+    """
+    r=1/rc if infinity else rc; t=r*mp.exp(mp.j*th)
+    tc=1/t if infinity else t; nu=mp.exp(-2) if infinity else mp.mpf(1)
+    ratio2=r*r*((4*mp.pi)**2+mp.exp(4)*r*r)/(1+(4*mp.pi)**2*r*r)
+    a,b=mp.sqrt(ratio2/(1+ratio2)),1/mp.sqrt(1+ratio2)
+    u1=a*mp.exp(mp.j*(th+ph)); u2=b*mp.exp(mp.j*ph)
+    p=mp.matrix([u1.imag,-u2.imag,1+u1.real-u2.real]); n=p/mp.norm(p)
+    Pi=mp.matrix([[1+n[2],n[0]+mp.j*n[1]],
+                  [n[0]-mp.j*n[1],1-n[2]]])/2
+    H=mp.arg(-mp.conj(u1) if infinity else u2)/(2*mp.pi)
+    m=nu*mp.exp(-2*rc*rc/(1-rc*rc)); P=mp.log(m*rc)
+    rho=(P*(H+mp.mpf('.5')) if rc>=mp.mpf('.5') else
+         cusp30.elementary_cusp_logradius(H,tc,nu,dps=60))
+    y=mp.exp(rho); x=tc/y; lt=mp.log(r)+mp.j*th
+    s=lt/(2*mp.j*mp.pi)
+    z=-mp.j*rho+(0 if infinity else mp.pi*s*(s-1))
+    w=0 if infinity else 2*t*s
+    one,_,_,four=cusp30.scalar_lattice_coords(z,w,t,lt)
+    e=mp.matrix(cusp30.elliptic_bundle_embedding(
+        'mid',(t,one,four,lt,H),dps=60,elementary=True))
+    Ps=e*e.H
+    U=(mp.matrix([[1,1],[1,-1]]) if infinity else
+       mp.matrix([[1,1],[mp.j,-mp.j]]))/mp.sqrt(2)
+    H1=H if H>=0 else H+1
+    chi=cusp30.scalar_flat_step((abs(H)-mp.mpf('.3'))/mp.mpf('.05'))
+    row=mp.zeros(1,2)
+    if chi<1:
+        F=U*mp.matrix([m*mp.conj(x),y]); b0=F.H*Pi
+        row+=(1-chi)*b0/mp.norm(b0)
+    if chi>0:
+        tau=mp.pi/2*cusp30.scalar_flat_step((H1-mp.mpf('.35'))/mp.mpf('.3'))
+        v=U*mp.matrix([mp.cos(tau),mp.sin(tau)])
+        phase=x/abs(x) if H>=0 else mp.mpf(1)
+        b1=phase*v.H*Pi; row+=chi*b1/mp.norm(b1)
+    Lc=e*row/mp.norm(row)
+    offset=(lambda th1:collar_offset61(t,u2,th1)) if rc<mp.mpf('.5') else None
+    Lm=direct_middle_matrix58(u1,u2,t,Ps,phase_offset=offset)[0]
+    return Lc,Lm,Ps,Pi,(u1,u2,tc)
+
+def boundary_transition62(theta,phi,infinity=False):
+    """Vectorized two-row formula for delta at the EXACT cusp radius 1/2.
+
+    Float64 evaluation is numerical evidence. The finite elementary formula
+    and all normalization domains are certified in programme 12.7--12.8.
+    Inactive local rows are not divided by their possibly zero norms.
+    """
+    np=np57
+    th,ph=np.broadcast_arrays(np.asarray(theta,dtype=float),np.asarray(phi,dtype=float))
+    def step(x):
+        xx=np.where((x>0)&(x<1),x,.5)
+        aa=np.exp(-1/xx); bb=np.exp(-1/(1-xx))
+        return np.where(x<=0,0.,np.where(x>=1,1.,aa/(aa+bb)))
+    def unit(row,active):
+        norm=np.sqrt(np.sum(np.abs(row)**2,axis=-1))
+        if np.any(active & (norm==0)):
+            raise ValueError('an active boundary row vanished')
+        return row/np.where(active,norm,1.)[...,None]
+    r=2. if infinity else .5
+    ratio2=r*r*((4*np.pi)**2+np.exp(4)*r*r)/(1+(4*np.pi)**2*r*r)
+    a,b=np.sqrt(ratio2/(1+ratio2)),1/np.sqrt(1+ratio2)
+    u1=a*np.exp(1j*(th+ph)); u2=b*np.exp(1j*ph)
+    p=np.stack((u1.imag,-u2.imag,1+u1.real-u2.real),axis=-1)
+    n=p/np.linalg.norm(p,axis=-1)[...,None]
+    Pi=np.empty(th.shape+(2,2),complex)
+    Pi[...,0,0]=(1+n[...,2])/2; Pi[...,1,1]=(1-n[...,2])/2
+    Pi[...,0,1]=(n[...,0]+1j*n[...,1])/2; Pi[...,1,0]=Pi[...,0,1].conj()
+    def project(v):
+        return np.einsum('...i,...ij->...j',v.conj(),Pi)
+    H=np.angle(-u1.conj() if infinity else u2)/(2*np.pi)
+    tc=-th if infinity else th
+    k=np.log(2)+2/3+(2 if infinity else 0)
+    den=np.sqrt(2*np.cosh(2*k*H))
+    q0=np.exp(k*H-1j*tc)/den; q1=np.exp(-k*H)/den
+    Uphase=1 if infinity else 1j
+    F=np.stack(((q0+q1)/np.sqrt(2),Uphase*(q0-q1)/np.sqrt(2)),axis=-1)
+    ch=step((np.abs(H)-.3)/.05)
+    c0=unit(project(F),ch<1)
+    H1=np.where(H>=0,H,H+1)
+    tau=np.pi/2*step((H1-.35)/.3)
+    v=np.stack(((np.cos(tau)+np.sin(tau))/np.sqrt(2),
+                Uphase*(np.cos(tau)-np.sin(tau))/np.sqrt(2)),axis=-1)
+    c1=np.exp(1j*np.where(H>=0,tc,0))[...,None]*unit(project(v),ch>0)
+    cr=unit((1-ch)[...,None]*c0+ch[...,None]*c1,np.ones(th.shape,bool))
+    th1=np.where(th>=0,th,th+2*np.pi)
+    cs=1/(3*np.log(2)+2)
+    C=th1/(2*np.pi)+(0 if infinity else cs)
+    w=step((th1-5*np.pi/8)/(3*np.pi/4))
+    four=-H-.5 if infinity else H+th/(2*np.pi)+cs
+    z=np.exp(1j*ph)
+    vm=np.stack((1j*(a+1j*b)*(z-1)/2,(z+1)/2),axis=-1)
+    cm=step((np.abs(th)-3*np.pi/8)/(np.pi/4))
+    m0=unit(Pi[...,0,:],cm<1)
+    phase=(b-1j*a)*np.exp(1j*(w*(np.pi-2*np.pi*C)+(th1-th)*four))
+    m1=phase[...,None]*unit(project(vm),cm>0)
+    mr=unit((1-cm)[...,None]*m0+cm[...,None]*m1,np.ones(th.shape,bool))
+    ell=-np.log(2); P=ell-2/3
+    xi1=(-(th*th+ell*ell)/(8*np.pi**2)-th/(4*np.pi)
+         -ell/(10*np.pi**2)+th*ell/(4*np.pi*P))
+    one=th*(H+.5)/(2*np.pi) if infinity else xi1-th*(H+.5)/(2*np.pi)
+    return np.exp(2j*np.pi*one)*np.sum(mr.conj()*cr,axis=-1)
+
+with mp.workdps(60):
+    eq62=mp.mpf(0); inv62=mp.mpf(0); scalar62=0.; seam62=mp.mpf(0); count62=0
+    for inf62 in (False,True):
+        for rc62 in map(mp.mpf,('.49','.495','.5','.505','.51')):
+            for it62 in range(8):
+                th=-mp.pi+2*mp.pi*it62/8
+                for ip62 in range(9):
+                    ph=-mp.pi+2*mp.pi*ip62/9
+                    Lc,Lm,Ps,Pi,raw=extended_cusp_matrix62(th,ph,rc62,inf62)
+                    count62+=1
+                    inv62=max(inv62,mp.norm(Lc.H*Lc-Pi),mp.norm(Lc*Lc.H-Ps))
+                    if rc62<mp.mpf('.5'):
+                        old=direct_cusp_matrix59(*raw,Ps,inf62)[0]
+                        eq62=max(eq62,mp.norm(Lc-old))
+                    if rc62==mp.mpf('.5'):
+                        delta=sum(mp.conj(v)*w for v,w in zip(Lm,Lc))
+                        scalar62=max(scalar62,abs(complex(delta)-boundary_transition62(float(th),float(ph),inf62)))
+            for a62 in (-mp.pi/3,mp.mpf(0),mp.pi/3):
+                seam62=max(seam62,mp.norm(extended_cusp_matrix62(-mp.pi,a62,rc62,inf62)[0]
+                                         -extended_cusp_matrix62(mp.pi,a62,rc62,inf62)[0]),
+                                  mp.norm(extended_cusp_matrix62(a62,-mp.pi,rc62,inf62)[0]
+                                         -extended_cusp_matrix62(a62,mp.pi,rc62,inf62)[0]))
+print('C62c cancelled cusp extension (d):',count62,'points; old-map difference',mp.nstr(eq62,5),
+      'inverse residual',mp.nstr(inv62,5),'60 seam pairs',mp.nstr(seam62,5),
+      '144 scalar/matrix comparisons',scalar62)
+rep('C62c source cancellation, extension and boundary scalar formula (d)',
+    count62==720 and eq62<mp.mpf('1e-48') and inv62<mp.mpf('1e-48')
+    and seam62<mp.mpf('1e-48') and scalar62<1e-12)
+
+# C63: explicit derivative and winding certificates for the exact-boundary
+# comparison. These support a modest finite phase walk; Re(g)>0 on the
+# whole torus is NOT used or asserted.
+a63,b63,th63,ph63,E63,T63=sp.symbols('a63 b63 th63 ph63 E63 T63',real=True)
+ps63=sp.Matrix([a63*sp.sin(th63+ph63),-b63*sp.sin(ph63),
+                1+a63*sp.cos(th63+ph63)-b63*sp.cos(ph63)])
+pn63=sp.Matrix([a63*sp.sin(ph63),b63*sp.sin(th63-ph63),
+                1-a63*sp.cos(ph63)+b63*sp.cos(th63-ph63)])
+hs63=sp.Matrix([T63*sp.sin(th63),-E63,T63*sp.cos(th63)])
+hn63=sp.Matrix([E63,T63*sp.sin(th63),T63*sp.cos(th63)])
+rep('C63a small-height Hopf pairing identities and explicit projection bounds',
+    sp.trigsimp(ps63.dot(hs63)-(T63*(a63*sp.cos(ph63)
+        +(1-b63*sp.cos(ph63))*sp.cos(th63))+b63*E63*sp.sin(ph63)))==0
+    and sp.trigsimp(pn63.dot(hn63)-(T63*(b63*sp.cos(ph63)
+        +(1-a63*sp.cos(ph63))*sp.cos(th63))+a63*E63*sp.sin(ph63)))==0
+    and (sp.Rational(6,5)*sp.sqrt(3)/2)**2>1
+    and 2*(1-sp.Rational(17,20))*(1-sp.Rational(3,4))>sp.Rational(1,16)
+    and sp.Rational(1,2)*sp.Rational(1,2)/3==sp.Rational(1,12)
+    and sp.Rational(1,12)**2/4==sp.Rational(1,576)
+    and sp.Rational(1,576)>sp.Rational(1,600))
+z63,k63=sp.symbols('z63 k63',positive=True)
+q63=sp.Matrix([z63,1])/sp.sqrt(1+z63*z63)
+qh63=q63.diff(z63)*2*k63*z63
+nr63,ni63,nz63=sp.symbols('nr63 ni63 nz63',real=True)
+dp63=sp.Matrix([[nz63,nr63+sp.I*ni63],[nr63-sp.I*ni63,-nz63]])/2
+ur63=sp.Matrix(sp.symbols('ur63_0:4',real=True))
+dr63=sp.Matrix(sp.symbols('dr63_0:4',real=True))
+normsq63=ur63.dot(ur63); dot63=ur63.dot(dr63)
+numerator63=normsq63*dr63-dot63*ur63
+rep('C63b normalization derivative, projector derivative and height-spinor speed',
+    sp.factor(qh63.dot(qh63)-4*k63**2*z63**2/(1+z63**2)**2)==0
+    and sp.factor(k63**2-qh63.dot(qh63)
+                   -k63**2*(z63**2-1)**2/(1+z63**2)**2)==0
+    and sp.simplify(dp63*dp63-(nr63**2+ni63**2+nz63**2)*sp.eye(2)/4)==sp.zeros(2)
+    and all(sp.simplify(v)==0 for v in
+        (ur63/sp.sqrt(normsq63)).jacobian(ur63)*dr63*normsq63**sp.Rational(3,2)-numerator63)
+    and sp.expand(numerator63.dot(numerator63)
+                   -normsq63**2*dr63.dot(dr63)+normsq63*dot63**2)==0)
+R63=sp.Rational
+rep('C63c rational derivative budget and 65536-step strict overlap margin',
+    R63(2,3)+R63(1,36)<R63(7,10)
+    and R63(7,10)+R63(8,3)<4
+    and 245**2>60000 and 25**2>600
+    and 24*(R63(5,3)+2)==88 and 24*(R63(2,3)+3)==88
+    and 25*(R63(5,3)+2)+1<118 and 25*(R63(5,3)+3)<118
+    and (118+14)*R63(3,2)<200
+    and R63(8,3)*R63(7,8)+2<5
+    and (490+6)*R63(3,2)<745 and 735*R63(3,2)<1103
+    and 2*(745+200+2)<1900 and 2*(1103+200+R63(1,2))<2700
+    and R63(22,7)*(1900+2700)/65536<R63(1,4)
+    and 1-R63(1,4)**2/2==R63(31,32))
+
+# Winding is proved on two coordinate circles, by explicit continuous
+# phases, not by summing floating-point increments around a sample grid.
+cc63,ss63,A63,B63=sp.symbols('cc63 ss63 A63 B63',real=True)
+Fn63=sp.Matrix([A63*sp.exp(sp.I*th63)+B63,
+                A63*sp.exp(sp.I*th63)-B63])/sp.sqrt(2)
+cn63=sp.expand_complex((Fn63.conjugate().T*sp.Matrix([cc63,ss63]))[0])
+rep('C63d north theta-circle phase lies in the stated half-planes',
+    sp.simplify(sp.re(cn63)-(A63*sp.cos(th63)*(cc63+ss63)
+                             +B63*(cc63-ss63))/sp.sqrt(2))==0
+    and sp.simplify(sp.im(cn63)+A63*sp.sin(th63)*(cc63+ss63)/sp.sqrt(2))==0
+    and sp.expand((cc63-ss63)**2-(cc63+ss63)**2+4*cc63*ss63)==0)
+be63=sp.symbols('be63',real=True)
+Fs63=sp.Matrix([1+sp.exp(-sp.I*th63),sp.I*(sp.exp(-sp.I*th63)-1)])/2
+rep('C63e south theta-circle first row has the exact half-angle phase',
+    all(sp.simplify(sp.expand_complex(z))==0 for z in
+        Fs63-sp.exp(-sp.I*th63/2)*sp.Matrix([sp.cos(th63/2),sp.sin(th63/2)]))
+    and sp.trigsimp(sp.cos(th63/2)*sp.cos(be63/2)
+                     +sp.sin(th63/2)*sp.sin(be63/2)-sp.cos((th63-be63)/2))==0)
+h63=sp.symbols('h63',positive=True)
+cs63=1/(3*h63+2)
+xis63=xi1_62.subs({r62:sp.Rational(1,2),ell62:-h63,th62:th63})
+alpha63=h63*(sp.Rational(1,5)-h63/4)/sp.pi
+rep('C63f continuous theta phases have equal endpoints; anchor phase is explicit',
+    sp.factor(2*sp.pi*(xis63.subs(th63,sp.pi)-xis63.subs(th63,-sp.pi))+2*sp.pi*cs63)==0
+    and sp.pi/2-(-sp.pi/2)-sp.pi==0
+    and sp.factor(2*sp.pi*xis63.subs(th63,0)-alpha63)==0
+    and R63(1,5)-R63(7,10)/4>0
+    and R63(7,10)*(R63(1,5)-R63(2,3)/4)/3<R63(1,100))
+C63,D63,S63=sp.symbols('C63 D63 S63',real=True)
+xs63=sp.Matrix([C63,(a63+sp.I*b63)*S63])
+rep('C63g phi-circle cone identities for both first and rotating cusp rows',
+    sp.expand((sp.Matrix([[A63,-sp.I*D63]])*xs63)[0]
+               -(A63*C63+b63*D63*S63-sp.I*a63*D63*S63))==0
+    and sp.expand((sp.Matrix([[A63,D63]])*xs63)[0]
+                  -(A63*C63+a63*D63*S63+sp.I*b63*D63*S63))==0)
+
+x64=sp.symbols('x64',positive=True); y64=sp.symbols('y64',real=True)
+g064,g164,g264=sp.symbols('g064 g164 g264',nonzero=True)
+rep('C64a right-half-plane argument and finite telescoping step',
+    sp.simplify(sp.cos(sp.atan(y64/x64))-x64/sp.sqrt(x64*x64+y64*y64))==0
+    and sp.simplify(sp.sin(sp.atan(y64/x64))-y64/sp.sqrt(x64*x64+y64*y64))==0
+    and sp.cancel((g164/g064)*(g264/g164)-g264/g064)==0)
+
+def boundary_phase64(theta,phi,steps=65536):
+    """Certified-count finite phase sum on [-pi,pi]^2, in float64.
+
+    Any other count denotes a different, uncertified numerical experiment.
+    The proof uses the exact arithmetic expression, not float64 residuals.
+    No count-dependent source projection chain occurs here.
+    """
+    if not isinstance(steps,int) or steps<=0:
+        raise ValueError('steps must be a positive integer')
+    if abs(theta)>np57.pi or abs(phi)>np57.pi:
+        raise ValueError('use principal input angles in [-pi,pi]')
+    s=np57.arange(steps+1,dtype=float)/steps
+    g=boundary_transition62(s*theta,s*phi,True)/boundary_transition62(s*theta,s*phi)
+    adjacent=g[1:]/g[:-1]
+    if np57.any(adjacent.real<=0):
+        raise ValueError('phase increment left its certified right half-plane')
+    h=np57.log(2); alpha=h*(1/5-h/4)/np57.pi
+    phase=-alpha+np57.sum(np57.arctan(adjacent.imag/adjacent.real),dtype=np57.longdouble)
+    return float(phase),float(adjacent.real.min())
+
+import time as time64
+start64=time64.perf_counter(); error64=0.; seam64=0.; increment64=1.; count64=0
+for th64,ph64 in ((0.,0.),(.2,-.7),(1.5,2.1),(-2.,1.2),
+                   (2.9,-2.8),(-3.,-1.9),(np57.pi,0.),(0.,np57.pi)):
+    phase64,margin64=boundary_phase64(th64,ph64)
+    exact64=boundary_transition62(th64,ph64,True)/boundary_transition62(th64,ph64)
+    error64=max(error64,abs(np57.exp(1j*phase64)-exact64))
+    increment64=min(increment64,margin64); count64+=1
+for ang64 in (-2.1,-.7,.6,2.):
+    seam64=max(seam64,abs(boundary_phase64(-np57.pi,ang64)[0]-boundary_phase64(np57.pi,ang64)[0]),
+                        abs(boundary_phase64(ang64,-np57.pi)[0]-boundary_phase64(ang64,np57.pi)[0]))
+elapsed64=time64.perf_counter()-start64
+print('C64 finite phase evaluator (d): 24 calls at the certified 65536 steps;',
+      'exp residual',error64,'8 seam pairs',seam64,'minimum adjacent real part',increment64,
+      'elapsed seconds',elapsed64)
+rep('C64 phase-value and seam observations at the full certified count (d)',
+    count64==8 and error64<1e-10 and seam64<1e-10 and increment64>31/32)
+
+# C65: assemble the new global VALUE map and reverse it. This prototype
+# deliberately evaluates C64's phase in vectorized float64. Do not feed it
+# to mp.diff: that conversion would erase the phase's infinitesimal jets.
+# A source-linked finite jet evaluator is still a separate required task.
+def direct_global_section65(xi,X,dps=60,phase_local=None):
+    pc=2*xi[0]*mp.conj(xi[1]); n=(pc.real,pc.imag,abs(xi[0])**2-abs(xi[1])**2)
+    vv=tuple((1-X*X)*v for v in n)
+    kind,data=cusp30.elliptic_raw_base_reference(vv,X,dps=dps,elementary=True)
+    e=mp.matrix(cusp30.elliptic_bundle_embedding(kind,data,dps=dps,elementary=True))
+    Ps=e*e.H
+    aa=X*mp.sqrt(2-X*X)
+    yy=(vv[0]/(1-aa),1-vv[2]/(1-aa),-vv[1]/(1-aa))
+    ss=sum(v*v for v in yy)
+    u1=mp.mpc(1-ss,2*yy[0])/(1+ss); u2=mp.mpc(2*yy[1],2*yy[2])/(1+ss)
+    if kind in ('c0','ci'):
+        tc=data[0]*data[1]; inf=kind=='ci'
+        L=direct_cusp_matrix59(u1,u2,tc,Ps,inf,pole_coordinate=X)[0]
+    else:
+        t=data[0]; r=abs(t)
+        if r<mp.mpf('.5') or r>2:
+            inf=r>2; tc=1/t if inf else t
+            if abs(tc)>=mp.mpf('.49'):
+                # Cancel the radial slot weight before floating-point
+                # evaluation: 1-flat_step can round to zero near 1/2.
+                L=extended_cusp_matrix62(mp.arg(t),mp.arg(u2),abs(tc),inf)[0]
+            else:
+                L=direct_cusp_matrix59(u1,u2,tc,Ps,inf,pole_coordinate=X)[0]
+        else:
+            th,ph=mp.arg(t),mp.arg(u2)
+            L=direct_middle_matrix58(u1,u2,t,Ps)[0]
+            def transition(rc,inf):
+                LC,LM,*_=extended_cusp_matrix62(th,ph,rc,inf)
+                return sum(mp.conj(v)*w for v,w in zip(LM,LC))
+            def retreat(rc):
+                return mp.mpf('.5')+(rc-mp.mpf('.5'))*(1-cusp30.scalar_flat_step(
+                    (rc-mp.mpf('.5'))/mp.mpf('.01')))
+            if r<=mp.mpf('.75'):
+                correction=transition(retreat(r),False)
+            elif r>=mp.mpf('1.25'):
+                correction=transition(retreat(1/r),True)
+            else:
+                phase=(mp.mpf(boundary_phase64(float(th),float(ph))[0])
+                       if phase_local is None else phase_local(th,ph))
+                weight=cusp30.scalar_flat_step((r-mp.mpf('.75'))/mp.mpf('.5'))
+                correction=transition(mp.mpf('.5'),False)*mp.exp(mp.j*weight*phase)
+            L=L*correction
+    return L*mp.matrix(xi),kind,data
+
+def direct_global_coordinates65(Z,X,phi,dps=60,phase_local=None):
+    """Numerical value prototype of the new G, at the certified phase count."""
+    with mp.workdps(max(mp.mp.dps,dps)+20):
+        X=mp.mpf(X); Z=tuple(map(mp.mpc,Z))
+        if 1-abs(X)<mp.mpf('5e-6'):
+            # This branch returns before the old projection/phase work guard.
+            kind,data=cusp30.elementary_global_slice(Z,X,dps=dps)
+        else:
+            xi=tuple(z/mp.sqrt(1-X*X) for z in Z)
+            result,kind,data=direct_global_section65(xi,X,dps,phase_local)
+            ref=cusp30.elliptic_bundle_embedding(kind,data,dps=dps,elementary=True)
+            phase=sum(mp.conj(v)*w for v,w in zip(ref,result))
+            if kind=='mid':
+                t,one,four,lt=data[:4]
+                data=(t,one+mp.arg(phase)/(2*mp.pi),four,lt)
+            else:
+                x,y=data[:2]; data=(mp.conj(phase)*x,phase*y)
+        return cusp30.elementary_restore_torus(kind,data,phi)
+
+def direct_global_forward65(kind,data,dps=60):
+    """Reverse the same VALUE prototype using the existing base/cap inverses."""
+    with mp.workdps(max(mp.mp.dps,dps)+30):
+        wk,wd,phi=cusp30._elementary_source_coordinates(kind,data,dps)
+        if wk in ('c0','ci'):
+            inf=wk=='ci'; nu=mp.exp(-2) if inf else mp.mpf(1)
+            x,y=wd[:2]
+            if nu*nu*abs(x)**2+abs(y)**2<mp.mpf('2e-6'):
+                zz=cusp30.elementary_pole_forward((nu*mp.conj(x),y),inf,dps=dps)
+                scale=mp.pi if inf else 2*mp.pi
+                h=scale*sum(abs(v)**2 for v in zz)
+                X=(1 if inf else -1)*(1-h)/mp.sqrt(1+h*h)
+                if 1-abs(X)<mp.mpf('5e-6'):
+                    pair=((zz[0]+zz[1])/mp.sqrt(2),(zz[0]-zz[1])/mp.sqrt(2)) if inf else (
+                        (zz[0]+zz[1])/mp.sqrt(2),mp.j*(zz[0]-zz[1])/mp.sqrt(2))
+                    return tuple(mp.sqrt(2*scale/(1+h*h))*v for v in pair),X,phi
+        v,X=cusp30._elementary_raw_orbit(wk,wd)
+        radius=1-X*X; n=tuple(a/radius for a in v)
+        xi=cusp30._elementary_hopf_reference(n)
+        section,_,_=direct_global_section65(xi,X,dps)
+        embedding=cusp30.elliptic_bundle_embedding(wk,wd,dps=dps,elementary=True)
+        phase=sum(mp.conj(a)*b for a,b in zip(section,embedding))
+        if abs(abs(phase)-1)>mp.mpf('1e-25'):
+            raise ValueError('new forward map recovered the wrong source line')
+        phase/=abs(phase)
+        return tuple(mp.sqrt(radius)*phase*a for a in xi),X,phi
+
+with mp.workdps(60):
+    inverse65=mp.mpf(0); count65=0; kinds65=set()
+    def round_check65(u1,u2,angle):
+        p=mp.matrix([u1.imag,-u2.imag,1+u1.real-u2.real]); n=p/mp.norm(p)
+        beta=mp.norm(p)/(1+u1.real); X=(beta-1)/mp.sqrt(1+beta*beta)
+        xi=cusp30._elementary_hopf_reference(n)
+        Z=tuple(mp.sqrt(1-X*X)*z*mp.exp(mp.j*angle) for z in xi)
+        return check65(Z,X)
+    def check65(Z,X):
+        global inverse65,count65
+        phi=(mp.mpf('.17'),mp.mpf('-.23'))
+        kind,data=direct_global_coordinates65(Z,X,phi)
+        ZZ,XX,pp=direct_global_forward65(kind,data)
+        error=max(mp.norm(mp.matrix(ZZ)-mp.matrix(Z)),abs(XX-X),
+                  *(abs(mp.exp(2*mp.pi*mp.j*(p-q))-1) for p,q in zip(pp,phi)))
+        inverse65=max(inverse65,error); count65+=1; kinds65.add(kind)
+    for r65 in map(mp.mpf,('.2','.49','.5','.505','.51','.74','.75',
+                            '1','1.25','1.3','1.97','1.99','2','2.01','5')):
+        rr65=r65*r65*((4*mp.pi)**2+mp.exp(4)*r65*r65)/(1+(4*mp.pi)**2*r65*r65)
+        a65,b65=mp.sqrt(rr65/(1+rr65)),1/mp.sqrt(1+rr65)
+        for th65,ph65 in ((mp.pi/3,-mp.pi/5),(-mp.pi,mp.pi/2),(mp.mpf(0),mp.mpf(0))):
+            round_check65(a65*mp.exp(mp.j*(th65+ph65)),b65*mp.exp(mp.j*ph65),mp.mpf('.37'))
+    for inf65 in (False,True):
+        for H65 in map(mp.mpf,('-.4','-.1','.1','.4')):
+            phase65=mp.exp(2*mp.pi*mp.j*H65)
+            round_check65(-mp.conj(phase65) if inf65 else 0,
+                          0 if inf65 else phase65,mp.mpf('.37'))
+        for dist65 in map(mp.mpf,('0','.000003','.0000049','.0000051','.00001','.00002')):
+            X65=(1-dist65)*(1 if inf65 else -1)
+            xi65=mp.matrix([mp.mpf(1)/mp.sqrt(3),mp.sqrt(mp.mpf(2)/3)*mp.exp(mp.j/3)])
+            check65(tuple(mp.sqrt(1-X65*X65)*v for v in xi65),X65)
+print('C65 global value-map round trips (d):',count65,'points, charts',sorted(kinds65),
+      'maximum round/torus residual',mp.nstr(inverse65,6))
+rep('C65 full-count global forward/inverse values, central fibres and both caps (d)',
+    count65==65 and kinds65=={'c0','ci','mid'} and inverse65<mp.mpf('1e-11'))
+
+# C66: the phase derivatives telescope too. Only its VALUE needs the 65536
+# samples. Its exact first/second derivatives use g and its endpoint jets.
+u66=sp.symbols('u66',positive=True)
+v66,ua66,ub66,va66,vb66,uab66,vab66=sp.symbols(
+    'v66 ua66 ub66 va66 vb66 uab66 vab66',real=True)
+aa66,bb66=sp.symbols('aa66 bb66',real=True)
+U66=u66+ua66*aa66+ub66*bb66+uab66*aa66*bb66
+V66=v66+va66*aa66+vb66*bb66+vab66*aa66*bb66
+G66=u66+sp.I*v66; Ga66=ua66+sp.I*va66; Gb66=ub66+sp.I*vb66
+Gab66=uab66+sp.I*vab66
+angle66=sp.atan(V66/U66)
+rep('C66a exact first and mixed second phase derivatives',
+    sp.simplify(sp.diff(angle66,aa66).subs({aa66:0,bb66:0})-sp.im(Ga66/G66))==0
+    and sp.simplify(sp.diff(angle66,aa66,bb66).subs({aa66:0,bb66:0})
+                   -sp.im(Gab66/G66-Ga66*Gb66/G66**2))==0)
+av66,bv66=sp.symbols('av66 bv66',nonzero=True)
+ax66,ay66,axy66,bx66,by66,bxy66=sp.symbols('ax66 ay66 axy66 bx66 by66 bxy66')
+AP66=av66+ax66*aa66+ay66*bb66+axy66*aa66*bb66
+BP66=bv66+bx66*aa66+by66*bb66+bxy66*aa66*bb66
+Q66=AP66/BP66; at66={aa66:0,bb66:0}
+rep('C66b logarithmic derivatives of each quotient telescope exactly',
+    sp.cancel((sp.diff(Q66,aa66)/Q66).subs(at66)-(ax66/av66-bx66/bv66))==0
+    and sp.cancel((sp.diff(Q66,aa66,bb66)/Q66
+                   -sp.diff(Q66,aa66)*sp.diff(Q66,bb66)/Q66**2).subs(at66)
+                  -(axy66/av66-ax66*ay66/av66**2-bxy66/bv66+bx66*by66/bv66**2))==0)
+
+def boundary_exact66(theta,phi):
+    deltas=[]
+    for inf in (False,True):
+        Lc,Lm,*_=extended_cusp_matrix62(theta,phi,mp.mpf('.5'),inf)
+        deltas.append(sum(mp.conj(a)*b for a,b in zip(Lm,Lc)))
+    return deltas[1]/deltas[0]
+
+def phase_twojet66(theta,phi):
+    """Numerical endpoint derivatives of the certified finite phase formula."""
+    g=boundary_exact66(theta,phi)
+    dg=[mp.diff(boundary_exact66,(theta,phi),order) for order in ((1,0),(0,1))]
+    d2g=[[mp.diff(boundary_exact66,(theta,phi),(2,0)),
+           mp.diff(boundary_exact66,(theta,phi),(1,1))],
+          [None,mp.diff(boundary_exact66,(theta,phi),(0,2))]]
+    d2g[1][0]=d2g[0][1]
+    value=mp.mpf(boundary_phase64(float(theta),float(phi))[0])
+    grad=[mp.im(x/g) for x in dg]
+    hess=[[mp.im(d2g[i][j]/g-dg[i]*dg[j]/g**2) for j in range(2)] for i in range(2)]
+    return value,grad,hess
+
+def direct_tensor66(u,missing=4,sign=1,dps=40,second=True):
+    """Local numerical J and dJ of the new global formulas, with phase jets.
+
+    A quadratic phase germ supplies EXACTLY the first/second chain rules
+    C66a--b; differentiating the float64 phase implementation would not.
+    Other derivatives here use high-precision mp.diff. This is a practical
+    numerical tensor evaluator, not the remaining symbolic source census.
+    """
+    with mp.workdps(max(mp.mp.dps,dps)+20):
+        u=mp.matrix(u)
+        def round_point(v):
+            q=list(v[:4]); q.insert(missing,sign*mp.sqrt(1-sum(x*x for x in q)))
+            return (mp.mpc(q[0],q[1]),mp.mpc(q[2],q[3])),q[4]
+        Z,X=round_point(u); phase_local=None
+        if 1-abs(X)>=mp.mpf('5e-6'):
+            xi=tuple(z/mp.sqrt(1-X*X) for z in Z)
+            pc=2*xi[0]*mp.conj(xi[1]); n=(pc.real,pc.imag,abs(xi[0])**2-abs(xi[1])**2)
+            vv=tuple((1-X*X)*a for a in n)
+            kind,data=cusp30.elliptic_raw_base_reference(vv,X,dps=dps,elementary=True)
+            if kind=='mid' and mp.mpf('.74')<abs(data[0])<mp.mpf('1.26'):
+                a=X*mp.sqrt(2-X*X)
+                yy=(vv[0]/(1-a),1-vv[2]/(1-a),-vv[1]/(1-a))
+                theta0=mp.arg(data[0]); phi0=mp.arg(mp.mpc(yy[1],yy[2]))
+                value,gradient,hessian=phase_twojet66(theta0,phi0)
+                def phase_local(theta,phi):
+                    d=(mp.arg(mp.exp(mp.j*(theta-theta0))),mp.arg(mp.exp(mp.j*(phi-phi0))))
+                    return (value+sum(gradient[i]*d[i] for i in range(2))
+                            +sum(hessian[i][j]*d[i]*d[j] for i in range(2) for j in range(2))/2)
+        def coordinates(v):
+            Z,X=round_point(v)
+            kind,h=direct_global_coordinates65(Z,X,v[4:6],dps=dps,phase_local=phase_local)
+            return kind,mp.matrix([b for a in h for b in (a.real,a.imag)])
+        kind,_=coordinates(u); eye=mp.eye(6)
+        def evaluate(v):
+            current,result=coordinates(v)
+            if current!=kind:
+                raise ValueError('use one interior holomorphic target chart for numerical differentiation')
+            return result
+        A=mp.matrix(6)
+        for j in range(6):
+            A[:,j]=mp.diff(lambda t:evaluate(u+t*eye[:,j]),0)
+        J0=mp.zeros(6)
+        for j in range(3):
+            J0[2*j,2*j+1]=-1; J0[2*j+1,2*j]=1
+        Ai=A**-1; J=Ai*J0*A
+        if not second:
+            return J,A,None,None
+        H=[mp.zeros(6) for _ in range(6)]
+        for j in range(6):
+            for k in range(j,6):
+                val=(mp.diff(lambda t:evaluate(u+t*eye[:,j]),0,2) if j==k else
+                     mp.diff(lambda s,t:evaluate(u+s*eye[:,j]+t*eye[:,k]),(0,0),(1,1)))
+                H[k][:,j]=val; H[j][:,k]=val
+        dJ=[Ai*(J0*H[k]-H[k]*J) for k in range(6)]
+        N=max(abs(sum(J[a,i]*dJ[a][k,j]-J[a,j]*dJ[a][k,i]
+                     -J[k,a]*(dJ[i][a,j]-dJ[j][a,i]) for a in range(6)))
+              for k in range(6) for i in range(6) for j in range(6))
+        return J,A,dJ,N
+
+with mp.workdps(40):
+    # A strict interior point of the radial phase interpolation. Select the
+    # largest round coordinate to obtain a well-conditioned sphere chart.
+    r66=mp.mpf('1.07'); th66=mp.mpf('.81'); ph66=mp.mpf('-.63')
+    rr66=r66*r66*((4*mp.pi)**2+mp.exp(4)*r66*r66)/(1+(4*mp.pi)**2*r66*r66)
+    a66,b66=mp.sqrt(rr66/(1+rr66)),1/mp.sqrt(1+rr66)
+    u166=a66*mp.exp(mp.j*(th66+ph66)); u266=b66*mp.exp(mp.j*ph66)
+    p66=mp.matrix([u166.imag,-u266.imag,1+u166.real-u266.real]); n66=p66/mp.norm(p66)
+    beta66=mp.norm(p66)/(1+u166.real); X66=(beta66-1)/mp.sqrt(1+beta66*beta66)
+    Z66=[mp.sqrt(1-X66*X66)*z*mp.exp(mp.j*mp.mpf('.37'))
+         for z in cusp30._elementary_hopf_reference(n66)]
+    point66=[Z66[0].real,Z66[0].imag,Z66[1].real,Z66[1].imag,X66]
+    missing66=max(range(5),key=lambda i:abs(point66[i])); sign66=1 if point66[missing66]>0 else -1
+    input66=mp.matrix([x for i,x in enumerate(point66) if i!=missing66]+[mp.mpf('.17'),mp.mpf('-.23')])
+    start66=time64.perf_counter()
+    J66,A66,dJ66,N66=direct_tensor66(input66,missing66,sign66)
+    elapsed66=time64.perf_counter()-start66
+    square66=mp.norm(J66*J66+mp.eye(6))
+    # Independent finite differences re-evaluate the actual 65536-term
+    # phase value and its endpoint derivatives at each displaced point.
+    fd66=mp.mpf(0); step66=mp.mpf('1e-5')
+    for direction66 in (0,3):
+        dd=mp.eye(6)[:,direction66]*step66
+        plus=direct_tensor66(input66+dd,missing66,sign66,second=False)[0]
+        minus=direct_tensor66(input66-dd,missing66,sign66,second=False)[0]
+        fd66=max(fd66,mp.norm((plus-minus)/(2*step66)-dJ66[direction66])
+                  /(1+mp.norm(dJ66[direction66])))
+print('C66c specific middle tensor (d): sphere chart',missing66,sign66,
+      'J square residual',mp.nstr(square66,5),'maximum N component',mp.nstr(N66,5),
+      'two independent dJ finite differences relative error',mp.nstr(fd66,5),
+      'full value/first/second jet seconds',elapsed66)
+rep('C66c full-count specific J and dJ at a strict interpolation point (d)',
+    square66<mp.mpf('1e-30') and N66<mp.mpf('1e-30') and fd66<mp.mpf('1e-6'))
+
+# C67: execute the same value functions over a finite second-jet algebra.
+# The source adapter changes only the mpmath binding and |z|^(2k), whose
+# smooth polynomial form is required at z=0. It does not call mp.diff.
+import copy as copy67
+import types as types67
+from contextlib import nullcontext as nullcontext67
+from pathlib import Path as Path67
+mp67=mp
+
+def real_array67(a):
+    return np57.vectorize(mp67.re,otypes=[object])(a)
+
+def imag_array67(a):
+    return np57.vectorize(mp67.im,otypes=[object])(a)
+
+class Jet67:
+    """Six real input directions; complex value, gradient and Hessian."""
+    def __init__(self,value,gradient=None,hessian=None):
+        self.value=mp67.mpc(value)
+        self.gradient=np57.zeros(6,object) if gradient is None else np57.asarray(gradient,object)
+        self.hessian=np57.zeros((6,6),object) if hessian is None else np57.asarray(hessian,object)
+    @staticmethod
+    def coerce(x):
+        return x if isinstance(x,Jet67) else Jet67(x)
+    def unary(self,value,first,second):
+        return Jet67(value,first*self.gradient,
+                     first*self.hessian+second*np57.outer(self.gradient,self.gradient))
+    def __add__(self,other):
+        if isinstance(other,Matrix67): return NotImplemented
+        other=self.coerce(other)
+        return Jet67(self.value+other.value,self.gradient+other.gradient,self.hessian+other.hessian)
+    __radd__=__add__
+    def __neg__(self): return Jet67(-self.value,-self.gradient,-self.hessian)
+    def __pos__(self): return self
+    def __sub__(self,other): return self+-self.coerce(other)
+    def __rsub__(self,other): return self.coerce(other)+-self
+    def __mul__(self,other):
+        if isinstance(other,Matrix67): return NotImplemented
+        other=self.coerce(other)
+        return Jet67(self.value*other.value,
+                     self.gradient*other.value+self.value*other.gradient,
+                     self.hessian*other.value+self.value*other.hessian
+                     +np57.outer(self.gradient,other.gradient)+np57.outer(other.gradient,self.gradient))
+    __rmul__=__mul__
+    def __pow__(self,power):
+        if isinstance(power,Jet67): return backend67.exp(power*backend67.log(self))
+        if power==0: return Jet67(1)
+        if power==1: return self
+        if power==2: return self*self
+        if self.value==0:
+            if power>2: return Jet67(0)
+            if power<0: raise ZeroDivisionError('negative power of a zero jet')
+            return Jet67(0,np57.full(6,np57.nan),np57.full((6,6),np57.nan))
+        return self.unary(self.value**power,power*self.value**(power-1),
+                          power*(power-1)*self.value**(power-2))
+    def __truediv__(self,other): return self*self.coerce(other)**-1
+    def __rtruediv__(self,other): return self.coerce(other)*self**-1
+    @property
+    def real(self): return Jet67(self.value.real,real_array67(self.gradient),real_array67(self.hessian))
+    @property
+    def imag(self): return Jet67(self.value.imag,imag_array67(self.gradient),imag_array67(self.hessian))
+    def conjugate(self): return Jet67(self.value.conjugate(),self.gradient.conj(),self.hessian.conj())
+    def __abs__(self): return jet_normsq67(self)**.5
+    def __complex__(self): return complex(self.value)
+    def __float__(self):
+        if self.value.imag!=0: raise TypeError('nonreal jet comparison/conversion')
+        return float(self.value.real)
+    def __int__(self): return int(float(self))
+    def __bool__(self): return self.value!=0
+    def __lt__(self,other): return self.value.real<self.coerce(other).value.real
+    def __le__(self,other): return self.value.real<=self.coerce(other).value.real
+    def __gt__(self,other): return self.value.real>self.coerce(other).value.real
+    def __ge__(self,other): return self.value.real>=self.coerce(other).value.real
+    def __eq__(self,other):
+        try: return self.value==self.coerce(other).value
+        except (TypeError,ValueError): return False
+    def __ne__(self,other): return not self==other
+
+def jet_normsq67(x):
+    return x.real*x.real+x.imag*x.imag if isinstance(x,Jet67) else abs(x)**2
+
+class Matrix67:
+    def __init__(self,*args):
+        if len(args)>1 or isinstance(args[0],int):
+            rows=args[0]; cols=args[1] if len(args)>1 else rows
+            self.data=np57.zeros((rows,cols),object)
+        else:
+            self.data=np57.array(args[0],dtype=object)
+            if self.data.ndim==1: self.data=self.data[:,None]
+    def __iter__(self): return iter(self.data.flat)
+    def __getitem__(self,index):
+        if not isinstance(index,tuple): return self.data.flat[index]
+        result=self.data[index]
+        if not isinstance(result,np57.ndarray): return result
+        if result.ndim==1:
+            result=result[None,:] if isinstance(index[0],int) else result[:,None]
+        return Matrix67(result)
+    def __setitem__(self,index,value):
+        self.data[index]=value.data if isinstance(value,Matrix67) else value
+    @property
+    def H(self): return Matrix67([[backend67.conj(x) for x in row] for row in self.data.T])
+    @property
+    def T(self): return Matrix67(self.data.T)
+    def __mul__(self,other):
+        if isinstance(other,Matrix67): return Matrix67(self.data@other.data)
+        return Matrix67([[x*other for x in row] for row in self.data])
+    def __rmul__(self,other): return self*other
+    def __truediv__(self,other): return Matrix67([[x/other for x in row] for row in self.data])
+    def __add__(self,other): return Matrix67(self.data+other.data)
+    def __sub__(self,other): return Matrix67(self.data-other.data)
+
+class Backend67:
+    pi=mp67.pi; e=mp67.e; j=mp67.j; inf=mp67.inf
+    mp=mp67.mp
+    @staticmethod
+    def mpf(x):
+        if isinstance(x,Jet67):
+            if x.value.imag!=0: raise TypeError('mpf received a nonreal jet')
+            return x.real
+        return mp67.mpf(x)
+    @staticmethod
+    def mpc(x=0,y=None):
+        if y is not None: return x+1j*y
+        return x if isinstance(x,Jet67) else mp67.mpc(x)
+    @staticmethod
+    def workdps(dps): return nullcontext67()
+    @staticmethod
+    def conj(x): return x.conjugate() if hasattr(x,'conjugate') else x
+    @staticmethod
+    def re(x): return x.real
+    @staticmethod
+    def im(x): return x.imag
+    @staticmethod
+    def floor(x): return mp67.floor(x.value.real if isinstance(x,Jet67) else x)
+    @staticmethod
+    def nint(x): return mp67.nint(x.value.real if isinstance(x,Jet67) else x)
+    @staticmethod
+    def sign(x):
+        value=x.value.real if isinstance(x,Jet67) else x
+        if value==0 and isinstance(x,Jet67):
+            return Jet67(0,np57.full(6,np57.nan),np57.full((6,6),np57.nan))
+        return mp67.sign(value)
+    @staticmethod
+    def sqrt(x): return x**.5 if isinstance(x,Jet67) else mp67.sqrt(x)
+    @staticmethod
+    def exp(x):
+        if not isinstance(x,Jet67): return mp67.exp(x)
+        value=mp67.exp(x.value); return x.unary(value,value,value)
+    @staticmethod
+    def log(x):
+        if not isinstance(x,Jet67): return mp67.log(x)
+        return x.unary(mp67.log(x.value),1/x.value,-1/x.value**2)
+    @staticmethod
+    def log1p(x):
+        if not isinstance(x,Jet67): return mp67.log1p(x)
+        return x.unary(mp67.log1p(x.value),1/(1+x.value),-1/(1+x.value)**2)
+    @staticmethod
+    def expm1(x):
+        if not isinstance(x,Jet67): return mp67.expm1(x)
+        value=mp67.exp(x.value); return x.unary(mp67.expm1(x.value),value,value)
+    @staticmethod
+    def sin(x):
+        if not isinstance(x,Jet67): return mp67.sin(x)
+        return x.unary(mp67.sin(x.value),mp67.cos(x.value),-mp67.sin(x.value))
+    @staticmethod
+    def cos(x):
+        if not isinstance(x,Jet67): return mp67.cos(x)
+        return x.unary(mp67.cos(x.value),-mp67.sin(x.value),-mp67.cos(x.value))
+    @staticmethod
+    def sinh(x):
+        if not isinstance(x,Jet67): return mp67.sinh(x)
+        return x.unary(mp67.sinh(x.value),mp67.cosh(x.value),mp67.sinh(x.value))
+    @staticmethod
+    def cosh(x):
+        if not isinstance(x,Jet67): return mp67.cosh(x)
+        return x.unary(mp67.cosh(x.value),mp67.sinh(x.value),mp67.cosh(x.value))
+    @staticmethod
+    def asinh(x):
+        if not isinstance(x,Jet67): return mp67.asinh(x)
+        return x.unary(mp67.asinh(x.value),1/mp67.sqrt(1+x.value*x.value),
+                       -x.value/(1+x.value*x.value)**1.5)
+    @staticmethod
+    def arg(x):
+        if not isinstance(x,Jet67): return mp67.arg(x)
+        return Jet67(mp67.arg(x.value),imag_array67(x.gradient/x.value),
+                     imag_array67(x.hessian/x.value-np57.outer(x.gradient,x.gradient)/x.value**2))
+    matrix=Matrix67
+    @staticmethod
+    def zeros(rows,cols=None): return Matrix67(rows,rows if cols is None else cols)
+    @staticmethod
+    def diag(entries): return Matrix67(np57.diag(np57.array(entries,dtype=object)))
+    @staticmethod
+    def norm(entries): return backend67.sqrt(sum(jet_normsq67(x) for x in entries))
+
+backend67=Backend67()
+
+class SourceAdapter67(ast.NodeTransformer):
+    def __init__(self): self.imports=0; self.modulus_powers=0
+    def visit_Import(self,node):
+        if len(node.names)==1 and node.names[0].name=='mpmath':
+            self.imports+=1
+            return ast.copy_location(ast.Assign(targets=[ast.Name(id=node.names[0].asname or 'mpmath',ctx=ast.Store())],
+                                                value=ast.Name(id='backend67',ctx=ast.Load())),node)
+        return node
+    def visit_BinOp(self,node):
+        node=self.generic_visit(node)
+        if (isinstance(node.op,ast.Pow) and isinstance(node.left,ast.Call)
+            and isinstance(node.left.func,ast.Name) and node.left.func.id=='abs'
+            and len(node.left.args)==1 and isinstance(node.right,ast.Constant)
+            and isinstance(node.right.value,int) and node.right.value>0 and node.right.value%2==0):
+            self.modulus_powers+=1
+            call=ast.Call(func=ast.Name(id='jet_normsq67',ctx=ast.Load()),args=node.left.args,keywords=[])
+            result=(call if node.right.value==2 else ast.BinOp(left=call,op=ast.Pow(),right=ast.Constant(node.right.value//2)))
+            return ast.copy_location(result,node)
+        return node
+
+def jet_environment67():
+    # Isolated namespaces: the actual cusp module and runtime defaults are
+    # not monkey-patched. Every function body comes from its current source.
+    cusp_env=dict(vars(cusp30)); cusp_env.update(backend67=backend67,jet_normsq67=jet_normsq67,mp=backend67)
+    adapter=SourceAdapter67()
+    source=ast.parse(Path67(cusp30.__file__).read_text())
+    for node in source.body:
+        if isinstance(node,ast.FunctionDef):
+            transformed=adapter.visit(copy67.deepcopy(node))
+            exec(compile(ast.fix_missing_locations(ast.Module(body=[transformed],type_ignores=[])),
+                         '<cusp finite jets>','exec'),cusp_env)
+    env=dict(globals()); env.update(mp=backend67,backend67=backend67,jet_normsq67=jet_normsq67,
+                                    cusp30=types67.SimpleNamespace(**cusp_env))
+    names=('direct_middle_matrix58','direct_cusp_matrix59','collar_offset61',
+           'extended_cusp_matrix62','direct_global_section65','direct_global_coordinates65','boundary_exact66')
+    source=ast.parse(Path67(__file__).read_text())
+    for node in source.body:
+        if isinstance(node,ast.FunctionDef) and node.name in names:
+            transformed=adapter.visit(copy67.deepcopy(node))
+            exec(compile(ast.fix_missing_locations(ast.Module(body=[transformed],type_ignores=[])),
+                         '<global finite jets>','exec'),env)
+    return env,adapter
+
+def evaluate_jet67(u,missing=4,sign=1):
+    """Finite second-jet circuit at the caller's working precision."""
+    env,_=jet_environment67()
+    inputs=[Jet67(x,np57.eye(6)[i]) for i,x in enumerate(u)]
+    q=list(inputs[:4]); q.insert(missing,sign*backend67.sqrt(1-sum(x*x for x in q)))
+    def phase_local(theta,phi):
+        g=env['boundary_exact66'](theta,phi)
+        value=boundary_phase64(float(theta),float(phi))[0]
+        return Jet67(value,imag_array67(g.gradient/g.value),
+                     imag_array67(g.hessian/g.value-np57.outer(g.gradient,g.gradient)/g.value**2))
+    kind,values=env['direct_global_coordinates65']((q[0]+1j*q[1],q[2]+1j*q[3]),q[4],
+                                                  inputs[4:6],phase_local=phase_local)
+    coordinates=[part for z in values for part in (z.real,z.imag)]
+    A=np57.array([real_array67(z.gradient) for z in coordinates],float)
+    H=np57.array([real_array67(z.hessian) for z in coordinates],float)
+    if not (np57.isfinite(A).all() and np57.isfinite(H).all()):
+        raise ValueError('a nonsmooth intermediate reached the output jet')
+    J0=np57.kron(np57.eye(3),np57.array([[0.,-1.],[1.,0.]]))
+    J=np57.linalg.solve(A,J0@A)
+    dJ=np57.array([np57.linalg.solve(A,J0@H[:,:,k]-H[:,:,k]@J) for k in range(6)])
+    N=np57.array([[[sum(J[a,i]*dJ[a,k,j]-J[a,j]*dJ[a,k,i]
+                         -J[k,a]*(dJ[i,a,j]-dJ[j,a,i]) for a in range(6))
+                    for j in range(6)] for i in range(6)] for k in range(6)])
+    return J,dJ,A,H,N,kind
+
+def direct_tensor67(u,missing=4,sign=1,dps=60):
+    """Finite second-jet circuit; no numerical differentiation.
+
+    Arbitrary exponent range is necessary for the elementary height's
+    conjugated flat functions; binary64 jets can lose its inverse slope.
+    """
+    with mp67.workdps(max(mp67.mp.dps,dps)):
+        return evaluate_jet67(u,missing,sign)
+
+z67=sp.symbols('z67',positive=True)
+unary67=((sp.exp(z67),sp.exp(z67),sp.exp(z67)),
+         (sp.exp(z67)-1,sp.exp(z67),sp.exp(z67)),
+         (sp.log(z67),1/z67,-1/z67**2),
+         (sp.log(1+z67),1/(1+z67),-1/(1+z67)**2),
+         (sp.sin(z67),sp.cos(z67),-sp.sin(z67)),
+         (sp.cos(z67),-sp.sin(z67),-sp.cos(z67)),
+         (sp.sinh(z67),sp.cosh(z67),sp.sinh(z67)),
+         (sp.cosh(z67),sp.sinh(z67),sp.cosh(z67)),
+         (sp.asinh(z67),1/sp.sqrt(1+z67*z67),-z67/(1+z67*z67)**sp.Rational(3,2)))
+power67=sp.symbols('power67',real=True)
+rep('C67a all analytic unary rules, powers and the smooth modulus-square rule',
+    all(sp.simplify(sp.diff(f,z67)-df)==0 and sp.simplify(sp.diff(df,z67)-ddf)==0
+        for f,df,ddf in unary67)
+    and sp.simplify(sp.diff(z67**power67,z67,2)-power67*(power67-1)*z67**(power67-2))==0
+    and sp.expand((a63+sp.I*b63)*(a63-sp.I*b63)-a63*a63-b63*b63)==0)
+# Pin the actual operator bodies to the generic C35 product/composition
+# formulas. The remaining primitive derivative expressions above are
+# checked independently; C66 checks the nonholomorphic Arg rule.
+tree67=ast.parse(Path67(__file__).read_text())
+classes67={node.name:node for node in tree67.body if isinstance(node,ast.ClassDef)}
+methods67={node.name:node for node in classes67['Jet67'].body if isinstance(node,ast.FunctionDef)}
+rep('C67b source binding of finite product and unary Hessian rules',
+    returned_expr30(methods67['unary'],
+        'Jet67(value,first*self.gradient,first*self.hessian+second*np57.outer(self.gradient,self.gradient))')
+    and returned_expr30(methods67['__mul__'],
+        'Jet67(self.value*other.value,self.gradient*other.value+self.value*other.gradient,'
+        'self.hessian*other.value+self.value*other.hessian+'
+        'np57.outer(self.gradient,other.gradient)+np57.outer(other.gradient,self.gradient))')
+    and returned_expr30(methods67['__add__'],
+        'Jet67(self.value+other.value,self.gradient+other.gradient,self.hessian+other.hessian)')
+    and not hasattr(backend67,'diff'))
+
+start67=time64.perf_counter()
+JJ67,DD67,AA67,HH67,NN67,kind67=direct_tensor67(input66,missing66,sign66)
+elapsed67=time64.perf_counter()-start67
+value_error67=np57.linalg.norm(JJ67-np57.array(J66.tolist(),float))/(1+np57.linalg.norm(JJ67))
+derivative_error67=max(np57.linalg.norm(DD67[k]-np57.array(dJ66[k].tolist(),float))
+                       /(1+np57.linalg.norm(DD67[k])) for k in range(6))
+print('C67 finite jet circuit (d):',kind67,'relative J error',value_error67,
+      'relative dJ error',derivative_error67,'maximum N component',float(np57.max(np57.abs(NN67))),
+      'seconds',elapsed67)
+rep('C67 finite jets agree with independent high-precision numerical derivatives (d)',
+    value_error67<1e-10 and derivative_error67<1e-9)
+
+def round_input67(u1,u2):
+    p=mp67.matrix([u1.imag,-u2.imag,1+u1.real-u2.real]); n=p/mp67.norm(p)
+    beta=mp67.norm(p)/(1+u1.real); X=(beta-1)/mp67.sqrt(1+beta*beta)
+    Z=[mp67.sqrt(1-X*X)*z*mp67.exp(mp67.j*mp67.mpf('.37'))
+       for z in cusp30._elementary_hopf_reference(n)]
+    point=[Z[0].real,Z[0].imag,Z[1].real,Z[1].imag,X]
+    missing=max(range(5),key=lambda i:abs(point[i])); sign=1 if point[missing]>0 else -1
+    return ([x for i,x in enumerate(point) if i!=missing]+[mp67.mpf('.17'),mp67.mpf('-.23')],missing,sign)
+
+with mp67.workdps(60):
+    fixtures67=[]
+    for radius in map(mp67.mpf,('.2','.49','.5','.505','.75','1.25','1.99','2','5')):
+        ratio=radius**2*((4*mp67.pi)**2+mp67.exp(4)*radius**2)/(1+(4*mp67.pi)**2*radius**2)
+        a,b=mp67.sqrt(ratio/(1+ratio)),1/mp67.sqrt(1+ratio)
+        fixtures67.append(round_input67(a*mp67.exp(mp67.j*mp67.mpf('.18')),
+                                        b*mp67.exp(-mp67.j*mp67.mpf('.63'))))
+    for inf in (False,True):
+        for height in map(mp67.mpf,('-.4','-.1','.1','.4')):
+            z=mp67.exp(2*mp67.pi*mp67.j*height)
+            fixtures67.append(round_input67(-mp67.conj(z) if inf else mp67.mpc(0),
+                                            mp67.mpc(0) if inf else z))
+        for distance in map(mp67.mpf,('0','.00000005','.000003','.0000051','.00001')):
+            X=(1-distance)*(1 if inf else -1)
+            Z=[mp67.sqrt(1-X*X)/mp67.sqrt(3),
+               mp67.sqrt(1-X*X)*mp67.sqrt(mp67.mpf(2)/3)*mp67.exp(mp67.j/3)]
+            fixtures67.append(([Z[0].real,Z[0].imag,Z[1].real,Z[1].imag,
+                                mp67.mpf('.17'),mp67.mpf('-.23')],4,1 if inf else -1))
+        for linear_radius in map(mp67.mpf,('1.1e-8','1.4e-8')):
+            h=(mp67.pi if inf else 2*mp67.pi)*linear_radius
+            X=(1 if inf else -1)*(1-h)/mp67.sqrt(1+h*h)
+            Z=[mp67.sqrt(1-X*X)/mp67.sqrt(3),
+               mp67.sqrt(1-X*X)*mp67.sqrt(mp67.mpf(2)/3)*mp67.exp(mp67.j/3)]
+            fixtures67.append(([Z[0].real,Z[0].imag,Z[1].real,Z[1].imag,
+                                mp67.mpf('.17'),mp67.mpf('-.23')],4,1 if inf else -1))
+    Nmax67=0.; squaremax67=0.; symmetry67=0.; condition67=0.; kinds67=set()
+    for inp,missing,sign in fixtures67:
+        jj,dj,AA,HH,NN,kind=direct_tensor67(inp,missing,sign)
+        kinds67.add(kind); condition67=max(condition67,np57.linalg.cond(AA))
+        Nmax67=max(Nmax67,float(np57.max(np57.abs(NN))/(1+np57.max(np57.abs(jj))*np57.max(np57.abs(dj)))))
+        squaremax67=max(squaremax67,float(np57.linalg.norm(jj@jj+np57.eye(6))/(1+np57.linalg.norm(jj)**2)))
+        symmetry67=max(symmetry67,float(np57.max(np57.abs(HH-HH.transpose(0,2,1)))/(1+np57.max(np57.abs(HH)))))
+print('C67c finite tensor jets (d):',len(fixtures67),'points, charts',sorted(kinds67),
+      'scaled N',Nmax67,'scaled square',squaremax67,'Hessian asymmetry',symmetry67,
+      'maximum sampled coordinate-Jacobian condition number',condition67)
+rep('C67c finite jets in both cusps/caps/central fibres and radial joins (d)',
+    len(fixtures67)==31 and kinds67=={'c0','ci','mid'} and Nmax67<1e-9
+    and squaremax67<1e-11 and symmetry67<1e-12)
+
+# C68: bind the new certificate to its specific value and jet source.
+# As in C50, these are source-identity checks, not substitutes for the
+# written nonvanishing and seam arguments. The canonical mathematical
+# interpretation has exact arithmetic and the inherited precision
+# shortcuts OFF; numerical evaluations retain the documented approximations.
+import hashlib as hashlib68
+source_nodes68={n.name:n for n in ast.parse(Path67(__file__).read_text()).body
+                if isinstance(n,(ast.FunctionDef,ast.ClassDef))}
+digests68={
+ 'direct_middle_matrix58':'93289cc879f6638f084a50b7c02381c3c8b7274eecf729882b9cf9c3e0cd1544',
+ 'direct_cusp_matrix59':'0f1691bc6955ad7618ee3f1da36cec73cadfe2d12ebb71fb346d9d9226830e2c',
+ 'collar_offset61':'6d784c79ba7542429f84d64cb045dbecd4295d44b0499ae169cd3bf47c5178b3',
+ 'extended_cusp_matrix62':'613747831aacd67b3f92d208cb6a463b4f3d0df94c594bc914755474252a6b93',
+ 'boundary_transition62':'caeeaa621a2c1b2f88acfd1f3b4ebddd8fe81f198771883758bc39b0f70b4ced',
+ 'boundary_phase64':'f13c0d594834fad7383db740fd9b39cf5073324a8381585b06d27fc4a7fe132c',
+ 'direct_global_section65':'8bc121bb69ae7e687748b85cfd398bf6f85f86319fc89e75ee891e43e56f16bc',
+ 'direct_global_coordinates65':'863b7cc550e7b6de9622a1f586f63afcd26b2ca5b3a39ebf2a7bbdd4f22d4c80',
+ 'direct_global_forward65':'22f43486809e723011e2b20ae948d7353cd7979d639d212c702c9feafa85af52',
+ 'boundary_exact66':'7326b8360578775534765a38f6201d84024f2490c6d9b7808791d757a89ee4dc',
+ 'real_array67':'7f900dd429d22e7b7d32d4f62fe7c1cc4ae0fe00b0d6ce79ee2c09b7886612bb',
+ 'imag_array67':'1991cca7d5795a9263196e8a715fe2cd9cf685c4112f1b477b14e18900e3c0c9',
+ 'Jet67':'eb13709b9310963cc17fe1195667022c2f301684eaf9ab68e3fb9578e058fa4b',
+ 'jet_normsq67':'2ba2483954db13f804664af025dc78efd4bedc5f223639f970e65241d94c1878',
+ 'Matrix67':'533b55ddc38a3050928269c6f5c6584819b531c67e39b280f02091115fad9f15',
+ 'Backend67':'5e66b5133282aa35f6ea0b94e86500c7ceabef13ea9586a2d73cf97c1d6b3e96',
+ 'SourceAdapter67':'6e9a9a30d5b687e269fea2bc92c8d80dd45985abb7cafa62a00e8f6b05d9727b',
+ 'jet_environment67':'1bfd5ed5990ba0cae0c632c61424646510005c4b83ea48fda4ae5e6121cc3fbf',
+ 'evaluate_jet67':'0afeb7cdb19f3b2b8c8f5d424b2864ec3b13c9c9ca1449fa424053d8cec53ff4',
+ 'direct_tensor67':'edb29213eed729f6779fa9e9c7d9eaf4168775f64a87129bee83ac022f5a8198',
+}
+rep('C68a complete AST pins for the twenty new value/jet definitions',
+    all(hashlib68.sha256(ast.dump(source_nodes68[name],include_attributes=False).encode()).hexdigest()==digest
+        for name,digest in digests68.items()))
+backend_methods68={n.name:n for n in source_nodes68['Backend67'].body if isinstance(n,ast.FunctionDef)}
+rules68={
+ 'log':'x.unary(mp67.log(x.value),1/x.value,-1/x.value**2)',
+ 'log1p':'x.unary(mp67.log1p(x.value),1/(1+x.value),-1/(1+x.value)**2)',
+ 'exp':'x.unary(value,value,value)',
+ 'expm1':'x.unary(mp67.expm1(x.value),value,value)',
+ 'sin':'x.unary(mp67.sin(x.value),mp67.cos(x.value),-mp67.sin(x.value))',
+ 'cos':'x.unary(mp67.cos(x.value),-mp67.sin(x.value),-mp67.cos(x.value))',
+ 'sinh':'x.unary(mp67.sinh(x.value),mp67.cosh(x.value),mp67.sinh(x.value))',
+ 'cosh':'x.unary(mp67.cosh(x.value),mp67.sinh(x.value),mp67.cosh(x.value))',
+ 'asinh':'x.unary(mp67.asinh(x.value),1/mp67.sqrt(1+x.value*x.value),-x.value/(1+x.value*x.value)**1.5)',
+ 'arg':'Jet67(mp67.arg(x.value),imag_array67(x.gradient/x.value),imag_array67(x.hessian/x.value-np57.outer(x.gradient,x.gradient)/x.value**2))',
+}
+rep('C68b actual primitive implementations use the checked derivative formulas',
+    all(returned_expr30(backend_methods68[name],expression) for name,expression in rules68.items())
+    and matching_assignment30(backend_methods68['exp'],'value','mp67.exp(x.value)')
+    and matching_assignment30(backend_methods68['expm1'],'value','mp67.exp(x.value)')
+    and matching_call30(methods67['__pow__'],
+        'self.unary(self.value**power,power*self.value**(power-1),power*(power-1)*self.value**(power-2))'))
+adapter68=SourceAdapter67()
+original68=ast.parse('import mpmath as mp\ndef f(z,w):\n    return abs(z)**2+abs(w)**4+abs(z)+z*w')
+adapted68=adapter68.visit(copy67.deepcopy(original68))
+expected68=ast.parse('mp=backend67\ndef f(z,w):\n    return jet_normsq67(z)+jet_normsq67(w)**2+abs(z)+z*w')
+rep('C68c adapter preserves other operations and smooths only even modulus powers',
+    ast.dump(adapted68,include_attributes=False)==ast.dump(expected68,include_attributes=False)
+    and adapter68.imports==1 and adapter68.modulus_powers==2)
+# All if/if-expression tests in the new geometric value path. Repetitions
+# are retained. The classification and argument for each family are in
+# programme 12.11; np.where has a separate complete list below.
+selectors68={
+ 'direct_middle_matrix58':['chi < 1','chi > 0','phase_offset is not None','chi < 1'],
+ 'direct_cusp_matrix59':['chi < 1','chi > 0','infinity','infinity','pole_coordinate is not None','chi < 1','infinity','infinity'],
+ 'collar_offset61':["r < mp.mpf('.5')",'r > 2'],
+ 'extended_cusp_matrix62':['chi < 1','chi > 0','infinity','infinity','infinity',"rc >= mp.mpf('.5')",'infinity','H >= 0',"rc < mp.mpf('.5')",'infinity','infinity','H >= 0','infinity'],
+ 'boundary_transition62':['np.any(active & (norm == 0))','infinity','infinity','infinity','infinity','infinity','infinity','infinity','infinity'],
+ 'boundary_phase64':['not isinstance(steps, int) or steps <= 0','abs(theta) > np57.pi or abs(phi) > np57.pi','np57.any(adjacent.real <= 0)'],
+ 'direct_global_section65':["kind in ('c0', 'ci')","r < mp.mpf('.5') or r > 2", "abs(tc) >= mp.mpf('.49')", "r <= mp.mpf('.75')",'inf',"r >= mp.mpf('1.25')",'phase_local is None'],
+ 'direct_global_coordinates65':["1 - abs(X) < mp.mpf('5e-6')","kind == 'mid'"],
+ 'direct_global_forward65':["wk in ('c0', 'ci')","abs(abs(phase) - 1) > mp.mpf('1e-25')","nu * nu * abs(x) ** 2 + abs(y) ** 2 < mp.mpf('2e-6')",'inf',"1 - abs(X) < mp.mpf('5e-6')",'inf','inf','inf'],
+ 'boundary_exact66':[],
+}
+actual_selectors68={name:[ast.unparse(n.test) for n in ast.walk(source_nodes68[name])
+                         if isinstance(n,(ast.If,ast.IfExp))] for name in selectors68}
+where68=[ast.unparse(n.args[0]) for n in ast.walk(source_nodes68['boundary_transition62'])
+         if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='where']
+rep('C68d complete geometric selector and vectorized-selector census',
+    actual_selectors68==selectors68
+    and where68==['H >= 0','th >= 0','(x > 0) & (x < 1)','x <= 0','x >= 1','active','H >= 0']
+    and not any(isinstance(n,(ast.While,ast.Try,ast.Match)) for name in selectors68 for n in ast.walk(source_nodes68[name])))
+rep('C68e certified phase count and source-linked tensor assembly',
+    boundary_phase64.__defaults__==(65536,)
+    and matching_call30(source_nodes68['direct_global_section65'],'boundary_phase64(float(th),float(ph))')
+    and matching_call30(source_nodes68['evaluate_jet67'],'boundary_phase64(float(theta),float(phi))')
+    and matching_assignment30(source_nodes68['evaluate_jet67'],'J','np57.linalg.solve(A,J0@A)')
+    and matching_assignment30(source_nodes68['evaluate_jet67'],'dJ',
+        'np57.array([np57.linalg.solve(A,J0@H[:,:,k]-H[:,:,k]@J) for k in range(6)])')
+    and returned_expr30(source_nodes68['evaluate_jet67'],'J,dJ,A,H,N,kind'))
+print('C68 source census:',sum(map(len,selectors68.values())),'geometric tests,',len(where68),
+      'vectorized selectors;',len(digests68),'complete new definition pins')
+
 print('ALL PASS' if ok else 'FAILURES')
 assert ok, 'A chart identity failed'
