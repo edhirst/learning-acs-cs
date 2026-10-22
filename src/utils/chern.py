@@ -54,6 +54,7 @@ the top-degree Chern number ∫ c₁^n.
 Both `_compute_A_and_dA` and `_compute_dJ_from_dA` from `src.loss.sphere_loss`
 are reused to obtain ∂J/∂x via the existing AD path.
 """
+from __future__ import annotations    # PEP 563 — for Python 3.8 HPC compatibility
 
 import math
 import os

@@ -1,0 +1,25 @@
+#!/bin/bash
+#PBS -N gpu_H3_s3s3_lbf
+#PBS -q miggpu24h
+#PBS -l nodes=1:ppn=8
+#PBS -e logs/gpu_H3_s3s3_lbfgs.err
+#PBS -o logs/gpu_H3_s3s3_lbfgs.out
+
+cd $PBS_O_WORKDIR
+echo "Job starting:" `date`
+mkdir -p logs
+
+module load python/3.8.11-intel-2021.3.0
+source nijenhuis/bin/activate
+
+# MIG can appear as a plain GPU; unset in case the driver hides it.
+unset CUDA_VISIBLE_DEVICES
+
+# GPU handles the tensor parallelism; CPU threading just needs to feed data.
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export PYTHONUNBUFFERED=1   # real-time log
+
+python train.py --config configs/CS/config_gpu_H3_s3s3_cs_lbfgs.yaml 2>&1 | tee logs/gpu_H3_s3s3_lbfgs.log
+
+echo "Job completed:" `date`

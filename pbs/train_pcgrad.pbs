@@ -1,0 +1,36 @@
+#!/bin/bash
+#PBS -N s3s3_pcgrad
+#PBS -q serial
+#PBS -l mem=10G 
+#PBS -e logs/train_pcgrad.err
+#PBS -o logs/train_pcgrad.out
+
+cd $PBS_O_WORKDIR
+echo "Job starting:" `date`
+mkdir -p logs
+
+module load python/3.8.11-intel-2021.3.0
+source nijenhuis/bin/activate
+
+# Serial queue — single CPU. Cap BLAS/MKL threads to 1 so we don't
+# oversubscribe (PyTorch would otherwise default to all available cores).
+export OMP_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export PYTHONUNBUFFERED=1   # flush print output immediately for real-time monitoring
+
+# S^3 × S^3 (CS) — PCGrad gradient surgery + long Adam + L-BFGS + float64.
+#
+# Addresses the persistent failure mode across all prior runs: overlap (ACS)
+# converges to ~0.13 but Nijenhuis (CS) stuck at ~7.6. PCGrad explicitly
+# resolves the gradient conflict between the two losses. Adam-phase only;
+# L-BFGS uses standard weighted-sum gradient.
+#
+# Monitor with: tail -f logs/train_pcgrad.log
+# Key diagnostic: pcgrad_cos on each log line. Persistently negative cosine
+# during Adam ⇒ conflict confirmed, PCGrad is the right fix. Persistently
+# positive ⇒ behaves identically to plain sum (zero risk, but diagnosis wrong).
+python train.py \
+  --config configs/CS/config_sphere_product33_pcgrad.yaml \
+  2>&1 | tee logs/train_pcgrad.log
+
+echo "Job completed:" `date`

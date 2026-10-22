@@ -36,3 +36,6 @@ CODEX.md
 .idea/
 .vscode/
 .github/
+
+# HPC campaign results synced back by pbs/campaign_uniform.pbs
+results_from_HPC/

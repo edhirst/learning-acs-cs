@@ -1,0 +1,81 @@
+# Round-1 derivative-program recipe applied to S^6 CS — EXPLORATORY.
+#
+# Status change: complex structures on S^6 EXIST (Alpoge-Claude [AC26] /
+# Engel 2026): torus fibrations over S^2 with two multiple bielliptic fibers
+# and one toric fiber. The table's "?" becomes "Y". Caveat: those structures
+# are metrically unrelated to the octonionic (round, nearly-Kahler) ACS basin
+# where free ACS-guided training plausibly converges — so expectations for
+# free search are tempered (basin-mismatch hypothesis; see
+# extra/octonion_calibration.py for the diagnostic).
+#
+# Recipe identical to the other D1 jobs: fourier_scale 0.25 (Sobolev sweep
+# winner), batch 2048, EMA 0.999, cosine_restarts, LBFGS finish, overlap
+# pretraining (rev-2 stabilised: lr 3e-4, 400 epochs).
+
+geometry:
+  manifold_type: "sphere"
+  real_dimension: 6
+
+network:
+  hidden_layers: [512, 1024, 1024, 1024, 1024, 512]
+  activation: "gelu"
+  use_fourier_features: true
+  fourier_scale: 0.25
+  num_fourier_features: 128
+  initialization: "xavier"
+  matrix_exp_terms: null
+  use_residual_blocks: true
+
+training:
+  epochs: 30000
+  batch_size: 2048
+  precision: 32
+  learning_rate: 1.0e-3
+  scheduler: "cosine_restarts"
+  scheduler_params:
+    T_0: 3000
+    T_mult: 1.5
+    eta_min: 1.0e-6
+  optimizer: "adamw"
+  weight_decay: 1.0e-5
+  ema_decay: 0.999
+  use_lbfgs_after_adam: true
+  lbfgs_epochs: 200
+  lbfgs_learning_rate: 1.0
+  lbfgs_max_iter: 20
+  lbfgs_history_size: 100
+  lbfgs_line_search_fn: "strong_wolfe"
+  run_validation: true
+  batch_size_val: 1000
+  validation_interval: 100
+  equatorial_sampling: false
+  density_power: 1.0
+
+pretraining:
+  identity_pretraining: false
+  pretrain_epochs: 50
+  pretrain_points: 2000
+  overlap_pretraining: true
+  overlap_pretrain_epochs: 400
+  overlap_pretrain_lr: 3.0e-4
+  overlap_pretrain_points: 2000
+
+loss_weights:
+  nijenhuis: 1.0
+  overlap: 100.0
+  overlap_size: 0.2
+  use_round_metric_contraction: false
+
+logging:
+  log_interval: 10
+  checkpoint_interval: 1000
+  save_dir: "outputs/gpu_D1_s6_cs"
+  test_size: 10000
+  compute_nijenhuis_rank: true
+
+seed: 42
+
+advanced:
+  gradient_clipping: 1.0
+  early_stopping: false
+  early_stopping_patience: 100

@@ -1,0 +1,29 @@
+#!/bin/bash
+#PBS -N D1s6cs
+#PBS -q miggpu24h
+#PBS -l nodes=1:ppn=8
+#PBS -e logs/gpu_D1_s6_cs.err
+#PBS -o logs/gpu_D1_s6_cs.out
+
+cd $PBS_O_WORKDIR
+echo "Job starting:" `date`
+mkdir -p logs
+
+module load python/3.8.11-intel-2021.3.0
+source nijenhuis/bin/activate
+
+unset CUDA_VISIBLE_DEVICES
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export PYTHONUNBUFFERED=1
+
+# S^6 CS — EXPLORATORY (round-1 derivative-program recipe).
+# CS on S^6 exists (Alpoge-Claude / Engel 2026) — the table's "?" is now "Y".
+# Caveat: those structures are torus fibrations metrically unrelated to the
+# octonionic basin; free search may not reach them (see
+# extra/octonion_calibration.py). Octonionic references for interpreting this
+# run: flat-chart mean ||N|| = 54.0, round-metric ||N|| = 19.6 (constant).
+# Monitor with: tail -f logs/gpu_D1_s6_cs.log
+python train.py --config configs/CS/config_gpu_D1_s6_cs.yaml 2>&1 | tee logs/gpu_D1_s6_cs.log
+
+echo "Job completed:" `date`

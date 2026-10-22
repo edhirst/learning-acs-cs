@@ -1,6 +1,7 @@
 """
 Main training script for learning almost complex structures.
 """
+from __future__ import annotations    # PEP 563 — for Python 3.8 HPC compatibility
 
 import os
 
@@ -14,6 +15,7 @@ import torch.optim as optim
 import yaml
 import json
 import argparse
+import copy
 import sys
 import functools
 from pathlib import Path
@@ -26,7 +28,10 @@ print = functools.partial(print, flush=True)
 
 from src.geometry import EvenSphere
 from src.geometry.sphere_product import SphereProduct
-from src.geometry.hopf_complex_structure import hopf_complex_structure
+# Signed-angle (fixed) Hopf module: the original folded-arccos version made DF
+# singular at x_beta ≈ 0 (see hopf_complex_structure_fixed.py docstring); the
+# original module has also been patched, but import the _fixed module explicitly.
+from src.geometry.hopf_complex_structure_fixed import hopf_complex_structure
 from src.models import TwoPatchAlmostComplexNet, FourPatchProductNet
 from src.loss import TotalLoss
 from src.loss.product_loss import ProductTotalLoss
@@ -230,6 +235,41 @@ class Trainer:
             )
             sys.exit(1)
 
+        # PCGrad (Project Conflicting Gradients, Yu et al. 2020) — multi-task
+        # gradient surgery applied to the Adam phase. Requires both Nij and
+        # overlap weights non-zero (otherwise one of the tasks is degenerate).
+        self.use_pcgrad         = bool(self.config['training'].get('use_pcgrad', False))
+        self.pcgrad_log_cosine  = bool(self.config['training'].get('pcgrad_log_cosine', True))
+        if self.use_pcgrad:
+            w_n = float(self.config['loss_weights'].get('nijenhuis', 0.0))
+            w_o = float(self.config['loss_weights'].get('overlap',   0.0))
+            if w_n == 0.0 or w_o == 0.0:
+                print(
+                    f"ERROR: use_pcgrad=true requires both loss_weights.nijenhuis and "
+                    f"loss_weights.overlap to be non-zero; got nijenhuis={w_n}, overlap={w_o}."
+                )
+                sys.exit(1)
+            print(f"PCGrad enabled (Adam phase only); log gradient-cosine = {self.pcgrad_log_cosine}")
+
+        # EMA (Polyak) weight averaging: the averaged network is smoother than
+        # any single SGD iterate, directly suppressing the high-frequency
+        # derivative noise that dominates the Nijenhuis loss.  When enabled
+        # (training.ema_decay > 0), validation / test / checkpoints evaluate
+        # the EMA weights; the raw model keeps training as usual.
+        self.ema_decay = float(self.config['training'].get('ema_decay', 0.0))
+        if self.ema_decay > 0.0:
+            if not (0.0 < self.ema_decay < 1.0):
+                print(f"ERROR: training.ema_decay must be in (0, 1); got {self.ema_decay}")
+                sys.exit(1)
+            self.ema_model = copy.deepcopy(self.model)
+            for p in self.ema_model.parameters():
+                p.requires_grad_(False)
+            self.ema_model.eval()
+            print(f"EMA weight averaging enabled (decay = {self.ema_decay}); "
+                  f"validation/test/checkpoints use the EMA weights")
+        else:
+            self.ema_model = None
+
         # Setup optimizer
         self.optimizer = self._create_optimizer()
         self.scheduler = self._create_scheduler()
@@ -241,6 +281,7 @@ class Trainer:
         self.epoch = 0
         self.best_loss = float('inf')
         self.patience_counter = 0
+        self._nonfinite_streak: dict = {}
         
     def _create_optimizer(self):
         """Create optimizer from config."""
@@ -351,12 +392,23 @@ class Trainer:
         os_ = float(self.config['loss_weights'].get('overlap_size', 0.1)) if equatorial else None
         return self.sphere.sample_points_patch1(batch_size, density_power=density_power, overlap_size=os_).to(device=self.device, dtype=self.dtype)
     
-    def _compute_train_loss_and_info(self, x) -> tuple[torch.Tensor, dict]:
-        """Compute the current training loss and logging info for one batch."""
+    def _compute_train_loss_and_info(self, x, return_tensors: bool = False) -> tuple[torch.Tensor, dict]:
+        """Compute the current training loss and logging info for one batch.
+
+        Args:
+            x: Batch input(s); shape depends on manifold_type.
+            return_tensors: Forwarded to the loss_fn. When True, the returned
+                info dict carries the unweighted per-task component tensors
+                under '_nij_loss_tensor' and '_overlap_loss_tensor' for PCGrad
+                gradient surgery.
+        """
         if self.manifold_type == 'sphere_product':
             x_alpha, x_beta = x
             J_dict, x_alpha, x_beta, x_a2, x_b2 = self.model(x_alpha, x_beta)
-            loss, info = self.loss_fn(J_dict, x_alpha, x_beta, x_a2, x_b2, self.model)
+            loss, info = self.loss_fn(
+                J_dict, x_alpha, x_beta, x_a2, x_b2, self.model,
+                return_tensors=return_tensors,
+            )
             if self.config['logging'].get('compute_block_diagonality', False):
                 with torch.no_grad():
                     info['block_diagonality'] = self._block_diagonality(
@@ -364,7 +416,10 @@ class Trainer:
                     )
         else:
             J1, J2, x1, x2 = self.model(x)
-            loss, info = self.loss_fn(J1, J2, x1, x2, self.model)
+            loss, info = self.loss_fn(
+                J1, J2, x1, x2, self.model,
+                return_tensors=return_tensors,
+            )
 
         return loss, info
 
@@ -376,19 +431,138 @@ class Trainer:
                 self.config['advanced']['gradient_clipping']
             )
 
+    def _pcgrad_step(self, nij_loss: torch.Tensor, overlap_loss: torch.Tensor) -> float:
+        """PCGrad (Yu et al. 2020) gradient surgery for two tasks.
+
+        Computes per-task gradients of the unweighted Nij and overlap losses
+        separately; if their inner product is negative (conflict), projects
+        each onto the orthogonal complement of the other. Then sums the
+        (projected) gradients, applies the task weights from config, and
+        writes the combined gradient into ``param.grad``.
+
+        Does NOT call optimizer.step(). Returns the cosine of the angle
+        between the two task gradients (diagnostic).
+
+        Symmetric 2-task variant of PCGrad: equivalent to the randomised-order
+        variant for K=2 tasks.
+        """
+        params = [p for p in self.model.parameters() if p.requires_grad]
+
+        # Per-task gradient lists. retain_graph=True on the first call so the
+        # second can re-use the autograd graph. allow_unused handles any param
+        # that doesn't participate in a given sub-loss (e.g. patch-1 weights
+        # appear in nij_loss only through the J it produces; same for overlap).
+        g_A = torch.autograd.grad(nij_loss,     params, retain_graph=True, allow_unused=True)
+        g_B = torch.autograd.grad(overlap_loss, params,                    allow_unused=True)
+        g_A = [g if g is not None else torch.zeros_like(p) for g, p in zip(g_A, params)]
+        g_B = [g if g is not None else torch.zeros_like(p) for g, p in zip(g_B, params)]
+
+        # Flatten to single vectors for projection arithmetic.
+        flat_A = torch.cat([g.reshape(-1) for g in g_A])
+        flat_B = torch.cat([g.reshape(-1) for g in g_B])
+
+        # Apply task weights from the configured loss_weights.
+        w_A = float(self.loss_fn.weights.get('nijenhuis', 1.0))
+        w_B = float(self.loss_fn.weights.get('overlap',   1.0))
+        flat_A = w_A * flat_A
+        flat_B = w_B * flat_B
+
+        # Inner product + cosine diagnostic.
+        dot = (flat_A * flat_B).sum()
+        nA  = flat_A.norm().clamp(min=1e-12)
+        nB  = flat_B.norm().clamp(min=1e-12)
+        cos = (dot / (nA * nB)).item()
+
+        # Symmetric projection on conflict.
+        if dot.item() < 0.0:
+            proj_A = flat_A - (dot / (nB * nB)) * flat_B
+            proj_B = flat_B - (dot / (nA * nA)) * flat_A
+            combined = proj_A + proj_B
+        else:
+            combined = flat_A + flat_B
+
+        # Scatter back into param.grad.
+        idx = 0
+        for p in params:
+            n = p.numel()
+            p.grad = combined[idx:idx + n].view_as(p).detach().clone()
+            idx += n
+
+        return cos
+
+    @property
+    def eval_model(self):
+        """Model used for validation/test/checkpoints: EMA copy if enabled."""
+        return self.ema_model if self.ema_model is not None else self.model
+
+    def _update_ema(self):
+        """One EMA update: ema ← decay·ema + (1−decay)·model. No-op if disabled."""
+        if self.ema_model is None:
+            return
+        with torch.no_grad():
+            for p_ema, p in zip(self.ema_model.parameters(), self.model.parameters()):
+                p_ema.mul_(self.ema_decay).add_(p.detach(), alpha=1.0 - self.ema_decay)
+            for b_ema, b in zip(self.ema_model.buffers(), self.model.buffers()):
+                b_ema.copy_(b)
+
+    def _nonfinite_guard(self, loss: torch.Tensor, tag: str) -> bool:
+        """Return True (⇒ skip this step) when the loss is non-finite.
+
+        A single float32 overflow (e.g. matrix_exp blowup when ‖A‖ runs away)
+        must never reach optimizer.step(): the Inf/NaN gradients corrupt the
+        weights irreversibly and can hang CUDA linalg kernels for the rest of
+        the walltime.  Skipping the offending batch keeps the weights clean.
+        Aborts with a clear error after 100 consecutive non-finite steps
+        (unrecoverable state) instead of burning the job's remaining hours.
+        """
+        if bool(torch.isfinite(loss)):
+            self._nonfinite_streak.pop(tag, None)
+            return False
+        n = self._nonfinite_streak.get(tag, 0) + 1
+        self._nonfinite_streak[tag] = n
+        if n == 1 or n % 10 == 0:
+            print(f"WARNING [{tag}]: non-finite loss ({loss.item()}); "
+                  f"skipping step ({n} consecutive)")
+        if n >= 100:
+            print(f"ERROR [{tag}]: 100 consecutive non-finite losses — aborting "
+                  f"to avoid burning walltime on a corrupted state.")
+            sys.exit(1)
+        return True
+
     def train_step(self, x) -> dict:
-        """Perform one first-order optimizer training step."""
+        """Perform one first-order optimizer training step.
+
+        When `use_pcgrad` is enabled, computes the per-task Nij and overlap
+        gradients separately and applies PCGrad gradient surgery before the
+        optimizer step (Adam phase only). Otherwise uses the standard weighted-
+        sum backward.
+        """
         self.model.train()
         self.optimizer.zero_grad()
 
-        loss, info = self._compute_train_loss_and_info(x)
+        if self.use_pcgrad:
+            loss, info = self._compute_train_loss_and_info(x, return_tensors=True)
+            nij_t     = info.pop('_nij_loss_tensor')
+            overlap_t = info.pop('_overlap_loss_tensor')
+            if self._nonfinite_guard(nij_t + overlap_t, 'train'):
+                self.optimizer.zero_grad()
+                return info
+            cos = self._pcgrad_step(nij_t, overlap_t)
+            if self.pcgrad_log_cosine:
+                info['pcgrad_cosine'] = cos
+        else:
+            loss, info = self._compute_train_loss_and_info(x)
+            if self._nonfinite_guard(loss, 'train'):
+                self.optimizer.zero_grad()
+                return info
+            # Backward pass
+            loss.backward()
 
-        # Backward pass
-        loss.backward()
         self._clip_gradients()
-        
+
         self.optimizer.step()
-        
+        self._update_ema()
+
         return info
 
     def train_step_lbfgs(self, x) -> dict:
@@ -405,14 +579,16 @@ class Trainer:
             return loss
 
         self.optimizer.step(closure)
+        self._update_ema()
 
         # L-BFGS may evaluate the closure multiple times. Return the metrics
         # from the last evaluation, matching the loss seen by the optimizer.
         return info_holder.get('info', {})
     
     def validate(self) -> dict:
-        """Run validation."""
-        self.model.eval()
+        """Run validation (on the EMA model when EMA is enabled)."""
+        m = self.eval_model
+        m.eval()
 
         num_val_points = self.config['training']['batch_size_val']
         x = self.sample_batch(num_val_points)
@@ -420,16 +596,16 @@ class Trainer:
         with torch.no_grad():
             if self.manifold_type == 'sphere_product':
                 x_alpha, x_beta = x
-                J_dict, x_alpha, x_beta, x_a2, x_b2 = self.model(x_alpha, x_beta)
-                _, info = self.loss_fn(J_dict, x_alpha, x_beta, x_a2, x_b2, self.model,
+                J_dict, x_alpha, x_beta, x_a2, x_b2 = m(x_alpha, x_beta)
+                _, info = self.loss_fn(J_dict, x_alpha, x_beta, x_a2, x_b2, m,
                                        hard_cutoff=True)
                 if self.config['logging'].get('compute_block_diagonality', False):
                     info['block_diagonality'] = self._block_diagonality(
                         J_dict, self.config['geometry']['real_dimension_alpha']
                     )
             else:
-                J1, J2, x1, x2 = self.model(x)
-                _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True)
+                J1, J2, x1, x2 = m(x)
+                _, info = self.loss_fn(J1, J2, x1, x2, m, hard_cutoff=True)
 
         return info
     
@@ -483,6 +659,8 @@ class Trainer:
                 # Target: A = 0 so that J = J₀ (patch 1) or J = -J₀ (patch 2),
                 # the correct initialisation for the two chart orientations.
                 loss = torch.mean(A ** 2)
+                if self._nonfinite_guard(loss, f'pretrain_id_{subnet_name}'):
+                    continue
                 loss.backward()
                 if self.config['advanced']['gradient_clipping'] > 0:
                     torch.nn.utils.clip_grad_norm_(
@@ -664,6 +842,8 @@ class Trainer:
 
                     # Mean squared Frobenius error per sample.
                     loss = ((J_net - J_target) ** 2).sum(dim=(1, 2)).mean()
+                    if self._nonfinite_guard(loss, f'pretrain_ov_{ia}{ib}'):
+                        continue
                     loss.backward()
                     if self.config['advanced']['gradient_clipping'] > 0:
                         torch.nn.utils.clip_grad_norm_(
@@ -712,6 +892,8 @@ class Trainer:
 
                     # Mean squared Frobenius error per sample.
                     loss = ((J_net - J_target) ** 2).sum(dim=(1, 2)).mean()
+                    if self._nonfinite_guard(loss, f'pretrain_ov_p{patch_idx}'):
+                        continue
                     loss.backward()
                     if self.config['advanced']['gradient_clipping'] > 0:
                         torch.nn.utils.clip_grad_norm_(
@@ -811,6 +993,8 @@ class Trainer:
 
                 # Mean squared Frobenius error per sample.
                 loss = ((J_net - J_target) ** 2).sum(dim=(1, 2)).mean()
+                if self._nonfinite_guard(loss, f'pretrain_hopf_{ia}{ib}'):
+                    continue
                 loss.backward()
                 if self.config['advanced']['gradient_clipping'] > 0:
                     torch.nn.utils.clip_grad_norm_(
@@ -1000,16 +1184,17 @@ class Trainer:
         return float(sum(ratios) / len(ratios)) if ratios else 0.0
 
     def _evaluate_test(self):
-        """Evaluate the model on a held-out test set and store results in loss_data."""
+        """Evaluate on a held-out test set (EMA model when enabled)."""
         test_size = self.config['logging'].get('test_size', 10000)
-        self.model.eval()
+        m = self.eval_model
+        m.eval()
 
         with torch.no_grad():
             if self.manifold_type == 'sphere_product':
                 xa, xb = self.sphere_product.sample_points(test_size)
                 xa, xb = xa.to(device=self.device, dtype=self.dtype), xb.to(device=self.device, dtype=self.dtype)
-                J_dict, xa, xb, xa2, xb2 = self.model(xa, xb)
-                _, info = self.loss_fn(J_dict, xa, xb, xa2, xb2, self.model,
+                J_dict, xa, xb, xa2, xb2 = m(xa, xb)
+                _, info = self.loss_fn(J_dict, xa, xb, xa2, xb2, m,
                                        hard_cutoff=True, report_all=True)
                 if self.config['logging'].get('compute_block_diagonality', False):
                     info['block_diagonality'] = self._block_diagonality(
@@ -1017,12 +1202,12 @@ class Trainer:
                     )
             else:
                 x = self.sphere.sample_points_patch1(test_size).to(device=self.device, dtype=self.dtype)
-                J1, J2, x1, x2 = self.model(x)
-                _, info = self.loss_fn(J1, J2, x1, x2, self.model, hard_cutoff=True, report_all=True)
+                J1, J2, x1, x2 = m(x)
+                _, info = self.loss_fn(J1, J2, x1, x2, m, hard_cutoff=True, report_all=True)
 
         if self.manifold_type == 'sphere_product':
             c1 = compute_first_chern_number(
-                self.model,
+                m,
                 manifold_type='sphere_product',
                 dim_alpha=self.config['geometry']['real_dimension_alpha'],
                 dim_beta=self.config['geometry']['real_dimension_beta'],
@@ -1031,7 +1216,7 @@ class Trainer:
             )
         else:
             c1 = compute_first_chern_number(
-                self.model,
+                m,
                 manifold_type='sphere',
                 manifold_dim=self.sphere.dim,
                 x=x,
@@ -1077,17 +1262,18 @@ class Trainer:
     def _print_progress(self, epoch: int, info: dict):
         """Print training progress."""
         lr = self.optimizer.param_groups[0]['lr']
+        pc_str = f" | pcgrad_cos: {info['pcgrad_cosine']:+.3f}" if 'pcgrad_cosine' in info else ""
         if self.manifold_type == 'sphere_product':
             nij_str = '  '.join(
                 f"Nij{ia}{ib}: {info.get(f'nij_{ia}{ib}', 0.0):.4e}"
                 for ia, ib in [(0,0),(0,1),(1,0),(1,1)]
             )
             print(f"Epoch {epoch:5d} | Loss: {info['total_loss']:.4e} | "
-                  f"{nij_str} | Overlap: {info['overlap_norm']:.4e} | LR: {lr:.3e}")
+                  f"{nij_str} | Overlap: {info['overlap_norm']:.4e} | LR: {lr:.3e}{pc_str}")
         else:
             print(f"Epoch {epoch:5d} | Loss: {info['total_loss']:.4e} | "
                   f"Nij1: {info['nij1']:.4e}  Nij2: {info['nij2']:.4e} | "
-                  f"Overlap: {info['overlap_norm']:.4e} | LR: {lr:.3e}")
+                  f"Overlap: {info['overlap_norm']:.4e} | LR: {lr:.3e}{pc_str}")
     
     def _save_checkpoint(self, filename: str):
         """Save model checkpoint."""
@@ -1099,7 +1285,10 @@ class Trainer:
             'best_loss': self.best_loss,
             'config': self.config
         }
-        
+
+        if self.ema_model is not None:
+            checkpoint['ema_state_dict'] = self.ema_model.state_dict()
+
         if self.scheduler is not None:
             checkpoint['scheduler_state_dict'] = self.scheduler.state_dict()
         

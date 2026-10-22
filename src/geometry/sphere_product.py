@@ -21,6 +21,7 @@ The total real dimension d = m_α + m_β must be even for an almost complex
 structure to exist on the product.  Neither factor is required to be even
 individually (e.g. S³ × S³ is allowed).
 """
+from __future__ import annotations    # PEP 563 — for Python 3.8 HPC compatibility
 
 import torch
 import numpy as np

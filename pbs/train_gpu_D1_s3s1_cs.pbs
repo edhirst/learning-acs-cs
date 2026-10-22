@@ -1,0 +1,24 @@
+#!/bin/bash
+#PBS -N D1s3s1cs
+#PBS -q miggpu24h
+#PBS -l nodes=1:ppn=8
+#PBS -e logs/gpu_D1_s3s1_cs.err
+#PBS -o logs/gpu_D1_s3s1_cs.out
+
+cd $PBS_O_WORKDIR
+echo "Job starting:" `date`
+mkdir -p logs
+
+module load python/3.8.11-intel-2021.3.0
+source nijenhuis/bin/activate
+
+unset CUDA_VISIBLE_DEVICES
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export PYTHONUNBUFFERED=1
+
+# Round-1 derivative-program recipe (see config header). S^3 x S^1 CS.
+# Monitor with: tail -f logs/gpu_D1_s3s1_cs.log
+python train.py --config configs/CS/config_gpu_D1_s3s1_cs.yaml 2>&1 | tee logs/gpu_D1_s3s1_cs.log
+
+echo "Job completed:" `date`
