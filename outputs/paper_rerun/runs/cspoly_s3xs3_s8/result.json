@@ -1,0 +1,105 @@
+{
+  "case": "s3xs3",
+  "task": "cs",
+  "seed": 8,
+  "formulation": "ambient",
+  "cs_mode": "poly",
+  "degree": "2",
+  "n_params": 2880,
+  "model_type": "poly_field",
+  "feat": "poly2",
+  "ladder": [
+    {
+      "phase": "poly_cs",
+      "degree": "2",
+      "n_params": 2880,
+      "init": "lsq(base)",
+      "init_fit_sup": 0.011232072366494634,
+      "init_adv_acs_sup": 0.016221806783712652,
+      "init_N2": 197.4791141282488,
+      "init_C2": 5.204990711582072e-05,
+      "final_N2": 6.694761234928002e-21,
+      "final_C2": 2.908933103415747e-22,
+      "lm": [
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 1,
+          "n_points": 128,
+          "train_loss": 3.812119410443026e-11,
+          "lm_iters": 8,
+          "N2": 5.512953108695566e-11,
+          "C2": 1.715614792974522e-12,
+          "elapsed_min": 1.1345794637997946
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 2,
+          "n_points": 128,
+          "train_loss": 6.083624049747044e-15,
+          "lm_iters": 8,
+          "N2": 2.9075488575983314e-15,
+          "C2": 3.451601045567806e-16,
+          "elapsed_min": 1.5968461314837137
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 3,
+          "n_points": 128,
+          "train_loss": 2.6864340123180907e-19,
+          "lm_iters": 8,
+          "N2": 1.2084192355194313e-19,
+          "C2": 1.5402813897487525e-20,
+          "elapsed_min": 2.052893833319346
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 4,
+          "n_points": 128,
+          "train_loss": 5.5200803805541255e-21,
+          "lm_iters": 8,
+          "N2": 6.719406781631167e-21,
+          "C2": 2.9120916295522283e-22,
+          "elapsed_min": 2.507844046751658
+        }
+      ],
+      "elapsed_min": 2.5094812949498495,
+      "adv_N_sup": 1.1192685060057484e-10,
+      "accepted": true
+    }
+  ],
+  "base": {
+    "dir": "/Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s3xs3_s8",
+    "adv_acs_sup_raw": 0.0001876237521705009,
+    "status": "certified",
+    "base_acs_residual_sup": 1.000000000182338e-10,
+    "base_nij_mean": 14.057874382084425
+  },
+  "steps_done": 1,
+  "steps_planned": 2,
+  "stopped_by_wall": false,
+  "elapsed_min": 5.57332839568456,
+  "exact_acs_by_construction": false,
+  "table_before": 7.63,
+  "dense": {
+    "acs_mean": 1.0143587752127549e-10,
+    "acs_sup": 1.0503049484554795e-10,
+    "nij_mean": 1.2889327818431068e-10,
+    "nij_sup": 1.6870933292397342e-10
+  },
+  "adv_acs_sup": 1.0635318203772043e-10,
+  "corrected": {
+    "acs_mean": 1.0000000000276588e-10,
+    "acs_sup": 1.0000000001143965e-10,
+    "nij_mean": 1.0384550970731682e-10,
+    "nij_sup": 1.091465397400341e-10,
+    "adv_acs_sup": 1.0000000001285444e-10
+  },
+  "certified_exact_acs": true,
+  "adv_nij_sup": 1.1192704368992668e-10,
+  "chart_cs": 1.3363707942515534e-10,
+  "chart_acs": 1.0000000001125524e-10
+}

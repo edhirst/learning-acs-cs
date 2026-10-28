@@ -1,0 +1,79 @@
+{
+  "case": "s4xs1xs1",
+  "task": "cs",
+  "seed": 7,
+  "formulation": "ambient",
+  "hidden": [
+    256,
+    256,
+    256,
+    256
+  ],
+  "stages": 2,
+  "model_type": "mlp",
+  "feat": null,
+  "conj": "exp",
+  "cs_scale": 0.1,
+  "fast_cs": true,
+  "ladder": [],
+  "base": {
+    "dir": "/Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s4xs1xs1_s7",
+    "adv_acs_sup_raw": 0.0007986464821747706,
+    "status": "certified",
+    "base_acs_residual_sup": 1.0000000001541616e-10,
+    "base_nij_mean": 2.9808482606728477
+  },
+  "init_from": {
+    "dir": "/Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/csconjtail_s4xs1xs1",
+    "prev_steps": 1500,
+    "prev_nij_mean": 0.13785455468999017,
+    "prev_base_from": "/Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s4xs1xs1_s7"
+  },
+  "tail": true,
+  "lr": 0.0003,
+  "lbfgs": [
+    {
+      "phase": "lbfgs",
+      "iters_done": 100,
+      "iters_run": 100,
+      "func_evals": 107,
+      "val_loss": 0.01359587152842345,
+      "best_val": 0.008710770210206881,
+      "reverted": true,
+      "elapsed_min": 121.32369131644568
+    },
+    {
+      "phase": "lbfgs",
+      "iters_done": 200,
+      "iters_run": 100,
+      "func_evals": 108,
+      "val_loss": 0.014599108547001766,
+      "best_val": 0.008710770210206881,
+      "reverted": true,
+      "elapsed_min": 127.41998998324077
+    }
+  ],
+  "refinement": null,
+  "steps_done": 4000,
+  "steps_planned": 4000,
+  "stopped_by_wall": false,
+  "elapsed_min": 131.69219406843186,
+  "init": {
+    "nij": 0.020028426099132225
+  },
+  "exact_acs_by_construction": true,
+  "table_before": null,
+  "dense": {
+    "acs_mean": 1.0000000004906959e-10,
+    "acs_sup": 1.0000000098594177e-10,
+    "nij_mean": 0.0923657431329508,
+    "nij_sup": 0.30459232729249935
+  },
+  "adv_nij_sup": 0.4794017772252576,
+  "chart_cs": 0.2925395453573476,
+  "chart_acs": 1.0000000006093444e-10,
+  "conjugator": {
+    "g_sigma_min_dense": 0.1320159878500688,
+    "g_sigma_min_adv": 0.11894876073445236
+  }
+}

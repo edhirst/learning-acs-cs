@@ -1,0 +1,166 @@
+{
+  "case": "s3xs3",
+  "task": "acs",
+  "seed": 7,
+  "formulation": "ambient",
+  "hidden": [
+    256,
+    256,
+    256,
+    256
+  ],
+  "stages": 1,
+  "model_type": "curriculum",
+  "feat": "bilin",
+  "conj": "exp",
+  "cs_scale": 0.5,
+  "fast_cs": false,
+  "ladder": [
+    {
+      "phase": "poly",
+      "feat": "c",
+      "attempt": "plain",
+      "lam0": 0.0,
+      "orient_sign": null,
+      "n_params": 64,
+      "elapsed_min": 0.096526567141215,
+      "adv_acs_sup": 1.4193536007132188,
+      "acs_mean": 1.0548656290625944,
+      "acs_sup": 1.4192394402640631,
+      "nij_mean": 4.691033499655163,
+      "nij_sup": 5.189077375131319
+    },
+    {
+      "phase": "poly",
+      "feat": "c",
+      "attempt": "dirichlet",
+      "lam0": 3.0,
+      "orient_sign": null,
+      "n_params": 64,
+      "elapsed_min": 1.0627639849980672,
+      "adv_acs_sup": 1.419439173628452,
+      "acs_mean": 1.072418782808939,
+      "acs_sup": 1.4193572052044316,
+      "nij_mean": 4.670442081553498,
+      "nij_sup": 5.169785896661524
+    },
+    {
+      "phase": "poly",
+      "feat": "c",
+      "attempt": "orient",
+      "lam0": 1.0,
+      "orient_sign": -1.0,
+      "n_params": 64,
+      "elapsed_min": 1.3572933514912924,
+      "adv_acs_sup": 1.4152557813196778,
+      "acs_mean": 1.0674596844370996,
+      "acs_sup": 1.4151295779374855,
+      "nij_mean": 4.297691099767478,
+      "nij_sup": 4.776296127081647
+    },
+    {
+      "phase": "poly",
+      "feat": "lin",
+      "attempt": "plain",
+      "lam0": 0.0,
+      "orient_sign": null,
+      "n_params": 512,
+      "elapsed_min": 1.4584696332613627,
+      "adv_acs_sup": 1.4665521819031706,
+      "acs_mean": 0.9960688500564123,
+      "acs_sup": 1.4609032284914039,
+      "nij_mean": 7.46944599701046,
+      "nij_sup": 10.118482720602453
+    },
+    {
+      "phase": "poly",
+      "feat": "lin",
+      "attempt": "dirichlet",
+      "lam0": 3.0,
+      "orient_sign": null,
+      "n_params": 512,
+      "elapsed_min": 2.6370132009188336,
+      "adv_acs_sup": 2.4457209860427156,
+      "acs_mean": 1.0895708657412206,
+      "acs_sup": 2.142805474568601,
+      "nij_mean": 3.5274593032956414,
+      "nij_sup": 4.326352712335837
+    },
+    {
+      "phase": "poly",
+      "feat": "lin",
+      "attempt": "orient",
+      "lam0": 1.0,
+      "orient_sign": 1.0,
+      "n_params": 512,
+      "elapsed_min": 2.940648885567983,
+      "adv_acs_sup": 2.3785049497609965,
+      "acs_mean": 1.0883765526322473,
+      "acs_sup": 2.0341725176815326,
+      "nij_mean": 3.6893263143711663,
+      "nij_sup": 5.2919035383996205
+    },
+    {
+      "phase": "poly",
+      "feat": "bilin",
+      "attempt": "plain",
+      "lam0": 0.0,
+      "orient_sign": null,
+      "n_params": 1024,
+      "elapsed_min": 3.04823081890742,
+      "adv_acs_sup": 0.02603721454131059,
+      "acs_mean": 0.010999057624930647,
+      "acs_sup": 0.02094024760182397,
+      "nij_mean": 14.650524153285081,
+      "nij_sup": 15.75061275557912
+    }
+  ],
+  "base": null,
+  "init_from": null,
+  "tail": false,
+  "lr": 0.001,
+  "lbfgs": [
+    {
+      "phase": "lbfgs",
+      "iters_done": 200,
+      "iters_run": 200,
+      "func_evals": 208,
+      "val_loss": 7.257140797080686e-09,
+      "best_val": 7.257140797080686e-09,
+      "reverted": false,
+      "elapsed_min": 5.544502302010854
+    }
+  ],
+  "refinement": {
+    "adv_polynomial": 0.02603721454131059,
+    "adv_refined": 0.00021970595186720013,
+    "kept": true
+  },
+  "steps_done": 10000,
+  "steps_planned": 10000,
+  "stopped_by_wall": false,
+  "elapsed_min": 9.055177652835846,
+  "init": {
+    "acs": 8.751360547097944
+  },
+  "exact_acs_by_construction": false,
+  "table_before": 0.161,
+  "dense": {
+    "acs_mean": 8.343286227288997e-05,
+    "acs_sup": 0.00018543476690804017,
+    "nij_mean": 14.672530525186138,
+    "nij_sup": 15.066774922929092
+  },
+  "adv_acs_sup": 0.00021970595186735203,
+  "corrected": {
+    "acs_mean": 1.0000000000352944e-10,
+    "acs_sup": 1.000000000171122e-10,
+    "nij_mean": 14.675976874699987,
+    "nij_sup": 15.057475964767535,
+    "adv_acs_sup": 1.0000000002425887e-10
+  },
+  "certified_exact_acs": true,
+  "adv_nij_sup": 15.075298072191513,
+  "chart_cs": 49.48752143993002,
+  "chart_acs": 1.0000000001251243e-10
+}

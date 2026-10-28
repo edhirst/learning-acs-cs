@@ -1,0 +1,74 @@
+{
+  "case": "s4xs1xs1",
+  "task": "cs",
+  "seed": 7,
+  "formulation": "ambient",
+  "hidden": [
+    256,
+    256,
+    256,
+    256
+  ],
+  "stages": 2,
+  "model_type": "mlp",
+  "feat": null,
+  "conj": "exp",
+  "cs_scale": 0.1,
+  "fast_cs": true,
+  "ladder": [],
+  "base": {
+    "dir": "/Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s4xs1xs1_s7",
+    "adv_acs_sup_raw": 0.0007986464821747706,
+    "status": "certified",
+    "base_acs_residual_sup": 1.0000000001541616e-10,
+    "base_nij_mean": 2.9808482606728477
+  },
+  "init_from": null,
+  "tail": true,
+  "lr": 0.001,
+  "lbfgs": [
+    {
+      "phase": "lbfgs",
+      "iters_done": 100,
+      "iters_run": 100,
+      "func_evals": 104,
+      "val_loss": 0.041745593360967684,
+      "best_val": 0.019575066188327828,
+      "reverted": true,
+      "elapsed_min": 72.32882093191147
+    },
+    {
+      "phase": "lbfgs",
+      "iters_done": 200,
+      "iters_run": 100,
+      "func_evals": 108,
+      "val_loss": 0.03589317880101492,
+      "best_val": 0.019575066188327828,
+      "reverted": true,
+      "elapsed_min": 79.84823523362478
+    }
+  ],
+  "refinement": null,
+  "steps_done": 1500,
+  "steps_planned": 1500,
+  "stopped_by_wall": false,
+  "elapsed_min": 85.34254843393961,
+  "init": {
+    "nij": 23.33598188023101
+  },
+  "exact_acs_by_construction": true,
+  "table_before": null,
+  "dense": {
+    "acs_mean": 1.000000000390683e-10,
+    "acs_sup": 1.0000000048124079e-10,
+    "nij_mean": 0.13785455468999017,
+    "nij_sup": 0.4535463471345002
+  },
+  "adv_nij_sup": 0.7031020362176185,
+  "chart_cs": 0.4321957025108213,
+  "chart_acs": 1.000000000398626e-10,
+  "conjugator": {
+    "g_sigma_min_dense": 0.15983439713196443,
+    "g_sigma_min_adv": 0.15422926587714342
+  }
+}

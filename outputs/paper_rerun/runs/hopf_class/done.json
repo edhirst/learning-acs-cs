@@ -1,0 +1,598 @@
+{
+ "mesh_n": 32,
+ "tets": 1572864,
+ "units": {
+  "acs_s3xs1_s10": {
+   "slices": {
+    "0.3": {
+     "theta": 0.3,
+     "angle_to_target_deg": [
+      124.76548325875082,
+      124.76548619795837
+     ],
+     "trials": [
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      }
+     ],
+     "hopf_invariant": 0
+    },
+    "2.5": {
+     "theta": 2.5,
+     "angle_to_target_deg": [
+      4.832626234126769,
+      4.83262840432633
+     ],
+     "trials": [
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      }
+     ],
+     "hopf_invariant": 0
+    }
+   },
+   "orientation_fix": "reflect",
+   "hopf_invariant": 0
+  },
+  "acs_s3xs1_s7": {
+   "slices": {
+    "0.3": {
+     "theta": 0.3,
+     "angle_to_target_deg": [
+      70.90087032006753,
+      70.90087045730617
+     ],
+     "trials": [
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      }
+     ],
+     "hopf_invariant": 0
+    },
+    "2.5": {
+     "theta": 2.5,
+     "angle_to_target_deg": [
+      89.31647335486886,
+      89.31647350228236
+     ],
+     "trials": [
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      }
+     ],
+     "hopf_invariant": 0
+    }
+   },
+   "orientation_fix": "reflect",
+   "hopf_invariant": 0
+  },
+  "acs_s3xs1_s8": {
+   "slices": {
+    "0.3": {
+     "theta": 0.3,
+     "angle_to_target_deg": [
+      0.07391284998937732,
+      179.81996959099203
+     ],
+     "trials": [
+      {
+       "linking": 1.0000000000005196,
+       "segments": [
+        438,
+        464
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 1.0000000000000253,
+       "segments": [
+        452,
+        428
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 1.000000000000784,
+       "segments": [
+        538,
+        512
+       ],
+       "odd_tets": 0
+      }
+     ],
+     "hopf_invariant": 1
+    },
+    "2.5": {
+     "theta": 2.5,
+     "angle_to_target_deg": [
+      0.3907830520842848,
+      179.56392978102917
+     ],
+     "trials": [
+      {
+       "linking": 1.0000000000001417,
+       "segments": [
+        444,
+        454
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.9999999999999105,
+       "segments": [
+        442,
+        450
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.9999999999994897,
+       "segments": [
+        540,
+        498
+       ],
+       "odd_tets": 0
+      }
+     ],
+     "hopf_invariant": 1
+    }
+   },
+   "orientation_fix": "identity",
+   "hopf_invariant": 1
+  },
+  "acs_s3xs1_s9": {
+   "slices": {
+    "0.3": {
+     "theta": 0.3,
+     "angle_to_target_deg": [
+      0.1644796957465827,
+      179.70327714255214
+     ],
+     "trials": [
+      {
+       "linking": 0.9999999999990092,
+       "segments": [
+        530,
+        572
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 1.0000000000019924,
+       "segments": [
+        600,
+        622
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.9999999999994971,
+       "segments": [
+        590,
+        400
+       ],
+       "odd_tets": 0
+      }
+     ],
+     "hopf_invariant": 1
+    },
+    "2.5": {
+     "theta": 2.5,
+     "angle_to_target_deg": [
+      0.056331046762660174,
+      179.87931778563487
+     ],
+     "trials": [
+      {
+       "linking": 1.0000000000037443,
+       "segments": [
+        518,
+        578
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 1.0000000000027516,
+       "segments": [
+        602,
+        628
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.9999999999981677,
+       "segments": [
+        584,
+        402
+       ],
+       "odd_tets": 0
+      }
+     ],
+     "hopf_invariant": 1
+    }
+   },
+   "orientation_fix": "identity",
+   "hopf_invariant": 1
+  },
+  "csconjaff_s3xs1": {
+   "slices": {
+    "0.3": {
+     "theta": 0.3,
+     "angle_to_target_deg": [
+      66.80760166407177,
+      73.68582759145994
+     ],
+     "trials": [
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      }
+     ],
+     "hopf_invariant": 0
+    },
+    "2.5": {
+     "theta": 2.5,
+     "angle_to_target_deg": [
+      88.01183771986331,
+      96.3779868438808
+     ],
+     "trials": [
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      }
+     ],
+     "hopf_invariant": 0
+    }
+   },
+   "orientation_fix": "reflect",
+   "hopf_invariant": 0
+  },
+  "csconjexp_s3xs1": {
+   "slices": {
+    "0.3": {
+     "theta": 0.3,
+     "angle_to_target_deg": [
+      64.20213409051337,
+      73.39101890612126
+     ],
+     "trials": [
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      }
+     ],
+     "hopf_invariant": 0
+    },
+    "2.5": {
+     "theta": 2.5,
+     "angle_to_target_deg": [
+      85.40960246915492,
+      97.46355878905352
+     ],
+     "trials": [
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      }
+     ],
+     "hopf_invariant": 0
+    }
+   },
+   "orientation_fix": "reflect",
+   "hopf_invariant": 0
+  },
+  "cspoly_s3xs1_s7": {
+   "slices": {
+    "0.3": {
+     "theta": 0.3,
+     "angle_to_target_deg": [
+      142.38532793848515,
+      142.38586040859605
+     ],
+     "trials": [
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      }
+     ],
+     "hopf_invariant": 0
+    },
+    "2.5": {
+     "theta": 2.5,
+     "angle_to_target_deg": [
+      142.38533465219405,
+      142.38585374334835
+     ],
+     "trials": [
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.0,
+       "segments": [
+        0,
+        0
+       ],
+       "odd_tets": 0
+      }
+     ],
+     "hopf_invariant": 0
+    }
+   },
+   "orientation_fix": "reflect",
+   "hopf_invariant": 0
+  },
+  "cspoly_s3xs1_s8": {
+   "slices": {
+    "0.3": {
+     "theta": 0.3,
+     "angle_to_target_deg": [
+      1.225631989878993,
+      178.77338503791572
+     ],
+     "trials": [
+      {
+       "linking": 0.9999999999978172,
+       "segments": [
+        434,
+        474
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 1.0000000000012346,
+       "segments": [
+        462,
+        454
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 1.0000000000000193,
+       "segments": [
+        542,
+        506
+       ],
+       "odd_tets": 0
+      }
+     ],
+     "hopf_invariant": 1
+    },
+    "2.5": {
+     "theta": 2.5,
+     "angle_to_target_deg": [
+      1.2254871025945178,
+      178.7732645961429
+     ],
+     "trials": [
+      {
+       "linking": 0.9999999999987139,
+       "segments": [
+        434,
+        474
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 0.9999999999993088,
+       "segments": [
+        462,
+        454
+       ],
+       "odd_tets": 0
+      },
+      {
+       "linking": 1.0000000000000755,
+       "segments": [
+        542,
+        506
+       ],
+       "odd_tets": 0
+      }
+     ],
+     "hopf_invariant": 1
+    }
+   },
+   "orientation_fix": "identity",
+   "hopf_invariant": 1
+  }
+ }
+}

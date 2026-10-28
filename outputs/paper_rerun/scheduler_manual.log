@@ -1,0 +1,5 @@
+# jobs run by hand outside the scheduler (same commands, frozen code in code/), scheduler format for tab_compute
+[16:55] DONE acs_s3xs1_s9 (1.9 min, rc=0)
+[16:55] DONE acs_s3xs1_s10 (1.1 min, rc=0)
+[17:10] DONE hopf_class (6.1 min, rc=0)
+[20:44] DONE hopf_s3xs1_sob_b10 (226.9 min, rc=0)

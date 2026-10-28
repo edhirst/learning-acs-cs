@@ -1,0 +1,18 @@
+/Users/agent/Projects/NijenhuisPINN/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[s4xs2/cs/s7 [ambient]] base ACS from /Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s4xs2_s7: adversarial raw sup 0.000, polar-corrected residual 1.0e-10, Nij mean 1.519e+01
+[s4xs2/cs/s7 [ambient]] fast CS loss verified (max rel. dev. 1.0e-15)
+[s4xs2/cs/s7 [ambient]] init: {'nij': 291.0240184413691}
+[s4xs2/cs/s7 [ambient]] step    250 | batch {'nij': 29.461419101098787} | held-out {'acs_mean': 1.0000000012276864e-10, 'acs_sup': 1.0000000083050113e-10, 'nij_mean': 5.2660843954498855, 'nij_sup': 9.832133759166775}
+[s4xs2/cs/s7 [ambient]] step    500 | batch {'nij': 14.989588536557008} | held-out {'acs_mean': 1.0000000013070404e-10, 'acs_sup': 1.0000000072787028e-10, 'nij_mean': 3.677665917347748, 'nij_sup': 9.577067872029042}
+[s4xs2/cs/s7 [ambient]] step    750 | batch {'nij': 11.250401498008557} | held-out {'acs_mean': 1.000000001418411e-10, 'acs_sup': 1.0000000073575591e-10, 'nij_mean': 3.1740150640694593, 'nij_sup': 8.358827081693486}
+[s4xs2/cs/s7 [ambient]] step   1000 | batch {'nij': 9.712470234262854} | held-out {'acs_mean': 1.000000001519414e-10, 'acs_sup': 1.0000000108156638e-10, 'nij_mean': 2.698681092921307, 'nij_sup': 9.29434998785188}
+[s4xs2/cs/s7 [ambient]] step   1250 | batch {'nij': 8.127426052975267} | held-out {'acs_mean': 1.0000000015771248e-10, 'acs_sup': 1.0000000114896525e-10, 'nij_mean': 2.605799958810422, 'nij_sup': 8.363868100554278}
+[s4xs2/cs/s7 [ambient]] step   1500 | batch {'nij': 6.41220974960549} | held-out {'acs_mean': 1.0000000016464463e-10, 'acs_sup': 1.0000000085863024e-10, 'nij_mean': 2.3400223519511916, 'nij_sup': 5.996687098675904}
+[s4xs2/cs/s7 [ambient]] step   1750 | batch {'nij': 6.749673090985081} | held-out {'acs_mean': 1.0000000017758594e-10, 'acs_sup': 1.0000000100846398e-10, 'nij_mean': 2.30067877990405, 'nij_sup': 6.683406492600783}
+[s4xs2/cs/s7 [ambient]] step   2000 | batch {'nij': 5.893412130400172} | held-out {'acs_mean': 1.0000000018275341e-10, 'acs_sup': 1.0000000119314573e-10, 'nij_mean': 2.232829543697607, 'nij_sup': 8.554393211981994}
+[s4xs2/cs/s7 [ambient]] step   2250 | batch {'nij': 6.6856251527990835} | held-out {'acs_mean': 1.0000000018310018e-10, 'acs_sup': 1.0000000114120682e-10, 'nij_mean': 2.275536544659733, 'nij_sup': 8.17890308150757}
+[s4xs2/cs/s7 [ambient]] step   2500 | batch {'nij': 6.014710423841197} | held-out {'acs_mean': 1.0000000019142953e-10, 'acs_sup': 1.0000000103758516e-10, 'nij_mean': 2.2388841529669246, 'nij_sup': 7.826780190547093}
+[s4xs2/cs/s7 [ambient]] lbfgs   100/200 (100 its, 104 evals) | held-out loss 9.768e+00 (best 5.285e+00) REVERTED
+[s4xs2/cs/s7 [ambient]] lbfgs   200/200 (100 its, 102 evals) | held-out loss 1.073e+01 (best 5.285e+00) REVERTED
+[s4xs2/cs/s7 [ambient]] RESULT: exact by construction | adv acs sup nan | adv Nij sup 1.050e+01 | dense {'acs_mean': 1.0000000018739043e-10, 'acs_sup': 1.0000000155620933e-10, 'nij_mean': 2.2262989871585477, 'nij_sup': 7.362308529258731} | chart cs = 6.897e+00 (table before 6.28)

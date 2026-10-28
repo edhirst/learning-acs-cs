@@ -1,0 +1,51 @@
+/Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/code/extra/../src/geometry/hopf_complex_structure_fixed.py:19: SyntaxWarning: invalid escape sequence '\ '
+  The Hopf manifold M = (ℂⁿ \ {0}) / (z ∼ e·z) is diffeomorphic to S^{2n−1} × S¹.
+/Users/agent/Projects/NijenhuisPINN/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[s3xs1/value/s7] base {'dir': '/Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s3xs1_s7', 'adv_acs_sup_raw': 7.148563751027735e-09, 'orientation_fix': 'reflect', 'acs_sup_used': 1.0000000001156906e-10, 'orientation_target': -1.0, 'orientation_base_raw': 1.0, 'orientation_base_used': -1.0, 'nij_mean': 2.8101266981255635, 'rel_dist_to_target': 1.0470752295397578}
+[s3xs1/value/s7] init {'rel_val_rms': 2.6849764819511623, 'rel_val_sup': 8.310451227040778, 'rel_der_rms': 4.021725101952389, 'rel_der_sup': 9.466820097508977, 'val_mse': 299.2046153911621, 'der_mse': 2685.1717623272593, 'nij_mean': 198.70381198097107, 'nij_sup': 1442.0719350519803, 'acs_sup': 1.0000127502058932e-10}
+[s3xs1/value/s7] step   1000 | {'val': 0.009172579093978001} | rel val 1.72e-02 (sup 3.3e-02) | rel der 2.37e-02 | ‖N‖ 9.351e-01 (sup 2.60e+00) | 0.4 min
+[s3xs1/value/s7] step   2000 | {'val': 0.007543946635430884} | rel val 1.17e-02 (sup 2.6e-02) | rel der 1.57e-02 | ‖N‖ 5.844e-01 (sup 1.82e+00) | 0.7 min
+[s3xs1/value/s7] step   3000 | {'val': 0.0062711839655996875} | rel val 1.28e-02 (sup 2.5e-02) | rel der 1.62e-02 | ‖N‖ 5.127e-01 (sup 1.63e+00) | 1.0 min
+[s3xs1/value/s7] step   4000 | {'val': 0.00787058351885772} | rel val 1.33e-02 (sup 3.1e-02) | rel der 1.77e-02 | ‖N‖ 7.054e-01 (sup 1.88e+00) | 1.3 min
+[s3xs1/value/s7] step   5000 | {'val': 0.00940471114591601} | rel val 1.08e-02 (sup 2.5e-02) | rel der 1.45e-02 | ‖N‖ 4.588e-01 (sup 1.38e+00) | 1.7 min
+[s3xs1/value/s7] step   6000 | {'val': 0.008532419841967601} | rel val 1.19e-02 (sup 2.0e-02) | rel der 1.50e-02 | ‖N‖ 4.934e-01 (sup 1.24e+00) | 2.0 min
+[s3xs1/value/s7] step   7000 | {'val': 0.005878548041528012} | rel val 1.19e-02 (sup 2.8e-02) | rel der 1.51e-02 | ‖N‖ 5.161e-01 (sup 1.50e+00) | 2.4 min
+[s3xs1/value/s7] step   8000 | {'val': 0.0008662711566702481} | rel val 4.86e-03 (sup 1.0e-02) | rel der 6.73e-03 | ‖N‖ 2.634e-01 (sup 7.29e-01) | 2.7 min
+[s3xs1/value/s7] step   9000 | {'val': 0.006460740990741819} | rel val 1.12e-02 (sup 2.2e-02) | rel der 1.42e-02 | ‖N‖ 5.625e-01 (sup 1.30e+00) | 3.0 min
+[s3xs1/value/s7] step  10000 | {'val': 0.0004324249676694405} | rel val 3.03e-03 (sup 5.9e-03) | rel der 4.52e-03 | ‖N‖ 1.920e-01 (sup 5.34e-01) | 3.4 min
+[s3xs1/value/s7] step  11000 | {'val': 0.00013864822445230785} | rel val 1.94e-03 (sup 4.0e-03) | rel der 3.02e-03 | ‖N‖ 1.364e-01 (sup 3.89e-01) | 3.7 min
+[s3xs1/value/s7] step  12000 | {'val': 0.0007149942829501547} | rel val 4.11e-03 (sup 7.0e-03) | rel der 5.37e-03 | ‖N‖ 1.831e-01 (sup 4.92e-01) | 4.0 min
+[s3xs1/value/s7] step  13000 | {'val': 0.003035990900018021} | rel val 8.30e-03 (sup 1.8e-02) | rel der 1.03e-02 | ‖N‖ 3.389e-01 (sup 9.76e-01) | 4.4 min
+[s3xs1/value/s7] step  14000 | {'val': 0.000580728359773351} | rel val 3.98e-03 (sup 7.5e-03) | rel der 5.81e-03 | ‖N‖ 2.628e-01 (sup 7.42e-01) | 4.7 min
+[s3xs1/value/s7] step  15000 | {'val': 9.200164023007115e-05} | rel val 1.31e-03 (sup 2.6e-03) | rel der 2.21e-03 | ‖N‖ 1.075e-01 (sup 2.65e-01) | 5.0 min
+[s3xs1/value/s7] step  16000 | {'val': 7.410282492093975e-05} | rel val 1.54e-03 (sup 2.9e-03) | rel der 2.32e-03 | ‖N‖ 9.848e-02 (sup 2.68e-01) | 5.3 min
+[s3xs1/value/s7] step  17000 | {'val': 0.00034395351108382124} | rel val 3.31e-03 (sup 7.3e-03) | rel der 4.65e-03 | ‖N‖ 1.674e-01 (sup 4.95e-01) | 5.7 min
+[s3xs1/value/s7] step  18000 | {'val': 0.0001272201116849578} | rel val 1.41e-03 (sup 3.1e-03) | rel der 2.15e-03 | ‖N‖ 9.613e-02 (sup 2.81e-01) | 6.0 min
+[s3xs1/value/s7] step  19000 | {'val': 0.0001814762148289695} | rel val 1.74e-03 (sup 4.1e-03) | rel der 2.49e-03 | ‖N‖ 1.186e-01 (sup 3.21e-01) | 6.3 min
+[s3xs1/value/s7] step  20000 | {'val': 0.0004852516876261204} | rel val 3.16e-03 (sup 8.2e-03) | rel der 4.60e-03 | ‖N‖ 1.923e-01 (sup 5.38e-01) | 6.6 min
+[s3xs1/value/s7] step  21000 | {'val': 0.00014557339049867707} | rel val 1.89e-03 (sup 4.0e-03) | rel der 2.62e-03 | ‖N‖ 1.165e-01 (sup 3.11e-01) | 7.0 min
+[s3xs1/value/s7] step  22000 | {'val': 0.00024928723007635424} | rel val 2.16e-03 (sup 4.0e-03) | rel der 3.17e-03 | ‖N‖ 1.272e-01 (sup 3.28e-01) | 7.3 min
+[s3xs1/value/s7] step  23000 | {'val': 0.0004508370455946899} | rel val 3.25e-03 (sup 7.0e-03) | rel der 4.59e-03 | ‖N‖ 1.770e-01 (sup 5.89e-01) | 7.6 min
+[s3xs1/value/s7] step  24000 | {'val': 5.215042496819445e-05} | rel val 1.21e-03 (sup 2.4e-03) | rel der 1.74e-03 | ‖N‖ 7.799e-02 (sup 2.15e-01) | 8.0 min
+[s3xs1/value/s7] step  25000 | {'val': 0.00033515525043407426} | rel val 2.79e-03 (sup 6.6e-03) | rel der 3.83e-03 | ‖N‖ 1.667e-01 (sup 5.28e-01) | 8.3 min
+[s3xs1/value/s7] step  26000 | {'val': 4.793215358500335e-05} | rel val 1.35e-03 (sup 3.0e-03) | rel der 1.91e-03 | ‖N‖ 8.328e-02 (sup 2.56e-01) | 8.6 min
+[s3xs1/value/s7] step  27000 | {'val': 3.021117157023274e-05} | rel val 8.59e-04 (sup 1.9e-03) | rel der 1.36e-03 | ‖N‖ 6.316e-02 (sup 1.59e-01) | 9.0 min
+[s3xs1/value/s7] step  28000 | {'val': 0.00012138510682994745} | rel val 1.51e-03 (sup 3.1e-03) | rel der 2.27e-03 | ‖N‖ 1.075e-01 (sup 2.92e-01) | 9.3 min
+[s3xs1/value/s7] step  29000 | {'val': 0.00011896098286162209} | rel val 1.94e-03 (sup 3.4e-03) | rel der 2.59e-03 | ‖N‖ 1.014e-01 (sup 2.76e-01) | 9.7 min
+[s3xs1/value/s7] step  30000 | {'val': 2.2368123831387876e-05} | rel val 7.23e-04 (sup 1.4e-03) | rel der 1.20e-03 | ‖N‖ 5.632e-02 (sup 1.42e-01) | 10.0 min
+[s3xs1/value/s7] step  31000 | {'val': 2.8851824294547735e-05} | rel val 9.85e-04 (sup 2.3e-03) | rel der 1.39e-03 | ‖N‖ 6.343e-02 (sup 1.59e-01) | 10.3 min
+[s3xs1/value/s7] step  32000 | {'val': 4.1665955398848225e-05} | rel val 1.42e-03 (sup 2.6e-03) | rel der 1.82e-03 | ‖N‖ 6.497e-02 (sup 1.69e-01) | 10.7 min
+[s3xs1/value/s7] step  33000 | {'val': 9.159771187962893e-06} | rel val 5.67e-04 (sup 1.1e-03) | rel der 9.93e-04 | ‖N‖ 4.622e-02 (sup 1.20e-01) | 11.0 min
+[s3xs1/value/s7] step  34000 | {'val': 4.964927594029935e-06} | rel val 3.82e-04 (sup 8.2e-04) | rel der 8.11e-04 | ‖N‖ 3.895e-02 (sup 1.06e-01) | 11.4 min
+[s3xs1/value/s7] step  35000 | {'val': 4.855973586021376e-06} | rel val 3.58e-04 (sup 8.0e-04) | rel der 7.79e-04 | ‖N‖ 3.911e-02 (sup 1.04e-01) | 11.7 min
+[s3xs1/value/s7] step  36000 | {'val': 4.422668598289122e-06} | rel val 3.52e-04 (sup 6.6e-04) | rel der 7.59e-04 | ‖N‖ 3.882e-02 (sup 9.36e-02) | 12.0 min
+[s3xs1/value/s7] step  37000 | {'val': 3.72420662074267e-06} | rel val 2.92e-04 (sup 5.4e-04) | rel der 7.19e-04 | ‖N‖ 3.694e-02 (sup 9.36e-02) | 12.4 min
+[s3xs1/value/s7] step  38000 | {'val': 2.9900247897296462e-06} | rel val 2.78e-04 (sup 5.8e-04) | rel der 6.97e-04 | ‖N‖ 3.689e-02 (sup 9.88e-02) | 12.7 min
+[s3xs1/value/s7] step  39000 | {'val': 2.6850877539433472e-06} | rel val 2.49e-04 (sup 5.2e-04) | rel der 6.75e-04 | ‖N‖ 3.605e-02 (sup 8.34e-02) | 13.0 min
+[s3xs1/value/s7] step  40000 | {'val': 3.1571715537569875e-06} | rel val 2.87e-04 (sup 6.0e-04) | rel der 6.86e-04 | ‖N‖ 3.474e-02 (sup 9.09e-02) | 13.4 min
+[s3xs1/value/s7] lbfgs 100/400 | held-out loss 2.249e-06 (best 2.249e-06)
+[s3xs1/value/s7] lbfgs 200/400 | held-out loss 2.240e-06 (best 2.240e-06)
+[s3xs1/value/s7] lbfgs 300/400 | held-out loss 2.269e-06 (best 2.240e-06) REVERTED
+[s3xs1/value/s7] lbfgs 400/400 | held-out loss 2.241e-06 (best 2.240e-06) REVERTED
+[s3xs1/value/s7] RESULT | rel val rms 2.30e-04 sup 4.84e-04 (adv 5.16e-04) | rel der rms 6.57e-04 | intrinsic ‖N‖ mean 3.494e-02 sup 9.342e-02 (adv 1.040e-01) | chart ‖N‖ 9.026e-02 | chart-vs-main {'J_fit': 2.0145650679112535e-06, 'dJ_fit': 0.0005715667154778132, 'rel_J': 0.00028543637638582997, 'rel_dJ': 0.0009383109023899407, 'nij_flat_mean': 0.07466766635488045}

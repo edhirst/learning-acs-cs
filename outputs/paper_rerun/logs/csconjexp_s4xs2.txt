@@ -1,0 +1,24 @@
+/Users/agent/Projects/NijenhuisPINN/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[s4xs2/cs/s7 [ambient]] base ACS from /Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s4xs2_s7: adversarial raw sup 0.000, polar-corrected residual 1.0e-10, Nij mean 1.519e+01
+[s4xs2/cs/s7 [ambient]] fast CS loss verified (max rel. dev. 6.2e-15)
+[s4xs2/cs/s7 [ambient]] init: {'nij': 88403.13634530587}
+[s4xs2/cs/s7 [ambient]] step    250 | batch {'nij': 24.22663467857639} | held-out {'acs_mean': 1.0000000016461572e-10, 'acs_sup': 1.0000000081641982e-10, 'nij_mean': 4.653582868059636, 'nij_sup': 10.766925637512088}
+[s4xs2/cs/s7 [ambient]] step    500 | batch {'nij': 11.23967563121333} | held-out {'acs_mean': 1.000000001780458e-10, 'acs_sup': 1.0000000084480026e-10, 'nij_mean': 2.998784906479152, 'nij_sup': 18.00017073397726}
+[s4xs2/cs/s7 [ambient]] step    750 | batch {'nij': 6.003736376492104} | held-out {'acs_mean': 1.0000000018546387e-10, 'acs_sup': 1.0000000087379722e-10, 'nij_mean': 2.4049684663751716, 'nij_sup': 19.49086188903167}
+[s4xs2/cs/s7 [ambient]] step   1000 | batch {'nij': 5.47425297390733} | held-out {'acs_mean': 1.0000000018645966e-10, 'acs_sup': 1.0000000174396726e-10, 'nij_mean': 2.0136202490552693, 'nij_sup': 22.72814478166789}
+[s4xs2/cs/s7 [ambient]] step   1250 | batch {'nij': 3.443291550005828} | held-out {'acs_mean': 1.0000000018984051e-10, 'acs_sup': 1.000000010378341e-10, 'nij_mean': 1.818129278217054, 'nij_sup': 14.034908460965182}
+[s4xs2/cs/s7 [ambient]] step   1500 | batch {'nij': 5.3447136151399635} | held-out {'acs_mean': 1.0000000018227309e-10, 'acs_sup': 1.0000000085914135e-10, 'nij_mean': 1.707024216584525, 'nij_sup': 18.720835203401123}
+[s4xs2/cs/s7 [ambient]] step   1750 | batch {'nij': 2.80372447595844} | held-out {'acs_mean': 1.0000000019543594e-10, 'acs_sup': 1.0000000180441827e-10, 'nij_mean': 1.483195756663293, 'nij_sup': 18.273017153582213}
+[s4xs2/cs/s7 [ambient]] step   2000 | batch {'nij': 3.461542838466427} | held-out {'acs_mean': 1.0000000019449665e-10, 'acs_sup': 1.0000000168872854e-10, 'nij_mean': 1.3223412896917883, 'nij_sup': 18.91829679099705}
+[s4xs2/cs/s7 [ambient]] step   2250 | batch {'nij': 1.637015626883769} | held-out {'acs_mean': 1.0000000019371282e-10, 'acs_sup': 1.000000015096681e-10, 'nij_mean': 1.2993953805885758, 'nij_sup': 31.14446981860103}
+[s4xs2/cs/s7 [ambient]] step   2500 | batch {'nij': 2.162261682382358} | held-out {'acs_mean': 1.0000000019193851e-10, 'acs_sup': 1.0000000114234705e-10, 'nij_mean': 1.2281072206115295, 'nij_sup': 18.54307316906685}
+[s4xs2/cs/s7 [ambient]] step   2750 | batch {'nij': 1.6206161618218449} | held-out {'acs_mean': 1.0000000019595507e-10, 'acs_sup': 1.0000000098281452e-10, 'nij_mean': 1.0248305593936708, 'nij_sup': 18.817835241125813}
+[s4xs2/cs/s7 [ambient]] step   3000 | batch {'nij': 1.3293555016418583} | held-out {'acs_mean': 1.0000000019842899e-10, 'acs_sup': 1.0000000128871447e-10, 'nij_mean': 0.9956034452534629, 'nij_sup': 15.181874657094578}
+[s4xs2/cs/s7 [ambient]] step   3250 | batch {'nij': 1.9247600740653337} | held-out {'acs_mean': 1.0000000019821746e-10, 'acs_sup': 1.000000015242791e-10, 'nij_mean': 0.9677715803671564, 'nij_sup': 40.043620015532206}
+[s4xs2/cs/s7 [ambient]] step   3500 | batch {'nij': 0.936473277766216} | held-out {'acs_mean': 1.0000000020074303e-10, 'acs_sup': 1.0000000125333038e-10, 'nij_mean': 0.8884345634362756, 'nij_sup': 32.56345356562916}
+[s4xs2/cs/s7 [ambient]] step   3750 | batch {'nij': 1.681888330497128} | held-out {'acs_mean': 1.0000000020404231e-10, 'acs_sup': 1.0000000189335374e-10, 'nij_mean': 0.8566978846283313, 'nij_sup': 12.432837573426198}
+[s4xs2/cs/s7 [ambient]] step   4000 | batch {'nij': 1.9230499298622894} | held-out {'acs_mean': 1.0000000019528305e-10, 'acs_sup': 1.0000000135742783e-10, 'nij_mean': 0.869181715734136, 'nij_sup': 13.063950020883444}
+[s4xs2/cs/s7 [ambient]] lbfgs   100/200 (100 its, 101 evals) | held-out loss 4.376e+00 (best 1.295e+00) REVERTED
+[s4xs2/cs/s7 [ambient]] lbfgs   200/200 (100 its, 107 evals) | held-out loss 3.095e+00 (best 1.295e+00) REVERTED
+[s4xs2/cs/s7 [ambient]] RESULT: exact by construction | adv acs sup nan | adv Nij sup 7.936e+01 | dense {'acs_mean': 1.0000000020140473e-10, 'acs_sup': 1.0000000179414008e-10, 'nij_mean': 0.8553371242170492, 'nij_sup': 47.426204987317846} | chart cs = 2.528e+00 (table before 6.28)

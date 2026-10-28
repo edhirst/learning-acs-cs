@@ -15,6 +15,15 @@ env/
 
 # Training outputs
 outputs/**
+# ...except the run records of the paper's campaign (experiments/run_all.py). Checkpoints
+# stay out (*.pt below), as do the frozen code copy and the manuscript-editing notes.
+!outputs/paper_rerun/
+!outputs/paper_rerun/**
+outputs/paper_rerun/code/
+outputs/paper_rerun/code_state/changes_vs_main.*
+outputs/paper_rerun/code_state/files.txt
+outputs/paper_rerun/figures_done.txt
+outputs/paper_rerun/PAPER_*.md
 
 # PyTorch checkpoints (track zipped archives only)
 *.pt

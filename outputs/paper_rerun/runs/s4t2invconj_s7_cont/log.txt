@@ -1,0 +1,36 @@
+ACS deg 1 plain : mean |K^2+P| 1.00e-10 max 1.00e-10 adv 1.000e-10 -> ACCEPT
+warm start from /Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/s4t2invconj_s7
+step     1 | batch 1.104e-02 | held-out mean 4.526e-01 max 1.005e+01 | 1.2 min
+step   250 | batch 4.924e-02 | held-out mean 1.520e-01 max 7.625e-01 | 3.6 min
+step   500 | batch 2.462e-02 | held-out mean 1.392e-01 max 6.683e-01 | 5.7 min
+step   750 | batch 2.589e-02 | held-out mean 1.406e-01 max 8.364e-01 | 7.8 min
+step  1000 | batch 2.190e-02 | held-out mean 1.329e-01 max 6.896e-01 | 9.7 min
+step  1250 | batch 1.999e-02 | held-out mean 1.304e-01 max 9.610e-01 | 11.7 min
+step  1500 | batch 3.353e-02 | held-out mean 1.362e-01 max 6.396e-01 | 13.7 min
+step  1750 | batch 3.085e-02 | held-out mean 1.331e-01 max 7.270e-01 | 15.6 min
+step  2000 | batch 1.957e-02 | held-out mean 1.225e-01 max 6.089e-01 | 17.6 min
+step  2250 | batch 2.652e-02 | held-out mean 1.281e-01 max 8.102e-01 | 19.5 min
+step  2500 | batch 1.980e-02 | held-out mean 1.295e-01 max 4.747e-01 | 21.5 min
+step  2750 | batch 4.402e-02 | held-out mean 1.411e-01 max 9.653e-01 | 23.5 min
+step  3000 | batch 1.954e-02 | held-out mean 1.207e-01 max 7.023e-01 | 25.4 min
+step  3250 | batch 1.881e-02 | held-out mean 1.158e-01 max 4.105e-01 | 27.4 min
+step  3500 | batch 2.643e-02 | held-out mean 1.153e-01 max 6.302e-01 | 29.4 min
+step  3750 | batch 1.650e-02 | held-out mean 1.070e-01 max 6.385e-01 | 31.4 min
+step  4000 | batch 2.078e-02 | held-out mean 1.053e-01 max 8.402e-01 | 33.2 min
+step  4250 | batch 1.335e-02 | held-out mean 9.925e-02 max 5.638e-01 | 35.1 min
+step  4500 | batch 1.658e-02 | held-out mean 9.674e-02 max 5.256e-01 | 36.9 min
+step  4750 | batch 1.666e-02 | held-out mean 1.029e-01 max 6.560e-01 | 38.8 min
+step  5000 | batch 1.456e-02 | held-out mean 9.612e-02 max 6.662e-01 | 40.6 min
+step  5250 | batch 1.048e-02 | held-out mean 8.900e-02 max 4.483e-01 | 42.4 min
+step  5500 | batch 8.566e-03 | held-out mean 8.357e-02 max 3.551e-01 | 44.3 min
+step  5750 | batch 9.748e-03 | held-out mean 8.154e-02 max 4.721e-01 | 46.2 min
+step  6000 | batch 8.578e-03 | held-out mean 7.831e-02 max 2.831e-01 | 48.0 min
+step  6250 | batch 8.076e-03 | held-out mean 7.877e-02 max 4.183e-01 | 49.9 min
+step  6500 | batch 6.671e-03 | held-out mean 7.520e-02 max 5.178e-01 | 51.8 min
+step  6750 | batch 6.743e-03 | held-out mean 7.333e-02 max 4.215e-01 | 53.7 min
+step  7000 | batch 5.774e-03 | held-out mean 7.110e-02 max 6.971e-01 | 55.5 min
+step  7250 | batch 6.581e-03 | held-out mean 7.114e-02 max 4.569e-01 | 57.4 min
+step  7500 | batch 5.065e-03 | held-out mean 6.955e-02 max 7.069e-01 | 59.2 min
+step  7750 | batch 5.519e-03 | held-out mean 6.911e-02 max 6.854e-01 | 61.1 min
+step  8000 | batch 7.753e-03 | held-out mean 6.822e-02 max 5.481e-01 | 63.0 min
+RESULT: N mean 6.819e-02 max 4.589e-01 adversarial 7.333e-01 (|J^2+P| 1.0e-10)

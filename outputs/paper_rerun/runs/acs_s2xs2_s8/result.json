@@ -1,0 +1,123 @@
+{
+  "case": "s2xs2",
+  "task": "acs",
+  "seed": 8,
+  "formulation": "ambient",
+  "hidden": [
+    128,
+    128,
+    128
+  ],
+  "stages": 1,
+  "model_type": "curriculum",
+  "feat": "lin",
+  "conj": "exp",
+  "cs_scale": 0.5,
+  "fast_cs": false,
+  "ladder": [
+    {
+      "phase": "poly",
+      "feat": "c",
+      "attempt": "plain",
+      "lam0": 0.0,
+      "orient_sign": null,
+      "n_params": 36,
+      "elapsed_min": 0.02513701915740967,
+      "adv_acs_sup": 1.4235473036392563,
+      "acs_mean": 0.9375422988746104,
+      "acs_sup": 1.4235181810290414,
+      "nij_mean": 3.466471024627217,
+      "nij_sup": 3.893111279442037
+    },
+    {
+      "phase": "poly",
+      "feat": "c",
+      "attempt": "dirichlet",
+      "lam0": 3.0,
+      "orient_sign": null,
+      "n_params": 36,
+      "elapsed_min": 0.26609473625818886,
+      "adv_acs_sup": 1.4231633290729226,
+      "acs_mean": 0.9281032845631149,
+      "acs_sup": 1.4230977790668455,
+      "nij_mean": 3.4547141847235845,
+      "nij_sup": 3.8882884941730875
+    },
+    {
+      "phase": "poly",
+      "feat": "c",
+      "attempt": "orient",
+      "lam0": 1.0,
+      "orient_sign": -1.0,
+      "n_params": 36,
+      "elapsed_min": 0.3403258164723714,
+      "adv_acs_sup": 1.4146739926748417,
+      "acs_mean": 0.9713906427783063,
+      "acs_sup": 1.4146726352627246,
+      "nij_mean": 3.0620379626339354,
+      "nij_sup": 3.4224952212969777
+    },
+    {
+      "phase": "poly",
+      "feat": "lin",
+      "attempt": "plain",
+      "lam0": 0.0,
+      "orient_sign": null,
+      "n_params": 216,
+      "elapsed_min": 0.3655385375022888,
+      "adv_acs_sup": 0.01629324536573397,
+      "acs_mean": 0.007385910560283849,
+      "acs_sup": 0.01576687223790074,
+      "nij_mean": 0.042783298076737176,
+      "nij_sup": 0.07516698699298335
+    }
+  ],
+  "base": null,
+  "init_from": null,
+  "tail": false,
+  "lr": 0.001,
+  "lbfgs": [
+    {
+      "phase": "lbfgs",
+      "iters_done": 200,
+      "iters_run": 200,
+      "func_evals": 209,
+      "val_loss": 1.329868867930507e-09,
+      "best_val": 1.3149184573244037e-09,
+      "reverted": true,
+      "elapsed_min": 0.9291048526763916
+    }
+  ],
+  "refinement": {
+    "adv_polynomial": 0.01629324536573397,
+    "adv_refined": 8.871199216802788e-05,
+    "kept": true
+  },
+  "steps_done": 10000,
+  "steps_planned": 10000,
+  "stopped_by_wall": false,
+  "elapsed_min": 1.3660566687583924,
+  "init": {
+    "acs": 4.514690547274535
+  },
+  "exact_acs_by_construction": false,
+  "table_before": 0.00927,
+  "dense": {
+    "acs_mean": 3.440482580887032e-05,
+    "acs_sup": 8.224976571673868e-05,
+    "nij_mean": 0.0008519471078843229,
+    "nij_sup": 0.0020284183861836325
+  },
+  "adv_acs_sup": 8.871199216833359e-05,
+  "corrected": {
+    "acs_mean": 1.0000000000210794e-10,
+    "acs_sup": 1.00000000014089e-10,
+    "nij_mean": 0.0008355159871443724,
+    "nij_sup": 0.00208743008388131,
+    "adv_acs_sup": 1.0000000001892117e-10
+  },
+  "certified_exact_acs": true,
+  "adv_nij_sup": 0.002166267813613546,
+  "chart_cs": 0.0029169323697045436,
+  "chart_acs": 1.0000000000472446e-10
+}

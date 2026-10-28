@@ -1,0 +1,20 @@
+/Users/agent/Projects/NijenhuisPINN/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[s4xs2/cs/s7 [ambient]] base ACS from /Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s4xs2_s7: adversarial raw sup 0.000, polar-corrected residual 1.0e-10, Nij mean 1.519e+01
+[s4xs2/cs/s7 [ambient]] poly class 2: 2880 params, init lsq(base) (fit sup 1.65e-02), adversarial |K^2+P| 0.024, held-out N2 2.301e+02 C2 2.163e-04
+[s4xs2/cs/s7 [ambient]] poly 2 adam   500 | held-out N2 3.187e+00 C2 2.223e-01
+[s4xs2/cs/s7 [ambient]] poly 2 adam  1000 | held-out N2 2.921e+00 C2 2.011e-01
+[s4xs2/cs/s7 [ambient]] poly 2 adam  1500 | held-out N2 2.966e+00 C2 2.112e-01
+[s4xs2/cs/s7 [ambient]] poly 2 adam  2000 | held-out N2 2.810e+00 C2 2.133e-01
+[s4xs2/cs/s7 [ambient]] poly 2 LM round 1 (128 pts, 8 it) | train 3.196e+00 | held-out N2 3.837e+00 C2 2.603e-01 | 1.5 min
+[s4xs2/cs/s7 [ambient]] poly 2 LM round 2 (128 pts, 8 it) | train 3.832e+00 | held-out N2 4.163e+00 C2 3.095e-01 | 2.0 min
+[s4xs2/cs/s7 [ambient]] poly 2 LM round 3 (128 pts, 8 it) | train 3.603e+00 | held-out N2 3.655e+00 C2 2.564e-01 | 2.5 min
+[s4xs2/cs/s7 [ambient]] poly 2: LM stalled (held-out 6.22e+00, best 6.44e+00)
+[s4xs2/cs/s7 [ambient]] poly 2: held-out loss 6.35e+00 >= 1e-16 -> climb
+[s4xs2/cs/s7 [ambient]] poly class 3: 10560 params, init pad(2) (fit sup None), adversarial |K^2+P| 2.000, held-out N2 4.036e+00 C2 2.641e-01
+[s4xs2/cs/s7 [ambient]] poly 3 LM round 1 (192 pts, 8 it) | train 8.911e-01 | held-out N2 5.302e+00 C2 2.175e-01 | 5.7 min
+[s4xs2/cs/s7 [ambient]] poly 3 LM round 2 (192 pts, 8 it) | train 1.240e+00 | held-out N2 6.602e+00 C2 2.484e-01 | 9.1 min
+[s4xs2/cs/s7 [ambient]] poly 3 LM round 3 (192 pts, 8 it) | train 1.213e+00 | held-out N2 6.166e+00 C2 2.700e-01 | 12.3 min
+[s4xs2/cs/s7 [ambient]] poly 3: LM stalled (held-out 8.87e+00, best 7.48e+00)
+[s4xs2/cs/s7 [ambient]] poly 3: held-out loss 8.58e+00 >= 1e-16 -> climb
+[s4xs2/cs/s7 [ambient]] RESULT (poly 2): ACS NOT certified | CS no (adv sup |N| vs 1e-06) | adv |K^2+P| 2.00e+00 | corrected N mean nan max nan | adv N sup 5.291e+00 | chart cs 5.578e+00 (table before 6.28)

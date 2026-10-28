@@ -1,0 +1,11 @@
+/Users/agent/Projects/NijenhuisPINN/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+s2 1.0000002968734616
+s6 1.0000163209298376
+s1xs1 1.0000212185052506
+s2xs2 1.0000011604286825
+s3xs1 1.000021205751549
+s3xs3 1.0000248347845462
+s4xs2 1.0000460182344515
+s5xs1 1.000114528958467
+s4xs1xs1 1.000003049784398

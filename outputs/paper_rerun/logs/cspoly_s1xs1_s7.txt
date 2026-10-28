@@ -1,0 +1,14 @@
+/Users/agent/Projects/NijenhuisPINN/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[s1xs1/cs/s7 [ambient]] base ACS from /Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s1xs1_s7: adversarial raw sup 0.000, polar-corrected residual 1.0e-10, Nij mean 1.000e-10
+[s1xs1/cs/s7 [ambient]] poly class 2: 240 params, init lsq(base) (fit sup 8.88e-10), adversarial |K^2+P| 0.000, held-out N2 2.222e-31 C2 2.741e-31
+[s1xs1/cs/s7 [ambient]] poly 2 adam   500 | held-out N2 1.825e-10 C2 6.922e-11
+[s1xs1/cs/s7 [ambient]] poly 2 adam  1000 | held-out N2 3.037e-08 C2 1.325e-08
+[s1xs1/cs/s7 [ambient]] poly 2 adam  1500 | held-out N2 2.728e-13 C2 2.593e-14
+[s1xs1/cs/s7 [ambient]] poly 2 adam  2000 | held-out N2 2.318e-13 C2 1.975e-14
+[s1xs1/cs/s7 [ambient]] poly 2 LM round 1 (128 pts, 8 it) | train 1.681e-13 | held-out N2 1.412e-13 C2 1.284e-14 | 0.1 min
+[s1xs1/cs/s7 [ambient]] poly 2 LM round 2 (128 pts, 8 it) | train 3.990e-18 | held-out N2 3.186e-18 C2 2.357e-19 | 0.1 min
+[s1xs1/cs/s7 [ambient]] poly 2 LM round 3 (128 pts, 8 it) | train 1.655e-20 | held-out N2 5.389e-21 C2 1.096e-21 | 0.1 min
+[s1xs1/cs/s7 [ambient]] poly 2 LM round 4 (128 pts, 8 it) | train 4.478e-22 | held-out N2 3.968e-22 C2 3.508e-23 | 0.1 min
+[s1xs1/cs/s7 [ambient]] poly 2: ACCEPT (held-out loss 8.12e-22, adversarial sup |N(J*)| 1.00e-10 < 1e-06)
+[s1xs1/cs/s7 [ambient]] RESULT (poly 2): ACS CERTIFIED | CS YES (adv sup |N| vs 1e-06) | adv |K^2+P| 1.04e-10 | corrected N mean 1.000e-10 max 1.000e-10 | adv N sup 1.000e-10 | chart cs 1.000e-10 (table before 0.00019)

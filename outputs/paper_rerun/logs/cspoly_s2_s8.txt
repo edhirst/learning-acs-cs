@@ -1,0 +1,24 @@
+/Users/agent/Projects/NijenhuisPINN/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[s2/cs/s8 [ambient]] base ACS from /Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s2_s8: adversarial raw sup 0.000, polar-corrected residual 1.0e-10, Nij mean 1.000e-10
+[s2/cs/s8 [ambient]] poly class 2: 90 params, init lsq(base) (fit sup 5.88e-09), adversarial |K^2+P| 0.000, held-out N2 6.228e-19 C2 5.549e-20
+[s2/cs/s8 [ambient]] poly 2 adam   500 | held-out N2 6.797e-07 C2 2.541e-07
+[s2/cs/s8 [ambient]] poly 2 adam  1000 | held-out N2 1.480e-12 C2 2.301e-13
+[s2/cs/s8 [ambient]] poly 2 adam  1500 | held-out N2 1.203e-12 C2 8.108e-14
+[s2/cs/s8 [ambient]] poly 2 adam  2000 | held-out N2 1.127e-12 C2 5.247e-14
+[s2/cs/s8 [ambient]] poly 2 LM round 1 (128 pts, 8 it) | train 1.303e-12 | held-out N2 1.177e-12 C2 5.303e-14 | 0.1 min
+[s2/cs/s8 [ambient]] poly 2 LM round 2 (128 pts, 8 it) | train 5.692e-16 | held-out N2 4.612e-16 C2 2.319e-17 | 0.1 min
+[s2/cs/s8 [ambient]] poly 2 LM round 3 (128 pts, 8 it) | train 1.073e-16 | held-out N2 9.843e-17 C2 4.713e-18 | 0.1 min
+[s2/cs/s8 [ambient]] poly 2 LM round 4 (128 pts, 8 it) | train 3.187e-17 | held-out N2 2.501e-17 C2 1.296e-18 | 0.1 min
+[s2/cs/s8 [ambient]] poly 2 LM round 5 (128 pts, 8 it) | train 7.353e-18 | held-out N2 5.880e-18 C2 2.841e-19 | 0.1 min
+[s2/cs/s8 [ambient]] poly 2 LM round 6 (128 pts, 8 it) | train 2.494e-18 | held-out N2 2.905e-18 C2 1.275e-19 | 0.1 min
+[s2/cs/s8 [ambient]] poly 2 LM round 7 (128 pts, 8 it) | train 1.165e-18 | held-out N2 7.384e-19 C2 5.328e-20 | 0.1 min
+[s2/cs/s8 [ambient]] poly 2 LM round 8 (128 pts, 8 it) | train 3.288e-19 | held-out N2 2.757e-19 C2 1.354e-20 | 0.1 min
+[s2/cs/s8 [ambient]] poly 2 LM round 9 (128 pts, 8 it) | train 1.442e-19 | held-out N2 1.217e-19 C2 5.255e-21 | 0.1 min
+[s2/cs/s8 [ambient]] poly 2 LM round 10 (128 pts, 8 it) | train 9.013e-20 | held-out N2 5.477e-20 C2 4.763e-21 | 0.1 min
+[s2/cs/s8 [ambient]] poly 2 LM round 11 (128 pts, 8 it) | train 2.676e-20 | held-out N2 2.243e-20 C2 1.055e-21 | 0.1 min
+[s2/cs/s8 [ambient]] poly 2 LM round 12 (128 pts, 8 it) | train 1.453e-20 | held-out N2 1.268e-20 C2 5.187e-22 | 0.1 min
+[s2/cs/s8 [ambient]] poly 2 LM round 13 (128 pts, 8 it) | train 9.431e-21 | held-out N2 8.356e-21 C2 3.373e-22 | 0.1 min
+[s2/cs/s8 [ambient]] poly 2 LM round 14 (128 pts, 8 it) | train 6.132e-21 | held-out N2 5.581e-21 C2 2.678e-22 | 0.1 min
+[s2/cs/s8 [ambient]] poly 2: ACCEPT (held-out loss 8.17e-21, adversarial sup |N(J*)| 1.00e-10 < 1e-06)
+[s2/cs/s8 [ambient]] RESULT (poly 2): ACS CERTIFIED | CS YES (adv sup |N| vs 1e-06) | adv |K^2+P| 1.10e-10 | corrected N mean 1.000e-10 max 1.000e-10 | adv N sup 1.000e-10 | chart cs 1.000e-10 (table before 0.000527)

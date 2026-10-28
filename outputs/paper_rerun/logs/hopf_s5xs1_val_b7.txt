@@ -1,0 +1,89 @@
+/Users/agent/Projects/NijenhuisPINN/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[s5xs1/value/s7] base {'dir': '/Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s5xs1_s7', 'adv_acs_sup_raw': 9.652314885245891e-05, 'orientation_fix': 'negate', 'acs_sup_used': 1.0000000001563489e-10, 'orientation_target': -1.0, 'orientation_base_raw': 1.0, 'orientation_base_used': -1.0, 'nij_mean': 16.99613548152551, 'rel_dist_to_target': 1.0894215891406807}
+[s5xs1/value/s7] init {'rel_val_rms': 5.202953973519932, 'rel_val_sup': 13.32387017346711, 'rel_der_rms': 7.859520273346959, 'rel_der_sup': 14.979943211671072, 'val_mse': 1177.6782155960698, 'der_mse': 15629.720001666668, 'nij_mean': 931.012756034377, 'nij_sup': 4308.908365834897, 'acs_sup': 1.000175938714474e-10}
+[s5xs1/value/s7] step   1000 | {'val': 0.03262624883734717} | rel val 2.67e-02 (sup 5.5e-02) | rel der 4.41e-02 | ‖N‖ 2.500e+00 (sup 7.40e+00) | 0.9 min
+[s5xs1/value/s7] step   2000 | {'val': 0.02510217619138405} | rel val 2.48e-02 (sup 4.9e-02) | rel der 3.65e-02 | ‖N‖ 1.862e+00 (sup 4.26e+00) | 1.7 min
+[s5xs1/value/s7] step   3000 | {'val': 0.018907282329818406} | rel val 2.03e-02 (sup 4.2e-02) | rel der 3.04e-02 | ‖N‖ 1.706e+00 (sup 4.20e+00) | 2.5 min
+[s5xs1/value/s7] step   4000 | {'val': 0.015258485396806909} | rel val 1.75e-02 (sup 3.9e-02) | rel der 2.58e-02 | ‖N‖ 1.411e+00 (sup 4.24e+00) | 3.4 min
+[s5xs1/value/s7] step   5000 | {'val': 0.007595446364986468} | rel val 1.38e-02 (sup 2.8e-02) | rel der 2.22e-02 | ‖N‖ 1.203e+00 (sup 3.19e+00) | 4.2 min
+[s5xs1/value/s7] step   6000 | {'val': 0.006034792113326981} | rel val 1.31e-02 (sup 2.6e-02) | rel der 1.89e-02 | ‖N‖ 8.496e-01 (sup 2.21e+00) | 5.1 min
+[s5xs1/value/s7] step   7000 | {'val': 0.003740268011753993} | rel val 8.78e-03 (sup 1.8e-02) | rel der 1.43e-02 | ‖N‖ 8.017e-01 (sup 2.33e+00) | 5.9 min
+[s5xs1/value/s7] step   8000 | {'val': 0.0029421064945601683} | rel val 8.46e-03 (sup 1.7e-02) | rel der 1.32e-02 | ‖N‖ 7.435e-01 (sup 2.42e+00) | 6.7 min
+[s5xs1/value/s7] step   9000 | {'val': 0.004773536964210216} | rel val 1.15e-02 (sup 2.1e-02) | rel der 1.72e-02 | ‖N‖ 9.127e-01 (sup 2.30e+00) | 7.6 min
+[s5xs1/value/s7] step  10000 | {'val': 0.004317819383220232} | rel val 9.62e-03 (sup 2.0e-02) | rel der 1.44e-02 | ‖N‖ 7.391e-01 (sup 1.94e+00) | 8.4 min
+[s5xs1/value/s7] step  11000 | {'val': 0.0024832385485332557} | rel val 6.50e-03 (sup 1.7e-02) | rel der 1.10e-02 | ‖N‖ 6.036e-01 (sup 1.61e+00) | 9.3 min
+[s5xs1/value/s7] step  12000 | {'val': 0.0024258004367590197} | rel val 7.90e-03 (sup 1.6e-02) | rel der 1.26e-02 | ‖N‖ 7.227e-01 (sup 2.30e+00) | 10.1 min
+[s5xs1/value/s7] step  13000 | {'val': 0.005295932421480752} | rel val 1.03e-02 (sup 2.1e-02) | rel der 1.60e-02 | ‖N‖ 8.598e-01 (sup 2.17e+00) | 11.0 min
+[s5xs1/value/s7] step  14000 | {'val': 0.007179009022933312} | rel val 1.26e-02 (sup 2.6e-02) | rel der 1.76e-02 | ‖N‖ 7.996e-01 (sup 1.70e+00) | 11.8 min
+[s5xs1/value/s7] step  15000 | {'val': 0.001968777050375065} | rel val 5.96e-03 (sup 1.3e-02) | rel der 1.01e-02 | ‖N‖ 5.642e-01 (sup 1.74e+00) | 12.7 min
+[s5xs1/value/s7] step  16000 | {'val': 0.0033895903644961954} | rel val 9.29e-03 (sup 2.1e-02) | rel der 1.45e-02 | ‖N‖ 7.920e-01 (sup 2.76e+00) | 13.5 min
+[s5xs1/value/s7] step  17000 | {'val': 0.0017658678372111114} | rel val 6.43e-03 (sup 1.1e-02) | rel der 1.03e-02 | ‖N‖ 5.937e-01 (sup 1.29e+00) | 14.4 min
+[s5xs1/value/s7] step  18000 | {'val': 0.005282149493439696} | rel val 9.42e-03 (sup 2.1e-02) | rel der 1.44e-02 | ‖N‖ 8.118e-01 (sup 2.34e+00) | 15.2 min
+[s5xs1/value/s7] step  19000 | {'val': 0.0023862653592680925} | rel val 8.08e-03 (sup 1.8e-02) | rel der 1.21e-02 | ‖N‖ 7.243e-01 (sup 2.26e+00) | 16.1 min
+[s5xs1/value/s7] step  20000 | {'val': 0.0012234226696868442} | rel val 5.40e-03 (sup 1.1e-02) | rel der 8.67e-03 | ‖N‖ 5.233e-01 (sup 1.53e+00) | 16.9 min
+[s5xs1/value/s7] step  21000 | {'val': 0.0024023695342078343} | rel val 6.96e-03 (sup 1.3e-02) | rel der 1.09e-02 | ‖N‖ 6.554e-01 (sup 1.76e+00) | 17.8 min
+[s5xs1/value/s7] step  22000 | {'val': 0.002066991175087192} | rel val 7.39e-03 (sup 1.3e-02) | rel der 1.07e-02 | ‖N‖ 5.542e-01 (sup 1.53e+00) | 18.6 min
+[s5xs1/value/s7] step  23000 | {'val': 0.0018864139478523504} | rel val 6.29e-03 (sup 1.4e-02) | rel der 9.73e-03 | ‖N‖ 5.649e-01 (sup 1.22e+00) | 19.5 min
+[s5xs1/value/s7] step  24000 | {'val': 0.0011942216315068003} | rel val 4.78e-03 (sup 9.4e-03) | rel der 8.01e-03 | ‖N‖ 4.520e-01 (sup 9.99e-01) | 20.3 min
+[s5xs1/value/s7] step  25000 | {'val': 0.0025854463933625738} | rel val 6.72e-03 (sup 1.4e-02) | rel der 1.05e-02 | ‖N‖ 5.920e-01 (sup 1.38e+00) | 21.2 min
+[s5xs1/value/s7] step  26000 | {'val': 0.0014194452578653594} | rel val 5.51e-03 (sup 9.9e-03) | rel der 8.44e-03 | ‖N‖ 4.918e-01 (sup 1.33e+00) | 22.0 min
+[s5xs1/value/s7] step  27000 | {'val': 0.0016182211574973023} | rel val 5.27e-03 (sup 1.1e-02) | rel der 8.29e-03 | ‖N‖ 4.620e-01 (sup 1.21e+00) | 23.0 min
+[s5xs1/value/s7] step  28000 | {'val': 0.0012193649334549636} | rel val 5.30e-03 (sup 9.2e-03) | rel der 8.22e-03 | ‖N‖ 4.337e-01 (sup 1.11e+00) | 24.2 min
+[s5xs1/value/s7] step  29000 | {'val': 0.0012768416503739744} | rel val 6.05e-03 (sup 1.0e-02) | rel der 8.38e-03 | ‖N‖ 4.410e-01 (sup 1.06e+00) | 25.4 min
+[s5xs1/value/s7] step  30000 | {'val': 0.0023798684337713472} | rel val 7.02e-03 (sup 1.6e-02) | rel der 1.08e-02 | ‖N‖ 6.185e-01 (sup 1.43e+00) | 26.6 min
+[s5xs1/value/s7] step  31000 | {'val': 0.0011916542439552702} | rel val 6.71e-03 (sup 1.5e-02) | rel der 9.73e-03 | ‖N‖ 5.459e-01 (sup 1.71e+00) | 28.0 min
+[s5xs1/value/s7] step  32000 | {'val': 0.0009604897430757429} | rel val 4.08e-03 (sup 8.5e-03) | rel der 6.74e-03 | ‖N‖ 3.862e-01 (sup 9.28e-01) | 29.0 min
+[s5xs1/value/s7] step  33000 | {'val': 0.0009110969427312617} | rel val 4.56e-03 (sup 8.9e-03) | rel der 7.34e-03 | ‖N‖ 4.454e-01 (sup 1.34e+00) | 29.9 min
+[s5xs1/value/s7] step  34000 | {'val': 0.0002906597365774204} | rel val 2.64e-03 (sup 5.0e-03) | rel der 4.67e-03 | ‖N‖ 2.732e-01 (sup 7.29e-01) | 30.8 min
+[s5xs1/value/s7] step  35000 | {'val': 0.0014151050296517785} | rel val 6.05e-03 (sup 1.4e-02) | rel der 8.99e-03 | ‖N‖ 5.078e-01 (sup 1.28e+00) | 31.6 min
+[s5xs1/value/s7] step  36000 | {'val': 0.0005570954208645217} | rel val 4.07e-03 (sup 8.5e-03) | rel der 6.41e-03 | ‖N‖ 3.996e-01 (sup 9.03e-01) | 32.5 min
+[s5xs1/value/s7] step  37000 | {'val': 0.0005525787886449633} | rel val 3.70e-03 (sup 7.9e-03) | rel der 5.72e-03 | ‖N‖ 3.095e-01 (sup 7.19e-01) | 33.8 min
+[s5xs1/value/s7] step  38000 | {'val': 0.0006910824446098567} | rel val 3.82e-03 (sup 8.0e-03) | rel der 5.96e-03 | ‖N‖ 3.750e-01 (sup 8.85e-01) | 34.8 min
+[s5xs1/value/s7] step  39000 | {'val': 0.00047098507427148294} | rel val 2.99e-03 (sup 6.0e-03) | rel der 4.97e-03 | ‖N‖ 2.892e-01 (sup 7.63e-01) | 35.8 min
+[s5xs1/value/s7] step  40000 | {'val': 0.0003663005532579685} | rel val 2.89e-03 (sup 5.5e-03) | rel der 4.77e-03 | ‖N‖ 2.814e-01 (sup 6.89e-01) | 36.9 min
+[s5xs1/value/s7] step  41000 | {'val': 0.000410965759396051} | rel val 3.17e-03 (sup 6.5e-03) | rel der 4.99e-03 | ‖N‖ 3.003e-01 (sup 7.94e-01) | 38.1 min
+[s5xs1/value/s7] step  42000 | {'val': 0.0009654159585767694} | rel val 4.35e-03 (sup 8.6e-03) | rel der 6.62e-03 | ‖N‖ 3.401e-01 (sup 7.73e-01) | 39.3 min
+[s5xs1/value/s7] step  43000 | {'val': 0.0006447640509719399} | rel val 3.98e-03 (sup 9.5e-03) | rel der 6.04e-03 | ‖N‖ 3.608e-01 (sup 7.87e-01) | 40.5 min
+[s5xs1/value/s7] step  44000 | {'val': 0.00048619398862668393} | rel val 3.20e-03 (sup 6.1e-03) | rel der 5.23e-03 | ‖N‖ 2.889e-01 (sup 6.96e-01) | 41.6 min
+[s5xs1/value/s7] step  45000 | {'val': 0.00034385613933463803} | rel val 3.04e-03 (sup 5.8e-03) | rel der 4.80e-03 | ‖N‖ 2.559e-01 (sup 6.90e-01) | 42.8 min
+[s5xs1/value/s7] step  46000 | {'val': 0.0006946673183747589} | rel val 3.96e-03 (sup 7.9e-03) | rel der 6.09e-03 | ‖N‖ 3.248e-01 (sup 7.48e-01) | 43.9 min
+[s5xs1/value/s7] step  47000 | {'val': 0.0004208274444662434} | rel val 4.04e-03 (sup 6.6e-03) | rel der 5.45e-03 | ‖N‖ 2.669e-01 (sup 6.46e-01) | 45.2 min
+[s5xs1/value/s7] step  48000 | {'val': 0.00033596659904343166} | rel val 2.48e-03 (sup 4.5e-03) | rel der 4.16e-03 | ‖N‖ 2.404e-01 (sup 6.86e-01) | 46.5 min
+[s5xs1/value/s7] step  49000 | {'val': 0.00033829161762074307} | rel val 2.71e-03 (sup 4.9e-03) | rel der 4.40e-03 | ‖N‖ 2.354e-01 (sup 6.16e-01) | 47.6 min
+[s5xs1/value/s7] step  50000 | {'val': 0.00017850324595402534} | rel val 2.04e-03 (sup 4.0e-03) | rel der 3.53e-03 | ‖N‖ 1.926e-01 (sup 4.19e-01) | 48.8 min
+[s5xs1/value/s7] step  51000 | {'val': 0.00017858852292679727} | rel val 2.00e-03 (sup 3.8e-03) | rel der 3.49e-03 | ‖N‖ 1.995e-01 (sup 4.64e-01) | 49.9 min
+[s5xs1/value/s7] step  52000 | {'val': 0.00020631858818431127} | rel val 2.19e-03 (sup 4.3e-03) | rel der 3.70e-03 | ‖N‖ 2.256e-01 (sup 5.86e-01) | 50.9 min
+[s5xs1/value/s7] step  53000 | {'val': 0.0001121907365714665} | rel val 1.66e-03 (sup 3.2e-03) | rel der 3.04e-03 | ‖N‖ 1.827e-01 (sup 3.99e-01) | 51.8 min
+[s5xs1/value/s7] step  54000 | {'val': 0.00015270701293281346} | rel val 1.87e-03 (sup 5.5e-03) | rel der 3.34e-03 | ‖N‖ 1.868e-01 (sup 4.32e-01) | 53.0 min
+[s5xs1/value/s7] step  55000 | {'val': 0.00012839839640156112} | rel val 1.75e-03 (sup 3.0e-03) | rel der 3.09e-03 | ‖N‖ 1.771e-01 (sup 4.01e-01) | 54.1 min
+[s5xs1/value/s7] step  56000 | {'val': 0.00011044174429383493} | rel val 1.56e-03 (sup 3.3e-03) | rel der 2.92e-03 | ‖N‖ 1.669e-01 (sup 4.11e-01) | 55.2 min
+[s5xs1/value/s7] step  57000 | {'val': 8.24802276017755e-05} | rel val 1.31e-03 (sup 2.5e-03) | rel der 2.58e-03 | ‖N‖ 1.547e-01 (sup 3.39e-01) | 56.2 min
+[s5xs1/value/s7] step  58000 | {'val': 8.43921790754607e-05} | rel val 1.35e-03 (sup 2.6e-03) | rel der 2.60e-03 | ‖N‖ 1.501e-01 (sup 4.01e-01) | 57.2 min
+[s5xs1/value/s7] step  59000 | {'val': 0.00010703510459157604} | rel val 1.74e-03 (sup 3.1e-03) | rel der 2.92e-03 | ‖N‖ 1.752e-01 (sup 4.25e-01) | 58.2 min
+[s5xs1/value/s7] step  60000 | {'val': 7.903631022621851e-05} | rel val 1.35e-03 (sup 2.5e-03) | rel der 2.53e-03 | ‖N‖ 1.453e-01 (sup 3.24e-01) | 59.2 min
+[s5xs1/value/s7] step  61000 | {'val': 9.298186240654274e-05} | rel val 1.59e-03 (sup 3.1e-03) | rel der 2.73e-03 | ‖N‖ 1.518e-01 (sup 3.21e-01) | 60.2 min
+[s5xs1/value/s7] step  62000 | {'val': 6.672821524517368e-05} | rel val 1.17e-03 (sup 2.3e-03) | rel der 2.32e-03 | ‖N‖ 1.368e-01 (sup 3.15e-01) | 61.2 min
+[s5xs1/value/s7] step  63000 | {'val': 6.821750314573174e-05} | rel val 1.15e-03 (sup 2.6e-03) | rel der 2.29e-03 | ‖N‖ 1.314e-01 (sup 3.67e-01) | 62.2 min
+[s5xs1/value/s7] step  64000 | {'val': 8.724857087848683e-05} | rel val 1.43e-03 (sup 3.3e-03) | rel der 2.51e-03 | ‖N‖ 1.502e-01 (sup 4.14e-01) | 63.1 min
+[s5xs1/value/s7] step  65000 | {'val': 4.76164672787868e-05} | rel val 1.02e-03 (sup 2.2e-03) | rel der 2.10e-03 | ‖N‖ 1.233e-01 (sup 3.25e-01) | 64.2 min
+[s5xs1/value/s7] step  66000 | {'val': 3.141210157970084e-05} | rel val 8.84e-04 (sup 1.8e-03) | rel der 1.96e-03 | ‖N‖ 1.164e-01 (sup 2.79e-01) | 65.3 min
+[s5xs1/value/s7] step  67000 | {'val': 3.192603841488905e-05} | rel val 8.36e-04 (sup 1.8e-03) | rel der 1.91e-03 | ‖N‖ 1.163e-01 (sup 2.76e-01) | 66.4 min
+[s5xs1/value/s7] step  68000 | {'val': 3.0166544484395564e-05} | rel val 8.23e-04 (sup 1.6e-03) | rel der 1.89e-03 | ‖N‖ 1.150e-01 (sup 2.66e-01) | 67.4 min
+[s5xs1/value/s7] step  69000 | {'val': 2.5865068887088847e-05} | rel val 7.92e-04 (sup 1.5e-03) | rel der 1.82e-03 | ‖N‖ 1.108e-01 (sup 2.69e-01) | 68.5 min
+[s5xs1/value/s7] step  70000 | {'val': 2.2140222900728153e-05} | rel val 6.98e-04 (sup 1.8e-03) | rel der 1.76e-03 | ‖N‖ 1.064e-01 (sup 2.70e-01) | 69.6 min
+[s5xs1/value/s7] step  71000 | {'val': 2.1175410404258507e-05} | rel val 6.93e-04 (sup 1.4e-03) | rel der 1.72e-03 | ‖N‖ 1.032e-01 (sup 2.77e-01) | 70.7 min
+[s5xs1/value/s7] step  72000 | {'val': 1.9509470757506662e-05} | rel val 6.62e-04 (sup 1.4e-03) | rel der 1.67e-03 | ‖N‖ 1.022e-01 (sup 2.74e-01) | 71.6 min
+[s5xs1/value/s7] step  73000 | {'val': 1.634446137610212e-05} | rel val 5.94e-04 (sup 1.3e-03) | rel der 1.62e-03 | ‖N‖ 9.730e-02 (sup 2.36e-01) | 72.6 min
+[s5xs1/value/s7] step  74000 | {'val': 1.4999646885500378e-05} | rel val 5.82e-04 (sup 1.3e-03) | rel der 1.59e-03 | ‖N‖ 9.709e-02 (sup 2.26e-01) | 73.6 min
+[s5xs1/value/s7] step  75000 | {'val': 1.4091769963757689e-05} | rel val 5.79e-04 (sup 1.2e-03) | rel der 1.59e-03 | ‖N‖ 9.723e-02 (sup 2.63e-01) | 74.6 min
+[s5xs1/value/s7] step  76000 | {'val': 1.4145204788680753e-05} | rel val 5.60e-04 (sup 1.1e-03) | rel der 1.58e-03 | ‖N‖ 9.630e-02 (sup 2.23e-01) | 75.6 min
+[s5xs1/value/s7] step  77000 | {'val': 1.3240803174011572e-05} | rel val 5.56e-04 (sup 1.2e-03) | rel der 1.56e-03 | ‖N‖ 9.537e-02 (sup 3.17e-01) | 76.6 min
+[s5xs1/value/s7] step  78000 | {'val': 1.2055436609930278e-05} | rel val 5.37e-04 (sup 1.1e-03) | rel der 1.54e-03 | ‖N‖ 9.394e-02 (sup 2.43e-01) | 77.6 min
+[s5xs1/value/s7] step  79000 | {'val': 1.2960172673078972e-05} | rel val 5.24e-04 (sup 1.1e-03) | rel der 1.51e-03 | ‖N‖ 9.138e-02 (sup 2.15e-01) | 78.6 min
+[s5xs1/value/s7] step  80000 | {'val': 1.1983862154379778e-05} | rel val 5.23e-04 (sup 1.3e-03) | rel der 1.52e-03 | ‖N‖ 9.111e-02 (sup 2.73e-01) | 79.5 min
+[s5xs1/value/s7] lbfgs 100/400 | held-out loss 1.140e-05 (best 1.140e-05)
+[s5xs1/value/s7] lbfgs 200/400 | held-out loss 1.130e-05 (best 1.130e-05)
+[s5xs1/value/s7] lbfgs 300/400 | held-out loss 1.127e-05 (best 1.127e-05)
+[s5xs1/value/s7] lbfgs 400/400 | held-out loss 1.131e-05 (best 1.127e-05) REVERTED
+[s5xs1/value/s7] RESULT | rel val rms 5.05e-04 sup 1.26e-03 (adv 1.64e-03) | rel der rms 1.53e-03 | intrinsic ‖N‖ mean 9.263e-02 sup 2.707e-01 (adv 3.829e-01) | chart ‖N‖ 2.309e-01 | chart-vs-main {'J_fit': 1.0668106894946377e-05, 'dJ_fit': 0.003513128372854143, 'rel_J': 0.0007099703076392864, 'rel_dJ': 0.0021029054163919226, 'nij_flat_mean': 0.17526051003064735}

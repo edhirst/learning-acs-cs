@@ -1,0 +1,83 @@
+{
+  "case": "s2xs2",
+  "task": "cs",
+  "seed": 8,
+  "formulation": "ambient",
+  "cs_mode": "poly",
+  "degree": "2",
+  "n_params": 1008,
+  "model_type": "poly_field",
+  "feat": "poly2",
+  "ladder": [
+    {
+      "phase": "poly_cs",
+      "degree": "2",
+      "n_params": 1008,
+      "init": "lsq(base)",
+      "init_fit_sup": 0.173844201767112,
+      "init_adv_acs_sup": 0.025325720736112924,
+      "init_N2": 0.0010417557407865863,
+      "init_C2": 7.948082705085356e-05,
+      "final_N2": 1.2418237517450487e-30,
+      "final_C2": 6.192543487854755e-31,
+      "lm": [
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 1,
+          "n_points": 128,
+          "train_loss": 7.829651454852879e-11,
+          "lm_iters": 8,
+          "N2": 7.715887306806922e-11,
+          "C2": 6.746350022646136e-12,
+          "elapsed_min": 0.41400476296742755
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 2,
+          "n_points": 128,
+          "train_loss": 5.008714483184611e-30,
+          "lm_iters": 8,
+          "N2": 1.2574268229825543e-30,
+          "C2": 5.8687413793637844e-31,
+          "elapsed_min": 0.5044762134552002
+        }
+      ],
+      "elapsed_min": 0.5053345998128255,
+      "adv_N_sup": 1.0000000001202138e-10,
+      "accepted": true
+    }
+  ],
+  "base": {
+    "dir": "/Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s2xs2_s8",
+    "adv_acs_sup_raw": 8.871199216809874e-05,
+    "status": "certified",
+    "base_acs_residual_sup": 1.000000000132606e-10,
+    "base_nij_mean": 0.0008049584144572685
+  },
+  "steps_done": 1,
+  "steps_planned": 2,
+  "stopped_by_wall": false,
+  "elapsed_min": 0.9463038643201193,
+  "exact_acs_by_construction": false,
+  "table_before": 0.0404,
+  "dense": {
+    "acs_mean": 1.0000000000208438e-10,
+    "acs_sup": 1.0000000001834565e-10,
+    "nij_mean": 1.000000000081888e-10,
+    "nij_sup": 1.0000000003961567e-10
+  },
+  "adv_acs_sup": 1.0000000002829109e-10,
+  "corrected": {
+    "acs_mean": 1.0000000000115952e-10,
+    "acs_sup": 1.0000000000442179e-10,
+    "nij_mean": 1.0000000000339307e-10,
+    "nij_sup": 1.0000000001393558e-10,
+    "adv_acs_sup": 1.0000000000402478e-10
+  },
+  "certified_exact_acs": true,
+  "adv_nij_sup": 1.000000000141593e-10,
+  "chart_cs": 1.0000000010387919e-10,
+  "chart_acs": 1.0000000000445411e-10
+}

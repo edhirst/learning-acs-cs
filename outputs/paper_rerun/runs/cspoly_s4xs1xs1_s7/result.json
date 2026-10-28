@@ -1,0 +1,85 @@
+{
+  "case": "s4xs1xs1",
+  "task": "cs",
+  "seed": 7,
+  "formulation": "ambient",
+  "cs_mode": "poly",
+  "degree": "2t",
+  "n_params": 6075,
+  "model_type": "poly_field",
+  "feat": "poly2t",
+  "ladder": [
+    {
+      "phase": "poly_cs",
+      "degree": "2t",
+      "n_params": 6075,
+      "init": "lsq(base)",
+      "init_fit_sup": 0.3527047501482508,
+      "init_adv_acs_sup": 0.6480928615374633,
+      "init_N2": 7.171627195787497,
+      "init_C2": 0.1971018950192175,
+      "final_N2": 7.95756311269001,
+      "final_C2": 0.2696205293915582,
+      "lm": [
+        {
+          "phase": "poly_lm",
+          "degree": "2t",
+          "round": 1,
+          "n_points": 128,
+          "train_loss": 0.5999985728189476,
+          "lm_iters": 8,
+          "N2": 7.431670994537885,
+          "C2": 0.29970639737434274,
+          "elapsed_min": 2.01987323363622
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2t",
+          "round": 2,
+          "n_points": 128,
+          "train_loss": 0.6350005046176039,
+          "lm_iters": 8,
+          "N2": 8.440816928637764,
+          "C2": 0.2910097332353929,
+          "elapsed_min": 3.1722511490186056
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2t",
+          "round": 3,
+          "n_points": 128,
+          "train_loss": 0.5580026106025696,
+          "lm_iters": 8,
+          "N2": 8.273598926555719,
+          "C2": 0.27881134738029645,
+          "elapsed_min": 4.323051997025808
+        }
+      ],
+      "elapsed_min": 4.324895997842153
+    }
+  ],
+  "base": {
+    "dir": "/Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s4xs1xs1_s7",
+    "adv_acs_sup_raw": 0.0007986464821747706,
+    "status": "certified",
+    "base_acs_residual_sup": 1.0000000001541616e-10,
+    "base_nij_mean": 2.9808482606728477
+  },
+  "steps_done": 1,
+  "steps_planned": 1,
+  "stopped_by_wall": false,
+  "elapsed_min": 4.535601627826691,
+  "exact_acs_by_construction": false,
+  "table_before": null,
+  "dense": {
+    "acs_mean": 0.44582012125099163,
+    "acs_sup": 2.6534978810728593,
+    "nij_mean": 2.55783091425486,
+    "nij_sup": 8.39001829050574
+  },
+  "adv_acs_sup": 3.0475759310195456,
+  "certified_exact_acs": false,
+  "adv_nij_sup": 10.49147541742357,
+  "chart_cs": 6.7916846087376515,
+  "chart_acs": 1.0000000001561018e-10
+}

@@ -1,0 +1,94 @@
+{
+  "case": "s1xs1",
+  "task": "cs",
+  "seed": 8,
+  "formulation": "ambient",
+  "cs_mode": "poly",
+  "degree": "2",
+  "n_params": 240,
+  "model_type": "poly_field",
+  "feat": "poly2",
+  "ladder": [
+    {
+      "phase": "poly_cs",
+      "degree": "2",
+      "n_params": 240,
+      "init": "lsq(base)",
+      "init_fit_sup": 0.01894974246475261,
+      "init_adv_acs_sup": 0.00030913733760507526,
+      "init_N2": 3.9823408940811925e-08,
+      "init_C2": 2.6114250835098824e-08,
+      "final_N2": 5.50348138037064e-18,
+      "final_C2": 2.7719193742477837e-19,
+      "lm": [
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 1,
+          "n_points": 128,
+          "train_loss": 3.1783210474667304e-11,
+          "lm_iters": 8,
+          "N2": 2.4737200281751174e-11,
+          "C2": 1.7183954594810903e-12,
+          "elapsed_min": 0.11342190106709799
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 2,
+          "n_points": 128,
+          "train_loss": 4.84280922028886e-18,
+          "lm_iters": 8,
+          "N2": 5.105769188089648e-18,
+          "C2": 2.1105152752520254e-19,
+          "elapsed_min": 0.11901978254318238
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 3,
+          "n_points": 128,
+          "train_loss": 4.349700239845792e-18,
+          "lm_iters": 8,
+          "N2": 5.146808182835083e-18,
+          "C2": 2.4204290931073586e-19,
+          "elapsed_min": 0.12508403460184733
+        }
+      ],
+      "elapsed_min": 0.12536025047302246,
+      "adv_N_sup": 1.0000000001549757e-10,
+      "accepted": true
+    }
+  ],
+  "base": {
+    "dir": "/Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s1xs1_s8",
+    "adv_acs_sup_raw": 6.832762023914266e-05,
+    "status": "certified",
+    "base_acs_residual_sup": 1.0000000000560577e-10,
+    "base_nij_mean": 1.0000000000290417e-10
+  },
+  "steps_done": 1,
+  "steps_planned": 2,
+  "stopped_by_wall": false,
+  "elapsed_min": 0.35085875193277993,
+  "exact_acs_by_construction": false,
+  "table_before": 0.00019,
+  "dense": {
+    "acs_mean": 4.2318650051121973e-10,
+    "acs_sup": 2.3975288174917677e-09,
+    "nij_mean": 2.060301785553618e-09,
+    "nij_sup": 6.580147368706448e-09
+  },
+  "adv_acs_sup": 2.414154077361703e-09,
+  "corrected": {
+    "acs_mean": 1.0000000000079374e-10,
+    "acs_sup": 1.0000000000791948e-10,
+    "nij_mean": 1.0000000000238763e-10,
+    "nij_sup": 1.0000000001567687e-10,
+    "adv_acs_sup": 1.0000000000719436e-10
+  },
+  "certified_exact_acs": true,
+  "adv_nij_sup": 1.0000000001608076e-10,
+  "chart_cs": 1.0000000002936296e-10,
+  "chart_acs": 1.0000000000109811e-10
+}

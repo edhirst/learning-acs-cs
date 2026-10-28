@@ -1,0 +1,22 @@
+/Users/agent/Projects/NijenhuisPINN/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[s4xs2/cs/s7 [ambient]] base ACS from /Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s4xs2_s7: adversarial raw sup 0.000, polar-corrected residual 1.0e-10, Nij mean 1.519e+01
+[s4xs2/cs/s7 [ambient]] conjpoly deg 1: 9 basis fns, 576 params, held-out |N|^2 2.3089e+02
+[s4xs2/cs/s7 [ambient]] conjpoly deg 1 round 1 (384 pts, p=2.0) | train 1.800e+02 | held-out |N|^2 2.0391e+02 | sampled sup |N| 2.223e+01 | |W| 0.90 | 11.8 min
+[s4xs2/cs/s7 [ambient]] conjpoly deg 1 round 2 (384 pts, p=2.0) | train 8.936e+01 | held-out |N|^2 8.3004e+01 | sampled sup |N| 2.337e+01 | |W| 2.76 | 23.4 min
+[s4xs2/cs/s7 [ambient]] conjpoly deg 1 round 3 (384 pts, p=2.0) | train 4.057e+01 | held-out |N|^2 4.4328e+01 | sampled sup |N| 1.785e+01 | |W| 3.67 | 35.5 min
+[s4xs2/cs/s7 [ambient]] conjpoly deg 1 round 4 (384 pts, p=2.0) | train 3.484e+01 | held-out |N|^2 4.0309e+01 | sampled sup |N| 1.172e+01 | |W| 3.76 | 45.3 min
+[s4xs2/cs/s7 [ambient]] conjpoly deg 1 round 5 (384 pts, p=2.0) | train 3.534e+01 | held-out |N|^2 3.7548e+01 | sampled sup |N| 1.336e+01 | |W| 3.79 | 54.6 min
+[s4xs2/cs/s7 [ambient]] conjpoly deg 1 round 6 (384 pts, p=2.0) | train 3.438e+01 | held-out |N|^2 3.8619e+01 | sampled sup |N| 1.277e+01 | |W| 3.73 | 64.0 min
+[s4xs2/cs/s7 [ambient]] conjpoly deg 1 round 7 (384 pts, p=2.0) | train 3.374e+01 | held-out |N|^2 3.6095e+01 | sampled sup |N| 1.333e+01 | |W| 3.75 | 72.8 min
+[s4xs2/cs/s7 [ambient]] conjpoly deg 1 round 8 (384 pts, p=2.0) | train 3.444e+01 | held-out |N|^2 3.5818e+01 | sampled sup |N| 1.301e+01 | |W| 3.73 | 81.7 min
+[s4xs2/cs/s7 [ambient]] conjpoly deg 1 FLOOR: E|N|^2 3.7117e+01, mean |N| 5.853e+00, dense sup 1.364e+01, adv sup |N| 1.533e+01
+[s4xs2/cs/s7 [ambient]] conjpoly deg 2: 43 basis fns, 2752 params, held-out |N|^2 3.6466e+01
+[s4xs2/cs/s7 [ambient]] conjpoly deg 2 round 1 (768 pts, p=2.0) | train 1.506e+01 | held-out |N|^2 1.9678e+01 | sampled sup |N| 1.588e+01 | |W| 3.70 | 100.6 min
+[s4xs2/cs/s7 [ambient]] conjpoly deg 2 round 2 (768 pts, p=2.0) | train 1.328e+01 | held-out |N|^2 1.9646e+01 | sampled sup |N| 1.450e+01 | |W| 3.61 | 119.2 min
+[s4xs2/cs/s7 [ambient]] conjpoly deg 2 round 3 (768 pts, p=2.0) | train 1.185e+01 | held-out |N|^2 1.6051e+01 | sampled sup |N| 1.645e+01 | |W| 3.50 | 137.0 min
+[s4xs2/cs/s7 [ambient]] conjpoly deg 2 round 4 (768 pts, p=2.0) | train 1.320e+01 | held-out |N|^2 1.7092e+01 | sampled sup |N| 1.490e+01 | |W| 3.56 | 154.7 min
+[s4xs2/cs/s7 [ambient]] conjpoly deg 2 round 5 (768 pts, p=2.0) | train 1.380e+01 | held-out |N|^2 1.7943e+01 | sampled sup |N| 1.513e+01 | |W| 3.49 | 171.8 min
+[s4xs2/cs/s7 [ambient]] conjpoly deg 2 round 6 (768 pts, p=2.0) | train 1.168e+01 | held-out |N|^2 1.6782e+01 | sampled sup |N| 1.584e+01 | |W| 3.55 | 189.0 min
+[s4xs2/cs/s7 [ambient]] conjpoly deg 2 FLOOR: E|N|^2 1.6337e+01, mean |N| 3.625e+00, dense sup 1.663e+01, adv sup |N| 2.086e+01
+[s4xs2/cs/s7 [ambient]] RESULT (conjpoly 2): exact ACS by construction | CS no (adv sup |N| vs 1e-06) | adv |K^2+P| nan | corrected N mean 3.608e+00 max 1.847e+01 | adv N sup 2.086e+01 | chart cs 1.175e+01 (table before 6.28)

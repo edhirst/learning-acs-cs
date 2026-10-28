@@ -1,0 +1,165 @@
+{
+  "case": "s1xs1",
+  "task": "acs",
+  "seed": 8,
+  "formulation": "ambient",
+  "hidden": [
+    128,
+    128,
+    128
+  ],
+  "stages": 1,
+  "model_type": "curriculum",
+  "feat": "bilin",
+  "conj": "exp",
+  "cs_scale": 0.5,
+  "fast_cs": false,
+  "ladder": [
+    {
+      "phase": "poly",
+      "feat": "c",
+      "attempt": "plain",
+      "lam0": 0.0,
+      "orient_sign": null,
+      "n_params": 16,
+      "elapsed_min": 0.01910039981206258,
+      "adv_acs_sup": 1.414213563842993,
+      "acs_mean": 0.6952520941833068,
+      "acs_sup": 1.4142055831484073,
+      "nij_mean": 1.7238266731194756,
+      "nij_sup": 2.670503186581056
+    },
+    {
+      "phase": "poly",
+      "feat": "c",
+      "attempt": "dirichlet",
+      "lam0": 3.0,
+      "orient_sign": null,
+      "n_params": 16,
+      "elapsed_min": 0.13675384918848674,
+      "adv_acs_sup": 1.4142137314222583,
+      "acs_mean": 0.6867238234399576,
+      "acs_sup": 1.4142135872145738,
+      "nij_mean": 1.691091610605508,
+      "nij_sup": 2.663623542426796
+    },
+    {
+      "phase": "poly",
+      "feat": "c",
+      "attempt": "orient",
+      "lam0": 1.0,
+      "orient_sign": -1.0,
+      "n_params": 16,
+      "elapsed_min": 0.18055301507314045,
+      "adv_acs_sup": 1.4142135626608752,
+      "acs_mean": 0.7156840046750506,
+      "acs_sup": 1.4141996611785794,
+      "nij_mean": 1.2681520319040032,
+      "nij_sup": 2.009803509213574
+    },
+    {
+      "phase": "poly",
+      "feat": "lin",
+      "attempt": "plain",
+      "lam0": 0.0,
+      "orient_sign": null,
+      "n_params": 64,
+      "elapsed_min": 0.19837783575057982,
+      "adv_acs_sup": 1.423953054243674,
+      "acs_mean": 0.5072528184384619,
+      "acs_sup": 1.422557885186886,
+      "nij_mean": 1.5469723571162999,
+      "nij_sup": 3.599044301605354
+    },
+    {
+      "phase": "poly",
+      "feat": "lin",
+      "attempt": "dirichlet",
+      "lam0": 3.0,
+      "orient_sign": null,
+      "n_params": 64,
+      "elapsed_min": 0.3273569862047831,
+      "adv_acs_sup": 1.4142168009275562,
+      "acs_mean": 0.5487010570528813,
+      "acs_sup": 1.4141839083058942,
+      "nij_mean": 1.4615697391314975,
+      "nij_sup": 3.0325539632093736
+    },
+    {
+      "phase": "poly",
+      "feat": "lin",
+      "attempt": "orient",
+      "lam0": 1.0,
+      "orient_sign": 1.0,
+      "n_params": 64,
+      "elapsed_min": 0.37161203225453693,
+      "adv_acs_sup": 1.4142135651979386,
+      "acs_mean": 0.6426449323527368,
+      "acs_sup": 1.414213484848017,
+      "nij_mean": 1.1411591780839432,
+      "nij_sup": 2.269438238779246
+    },
+    {
+      "phase": "poly",
+      "feat": "bilin",
+      "attempt": "plain",
+      "lam0": 0.0,
+      "orient_sign": null,
+      "n_params": 64,
+      "elapsed_min": 0.39141008456548054,
+      "adv_acs_sup": 0.006898239467889251,
+      "acs_mean": 0.002021563515165201,
+      "acs_sup": 0.006849962203610557,
+      "nij_mean": 0.010412397623744343,
+      "nij_sup": 0.028336804175840537
+    }
+  ],
+  "base": null,
+  "init_from": null,
+  "tail": false,
+  "lr": 0.001,
+  "lbfgs": [
+    {
+      "phase": "lbfgs",
+      "iters_done": 200,
+      "iters_run": 200,
+      "func_evals": 216,
+      "val_loss": 5.263161283322412e-10,
+      "best_val": 5.263161283322412e-10,
+      "reverted": false,
+      "elapsed_min": 0.9112249811490377
+    }
+  ],
+  "refinement": {
+    "adv_polynomial": 0.006898239467889251,
+    "adv_refined": 6.832762023912339e-05,
+    "kept": true
+  },
+  "steps_done": 10000,
+  "steps_planned": 10000,
+  "stopped_by_wall": false,
+  "elapsed_min": 1.1105189005533853,
+  "init": {
+    "acs": 2.455864659408384
+  },
+  "exact_acs_by_construction": false,
+  "table_before": 5.81e-05,
+  "dense": {
+    "acs_mean": 1.951292539924074e-05,
+    "acs_sup": 6.821753923014231e-05,
+    "nij_mean": 0.00010374021282876028,
+    "nij_sup": 0.00028385236033112574
+  },
+  "adv_acs_sup": 6.832762023938985e-05,
+  "corrected": {
+    "acs_mean": 1.0000000000089194e-10,
+    "acs_sup": 1.0000000000834083e-10,
+    "nij_mean": 1.000000000029143e-10,
+    "nij_sup": 1.0000000002183231e-10,
+    "adv_acs_sup": 1.0000000001277157e-10
+  },
+  "certified_exact_acs": true,
+  "adv_nij_sup": 1.0000000002770465e-10,
+  "chart_cs": 1.0000000003249352e-10,
+  "chart_acs": 1.0000000000111025e-10
+}

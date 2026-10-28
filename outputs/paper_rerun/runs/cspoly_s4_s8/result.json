@@ -1,0 +1,13 @@
+{
+  "case": "s4",
+  "task": "cs",
+  "seed": 8,
+  "formulation": "ambient",
+  "status": "no_certified_base",
+  "base": {
+    "dir": "/Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s4_s8",
+    "adv_acs_sup_raw": 1.9999255040981219,
+    "status": "no_certified_base"
+  },
+  "table_before": 8.5
+}

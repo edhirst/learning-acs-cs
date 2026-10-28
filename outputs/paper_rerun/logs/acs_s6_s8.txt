@@ -1,0 +1,30 @@
+[s6/acs/s8 [ambient]] init: {'acs': 10.037677903858713}
+/Users/agent/Projects/NijenhuisPINN/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[s6/acs/s8 [ambient]] ladder c          plain     λ0=0    (49 params) | held-out {'acs_mean': 1.2072793821671304, 'acs_sup': 1.4173703817280607, 'nij_mean': 3.9702459621112802, 'nij_sup': 4.187490604501762} | adversarial sup 1.417 -> reject
+[s6/acs/s8 [ambient]] ladder c          dirichlet λ0=3    (49 params) | held-out {'acs_mean': 1.1951689351384012, 'acs_sup': 1.4172004467760628, 'nij_mean': 3.9504486500193616, 'nij_sup': 4.189304407249398} | adversarial sup 1.417 -> reject
+[s6/acs/s8 [ambient]] ladder c          orient    λ0=1    (49 params) | held-out {'acs_mean': 1.2165814776173152, 'acs_sup': 1.4142612495450735, 'nij_mean': 3.7748900173839273, 'nij_sup': 3.9799688964836597} | adversarial sup 1.414 -> reject
+[s6/acs/s8 [ambient]] ladder lin        plain     λ0=0    (343 params) | held-out {'acs_mean': 0.006389423396936568, 'acs_sup': 0.0118914391056498, 'nij_mean': 19.61143796121365, 'nij_sup': 19.63796579144591} | adversarial sup 0.012 -> ACCEPT
+[s6/acs/s8 [ambient]] step    500 | batch {'acs': 4.510967718357249e-06} | held-out {'acs_mean': 0.0020799581938263376, 'acs_sup': 0.0038272119686923916, 'nij_mean': 19.629087187563663, 'nij_sup': 19.645161687153823}
+[s6/acs/s8 [ambient]] step   1000 | batch {'acs': 1.7097167925227837e-06} | held-out {'acs_mean': 0.0016063341691515093, 'acs_sup': 0.0031269405779871065, 'nij_mean': 19.61873721898832, 'nij_sup': 19.631254666761787}
+[s6/acs/s8 [ambient]] step   1500 | batch {'acs': 6.732786165890135e-07} | held-out {'acs_mean': 0.0007886857786051295, 'acs_sup': 0.0013735589979883068, 'nij_mean': 19.620306062278665, 'nij_sup': 19.629807177061902}
+[s6/acs/s8 [ambient]] step   2000 | batch {'acs': 6.101395411353135e-07} | held-out {'acs_mean': 0.0007169436813345881, 'acs_sup': 0.0011645310415615724, 'nij_mean': 19.616114168065558, 'nij_sup': 19.622660996630298}
+[s6/acs/s8 [ambient]] step   2500 | batch {'acs': 8.005276699024989e-07} | held-out {'acs_mean': 0.0007756534012023843, 'acs_sup': 0.0013201218440904538, 'nij_mean': 19.615452713893255, 'nij_sup': 19.622783214593806}
+[s6/acs/s8 [ambient]] step   3000 | batch {'acs': 5.566427853810084e-07} | held-out {'acs_mean': 0.0007286465551523718, 'acs_sup': 0.001231974489545291, 'nij_mean': 19.61252256013851, 'nij_sup': 19.61865814684987}
+[s6/acs/s8 [ambient]] step   3500 | batch {'acs': 6.733938688098359e-07} | held-out {'acs_mean': 0.0008630413549832296, 'acs_sup': 0.0015506279928867001, 'nij_mean': 19.611702766513076, 'nij_sup': 19.617690936718017}
+[s6/acs/s8 [ambient]] step   4000 | batch {'acs': 5.753962581426845e-07} | held-out {'acs_mean': 0.0006621863858721462, 'acs_sup': 0.0010356617765446198, 'nij_mean': 19.608770108029454, 'nij_sup': 19.613891354855063}
+[s6/acs/s8 [ambient]] step   4500 | batch {'acs': 4.213564169475632e-07} | held-out {'acs_mean': 0.0006662533707141243, 'acs_sup': 0.0014267023402257865, 'nij_mean': 19.606313986101505, 'nij_sup': 19.611834714396927}
+[s6/acs/s8 [ambient]] step   5000 | batch {'acs': 1.9616630132724868e-07} | held-out {'acs_mean': 0.0004370917921957285, 'acs_sup': 0.0008560794065833693, 'nij_mean': 19.606852303740798, 'nij_sup': 19.610474409889935}
+[s6/acs/s8 [ambient]] step   5500 | batch {'acs': 2.3618546320901465e-07} | held-out {'acs_mean': 0.00046343852546040467, 'acs_sup': 0.0007502153294272336, 'nij_mean': 19.606170211216064, 'nij_sup': 19.610080942052512}
+[s6/acs/s8 [ambient]] step   6000 | batch {'acs': 1.1711838469825489e-07} | held-out {'acs_mean': 0.00035896688604237717, 'acs_sup': 0.0006847869897125188, 'nij_mean': 19.605170184625997, 'nij_sup': 19.60877072294964}
+[s6/acs/s8 [ambient]] step   6500 | batch {'acs': 4.438242477185671e-08} | held-out {'acs_mean': 0.00021768631990536712, 'acs_sup': 0.0004129706259815853, 'nij_mean': 19.60469426783716, 'nij_sup': 19.607739116541477}
+[s6/acs/s8 [ambient]] step   7000 | batch {'acs': 3.854374366745844e-08} | held-out {'acs_mean': 0.00018431632135625006, 'acs_sup': 0.0003292363271570469, 'nij_mean': 19.60422071027962, 'nij_sup': 19.607658448484596}
+[s6/acs/s8 [ambient]] step   7500 | batch {'acs': 2.581798582647693e-08} | held-out {'acs_mean': 0.00015798721806877496, 'acs_sup': 0.00028666181567403256, 'nij_mean': 19.603708407106264, 'nij_sup': 19.60643799112019}
+[s6/acs/s8 [ambient]] step   8000 | batch {'acs': 2.0389394627691808e-08} | held-out {'acs_mean': 0.00013311147663773126, 'acs_sup': 0.00023791292934409903, 'nij_mean': 19.60347019045895, 'nij_sup': 19.606186497981625}
+[s6/acs/s8 [ambient]] step   8500 | batch {'acs': 1.5758503218574956e-08} | held-out {'acs_mean': 0.00011624489486235352, 'acs_sup': 0.00021741738222454698, 'nij_mean': 19.60334460145261, 'nij_sup': 19.605802889526736}
+[s6/acs/s8 [ambient]] step   9000 | batch {'acs': 1.1943709439193603e-08} | held-out {'acs_mean': 0.00010841332030737168, 'acs_sup': 0.0002053142894393107, 'nij_mean': 19.603140203487975, 'nij_sup': 19.60586716853169}
+[s6/acs/s8 [ambient]] step   9500 | batch {'acs': 1.02474790010159e-08} | held-out {'acs_mean': 9.902371514955868e-05, 'acs_sup': 0.00018199995232802925, 'nij_mean': 19.60310514916379, 'nij_sup': 19.605516211972464}
+[s6/acs/s8 [ambient]] step  10000 | batch {'acs': 9.424762003383253e-09} | held-out {'acs_mean': 9.562488668180905e-05, 'acs_sup': 0.00019449843276910398, 'nij_mean': 19.60299748799508, 'nij_sup': 19.605694890095908}
+[s6/acs/s8 [ambient]] lbfgs   200/200 (200 its, 211 evals) | held-out loss 2.987e-09 (best 2.987e-09)
+[s6/acs/s8 [ambient]] refinement kept (adversarial |K^2+P|: polynomial 1.223e-02, refined 1.505e-04)
+[s6/acs/s8 [ambient]] RESULT: CERTIFIED exact ACS | adv acs sup 1.505e-04 | adv Nij sup 1.960e+01 | dense {'acs_mean': 5.336412349708319e-05, 'acs_sup': 0.00012905227626620585, 'nij_mean': 19.598566352463756, 'nij_sup': 19.599983706964665} | chart acs = 1.000e-10 (table before 0.0357)

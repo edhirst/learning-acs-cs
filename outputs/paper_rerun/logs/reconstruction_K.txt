@@ -1,0 +1,14 @@
+discs 8 2.5e-05
+discs 12 1.4e-07
+discs 16 8.2e-10
+discs 20 1.8e-08
+discs 24 2.8e-07
+discs 28 7.3e-06
+discs 32 5.4e-04
+discs+edges 8 1.7e-06
+discs+edges 12 2.6e-09
+discs+edges 16 5.8e-12
+discs+edges 20 1.8e-13
+discs+edges 24 7.2e-13
+discs+edges 28 3.1e-12
+discs+edges 32 1.7e-11

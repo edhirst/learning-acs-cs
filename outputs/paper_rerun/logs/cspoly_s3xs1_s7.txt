@@ -1,0 +1,21 @@
+/Users/agent/Projects/NijenhuisPINN/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[s3xs1/cs/s7 [ambient]] base ACS from /Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s3xs1_s7: adversarial raw sup 0.000, polar-corrected residual 1.0e-10, Nij mean 2.810e+00
+[s3xs1/cs/s7 [ambient]] poly class 2: 1008 params, init lsq(base) (fit sup 1.14e+00), adversarial |K^2+P| 1.645, held-out N2 5.326e-01 C2 2.256e+00
+[s3xs1/cs/s7 [ambient]] poly 2 adam   500 | held-out N2 3.020e-01 C2 4.298e-03
+[s3xs1/cs/s7 [ambient]] poly 2 adam  1000 | held-out N2 3.772e-02 C2 2.113e-04
+[s3xs1/cs/s7 [ambient]] poly 2 adam  1500 | held-out N2 1.798e-02 C2 7.011e-05
+[s3xs1/cs/s7 [ambient]] poly 2 adam  2000 | held-out N2 1.445e-02 C2 4.300e-05
+[s3xs1/cs/s7 [ambient]] poly 2 LM round 1 (128 pts, 8 it) | train 3.725e-06 | held-out N2 1.541e-06 C2 2.291e-07 | 0.4 min
+[s3xs1/cs/s7 [ambient]] poly 2 LM round 2 (128 pts, 8 it) | train 1.438e-14 | held-out N2 1.992e-14 C2 1.331e-15 | 0.5 min
+[s3xs1/cs/s7 [ambient]] poly 2 LM round 3 (128 pts, 8 it) | train 1.344e-14 | held-out N2 1.819e-14 C2 1.190e-15 | 0.6 min
+[s3xs1/cs/s7 [ambient]] poly 2: LM stalled (held-out 3.01e-14, best 3.32e-14)
+[s3xs1/cs/s7 [ambient]] poly 2: held-out loss 2.99e-14 >= 1e-16 -> climb
+[s3xs1/cs/s7 [ambient]] poly class 3: 3024 params, init pad(2) (fit sup None), adversarial |K^2+P| 0.000, held-out N2 1.820e-14 C2 1.073e-15
+[s3xs1/cs/s7 [ambient]] poly 3 LM round 1 (160 pts, 8 it) | train 5.296e-19 | held-out N2 1.407e-18 C2 5.103e-20 | 0.8 min
+[s3xs1/cs/s7 [ambient]] poly 3 LM round 2 (160 pts, 8 it) | train 4.493e-19 | held-out N2 1.181e-18 C2 4.398e-20 | 1.0 min
+[s3xs1/cs/s7 [ambient]] poly 3 LM round 3 (160 pts, 8 it) | train 2.670e-20 | held-out N2 3.790e-20 C2 2.206e-21 | 1.2 min
+[s3xs1/cs/s7 [ambient]] poly 3 LM round 4 (160 pts, 8 it) | train 4.127e-21 | held-out N2 8.264e-21 C2 3.228e-22 | 1.4 min
+[s3xs1/cs/s7 [ambient]] poly 3 LM round 5 (160 pts, 8 it) | train 1.565e-21 | held-out N2 4.279e-21 C2 1.724e-22 | 1.6 min
+[s3xs1/cs/s7 [ambient]] poly 3: ACCEPT (held-out loss 5.60e-21, adversarial sup |N(J*)| 1.47e-10 < 1e-06)
+[s3xs1/cs/s7 [ambient]] RESULT (poly 3): ACS CERTIFIED | CS YES (adv sup |N| vs 1e-06) | adv |K^2+P| 1.08e-10 | corrected N mean 1.054e-10 max 1.405e-10 | adv N sup 1.468e-10 | chart cs 1.564e-10 (table before 0.2)

@@ -1,0 +1,1 @@
+[s4/cs/s8 [ambient]] NO CERTIFIED BASE ACS (adversarial sup 2.000 >= 1): CS stage not run

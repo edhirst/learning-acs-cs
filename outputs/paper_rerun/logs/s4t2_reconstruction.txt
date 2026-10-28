@@ -1,0 +1,25 @@
+/Users/agent/Projects/NijenhuisPINN/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[HSSS26] data: certified sup 7.10e-12, min normalised det 0.626, filling eps 0.0625 / 0.017
+seed  0: feasible=True margin 0.9410759000944 certified 4.764346674119284e-13
+seed  1: feasible=True margin 0.9410759000944 certified 1.4559018921847493e-11
+seed  2: feasible=True margin 0.9410759000944 certified 4.582862941503293e-13
+seed  3: feasible=True margin 0.9410759000944 certified 4.0990372275064023e-13
+seed  4: feasible=True margin 0.9410759000944 certified 5.084229945850415e-13
+seed  5: feasible=True margin 0.9410759000944 certified 4.687428401686771e-13
+seed  6: feasible=True margin 0.9410759000944 certified 5.684341886080801e-13
+seed  7: feasible=False margin None certified None
+seed  8: feasible=True margin 0.9410759000944 certified 4.0990372275064023e-13
+seed  9: feasible=True margin 0.9410759000944 certified 4.655004020764636e-13
+seed 10: feasible=True margin 0.9410759000944 certified 6.87429441225494e-13
+seed 11: feasible=True margin 0.9410759000944 certified 6.893363226728811e-13
+seed 12: feasible=True margin 0.9410759000944 certified 4.918612597040007e-13
+seed 13: feasible=True margin 0.9410759000944 certified 5.362597410144533e-13
+seed 14: feasible=True margin 0.9410759000944 certified 4.491702630078347e-12
+seed 15: feasible=True margin 0.9410759000944 certified 4.823324033076557e-13
+seed 16: feasible=True margin 0.9410759000944 certified 6.629024818318272e-13
+seed 17: feasible=True margin 0.9410759000944 certified 4.823324033076557e-13
+seed 18: feasible=True margin 0.9410759000944 certified 4.856703836433968e-13
+seed 19: feasible=True margin 0.9410759000944 certified 4.856703836433968e-13
+best learned (seed 9): certified sup 4.66e-13, min normalised det 0.941
+common annulus (eps 0.017): certified sup [HSSS26] 7.10e-12, learned 6.56e-12

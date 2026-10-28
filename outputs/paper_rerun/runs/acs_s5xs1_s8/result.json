@@ -1,0 +1,166 @@
+{
+  "case": "s5xs1",
+  "task": "acs",
+  "seed": 8,
+  "formulation": "ambient",
+  "hidden": [
+    256,
+    256,
+    256,
+    256
+  ],
+  "stages": 1,
+  "model_type": "curriculum",
+  "feat": "bilin",
+  "conj": "exp",
+  "cs_scale": 0.5,
+  "fast_cs": false,
+  "ladder": [
+    {
+      "phase": "poly",
+      "feat": "c",
+      "attempt": "plain",
+      "lam0": 0.0,
+      "orient_sign": null,
+      "n_params": 64,
+      "elapsed_min": 0.09850765069325765,
+      "adv_acs_sup": 1.4206780483434944,
+      "acs_mean": 1.174830779723288,
+      "acs_sup": 1.4201599499043898,
+      "nij_mean": 4.248764128758361,
+      "nij_sup": 4.686440274076113
+    },
+    {
+      "phase": "poly",
+      "feat": "c",
+      "attempt": "dirichlet",
+      "lam0": 3.0,
+      "orient_sign": null,
+      "n_params": 64,
+      "elapsed_min": 1.073814050356547,
+      "adv_acs_sup": 1.4203762336439287,
+      "acs_mean": 1.181746468368943,
+      "acs_sup": 1.4206350950706166,
+      "nij_mean": 4.246825033506477,
+      "nij_sup": 4.684075092774471
+    },
+    {
+      "phase": "poly",
+      "feat": "c",
+      "attempt": "orient",
+      "lam0": 1.0,
+      "orient_sign": 1.0,
+      "n_params": 64,
+      "elapsed_min": 1.3726001501083374,
+      "adv_acs_sup": 1.414913861019497,
+      "acs_mean": 1.1926580088897418,
+      "acs_sup": 1.4149136386961911,
+      "nij_mean": 4.02139977118678,
+      "nij_sup": 4.42316103525694
+    },
+    {
+      "phase": "poly",
+      "feat": "lin",
+      "attempt": "plain",
+      "lam0": 0.0,
+      "orient_sign": null,
+      "n_params": 512,
+      "elapsed_min": 1.4751630822817485,
+      "adv_acs_sup": 1.4142482477307785,
+      "acs_mean": 0.6791911454112278,
+      "acs_sup": 1.414183714021913,
+      "nij_mean": 14.124170127209547,
+      "nij_sup": 18.436817677156775
+    },
+    {
+      "phase": "poly",
+      "feat": "lin",
+      "attempt": "dirichlet",
+      "lam0": 3.0,
+      "orient_sign": null,
+      "n_params": 512,
+      "elapsed_min": 2.661404232184092,
+      "adv_acs_sup": 1.68052209944546,
+      "acs_mean": 0.9939052693282129,
+      "acs_sup": 1.5340425866221086,
+      "nij_mean": 4.859916460323446,
+      "nij_sup": 6.4547288889441985
+    },
+    {
+      "phase": "poly",
+      "feat": "lin",
+      "attempt": "orient",
+      "lam0": 1.0,
+      "orient_sign": -1.0,
+      "n_params": 512,
+      "elapsed_min": 2.9725768685340883,
+      "adv_acs_sup": 1.414385032927318,
+      "acs_mean": 0.8166401665107588,
+      "acs_sup": 1.4143344186425792,
+      "nij_mean": 3.127021175542356,
+      "nij_sup": 3.7975483024373053
+    },
+    {
+      "phase": "poly",
+      "feat": "bilin",
+      "attempt": "plain",
+      "lam0": 0.0,
+      "orient_sign": null,
+      "n_params": 768,
+      "elapsed_min": 3.0829326629638674,
+      "adv_acs_sup": 0.01852500855622502,
+      "acs_mean": 0.009237073255255747,
+      "acs_sup": 0.017018886224094195,
+      "nij_mean": 16.959941287278912,
+      "nij_sup": 17.512738856653257
+    }
+  ],
+  "base": null,
+  "init_from": null,
+  "tail": false,
+  "lr": 0.001,
+  "lbfgs": [
+    {
+      "phase": "lbfgs",
+      "iters_done": 200,
+      "iters_run": 200,
+      "func_evals": 211,
+      "val_loss": 4.629921092118775e-09,
+      "best_val": 4.629921092118775e-09,
+      "reverted": false,
+      "elapsed_min": 5.568305083115896
+    }
+  ],
+  "refinement": {
+    "adv_polynomial": 0.01852500855622502,
+    "adv_refined": 0.0001935328190188605,
+    "kept": true
+  },
+  "steps_done": 10000,
+  "steps_planned": 10000,
+  "stopped_by_wall": false,
+  "elapsed_min": 8.883262034257253,
+  "init": {
+    "acs": 9.434915981848132
+  },
+  "exact_acs_by_construction": false,
+  "table_before": 0.0798,
+  "dense": {
+    "acs_mean": 6.561892643798107e-05,
+    "acs_sup": 0.00016553800245998687,
+    "nij_mean": 16.97299739691749,
+    "nij_sup": 17.028594655571293
+  },
+  "adv_acs_sup": 0.00019353281902043332,
+  "corrected": {
+    "acs_mean": 1.000000000035076e-10,
+    "acs_sup": 1.0000000001577501e-10,
+    "nij_mean": 16.973153190313077,
+    "nij_sup": 17.026177538188616,
+    "adv_acs_sup": 1.0000000002057328e-10
+  },
+  "certified_exact_acs": true,
+  "adv_nij_sup": 17.03173412836896,
+  "chart_cs": 51.775066012169795,
+  "chart_acs": 1.0000000000906549e-10
+}

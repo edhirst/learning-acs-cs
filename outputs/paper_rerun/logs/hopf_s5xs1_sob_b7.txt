@@ -1,0 +1,89 @@
+/Users/agent/Projects/NijenhuisPINN/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[s5xs1/sobolev/s7] base {'dir': '/Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s5xs1_s7', 'adv_acs_sup_raw': 9.652314885245891e-05, 'orientation_fix': 'negate', 'acs_sup_used': 1.0000000001563489e-10, 'orientation_target': -1.0, 'orientation_base_raw': 1.0, 'orientation_base_used': -1.0, 'nij_mean': 16.99613548152551, 'rel_dist_to_target': 1.0894215891406807}
+[s5xs1/sobolev/s7] init {'rel_val_rms': 5.202953973519932, 'rel_val_sup': 13.32387017346711, 'rel_der_rms': 7.859520273346959, 'rel_der_sup': 14.979943211671072, 'val_mse': 1177.6782155960698, 'der_mse': 15629.720001666668, 'nij_mean': 931.012756034377, 'nij_sup': 4308.908365834897, 'acs_sup': 1.000175938714474e-10}
+[s5xs1/sobolev/s7] step   1000 | {'val': 0.027322460798758913, 'der': 0.23845470779174724} | rel val 2.31e-02 (sup 4.3e-02) | rel der 2.86e-02 | ‖N‖ 1.410e+00 (sup 3.24e+00) | 13.6 min
+[s5xs1/sobolev/s7] step   2000 | {'val': 0.025623416478094255, 'der': 0.20108351260815926} | rel val 2.30e-02 (sup 3.9e-02) | rel der 2.82e-02 | ‖N‖ 1.054e+00 (sup 2.57e+00) | 27.5 min
+[s5xs1/sobolev/s7] step   3000 | {'val': 0.014648669778486471, 'der': 0.11181079888412541} | rel val 1.71e-02 (sup 2.9e-02) | rel der 2.00e-02 | ‖N‖ 6.653e-01 (sup 1.46e+00) | 41.8 min
+[s5xs1/sobolev/s7] step   4000 | {'val': 0.0046441804843732155, 'der': 0.052312468068702815} | rel val 1.64e-02 (sup 3.0e-02) | rel der 2.04e-02 | ‖N‖ 8.626e-01 (sup 1.64e+00) | 56.1 min
+[s5xs1/sobolev/s7] step   5000 | {'val': 0.009367729091883176, 'der': 0.07381361476007893} | rel val 1.22e-02 (sup 2.3e-02) | rel der 1.49e-02 | ‖N‖ 6.285e-01 (sup 1.44e+00) | 70.4 min
+[s5xs1/sobolev/s7] step   6000 | {'val': 0.007095493397860887, 'der': 0.05394436029011312} | rel val 1.29e-02 (sup 2.4e-02) | rel der 1.53e-02 | ‖N‖ 7.448e-01 (sup 1.63e+00) | 84.7 min
+[s5xs1/sobolev/s7] step   7000 | {'val': 0.0035478474794932197, 'der': 0.03955125309558629} | rel val 1.08e-02 (sup 2.0e-02) | rel der 1.40e-02 | ‖N‖ 6.231e-01 (sup 1.52e+00) | 99.1 min
+[s5xs1/sobolev/s7] step   8000 | {'val': 0.00471684464030013, 'der': 0.03946423422132344} | rel val 1.00e-02 (sup 1.9e-02) | rel der 1.25e-02 | ‖N‖ 5.835e-01 (sup 1.41e+00) | 113.5 min
+[s5xs1/sobolev/s7] step   9000 | {'val': 0.003946893282044985, 'der': 0.03655711496145022} | rel val 9.50e-03 (sup 1.6e-02) | rel der 1.15e-02 | ‖N‖ 5.100e-01 (sup 1.20e+00) | 128.0 min
+[s5xs1/sobolev/s7] step  10000 | {'val': 0.00419843900567191, 'der': 0.0447263641973514} | rel val 9.34e-03 (sup 1.7e-02) | rel der 1.28e-02 | ‖N‖ 6.992e-01 (sup 1.49e+00) | 143.2 min
+[s5xs1/sobolev/s7] step  11000 | {'val': 0.0032853274283757353, 'der': 0.03273927346233815} | rel val 7.93e-03 (sup 1.5e-02) | rel der 1.08e-02 | ‖N‖ 6.142e-01 (sup 1.56e+00) | 156.9 min
+[s5xs1/sobolev/s7] step  12000 | {'val': 0.0035189546871635794, 'der': 0.03148318638137645} | rel val 8.63e-03 (sup 1.6e-02) | rel der 1.14e-02 | ‖N‖ 5.723e-01 (sup 1.13e+00) | 169.8 min
+[s5xs1/sobolev/s7] step  13000 | {'val': 0.0023006262209166834, 'der': 0.02216518262109401} | rel val 6.91e-03 (sup 1.3e-02) | rel der 9.38e-03 | ‖N‖ 4.496e-01 (sup 8.86e-01) | 182.8 min
+[s5xs1/sobolev/s7] step  14000 | {'val': 0.0033388911077066596, 'der': 0.028265395730795822} | rel val 7.41e-03 (sup 1.6e-02) | rel der 9.28e-03 | ‖N‖ 4.663e-01 (sup 1.34e+00) | 195.7 min
+[s5xs1/sobolev/s7] step  15000 | {'val': 0.002600158854283612, 'der': 0.025192488044161576} | rel val 8.20e-03 (sup 1.3e-02) | rel der 1.02e-02 | ‖N‖ 4.698e-01 (sup 1.03e+00) | 208.7 min
+[s5xs1/sobolev/s7] step  16000 | {'val': 0.0025821520598046667, 'der': 0.02661845153189668} | rel val 9.52e-03 (sup 2.2e-02) | rel der 1.23e-02 | ‖N‖ 6.995e-01 (sup 1.98e+00) | 221.7 min
+[s5xs1/sobolev/s7] step  17000 | {'val': 0.002159900861211133, 'der': 0.0225421501367547} | rel val 7.36e-03 (sup 1.6e-02) | rel der 9.65e-03 | ‖N‖ 3.971e-01 (sup 9.60e-01) | 234.7 min
+[s5xs1/sobolev/s7] step  18000 | {'val': 0.002168634584609514, 'der': 0.019604058101218923} | rel val 7.57e-03 (sup 1.5e-02) | rel der 9.21e-03 | ‖N‖ 4.006e-01 (sup 1.08e+00) | 247.7 min
+[s5xs1/sobolev/s7] step  19000 | {'val': 0.002630524055952452, 'der': 0.028337975919612606} | rel val 6.95e-03 (sup 1.4e-02) | rel der 9.24e-03 | ‖N‖ 4.662e-01 (sup 1.35e+00) | 260.7 min
+[s5xs1/sobolev/s7] step  20000 | {'val': 0.001687186927105011, 'der': 0.01366261673787277} | rel val 5.86e-03 (sup 1.2e-02) | rel der 7.12e-03 | ‖N‖ 3.017e-01 (sup 7.97e-01) | 273.8 min
+[s5xs1/sobolev/s7] step  21000 | {'val': 0.0022650569220947735, 'der': 0.01985373537194214} | rel val 6.13e-03 (sup 1.1e-02) | rel der 7.72e-03 | ‖N‖ 3.978e-01 (sup 9.76e-01) | 286.8 min
+[s5xs1/sobolev/s7] step  22000 | {'val': 0.0015363580679042907, 'der': 0.012705099570426351} | rel val 5.73e-03 (sup 9.0e-03) | rel der 6.72e-03 | ‖N‖ 2.615e-01 (sup 6.19e-01) | 299.9 min
+[s5xs1/sobolev/s7] step  23000 | {'val': 0.0021593816262199263, 'der': 0.017197734462879463} | rel val 7.03e-03 (sup 1.3e-02) | rel der 8.34e-03 | ‖N‖ 3.993e-01 (sup 9.24e-01) | 312.9 min
+[s5xs1/sobolev/s7] step  24000 | {'val': 0.0016210086356170633, 'der': 0.014622517369737542} | rel val 7.14e-03 (sup 1.2e-02) | rel der 8.54e-03 | ‖N‖ 3.936e-01 (sup 8.09e-01) | 326.0 min
+[s5xs1/sobolev/s7] step  25000 | {'val': 0.001992835293241364, 'der': 0.01652117002071581} | rel val 6.17e-03 (sup 1.3e-02) | rel der 7.51e-03 | ‖N‖ 3.100e-01 (sup 6.63e-01) | 339.0 min
+[s5xs1/sobolev/s7] step  26000 | {'val': 0.0012170304207768463, 'der': 0.009440503966122827} | rel val 5.01e-03 (sup 9.9e-03) | rel der 6.00e-03 | ‖N‖ 2.552e-01 (sup 5.75e-01) | 352.1 min
+[s5xs1/sobolev/s7] step  27000 | {'val': 0.001388074420500465, 'der': 0.010286045287380826} | rel val 5.18e-03 (sup 9.6e-03) | rel der 5.95e-03 | ‖N‖ 2.138e-01 (sup 4.78e-01) | 365.1 min
+[s5xs1/sobolev/s7] step  28000 | {'val': 0.0010752898425151864, 'der': 0.008941515065632177} | rel val 5.27e-03 (sup 1.0e-02) | rel der 6.14e-03 | ‖N‖ 2.131e-01 (sup 5.10e-01) | 378.2 min
+[s5xs1/sobolev/s7] step  29000 | {'val': 0.0015971800665216113, 'der': 0.012520053574479925} | rel val 6.10e-03 (sup 1.1e-02) | rel der 7.29e-03 | ‖N‖ 3.329e-01 (sup 6.71e-01) | 391.3 min
+[s5xs1/sobolev/s7] step  30000 | {'val': 0.001016840656675935, 'der': 0.00794917750650846} | rel val 4.38e-03 (sup 7.8e-03) | rel der 5.24e-03 | ‖N‖ 1.885e-01 (sup 4.21e-01) | 404.4 min
+[s5xs1/sobolev/s7] step  31000 | {'val': 0.0009163658113478561, 'der': 0.00737703565328682} | rel val 4.40e-03 (sup 9.2e-03) | rel der 5.35e-03 | ‖N‖ 2.228e-01 (sup 5.00e-01) | 417.5 min
+[s5xs1/sobolev/s7] step  32000 | {'val': 0.0011816153955585883, 'der': 0.008960332619766838} | rel val 4.73e-03 (sup 7.7e-03) | rel der 5.49e-03 | ‖N‖ 2.165e-01 (sup 4.49e-01) | 430.6 min
+[s5xs1/sobolev/s7] step  33000 | {'val': 0.0008324817482570215, 'der': 0.009005277629148628} | rel val 4.21e-03 (sup 8.0e-03) | rel der 5.63e-03 | ‖N‖ 3.061e-01 (sup 8.14e-01) | 443.7 min
+[s5xs1/sobolev/s7] step  34000 | {'val': 0.0008735631006993138, 'der': 0.0072198317377585265} | rel val 4.98e-03 (sup 9.9e-03) | rel der 5.78e-03 | ‖N‖ 2.351e-01 (sup 4.73e-01) | 456.8 min
+[s5xs1/sobolev/s7] step  35000 | {'val': 0.0006106739382566818, 'der': 0.00485552025309303} | rel val 4.20e-03 (sup 7.0e-03) | rel der 4.86e-03 | ‖N‖ 1.813e-01 (sup 4.00e-01) | 469.9 min
+[s5xs1/sobolev/s7] step  36000 | {'val': 0.0005553846563841324, 'der': 0.0060219415124415756} | rel val 4.44e-03 (sup 8.6e-03) | rel der 5.15e-03 | ‖N‖ 1.793e-01 (sup 3.66e-01) | 483.0 min
+[s5xs1/sobolev/s7] step  37000 | {'val': 0.0007372240497203397, 'der': 0.0061371276886929005} | rel val 3.62e-03 (sup 6.1e-03) | rel der 4.21e-03 | ‖N‖ 1.578e-01 (sup 3.50e-01) | 496.2 min
+[s5xs1/sobolev/s7] step  38000 | {'val': 0.0005309085795394569, 'der': 0.0055842548125704244} | rel val 3.23e-03 (sup 5.9e-03) | rel der 4.42e-03 | ‖N‖ 2.243e-01 (sup 4.32e-01) | 509.3 min
+[s5xs1/sobolev/s7] step  39000 | {'val': 0.0007541820967764953, 'der': 0.007101537287310865} | rel val 3.90e-03 (sup 8.5e-03) | rel der 5.18e-03 | ‖N‖ 2.399e-01 (sup 6.98e-01) | 522.4 min
+[s5xs1/sobolev/s7] step  40000 | {'val': 0.0007386146485070915, 'der': 0.006335408842729359} | rel val 3.77e-03 (sup 6.7e-03) | rel der 4.57e-03 | ‖N‖ 2.429e-01 (sup 5.23e-01) | 535.5 min
+[s5xs1/sobolev/s7] step  41000 | {'val': 0.0009013085898698037, 'der': 0.008277948289992435} | rel val 4.23e-03 (sup 8.7e-03) | rel der 5.59e-03 | ‖N‖ 3.181e-01 (sup 8.11e-01) | 548.7 min
+[s5xs1/sobolev/s7] step  42000 | {'val': 0.0005892680551165252, 'der': 0.00496091268592142} | rel val 3.04e-03 (sup 5.6e-03) | rel der 3.82e-03 | ‖N‖ 1.991e-01 (sup 5.61e-01) | 561.8 min
+[s5xs1/sobolev/s7] step  43000 | {'val': 0.0005483679225258517, 'der': 0.00402528477906189} | rel val 3.34e-03 (sup 6.3e-03) | rel der 3.96e-03 | ‖N‖ 1.530e-01 (sup 3.09e-01) | 575.0 min
+[s5xs1/sobolev/s7] step  44000 | {'val': 0.00039447479243763305, 'der': 0.003066218102191714} | rel val 2.70e-03 (sup 4.7e-03) | rel der 3.26e-03 | ‖N‖ 1.249e-01 (sup 2.54e-01) | 588.1 min
+[s5xs1/sobolev/s7] step  45000 | {'val': 0.0004231501764310397, 'der': 0.003386868927065989} | rel val 2.80e-03 (sup 4.8e-03) | rel der 3.35e-03 | ‖N‖ 1.378e-01 (sup 2.42e-01) | 601.3 min
+[s5xs1/sobolev/s7] step  46000 | {'val': 0.00035063274695798524, 'der': 0.003261240069426998} | rel val 2.56e-03 (sup 5.2e-03) | rel der 3.48e-03 | ‖N‖ 1.548e-01 (sup 3.28e-01) | 614.4 min
+[s5xs1/sobolev/s7] step  47000 | {'val': 0.00042734571276021693, 'der': 0.004626966147704342} | rel val 2.67e-03 (sup 5.0e-03) | rel der 3.49e-03 | ‖N‖ 2.051e-01 (sup 5.63e-01) | 627.6 min
+[s5xs1/sobolev/s7] step  48000 | {'val': 0.00019142471917808174, 'der': 0.0020849078640644493} | rel val 2.32e-03 (sup 4.2e-03) | rel der 3.18e-03 | ‖N‖ 1.612e-01 (sup 4.05e-01) | 640.7 min
+[s5xs1/sobolev/s7] step  49000 | {'val': 0.00023317639983161574, 'der': 0.0024921808935462896} | rel val 2.44e-03 (sup 4.4e-03) | rel der 3.25e-03 | ‖N‖ 1.841e-01 (sup 4.68e-01) | 653.8 min
+[s5xs1/sobolev/s7] step  50000 | {'val': 0.00025864712096256476, 'der': 0.002186147157095381} | rel val 2.38e-03 (sup 4.2e-03) | rel der 3.21e-03 | ‖N‖ 1.545e-01 (sup 3.06e-01) | 667.0 min
+[s5xs1/sobolev/s7] step  51000 | {'val': 0.0001516456616443099, 'der': 0.0013097914153692273} | rel val 2.03e-03 (sup 3.4e-03) | rel der 2.39e-03 | ‖N‖ 1.063e-01 (sup 2.20e-01) | 680.1 min
+[s5xs1/sobolev/s7] step  52000 | {'val': 0.0001719162152326397, 'der': 0.0014841774135759234} | rel val 1.99e-03 (sup 3.1e-03) | rel der 2.41e-03 | ‖N‖ 1.016e-01 (sup 2.37e-01) | 693.2 min
+[s5xs1/sobolev/s7] step  53000 | {'val': 8.472422162820985e-05, 'der': 0.0008428610923203695} | rel val 1.14e-03 (sup 2.2e-03) | rel der 1.64e-03 | ‖N‖ 8.921e-02 (sup 1.86e-01) | 706.4 min
+[s5xs1/sobolev/s7] step  54000 | {'val': 6.078847349398768e-05, 'der': 0.000629639867840208} | rel val 1.17e-03 (sup 2.1e-03) | rel der 1.61e-03 | ‖N‖ 8.717e-02 (sup 2.12e-01) | 719.6 min
+[s5xs1/sobolev/s7] step  55000 | {'val': 0.0001387155144926491, 'der': 0.001152283162933353} | rel val 1.46e-03 (sup 2.4e-03) | rel der 1.80e-03 | ‖N‖ 7.633e-02 (sup 1.63e-01) | 732.7 min
+[s5xs1/sobolev/s7] step  56000 | {'val': 6.232460263912897e-05, 'der': 0.0007066304400651944} | rel val 1.07e-03 (sup 1.9e-03) | rel der 1.54e-03 | ‖N‖ 9.363e-02 (sup 1.89e-01) | 745.8 min
+[s5xs1/sobolev/s7] step  57000 | {'val': 2.8589584459484963e-05, 'der': 0.00038710105926880465} | rel val 8.48e-04 (sup 1.4e-03) | rel der 1.23e-03 | ‖N‖ 7.117e-02 (sup 1.69e-01) | 759.0 min
+[s5xs1/sobolev/s7] step  58000 | {'val': 4.501967255758802e-05, 'der': 0.00044846602002674785} | rel val 9.52e-04 (sup 1.8e-03) | rel der 1.31e-03 | ‖N‖ 6.574e-02 (sup 1.37e-01) | 772.2 min
+[s5xs1/sobolev/s7] step  59000 | {'val': 1.8390809718010505e-05, 'der': 0.00026486094525823736} | rel val 7.15e-04 (sup 1.3e-03) | rel der 1.08e-03 | ‖N‖ 6.425e-02 (sup 1.48e-01) | 785.3 min
+[s5xs1/sobolev/s7] step  60000 | {'val': 2.2677399606988155e-05, 'der': 0.00027303362881808544} | rel val 6.67e-04 (sup 1.2e-03) | rel der 1.02e-03 | ‖N‖ 5.449e-02 (sup 1.17e-01) | 798.5 min
+[s5xs1/sobolev/s7] step  61000 | {'val': 1.2298196546013497e-05, 'der': 0.00019503651072396824} | rel val 5.55e-04 (sup 1.0e-03) | rel der 8.95e-04 | ‖N‖ 5.604e-02 (sup 1.34e-01) | 811.7 min
+[s5xs1/sobolev/s7] step  62000 | {'val': 1.3298250982020832e-05, 'der': 0.00020929667653858618} | rel val 5.78e-04 (sup 1.3e-03) | rel der 8.90e-04 | ‖N‖ 5.400e-02 (sup 1.09e-01) | 824.8 min
+[s5xs1/sobolev/s7] step  63000 | {'val': 1.891224455867766e-05, 'der': 0.00022798878474190862} | rel val 5.49e-04 (sup 9.2e-04) | rel der 8.62e-04 | ‖N‖ 4.849e-02 (sup 9.71e-02) | 837.9 min
+[s5xs1/sobolev/s7] step  64000 | {'val': 1.7707691585590823e-05, 'der': 0.0002190726599798137} | rel val 6.13e-04 (sup 9.7e-04) | rel der 9.20e-04 | ‖N‖ 5.138e-02 (sup 1.10e-01) | 851.0 min
+[s5xs1/sobolev/s7] step  65000 | {'val': 1.6988312147241622e-05, 'der': 0.0002109593547105925} | rel val 5.01e-04 (sup 9.0e-04) | rel der 7.88e-04 | ‖N‖ 4.617e-02 (sup 1.10e-01) | 864.2 min
+[s5xs1/sobolev/s7] step  66000 | {'val': 6.897470368433767e-06, 'der': 0.00012940621177975813} | rel val 3.71e-04 (sup 6.8e-04) | rel der 6.77e-04 | ‖N‖ 4.115e-02 (sup 7.96e-02) | 877.3 min
+[s5xs1/sobolev/s7] step  67000 | {'val': 4.356736007148488e-06, 'der': 9.55610596768917e-05} | rel val 3.10e-04 (sup 6.1e-04) | rel der 6.25e-04 | ‖N‖ 3.858e-02 (sup 9.05e-02) | 890.5 min
+[s5xs1/sobolev/s7] step  68000 | {'val': 5.210620622825662e-06, 'der': 0.00010100187123375314} | rel val 3.24e-04 (sup 5.7e-04) | rel der 6.26e-04 | ‖N‖ 3.805e-02 (sup 8.07e-02) | 903.6 min
+[s5xs1/sobolev/s7] step  69000 | {'val': 4.4186494162025154e-06, 'der': 9.29933494055817e-05} | rel val 2.99e-04 (sup 6.2e-04) | rel der 5.90e-04 | ‖N‖ 3.690e-02 (sup 1.00e-01) | 916.8 min
+[s5xs1/sobolev/s7] step  70000 | {'val': 3.4605660525535234e-06, 'der': 8.066429795317615e-05} | rel val 3.17e-04 (sup 6.0e-04) | rel der 5.86e-04 | ‖N‖ 3.647e-02 (sup 7.51e-02) | 929.9 min
+[s5xs1/sobolev/s7] step  71000 | {'val': 2.6909062755576835e-06, 'der': 7.430986923208525e-05} | rel val 2.64e-04 (sup 4.9e-04) | rel der 5.45e-04 | ‖N‖ 3.359e-02 (sup 6.91e-02) | 943.1 min
+[s5xs1/sobolev/s7] step  72000 | {'val': 4.04432673760595e-06, 'der': 8.020391818351925e-05} | rel val 2.51e-04 (sup 4.1e-04) | rel der 5.33e-04 | ‖N‖ 3.296e-02 (sup 6.14e-02) | 956.2 min
+[s5xs1/sobolev/s7] step  73000 | {'val': 1.9373273045178586e-06, 'der': 6.61590667510346e-05} | rel val 2.10e-04 (sup 3.7e-04) | rel der 5.01e-04 | ‖N‖ 3.130e-02 (sup 6.33e-02) | 969.4 min
+[s5xs1/sobolev/s7] step  74000 | {'val': 2.095648254098708e-06, 'der': 6.382302177579585e-05} | rel val 2.14e-04 (sup 4.1e-04) | rel der 4.96e-04 | ‖N‖ 3.096e-02 (sup 6.34e-02) | 982.5 min
+[s5xs1/sobolev/s7] step  75000 | {'val': 1.696983037442114e-06, 'der': 5.5995764636418244e-05} | rel val 2.00e-04 (sup 3.7e-04) | rel der 4.85e-04 | ‖N‖ 3.056e-02 (sup 5.72e-02) | 995.6 min
+[s5xs1/sobolev/s7] step  76000 | {'val': 1.3341856660746255e-06, 'der': 5.4221773275018204e-05} | rel val 1.89e-04 (sup 3.8e-04) | rel der 4.73e-04 | ‖N‖ 3.000e-02 (sup 6.38e-02) | 1008.7 min
+[s5xs1/sobolev/s7] step  77000 | {'val': 1.4441335782728663e-06, 'der': 5.4005678770142485e-05} | rel val 1.81e-04 (sup 3.6e-04) | rel der 4.63e-04 | ‖N‖ 2.941e-02 (sup 5.84e-02) | 1021.8 min
+[s5xs1/sobolev/s7] step  78000 | {'val': 1.3342315583019954e-06, 'der': 5.2823950143606445e-05} | rel val 1.75e-04 (sup 3.3e-04) | rel der 4.63e-04 | ‖N‖ 2.945e-02 (sup 5.83e-02) | 1035.0 min
+[s5xs1/sobolev/s7] step  79000 | {'val': 1.2038794767729376e-06, 'der': 5.1426930814975985e-05} | rel val 1.72e-04 (sup 3.6e-04) | rel der 4.54e-04 | ‖N‖ 2.855e-02 (sup 5.40e-02) | 1048.1 min
+[s5xs1/sobolev/s7] step  80000 | {'val': 1.2171932106445128e-06, 'der': 5.1232967276600356e-05} | rel val 1.66e-04 (sup 2.9e-04) | rel der 4.48e-04 | ‖N‖ 2.872e-02 (sup 5.81e-02) | 1061.3 min
+[s5xs1/sobolev/s7] lbfgs 100/400 | held-out loss 4.924e-05 (best 4.924e-05)
+[s5xs1/sobolev/s7] lbfgs 200/400 | held-out loss 4.917e-05 (best 4.917e-05)
+[s5xs1/sobolev/s7] lbfgs 300/400 | held-out loss 4.921e-05 (best 4.917e-05) REVERTED
+[s5xs1/sobolev/s7] lbfgs 400/400 | held-out loss 4.911e-05 (best 4.911e-05)
+[s5xs1/sobolev/s7] RESULT | rel val rms 1.42e-04 sup 2.76e-04 (adv 4.42e-04) | rel der rms 4.34e-04 | intrinsic ‖N‖ mean 2.775e-02 sup 6.926e-02 (adv 7.463e-02) | chart ‖N‖ 6.837e-02 | chart-vs-main {'J_fit': 8.901669817599584e-07, 'dJ_fit': 0.0003027525741745684, 'rel_J': 0.00020509905737867395, 'rel_dJ': 0.0006173436127812244, 'nij_flat_mean': 0.05273243910789209}

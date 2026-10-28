@@ -1,0 +1,215 @@
+{
+  "case": "s2",
+  "task": "cs",
+  "seed": 8,
+  "formulation": "ambient",
+  "cs_mode": "poly",
+  "degree": "2",
+  "n_params": 90,
+  "model_type": "poly_field",
+  "feat": "poly2",
+  "ladder": [
+    {
+      "phase": "poly_cs",
+      "degree": "2",
+      "n_params": 90,
+      "init": "lsq(base)",
+      "init_fit_sup": 5.875966733454246e-09,
+      "init_adv_acs_sup": 6.651160464964027e-10,
+      "init_N2": 6.227546655485429e-19,
+      "init_C2": 5.549308199068847e-20,
+      "final_N2": 5.700921524585404e-21,
+      "final_C2": 2.4642921954685874e-22,
+      "lm": [
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 1,
+          "n_points": 128,
+          "train_loss": 1.3027301342838742e-12,
+          "lm_iters": 8,
+          "N2": 1.1766231397852517e-12,
+          "C2": 5.302942384441691e-14,
+          "elapsed_min": 0.08643155097961426
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 2,
+          "n_points": 128,
+          "train_loss": 5.691731176065655e-16,
+          "lm_iters": 8,
+          "N2": 4.612066605894028e-16,
+          "C2": 2.3191060034580942e-17,
+          "elapsed_min": 0.0885937492052714
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 3,
+          "n_points": 128,
+          "train_loss": 1.0725106210483767e-16,
+          "lm_iters": 8,
+          "N2": 9.842888985222504e-17,
+          "C2": 4.71342863962156e-18,
+          "elapsed_min": 0.09100773334503173
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 4,
+          "n_points": 128,
+          "train_loss": 3.186993608629053e-17,
+          "lm_iters": 8,
+          "N2": 2.5009137757631556e-17,
+          "C2": 1.2962752836222942e-18,
+          "elapsed_min": 0.09359568357467651
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 5,
+          "n_points": 128,
+          "train_loss": 7.35292801674466e-18,
+          "lm_iters": 8,
+          "N2": 5.879896843780168e-18,
+          "C2": 2.8405475599820653e-19,
+          "elapsed_min": 0.09639730056126912
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 6,
+          "n_points": 128,
+          "train_loss": 2.4940536277765225e-18,
+          "lm_iters": 8,
+          "N2": 2.904790797391921e-18,
+          "C2": 1.2753591967147972e-19,
+          "elapsed_min": 0.09958825111389161
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 7,
+          "n_points": 128,
+          "train_loss": 1.1647893449166204e-18,
+          "lm_iters": 8,
+          "N2": 7.383759241763651e-19,
+          "C2": 5.3279742315037676e-20,
+          "elapsed_min": 0.10266403357187907
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 8,
+          "n_points": 128,
+          "train_loss": 3.2880326704245584e-19,
+          "lm_iters": 8,
+          "N2": 2.757233347854398e-19,
+          "C2": 1.3537440639184916e-20,
+          "elapsed_min": 0.10552500089009603
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 9,
+          "n_points": 128,
+          "train_loss": 1.442487893904427e-19,
+          "lm_iters": 8,
+          "N2": 1.2170505955670712e-19,
+          "C2": 5.254973993823461e-21,
+          "elapsed_min": 0.10844684839248657
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 10,
+          "n_points": 128,
+          "train_loss": 9.01327785841394e-20,
+          "lm_iters": 8,
+          "N2": 5.477160518957542e-20,
+          "C2": 4.762799962642885e-21,
+          "elapsed_min": 0.11115705172220866
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 11,
+          "n_points": 128,
+          "train_loss": 2.6757678886859214e-20,
+          "lm_iters": 8,
+          "N2": 2.2429778335255967e-20,
+          "C2": 1.0545531918348992e-21,
+          "elapsed_min": 0.11365138292312622
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 12,
+          "n_points": 128,
+          "train_loss": 1.453330587037522e-20,
+          "lm_iters": 8,
+          "N2": 1.2680108730034767e-20,
+          "C2": 5.186513773263505e-22,
+          "elapsed_min": 0.11619576613108316
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 13,
+          "n_points": 128,
+          "train_loss": 9.430767021508605e-21,
+          "lm_iters": 8,
+          "N2": 8.356115240759802e-21,
+          "C2": 3.3728037215535353e-22,
+          "elapsed_min": 0.11874131759007772
+        },
+        {
+          "phase": "poly_lm",
+          "degree": "2",
+          "round": 14,
+          "n_points": 128,
+          "train_loss": 6.132170574733792e-21,
+          "lm_iters": 8,
+          "N2": 5.581194273139067e-21,
+          "C2": 2.67756277353348e-22,
+          "elapsed_min": 0.12117396593093872
+        }
+      ],
+      "elapsed_min": 0.12128070195515951,
+      "adv_N_sup": 1.0000000002067012e-10,
+      "accepted": true
+    }
+  ],
+  "base": {
+    "dir": "/Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s2_s8",
+    "adv_acs_sup_raw": 1.2553425976258185e-10,
+    "status": "certified",
+    "base_acs_residual_sup": 1.0000000000446134e-10,
+    "base_nij_mean": 1.0000000000169282e-10
+  },
+  "steps_done": 1,
+  "steps_planned": 2,
+  "stopped_by_wall": false,
+  "elapsed_min": 0.2866575479507446,
+  "exact_acs_by_construction": false,
+  "table_before": 0.000527,
+  "dense": {
+    "acs_mean": 1.0123423534493223e-10,
+    "acs_sup": 1.1000162885270548e-10,
+    "nij_mean": 1.2414482138388194e-10,
+    "nij_sup": 1.9206770787949388e-10
+  },
+  "adv_acs_sup": 1.1001288382276623e-10,
+  "corrected": {
+    "acs_mean": 1.000000000007391e-10,
+    "acs_sup": 1.0000000000566801e-10,
+    "nij_mean": 1.0000000000169293e-10,
+    "nij_sup": 1.000000000102127e-10,
+    "adv_acs_sup": 1.0000000000686016e-10
+  },
+  "certified_exact_acs": true,
+  "adv_nij_sup": 1.0000000001264271e-10,
+  "chart_cs": 1.0000000004708011e-10,
+  "chart_acs": 1.0000000000328242e-10
+}

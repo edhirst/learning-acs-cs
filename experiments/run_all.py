@@ -6,9 +6,9 @@ Each job is a node with dependencies, a thread allowance and a rough duration;
 ready jobs are launched longest-first (critical path) while the total thread
 budget allows. A job counts as done when its output marker exists, so the
 script can be re-run to resume. Outputs go to $PAPER_OUT (default
-outputs/paper_rerun, gitignored): runs/<job>/, logs/<job>.txt,
-scheduler_status.json; experiments/make_figures.py then writes figures/ and
-tables/ there.
+outputs/paper_rerun; its records are tracked, its checkpoints are not):
+runs/<job>/, logs/<job>.txt, scheduler_status.json; experiments/make_figures.py
+then writes figures/ and tables/ there.
 """
 from __future__ import annotations
 

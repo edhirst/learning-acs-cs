@@ -1,0 +1,6 @@
+period map: tau loss 3.3e-27, mu fit 5.1e-13, beta fit 1.7e-12 (0.1s)
+cusp filling [AC26 Thm 4.5]: |R|_inf 23.886 -> eps0 1.79e-21 (> 0: the toric quotient exists); C single-valued in q to 2.3e-15
+/Users/agent/Projects/NijenhuisPINN/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+S6: certified sup |N| (charts, discs, deck, blended) 4.53e-12 | D max -4.14 | CERTIFIED (target 1e-06)
+S2xS4: certified sup |N| (charts, discs, deck, blended) 5.78e-12 | D max -4.14 | CERTIFIED (target 1e-06)

@@ -1,0 +1,20 @@
+/Users/agent/Projects/NijenhuisPINN/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[s6/cs/s7 [ambient]] base ACS from /Users/agent/Projects/NijenhuisPINN/outputs/paper_rerun/runs/acs_s6_s7: adversarial raw sup 0.000, polar-corrected residual 1.0e-10, Nij mean 1.960e+01
+[s6/cs/s7 [ambient]] poly class 2: 1764 params, init lsq(base) (fit sup 4.32e-03), adversarial |K^2+P| 0.001, held-out N2 3.840e+02 C2 4.980e-07
+[s6/cs/s7 [ambient]] poly 2 adam   500 | held-out N2 2.750e+00 C2 1.956e-01
+[s6/cs/s7 [ambient]] poly 2 adam  1000 | held-out N2 2.948e+00 C2 2.160e-01
+[s6/cs/s7 [ambient]] poly 2 adam  1500 | held-out N2 2.908e+00 C2 2.289e-01
+[s6/cs/s7 [ambient]] poly 2 adam  2000 | held-out N2 2.889e+00 C2 2.514e-01
+[s6/cs/s7 [ambient]] poly 2 LM round 1 (128 pts, 8 it) | train 3.409e+00 | held-out N2 3.576e+00 C2 2.154e-01 | 0.7 min
+[s6/cs/s7 [ambient]] poly 2 LM round 2 (128 pts, 8 it) | train 2.772e+00 | held-out N2 3.836e+00 C2 2.303e-01 | 0.9 min
+[s6/cs/s7 [ambient]] poly 2 LM round 3 (128 pts, 8 it) | train 2.177e+00 | held-out N2 3.678e+00 C2 2.325e-01 | 1.1 min
+[s6/cs/s7 [ambient]] poly 2: LM stalled (held-out 6.00e+00, best 5.73e+00)
+[s6/cs/s7 [ambient]] poly 2: held-out loss 6.77e+00 >= 1e-16 -> climb
+[s6/cs/s7 [ambient]] poly class 3: 5880 params, init pad(2) (fit sup None), adversarial |K^2+P| 1.793, held-out N2 3.731e+00 C2 2.524e-01
+[s6/cs/s7 [ambient]] poly 3 LM round 1 (128 pts, 8 it) | train 5.198e-01 | held-out N2 3.331e+00 C2 1.065e-01 | 1.7 min
+[s6/cs/s7 [ambient]] poly 3 LM round 2 (128 pts, 8 it) | train 4.706e-01 | held-out N2 4.946e+00 C2 1.365e-01 | 2.4 min
+[s6/cs/s7 [ambient]] poly 3 LM round 3 (128 pts, 8 it) | train 4.947e-01 | held-out N2 5.048e+00 C2 1.459e-01 | 3.0 min
+[s6/cs/s7 [ambient]] poly 3: LM stalled (held-out 6.51e+00, best 4.40e+00)
+[s6/cs/s7 [ambient]] poly 3: held-out loss 5.86e+00 >= 1e-16 -> climb
+[s6/cs/s7 [ambient]] RESULT (poly 3): ACS NOT certified | CS no (adv sup |N| vs 1e-06) | adv |K^2+P| 2.48e+00 | corrected N mean nan max nan | adv N sup 1.863e+01 | chart cs 4.036e+00 (table before 9.87)
