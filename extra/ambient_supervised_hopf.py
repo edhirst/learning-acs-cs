@@ -295,6 +295,14 @@ def build_base(geo, n, base_from, base_sign, Jt_fn, tag, mode=None):
             'nij_mean': nij_norm(geo, base_fn, xb).mean().item(),
             'rel_dist_to_target': ((base_fn(xb) - Jt_fn(xb)).norm(dim=(1, 2))
                                    / Jt_fn(xb).norm(dim=(1, 2))).mean().item()}
+    if n == 2:
+        # S³×S¹: the conjugation never leaves the base's homotopy class, and these classes differ by a
+        # Hopf invariant (π₃(S²) = ℤ, extra/hopf_invariant.py; independent of c). Nonzero: J_t is unreachable.
+        from extra.hopf_invariant import relative_class
+        info['hopf_invariant'], _ = relative_class(base_fn, Jt_fn)
+        if info['hopf_invariant'] != 0:
+            print(f"[{tag}] WARNING: base not homotopic to the target (relative Hopf invariant "
+                  f"{info['hopf_invariant']}): no conjugation reaches J_t", flush=True)
     return base_fn, info, mode
 
 
@@ -402,17 +410,22 @@ def main():
     opt = torch.optim.Adam(model.parameters(), lr=args.lr)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=steps, eta_min=args.lr_min)
     state_path = os.path.join(args.out, 'state.pt')
-    start, elapsed_prev = 0, 0.0
+    start, elapsed_prev, st = 0, 0.0, None
     if os.path.exists(state_path):
         st = torch.load(state_path, map_location='cpu', weights_only=False)
+        if st['sched'].get('T_max') not in (None, steps):     # the cosine period is part of the run
+            raise SystemExit(f"[{tag}] --steps {steps} differs from the checkpoint's schedule "
+                             f"(T_max {st['sched']['T_max']}); resume with the original --steps")
         model.load_state_dict(st['model']); opt.load_state_dict(st['opt']); sched.load_state_dict(st['sched'])
         start, elapsed_prev = st['step'], st['elapsed']
         print(f"[{tag}] resumed at step {start}", flush=True)
     t0 = time.time()
     elapsed = lambda: elapsed_prev + time.time() - t0
     def save_state(s):    # atomic: a kill mid-write (timeout, scheduler time limit) never truncates state.pt
+        # the RNG state and the held-out set make a resumed run identical to an uninterrupted one
         torch.save({'model': model.state_dict(), 'opt': opt.state_dict(),
-                    'sched': sched.state_dict(), 'step': s, 'elapsed': elapsed()}, state_path + '.tmp')
+                    'sched': sched.state_dict(), 'step': s, 'elapsed': elapsed(),
+                    'torch_rng_state': torch.get_rng_state(), 'x_val': x_val}, state_path + '.tmp')
         os.replace(state_path + '.tmp', state_path)
     progress = open(os.path.join(args.out, 'progress.jsonl'), 'a')
     if start == 0:
@@ -421,6 +434,11 @@ def main():
         print(f"[{tag}] init {ev0}", flush=True)
 
     x_val = geo.sample(1500)
+    if st is not None:
+        if st.get('x_val') is not None:
+            x_val = st['x_val']
+        if st.get('torch_rng_state') is not None:
+            torch.set_rng_state(st['torch_rng_state'])
     for step in range(start, steps):
         x = geo.sample(args.batch)
         loss, info = unit_loss(geo, J_fn, Jt_fn, x, args)

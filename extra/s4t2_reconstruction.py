@@ -178,7 +178,8 @@ def filling_radius(pd, at_inf=False, n_ang=64):
         Pi = pd.Pi_inf(t) if at_inf else pd.Pi(t)
         om = omega(Pi[:, 1, 1], Pi[:, 1, 2])
         hr = height_ratio(pd, t, at_inf)
-        if (om.abs().min() > 0) and bool(((hr >= 0.5) & (hr <= 1.5)).all()):
+        one_sign = bool((om > 0).all()) or bool((om < 0).all())
+        if one_sign and bool(((hr >= 0.5) & (hr <= 1.5)).all()):
             ok_eps = float(r)
         else:
             break
@@ -198,14 +199,20 @@ def log_transform_xi(pd, ab, k=0):
     return (torch.linalg.inv(R) @ rhs.unsqueeze(-1)).squeeze(-1)
 
 
-def certify(pd, eps_frac=0.5, seed=20261004):
+def certify(pd, eps_frac=0.5, seed=20261004, eps=None):
+    """Certificate of the period data `pd`. The regular-part tests run on the annulus
+    eps*eps_frac <= |t| <= 1/(eps*eps_frac) and the disc tests inside it, with eps the
+    data's own filling radius, or `eps` if given: pass a common eps to compare two sets
+    of period data on the same annulus (their own radii differ, and the transition
+    discrepancies grow with the tested range)."""
     rng = np.random.default_rng(seed)
     rep = {'data': pd.as_dict()}
     rep['chirality_0'], rep['chirality_inf'] = pd.chirality()
     rep['det_normalised_min'] = min_det_adversarial(pd)
     eps0, epsi = filling_radius(pd, False), filling_radius(pd, True)
     rep['filling_eps_0'], rep['filling_eps_inf'] = eps0, epsi
-    eps = max(1e-6, min(eps0, epsi))
+    eps = max(1e-6, min(eps0, epsi)) if eps is None else float(eps)
+    rep['annulus_eps'] = eps
     # complex structure on the regular part (annulus between the two filling discs)
     tt = sample_annulus(3000, eps * eps_frac, 1 / (eps * eps_frac), rng)
     ab = torch.tensor(np.stack([tt.real, tt.imag], 1), dtype=DTYPE)

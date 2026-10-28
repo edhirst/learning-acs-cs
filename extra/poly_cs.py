@@ -116,7 +116,9 @@ def run_poly_cs(args, geo, base_fn, base_info, tag, log_fn, elapsed):
                                 lam0=lam, jac_fn=jac)
             with torch.no_grad():
                 fld.W.copy_(W)
-            lam = max(lg[-1]['lam'], 1e-8)
+            # carry the damping to the next round, capped: a round that ended saturated
+            # (lam >= 1e12 takes no step in lm_minimise) must not freeze every later round
+            lam = min(max(lg[-1]['lam'], 1e-8), 1e6)
             n2, c2 = _held_out(fld, man)
             rec = {'phase': 'poly_lm', 'degree': fld.label, 'round': rnd + 1, 'n_points': n_pts,
                    'train_loss': lg[-1]['loss'], 'lm_iters': len(lg) - 1, 'N2': n2, 'C2': c2,
@@ -153,7 +155,8 @@ def run_poly_cs(args, geo, base_fn, base_info, tag, log_fn, elapsed):
                 print(f"[{tag}] poly {fld.label}: ACCEPT (held-out loss {score:.2e}, adversarial sup "
                       f"|N(J*)| {advN:.2e} < {args.poly_adv_tol:g})", flush=True)
                 entry['accepted'] = True
-                break
+                best = (score, fld)      # return the ACCEPTED rung, even if an earlier
+                break                    # rung had a lower score but failed the sup test
             print(f"[{tag}] poly {fld.label}: held-out loss {score:.2e} but adversarial sup |N(J*)| "
                   f"{advN:.2e} >= {args.poly_adv_tol:g} -> climb", flush=True)
             prev = fld
@@ -249,7 +252,7 @@ def run_polar_ladder(args, geo, base_fn, base_info, tag, log_fn, elapsed):
                                        lam0=lam, cg_iters=args.cg_iters)
             with torch.no_grad():
                 fld.W.copy_(W)
-            lam = max(lg[-1]['lam'], 1e-10)
+            lam = min(max(lg[-1]['lam'], 1e-10), 1e6)   # capped, see run_poly_cs
             n2, c2 = held_out(fld)
             with torch.no_grad():                       # cheap dense admissibility check
                 xd = man.sample(4000)
@@ -259,7 +262,7 @@ def run_polar_ladder(args, geo, base_fn, base_info, tag, log_fn, elapsed):
             if rolled:                                  # smaller steps, firmer gauge
                 with torch.no_grad():
                     fld.W.copy_(W_prev)
-                lam = max(lam, 1e-3) * 100.0
+                lam = min(max(lam, 1e-3) * 100.0, 1e6)
                 wg = min(wg * 2.0, 10.0)
             rec = {'degree': deg, 'round': rnd + 1, 'n_points': n_pts, 'train_loss': lg[-1]['loss'],
                    'N2': n2, 'C2': c2, 'adv_acs_sup': a, 'gauge': wg, 'rolled_back': rolled,
@@ -378,7 +381,7 @@ def run_conjpoly_ladder(args, geo, base_fn, base_info, tag, log_fn, elapsed):
             W, lg = lm_minimise(res, fld.W.detach(), caches, n_iter=args.polar_lm_iters, lam0=lam, jac_fn=jac)
             with torch.no_grad():
                 fld.W.copy_(W)
-            lam = max(lg[-1]['lam'], 1e-10)
+            lam = min(max(lg[-1]['lam'], 1e-10), 1e6)   # capped, see run_poly_cs
             n2 = held_out(fld)
             with torch.no_grad():                       # sampled-sup proxy on 2000 fresh points
                 xq = man.sample(2000)

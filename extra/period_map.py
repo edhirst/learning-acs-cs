@@ -144,8 +144,20 @@ def tau_residual(pm, G, P1, P2, a):
     return r
 
 
+def tau_jacobian(pm, G, P1, P2, a):
+    """Complex Jacobian d r / d a of `tau_residual` (r is holomorphic in a):
+    r1 = tau(g1 Z) - 1 + 1/tau(Z), r2 = tau(g2 Z) + 1/tau(Z), tau = Z + B(Z) a."""
+    B1, B1g = pm.basis(P1), pm.basis(mobius(G.g1, P1))
+    B2, B2g = pm.basis(P2), pm.basis(mobius(G.g2, P2))
+    t1, t2 = pm.tau(P1, a), pm.tau(P2, a)
+    return np.concatenate([B1g - B1 / t1[:, None] ** 2, B2g - B2 / t2[:, None] ** 2])
+
+
 def solve_tau(pm, G, P1, P2, iters=60, lam=1e-3, log=None):
-    """Levenberg-Marquardt in the real and imaginary parts of the coefficients."""
+    """Levenberg-Marquardt in the real and imaginary parts of the coefficients,
+    with the exact Jacobian. (Until 2026-10-25 a central finite difference with
+    step 1e-7 was used: the basis (q/q0)^n reaches ~1e6 on the collocation set
+    at n ~ 30, and the difference quotient then failed for K >= 28.)"""
     def F(x):
         a = x[: pm.K + 1] + 1j * x[pm.K + 1:]
         r = tau_residual(pm, G, P1, P2, a)
@@ -153,11 +165,8 @@ def solve_tau(pm, G, P1, P2, iters=60, lam=1e-3, log=None):
     x = np.concatenate([pm.a.real, pm.a.imag])
     r = F(x); L = r @ r
     for it in range(iters):
-        h = 1e-7
-        J = np.empty((len(r), len(x)))
-        for k in range(len(x)):                     # residual is analytic: exact-enough FD via complex step
-            e = np.zeros_like(x); e[k] = h
-            J[:, k] = (F(x + e) - F(x - e)) / (2 * h)
+        Jc = tau_jacobian(pm, G, P1, P2, x[: pm.K + 1] + 1j * x[pm.K + 1:])
+        J = np.block([[Jc.real, -Jc.imag], [Jc.imag, Jc.real]])     # d(Re r, Im r)/d(Re a, Im a)
         g = J.T @ r; A = J.T @ J
         while lam < 1e12:
             dx = -np.linalg.solve(A + lam * np.diag(np.diag(A) + 1e-30), g)

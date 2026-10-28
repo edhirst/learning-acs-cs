@@ -14,6 +14,11 @@ from src.geometry import EvenSphere, RADIAL_MIDPOINT
 from src.models import TwoPatchAlmostComplexNet, PatchSubNet
 from src.loss import NijenhuisTensorLoss, OverlapLoss, TotalLoss
 
+# The samplers return float64 since 1e56116 ("Fixing dtype"), and train.py casts
+# the networks to the configured precision. Run the suite in float64 throughout,
+# so that freshly built networks match the sampled points.
+torch.set_default_dtype(torch.float64)
+
 
 class TestSphereGeometry:
     """Tests for ball-patch sphere geometry."""

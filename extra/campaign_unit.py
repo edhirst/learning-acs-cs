@@ -235,9 +235,9 @@ class PolyNet(nn.Module):
 
 class CurriculumNet(nn.Module):
     """Spectral curriculum field: K̃ = poly(x) + mlp(x). Phase 1 trains the
-    polynomial alone (mlp frozen, initialised tiny) — climbing the HARMONIC
-    LADDER of feature classes (see LADDER) until the field certifies; phase 2
-    trains both."""
+    polynomial alone with the network SWITCHED OFF (`mlp_on = False`), so each
+    rung of the HARMONIC LADDER (see LADDER) is a pure polynomial field; phase 2
+    switches the network on (initialised small, `out_scale_mlp`) and trains both."""
 
     def __init__(self, n_in, n_mat, hidden, out_scale_poly=0.3, out_scale_mlp=0.02,
                  feat='lin', blocks=None):
@@ -245,9 +245,11 @@ class CurriculumNet(nn.Module):
         self.poly = PolyNet(n_in, n_mat, out_scale_poly, feat=feat, blocks=blocks)
         self.mlp = Net(n_in, n_mat, 1, hidden, out_scale_mlp)
         self.n_mat, self.stages = n_mat, 1
+        self.mlp_on = True
 
     def forward(self, x):
-        return self.poly(x) + self.mlp(x)
+        out = self.poly(x)
+        return out + self.mlp(x) if self.mlp_on else out
 
 
 def conjugator(B, conj='exp'):
@@ -478,9 +480,12 @@ def orientation_index(geo, K_fn, x):
     |o| = sqrt(det(I + A^T A)) / 2^{d/2} >= 1 (singular values of A pair as s, 1/s)
     and sign(o) is the complex orientation of A. At an orientation wall K ~ 0 and
     o ~ 0."""
-    E = oriented_tangent_frame(geo, x)
     K = K_fn(x)
-    om = torch.einsum('bpa,bpq,bqc->bac', E, K.transpose(1, 2) - K, E)
+    if geo.kind == 'frame':             # frame components: the global frame is orthonormal
+        om = K.transpose(1, 2) - K
+    else:
+        E = oriented_tangent_frame(geo, x)
+        om = torch.einsum('bpa,bpq,bqc->bac', E, K.transpose(1, 2) - K, E)
     return pfaffian(om) / 2.0 ** (geo.d // 2)
 
 
@@ -563,11 +568,15 @@ def tangential(geo, x, g):
     return torch.cat(parts, dim=1)
 
 
-def adversarial_sup(geo, r_fn, n_starts=256, steps=150, lr=0.02):
+def adversarial_sup(geo, r_fn, n_starts=256, steps=150, lr=0.02, return_all=False):
     """Riemannian gradient ASCENT of a per-sample residual r(x) from many
     starts: returns (max r found, argmax point). A sampled sup can miss a
     small defect core (S⁴!); the ascent finds it: at a degenerate point K
-    has a real eigenvalue and ‖K²+Id_T‖ ≥ 1."""
+    has a real eigenvalue and ‖K²+Id_T‖ ≥ 1. The starts are the n_starts worst
+    of 32·n_starts uniform samples; each step moves a per-start length along the
+    normalised tangent gradient, kept only if r increases (length ×1.2 on success,
+    ×0.5 on failure, clamped to [1e-6, 0.3]). `return_all`: return the residuals
+    and points of EVERY ascended start instead of the best one."""
     # starts = the worst points of a large sample (sampling + ascent combined)
     xs = geo.sample(32 * n_starts)
     with torch.no_grad():
@@ -586,6 +595,8 @@ def adversarial_sup(geo, r_fn, n_starts=256, steps=150, lr=0.02):
         x = torch.where(improved.unsqueeze(1), x_new.detach(), x)
         r_cur = torch.where(improved, r_new, r_cur)
         step = torch.where(improved.unsqueeze(1), step * 1.2, step * 0.5).clamp(1e-6, 0.3)
+    if return_all:
+        return r_cur.detach(), x.detach()
     k = int(r_cur.argmax())
     return r_cur[k].item(), x[k].detach()
 
@@ -773,6 +784,22 @@ def dense_eval(geo, task, J_fn, n, chunk=500):
             'nij_mean': nij.mean().item(), 'nij_sup': nij.max().item()}
 
 
+def conjugator_report(geo, g_fn, n_dense, adv_starts=128, adv_steps=75):
+    """Invertibility of a conjugator field g(x) (ambient CS conjugation units).
+    J = g J_b g⁻¹ is an exact ACS wherever g is invertible, but ‖N_J‖ grows like
+    ‖g⁻¹‖² near a singular g, which the algebraic residual cannot see. Reports
+    the smallest singular value of g on n_dense fresh points and the smallest
+    one found by adversarial ascent of −log σ_min(g). (g is the identity on the
+    normal space, so σ_min ≤ 1.)"""
+    def neg_log_smin(x):
+        return -torch.log(torch.linalg.svdvals(g_fn(x))[:, -1].clamp_min(1e-300))
+    with torch.no_grad():
+        smin = torch.cat([torch.linalg.svdvals(g_fn(xc))[:, -1]
+                          for xc in torch.split(geo.sample(n_dense), 500)])
+    adv, _ = adversarial_sup(geo, neg_log_smin, adv_starts, adv_steps)
+    return {'g_sigma_min_dense': smin.min().item(), 'g_sigma_min_adv': float(np.exp(-adv))}
+
+
 def full_report(geo, task, J_fn, meta, n_dense, n_chart, adv_starts=256, adv_steps=150):
     """Dense + ADVERSARIAL evaluation. Certification of an ACS requires the
     adversarial sup of ‖K²+Id_T‖ to be < 1 (then the polar correction is an
@@ -820,6 +847,8 @@ def run_poly_unit(args, geo, base_fn, base_info, tag, table_before):
                os.path.join(args.out, 'final.pt'))
     meta = {'exact_acs': args.cs_mode == 'conjpoly'}      # conjpoly returns J itself
     rep = full_report(geo, 'cs', K_fn, meta, args.n_dense, args.n_chart, args.adv_starts, args.adv_steps)
+    if meta['exact_acs']:
+        rep['certified_exact_acs'] = True                     # exact by construction
     result = {'case': args.case, 'task': 'cs', 'seed': args.seed, 'formulation': geo.kind,
               'cs_mode': args.cs_mode, 'degree': field.label, 'n_params': field.W.numel(),
               'model_type': 'poly_field', 'feat': f'poly{field.label}', 'ladder': ladder,
@@ -832,7 +861,6 @@ def run_poly_unit(args, geo, base_fn, base_info, tag, table_before):
     corr = rep.get('corrected', {})
     if meta['exact_acs']:
         corr = rep['dense']
-        rep['certified_exact_acs'] = True                     # exact by construction
     print(f"[{tag}] RESULT ({args.cs_mode} {field.label}): "
           f"{'exact ACS by construction' if meta['exact_acs'] else ('ACS CERTIFIED' if rep.get('certified_exact_acs') else 'ACS NOT certified')} | "
           f"CS {'YES' if rep['adv_nij_sup'] < args.poly_adv_tol else 'no'} (adv sup |N| vs {args.poly_adv_tol:g}) | adv |K^2+P| "
@@ -859,7 +887,8 @@ def main():
                     help='cs: tail-aware batches = uniform half + worst of a pool + a hard set of '
                          'adversarially ascended points (refreshed every --tail-refresh steps)')
     ap.add_argument('--tail-refresh', type=int, default=500)
-    ap.add_argument('--tail-hard', type=int, default=24, help='number of adversarial points per batch')
+    ap.add_argument('--tail-hard', type=int, default=24, help='number of adversarially ascended points per batch '
+                         '(tail_hard // 8 ascents of 8 starts and 20 steps; every ascended start is kept)')
     ap.add_argument('--lr', type=float, default=1e-3, help='initial Adam lr (use ~3e-4 for warm starts)')
     ap.add_argument('--init-from', default=None,
                     help='cs: warm start from the final.pt of a previous unit of the same case/architecture')
@@ -1051,6 +1080,12 @@ def main():
                              'stages': stages, 'kind': geo.kind}[k]:
                 raise ValueError(f"--init-from mismatch on '{k}': checkpoint {ck.get(k)!r} vs unit "
                                  f"{ {'case': args.case, 'task': args.task, 'hidden': hidden, 'stages': stages, 'kind': geo.kind}[k]!r}")
+        if ck.get('conj') is not None and ck.get('conj') != args.conj:
+            raise ValueError(f"--init-from mismatch on 'conj': checkpoint {ck.get('conj')!r} vs unit {args.conj!r}")
+        if ck.get('base_from') and args.base_from and \
+                os.path.realpath(ck['base_from']) != os.path.realpath(args.base_from):
+            raise ValueError(f"--init-from mismatch on 'base_from': checkpoint {ck['base_from']!r} vs unit "
+                             f"{args.base_from!r}")
         model.load_state_dict(ck['model'])
         prev = os.path.join(args.init_from, 'result.json')
         prev_res = json.load(open(prev)) if os.path.exists(prev) else {}
@@ -1064,6 +1099,7 @@ def main():
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=steps, eta_min=1e-5)
     start_step, elapsed_prev, init_info, poly_done = 0, 0.0, None, False
     ladder_log = []
+    poly_snapshot = None             # the retained polynomial rung (network off), for the refinement guard
     if os.path.exists(state_path):
         st = torch.load(state_path, map_location='cpu', weights_only=False)
         expected_state = {'case': args.case, 'task': args.task, 'seed': args.seed,
@@ -1082,6 +1118,7 @@ def main():
         start_step, elapsed_prev, init_info = st['step'], st['elapsed'], st.get('init')
         poly_done = st.get('poly_done', False)
         ladder_log = st.get('ladder_log', [])
+        poly_snapshot = st.get('poly_snapshot')
         if st.get('torch_rng_state') is not None:
             torch.set_rng_state(st['torch_rng_state'])
         if st.get('numpy_rng_state') is not None:
@@ -1105,12 +1142,14 @@ def main():
                     'feat': feat_used, 'case': args.case, 'task': args.task,
                     'seed': args.seed, 'hidden': hidden, 'stages': stages, 'kind': geo.kind,
                     'elapsed': elapsed(), 'init': init_info, 'ladder_log': ladder_log,
+                    'poly_snapshot': poly_snapshot,
                     'torch_rng_state': torch.get_rng_state(),
                     'numpy_rng_state': np.random.get_state()}, state_path)
 
     # Phase 1 (ACS): polynomial field only (MLP frozen), climbing the harmonic
     # ladder; optional annealed intrinsic Dirichlet term λ(t): λ0 → λ1.
     if curriculum and not poly_done and start_step == 0:
+        model.mlp_on = False                 # pure polynomial rungs (network off until phase 2)
         classes = [args.feat] if args.feat != 'auto' else ladder_classes(len(geo.dims))
         best = None
         # Per class: attempt 1 = plain residual flow; attempt 2 (only if
@@ -1176,6 +1215,11 @@ def main():
         if best is not None and best[0] >= 1.0:          # nothing certified: keep the least bad
             model.poly = PolyNet(N, n_mat, out_scale, feat=best[1], blocks=blocks).to(DTYPE)
             model.poly.load_state_dict(best[2])
+        if best is not None:
+            poly_snapshot = {'state': {k: v.detach().clone() for k, v in model.poly.state_dict().items()},
+                             'adv': ladder_log[-1]['adv_acs_sup'] if accepted else best[0],
+                             'accepted': bool(accepted)}
+        model.mlp_on = True                  # phase 2: polynomial + network
         feat_used = model.poly.feat
         J_fn, meta = make_field(geo, args.task, model, base_fn=base_fn, conj=args.conj)
         opt = torch.optim.Adam(model.parameters(), lr=args.lr)
@@ -1194,10 +1238,12 @@ def main():
         else (lambda x: nij_norm(geo, J_fn, x).detach())
 
     def refresh_hard_set():
+        # tail_hard points: tail_hard // 8 ascents of 8 starts each, keeping EVERY ascended
+        # start (before 2026-10-25 only the best start of each ascent was kept: 3 points, not 24)
         pts = []
         for _ in range(max(1, args.tail_hard // 8)):
-            _, xa = adversarial_sup(geo, cs_residual, n_starts=8, steps=20)
-            pts.append(xa.unsqueeze(0))
+            _, xa = adversarial_sup(geo, cs_residual, n_starts=8, steps=20, return_all=True)
+            pts.append(xa)
         return torch.cat(pts, dim=0)
 
     for step in range(start_step, steps):
@@ -1258,10 +1304,16 @@ def main():
             snapshot = {k: v.clone() for k, v in model.state_dict().items()}
             lb = torch.optim.LBFGS(model.parameters(), lr=1.0, max_iter=n_it,
                                    history_size=100, line_search_fn='strong_wolfe')
+            # torch's L-BFGS tolerances (gradient 1e-7, change 1e-9, curvature y·s > 1e-10) are
+            # ABSOLUTE: at ACS losses of 1e-10..1e-8 it stopped after about one iteration. The
+            # chunk minimises its objective divided by the starting value, so they act relatively.
+            l_ref = float(unit_loss(geo, args.task, J_fn, xf, fast=fast)[0].detach())
+            scale = 1.0 / l_ref if np.isfinite(l_ref) and l_ref > 0 else 1.0
 
             def closure():
                 lb.zero_grad()
                 l, _ = unit_loss(geo, args.task, J_fn, xf, fast=fast)
+                l = l * scale
                 l.backward()
                 return l
             try:
@@ -1270,20 +1322,45 @@ def main():
                 print(f"[{tag}] LBFGS chunk failed ({type(e).__name__}); reverting", flush=True)
                 model.load_state_dict(snapshot)
                 break
+            lb_state = lb.state[lb._params[0]]
+            iters_run, func_evals = int(lb_state.get('n_iter', 0)), int(lb_state.get('func_evals', 0))
             val = val_loss()
-            reverted = val > best_val
+            reverted = (not np.isfinite(val)) or val > best_val       # a NaN chunk is reverted too
             if reverted:
                 model.load_state_dict(snapshot)
             else:
                 best_val = val
             done += n_it
-            rec = {'phase': 'lbfgs', 'iters_done': done, 'val_loss': val, 'best_val': best_val,
-                   'reverted': reverted, 'elapsed_min': elapsed() / 60.0}
+            rec = {'phase': 'lbfgs', 'iters_done': done, 'iters_run': iters_run, 'func_evals': func_evals,
+                   'val_loss': val, 'best_val': best_val, 'reverted': reverted,
+                   'elapsed_min': elapsed() / 60.0}
             lbfgs_log.append(rec)
             progress.write(json.dumps(rec) + '\n'); progress.flush()
-            print(f"[{tag}] lbfgs {done:5d}/{args.lbfgs} | held-out loss {val:.3e} (best {best_val:.3e})"
-                  f"{' REVERTED' if reverted else ''}", flush=True)
+            print(f"[{tag}] lbfgs {done:5d}/{args.lbfgs} ({iters_run} its, {func_evals} evals) | held-out loss "
+                  f"{val:.3e} (best {best_val:.3e}){' REVERTED' if reverted else ''}", flush=True)
         save_state(steps)
+
+    # Refinement guard (ACS curriculum): when a polynomial rung was ACCEPTED, keep the network
+    # refinement only if it lowers that rung's adversarial residual. When the rung is already
+    # nearly exact (e.g. the linear class on S^3 x S^1, |K^2+P| ~ 1e-8), Adam's fixed-size steps
+    # can only move the field away from it; the guard then restores the polynomial and zeroes the
+    # network's last layer (so the saved field is the polynomial, with the same checkpoint layout).
+    # Without an accepted rung (S^4) the refinement is the search's best effort and is always kept.
+    refinement = None
+    if args.task == 'acs' and curriculum and poly_snapshot is not None and poly_snapshot.get('adv') is not None:
+        adv_ref, _ = adversarial_sup(geo, lambda x: acs_residual(geo, J_fn, x),
+                                     max(32, args.adv_starts // 4), max(30, args.adv_steps // 3))
+        guarded = bool(poly_snapshot.get('accepted', True))
+        refinement = {'adv_polynomial': poly_snapshot['adv'], 'adv_refined': adv_ref,
+                      'polynomial_accepted': guarded,
+                      'kept': bool((not guarded) or adv_ref < poly_snapshot['adv'])}
+        if not refinement['kept']:
+            model.poly.load_state_dict(poly_snapshot['state'])
+            with torch.no_grad():
+                model.mlp.net[-1].weight.zero_()
+                model.mlp.net[-1].bias.zero_()
+        print(f"[{tag}] refinement {'kept' if refinement['kept'] else 'REVERTED to the polynomial rung'} "
+              f"(adversarial |K^2+P|: polynomial {poly_snapshot['adv']:.3e}, refined {adv_ref:.3e})", flush=True)
 
     model_type = 'curriculum' if curriculum else 'mlp'
     torch.save({'model': model.state_dict(), 'case': args.case, 'task': args.task,
@@ -1294,12 +1371,15 @@ def main():
 
     rep = full_report(geo, args.task, J_fn, meta, args.n_dense, args.n_chart,
                       args.adv_starts, args.adv_steps)
+    if args.task == 'cs' and geo.kind == 'ambient' and meta['exact_acs'] and hasattr(model, 'stages'):
+        rep['conjugator'] = conjugator_report(geo, make_conjugation(geo, model, args.conj), args.n_dense,
+                                              args.adv_starts // 2, args.adv_steps // 2)
     result = {'case': args.case, 'task': args.task, 'seed': args.seed,
               'formulation': geo.kind, 'hidden': hidden, 'stages': stages,
               'model_type': model_type, 'feat': feat_used, 'conj': args.conj,
               'cs_scale': args.cs_scale, 'fast_cs': bool(args.fast_cs),
               'ladder': ladder_log, 'base': base_info, 'init_from': init_from_info,
-              'tail': bool(args.tail), 'lr': args.lr, 'lbfgs': lbfgs_log,
+              'tail': bool(args.tail), 'lr': args.lr, 'lbfgs': lbfgs_log, 'refinement': refinement,
               'steps_done': min(step + 1, steps), 'steps_planned': steps,
               'stopped_by_wall': stopped_by_wall, 'elapsed_min': elapsed() / 60.0,
               'init': init_info, 'exact_acs_by_construction': meta['exact_acs'],

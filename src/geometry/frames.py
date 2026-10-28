@@ -74,7 +74,11 @@ class ProductFrame:
         raise NotImplementedError
 
     def structure_functions(self, x: torch.Tensor) -> torch.Tensor:
-        """c[b, a, b_, c_] with [E_a, E_b_] = c^{c_}_{a b_} E_{c_}, by autograd.
+        """c[b, c_, a, b_] = c^{c_}_{a b_} with [E_a, E_b_] = c^{c_}_{a b_} E_{c_}, by autograd:
+        upper index FIRST, the layout `src/loss/frame_loss.py` expects. (Before
+        2026-10-25 the upper index came last; that agreed only for totally
+        antisymmetric structure constants, e.g. the Lie frames of S³×S³ and S³×S¹,
+        and gave wrong frame torsion on S⁵×S¹ for non-constant J.)
 
         Ambient bracket [E_a, E_b] = (DE_b)·E_a − (DE_a)·E_b, where DE is the
         ambient Jacobian of the frame-field map (any smooth ambient extension
@@ -97,7 +101,7 @@ class ProductFrame:
         rhs = bracket.reshape(B, d * d, N).transpose(1, 2)                # (B, N, d²)
         sol = torch.linalg.lstsq(Emat, rhs).solution                      # (B, dim, d²)
         c = sol.transpose(1, 2).reshape(B, d, d, d)                       # c[b, a, b_, c_]
-        return c
+        return c.permute(0, 3, 1, 2).contiguous()                         # c[b, c_, a, b_]
 
 
 class LieFrameS3xS3(ProductFrame):
