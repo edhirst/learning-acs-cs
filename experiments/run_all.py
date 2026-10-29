@@ -146,7 +146,7 @@ def jobs():
     J.append(script('offline_checks', os.path.join(EXP, 'offline_checks.py'),
                     '--out', run_dir('offline_checks'), '--acs-root', RUNS,
                     deps=[f'acs_{c}_s7' for c in CASES if c != 's4'], minutes=5))
-    # ---- F. S^4 x T^2: reconstruction on the fibration model of [HSSS26] (Figure 5, Table 6) and
+    # ---- F. S^4 x T^2: reconstruction of the supplied period model (Figure 5, Table 6) and
     # the T^2-invariant reduction to S^4 (Appendix B): ACS + free-field CS, MLP conjugation, polynomial
     # generator. Commands as run by hand on 2026-10-04.
     J.append(script('s4t2_reconstruction', os.path.join(EXP, 's4t2_reconstruct.py'),

@@ -1,10 +1,10 @@
-"""Reconstruction of the complex structure on S^4 x T^2 of [HSSS26] on its
-fibration model, and physics-informed recovery of admissible period data
+"""Reconstruction of the supplied S^4 x T^2 period model on its fibration
+model, and physics-informed recovery of admissible period data
 (extra/s4t2_reconstruction.py).
 
     .venv/bin/python experiments/s4t2_reconstruct.py --out outputs/paper_rerun/runs/s4t2_reconstruction
 
-Writes certificate.json (certificate of the data of [HSSS26] and of the best
+Writes certificate.json (certificate of the supplied data and of the best
 learned data), learned.json (all random starts) and grids.npz (normalised
 determinant over C*, chirality and height-ratio curves) for the figures.
 """
@@ -52,7 +52,7 @@ def main():
     t0 = time.time()
     paper = PeriodData.paper()
     report = {'paper': certify(paper)}
-    print(f"[HSSS26] data: certified sup {report['paper']['certified_sup']:.2e}, "
+    print(f"supplied data: certified sup {report['paper']['certified_sup']:.2e}, "
           f"min normalised det {report['paper']['det_normalised_min']:.3f}, "
           f"filling eps {report['paper']['filling_eps_0']:.3g} / {report['paper']['filling_eps_inf']:.3g}", flush=True)
     learned = []
@@ -92,7 +92,7 @@ def main():
                 'N_disc_inf_max', 'certified_sup')
         report['common_annulus'] = {nm: {k: c[k] for k in keys} for nm, c in
                                     (('paper', certify(paper, eps=eps_c)), ('learned_best', certify(pd_best, eps=eps_c)))}
-        print(f"common annulus (eps {eps_c:.3g}): certified sup [HSSS26] "
+        print(f"common annulus (eps {eps_c:.3g}): certified sup, supplied "
               f"{report['common_annulus']['paper']['certified_sup']:.2e}, learned "
               f"{report['common_annulus']['learned_best']['certified_sup']:.2e}", flush=True)
     report['elapsed_min'] = (time.time() - t0) / 60

@@ -1,6 +1,6 @@
-"""Numerical reconstruction of the complex structure on S^4 x T^2 of [HSSS26]
-(E. Hirst, T. Schettini Gherardini, T. S. R. Silva, J. Stein, "An explicit
-complex structure on S^4 x T^2", 2026), in the style of extra/s6_reconstruction.py.
+"""Numerical reconstruction, on its fibration model, of the complex structure
+given by the supplied S^4 x T^2 period model (the explicit period model of the
+paper), in the style of extra/s6_reconstruction.py.
 
 Model over C*_t. The fibres are the 2-tori X_t = C^2/Lambda_t (additive
 coordinates (z, w), zeta = e^{iz}) with
@@ -16,15 +16,15 @@ Period data. Holomorphy of the chart change at t = inf,
 Theta_lam(zeta, w, t) = (zeta e^{lam w/t}, w/t^2, 1/t), together with the
 Mumford-Tate hypothesis (H1) at both cusps, forces the shape
     eb_j = a_j + c_j t^2,   alpha_j = -lam c_j t   (j = 2, 3),   eb_4 = b_4 t,
-with lam > 0 and a_j, c_j, b_4, beta in C; [HSSS26] is lam = 1,
+with lam > 0 and a_j, c_j, b_4, beta in C; the supplied model is lam = 1,
 (a_2, a_3) = (1, i), (c_2, c_3) = (-1, i), b_4 = 2, beta = 0 (and its
-deformations (lam, beta) there). The remaining requirements are
+deformations in (lam, beta)). The remaining requirements are
     (H2) omega(eb_2, eb_3) != 0 near both cusps, with OPPOSITE chirality:
          omega(a_2, a_3) > 0 > omega(c_2, c_3);
     (ND) det_R(e1, e2, e3, e4)(t) > 0 for every t in C*.
 `learn_period_data` finds such data from a random start by Levenberg-Marquardt
 on a barrier for (ND) and (H2) at resampled points of C* (a feasibility
-problem: no target values, no formula from the paper); `certify` checks the
+problem: no target values, no formula from the supplied model); `certify` checks the
 resulting structure on the model.
 """
 from __future__ import annotations    # PEP 563 — for Python 3.8 HPC compatibility
@@ -157,8 +157,8 @@ def min_det_adversarial(pd, n=4000, steps=60, L=7.0, seed=0):
 
 
 def height_ratio(pd, t, at_inf=False):
-    """P(t)/log|t| at the cusp (Mumford-Tate Step 0): P = -det_R/(2 pi omega(eb2, eb3))
-    for the lattice of the filling at that cusp ([HSSS26], Lemma 2.2 and Rem. 4.4)."""
+    """P(t)/log|t| at the cusp (the filling condition): P = -det_R/(2 pi omega(eb2, eb3))
+    for the lattice of the filling at that cusp."""
     Pi = pd.Pi_inf(t) if at_inf else pd.Pi(t)
     R = torch.stack([Pi[:, 0].real, Pi[:, 0].imag, Pi[:, 1].real, Pi[:, 1].imag], 1)
     det = torch.linalg.det(R)
@@ -277,7 +277,7 @@ def learn_period_data(seed=0, delta=0.05, rounds=40, n_pts=512, L=7.0, lam=1.0, 
                       maximise=True, grow=1.15, max_steps=60):
     """Feasibility by Levenberg-Marquardt: residuals relu(delta - q(t)) on resampled
     t in C* (q = normalised det_R), relu(delta -/+ chirality) and a scale gauge
-    |a|^2 + |c|^2 = 4. Random start; no values from [HSSS26]. With `maximise`, the
+    |a|^2 + |c|^2 = 4. Random start; no values from the supplied model. With `maximise`, the
     margin delta is then raised geometrically while the problem stays feasible
     (the robust, well-conditioned admissible data), and the last feasible data
     are returned."""

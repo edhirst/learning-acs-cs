@@ -191,7 +191,7 @@ def collect(mf):
                 'largest deck discrepancy')
             put(f'T6.{m}.blend_N_max', max(v for k, v in c.items() if k.startswith('blend_') and k.endswith('_max')),
                 'blended-overlap N')
-            put(f'T6.{m}.D_max', c.get('D_max'), 'max of D (must be < 0)')
+            put(f'T6.{m}.D_max', c.get('D_max_on_domain'), 'max of D on the domain (must be < 0)')
     st = jload('reconstruction_K', 'done.json')
     if st:
         put('5.2.q0', st.get('qmax'), 'reconstruction_K: qmax (basis scale q0)')

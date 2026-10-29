@@ -1,13 +1,10 @@
 """Unbiased search for a T^2-INVARIANT complex structure on the round S^4 x T^2.
 
-Symmetry ansatz informed by [HSSS26] (Hirst, Schettini Gherardini, Silva,
-Stein, "An explicit complex structure on S^4 x T^2", 2026): their complex
-threefold Y carries a free holomorphic T^2-action, Y = W x T^2 as principal
-T^2-bundles with W diffeomorphic to S^4, and the diffeomorphism with
-S^4 x T^2 can be chosen T^2-equivariant. Hence the round S^4 x T^2 carries an
-integrable J that is invariant under the translations of the T^2 factor. Only
-this symmetry is used; the fibration, the periods and the fillings of [HSSS26]
-are not.
+Symmetry ansatz: J is assumed invariant under the translations of the T^2
+factor, an ansatz motivated by the supplied period model
+(extra/s4t2_reconstruction.py). Whether the round S^4 x T^2 carries an
+integrable J with this symmetry is not established. Only the symmetry is used;
+the fibration, the periods and the fillings of that model are not.
 
 Reduced ambient model. A T^2-invariant field on S^4 x T^2 is a field on S^4 with
 values in End(TS^4 + R^2), R^2 spanned by the unit Killing fields d/dtheta_1,2

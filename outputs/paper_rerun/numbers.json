@@ -1477,8 +1477,8 @@
   "source": "blended-overlap N"
  },
  "T6.S6.D_max": {
-  "value": null,
-  "source": "max of D (must be < 0)"
+  "value": -4.138142405674468,
+  "source": "max of D on the domain (must be < 0)"
  },
  "T6.S2xS4.acs_residual_max": {
   "value": 4.066475824632993e-15,
@@ -1505,8 +1505,8 @@
   "source": "blended-overlap N"
  },
  "T6.S2xS4.D_max": {
-  "value": null,
-  "source": "max of D (must be < 0)"
+  "value": -4.138142405674468,
+  "source": "max of D on the domain (must be < 0)"
  },
  "5.2.q0": {
   "value": 0.15621312889311342,

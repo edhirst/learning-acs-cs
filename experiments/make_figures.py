@@ -1028,7 +1028,7 @@ def tab_chart():
 def tab_summary():
     known = {'s2': ('yes', 'yes'), 's1xs1': ('yes', 'yes'), 's4': ('no', 'no'), 's2xs2': ('yes', 'yes'),
              's3xs1': ('yes', 'yes'), 's6': ('yes', r'yes \cite{AC26,Engel26}'), 's3xs3': ('yes', 'yes'),
-             's5xs1': ('yes', 'yes'), 's4xs2': ('yes', r'yes \cite{LLZ26,GFL26}'), 's4xs1xs1': ('yes', r'yes \cite{HSSS26}')}
+             's5xs1': ('yes', 'yes'), 's4xs2': ('yes', r'yes \cite{LLZ26,GFL26}'), 's4xs1xs1': ('yes', r'yes \cite{Gao:2026tyy}')}
     cert = jload('reconstruction', 'certificate.json')
     lines = []
     for c in CASES:
@@ -1199,10 +1199,10 @@ def fig_s4t2_recon():
     cb.outline.set_visible(False); cb.ax.tick_params(labelsize=6, color=MUTED, labelcolor=INK2)
     ax.set_xlabel(r'$\log|t|$', fontsize=7); ax.set_ylabel(r'$\arg t$', fontsize=7)
     ax.set_yticks([-np.pi, 0, np.pi]); ax.set_yticklabels([r'$-\pi$', '0', r'$\pi$'])
-    ax.set_title(r'normalised $\det_{\mathbb{R}}$, [HSSS26]', fontsize=7.5)
+    ax.set_title(r'normalised $\det_{\mathbb{R}}$, supplied periods', fontsize=7.5)
     ax.grid(False)
     ax = axes[1]
-    for key, col, lab in (('det_paper', BLUE, 'data of [HSSS26]'), ('det_learned', ORANGE, 'learned data')):
+    for key, col, lab in (('det_paper', BLUE, 'supplied data'), ('det_learned', ORANGE, 'learned data')):
         if key in g:
             ax.plot(g['U'][:, 0], g[key].min(axis=1), color=col, lw=1.2, label=lab)
     ax.axhline(0, color=MUTED, lw=0.8)
@@ -1212,14 +1212,14 @@ def fig_s4t2_recon():
     ax = axes[2]
     r = g['ratio_r']
     ax.axhspan(0.5, 1.5, color='#eef4fc', zorder=0)
-    for key, col, lab in (('ratio_paper_0', BLUE, '[HSSS26], cusp 0'), ('ratio_paper_inf', BLUE, r'[HSSS26], cusp $\infty$'),
+    for key, col, lab in (('ratio_paper_0', BLUE, 'supplied, cusp 0'), ('ratio_paper_inf', BLUE, r'supplied, cusp $\infty$'),
                           ('ratio_learned_0', ORANGE, 'learned, cusp 0'), ('ratio_learned_inf', ORANGE, r'learned, cusp $\infty$')):
         if key in g:
             ls = '-' if key.endswith('_0') else (0, (3, 1.5))
             ax.plot(r, g[key][:, 1], color=col, lw=1.1, ls=ls, label=lab)
     ax.set_xscale('log'); ax.set_ylim(0.9, 2.0)
     ax.set_xlabel(r'$|t|$ (resp. $|s|$)', fontsize=7); ax.set_ylabel(r'$\max\,P/\log|t|$', fontsize=6.5)
-    ax.set_title('filling condition (Step 0)', fontsize=7.5)
+    ax.set_title('filling condition', fontsize=7.5)
     ax.legend(loc='upper left', fontsize=5.6)
     save(fig, 'fig_s4t2_recon')
 
@@ -1242,7 +1242,7 @@ def tab_s4t2_recon():
             ('chart_infinity_consistency_max', r'chart change $\Theta$ at $\infty$, consistency$^\ast$'),
             ('log_transform_consistency_max', r'logarithmic transform $\Phi$, consistency$^\ast$'),
             ('certified_sup', r'\textbf{certified sup (starred rows)}')]
-    cols = [('paper', '[HSSS26]'), ('learned_best', 'learned')]
+    cols = [('paper', 'supplied'), ('learned_best', 'learned')]
     lines = []
     for k, lab in rows:
         vals = []
