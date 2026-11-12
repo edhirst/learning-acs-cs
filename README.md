@@ -133,10 +133,15 @@ The first command finds an almost complex structure on S²×S², and the second 
 ## Citation
 
 ```bibtex
-@misc{HirstSchettiniGherardiniSilvaStein2026,
-  author = {Hirst, Edward and Schettini Gherardini, Tancredi and Silva, Tom{\'a}s S. R. and Stein, Jakob},
-  title  = {Learning Almost Complex and Complex Structures},
-  year   = {2026}
+@article{Hirst:2026kcp,
+    author = "Hirst, Edward and Schettini Gherardini, Tancredi and Silva, Tom{\'a}s S. R. and Stein, Jakob",
+    title = "{Learning Almost Complex and Complex Structures}",
+    eprint = "2611.03872",
+    archivePrefix = "arXiv",
+    primaryClass = "math.CV",
+    reportNumber = "MPIM-Bonn-2026",
+    month = "11",
+    year = "2026"
 }
 ```
 
